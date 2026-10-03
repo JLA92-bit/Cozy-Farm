@@ -444,3 +444,5 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 #ui-root.mode-place .hud-bottom *, #ui-root.mode-tray .hud-bottom * { pointer-events: none !important; }
 .hud-bottom { transition: opacity .2s, transform .2s; }
 .goal-card:empty { display: none; }
+.mode-banner { pointer-events: none !important; }
+.mode-banner .banner-x { pointer-events: auto !important; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: -10px -12px -10px 6px; }

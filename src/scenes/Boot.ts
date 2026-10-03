@@ -12,6 +12,8 @@ import { FarmScene } from './FarmScene';
 import { Interaction } from './Interaction';
 import { ui } from '../ui/UI';
 import '../ui/panels';
+import { offlineSummary, hasNews } from '../systems/Offline';
+import { openWelcome } from '../ui/panels/WelcomePanel';
 
 function setProgress(f: number, text?: string): void {
   const fill = document.querySelector<HTMLElement>('.boot-fill');
@@ -63,6 +65,7 @@ export async function boot(): Promise<void> {
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;
 
+  const away = fresh ? null : offlineSummary(data.lastSeen);
   setProgress(0.88, 'Waking the animals...');
   await scene.env.populate();
   // complete anything that finished while the game was closed
@@ -75,6 +78,7 @@ export async function boot(): Promise<void> {
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
+  if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away), 600);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
 }

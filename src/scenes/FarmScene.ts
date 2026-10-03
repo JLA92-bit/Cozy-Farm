@@ -42,7 +42,7 @@ export class FarmScene implements InputHandler {
   constructor(readonly canvas: HTMLCanvasElement, readonly renderer: Renderer) {
     this.rig = new CameraRig(window.innerWidth / window.innerHeight);
     this.rig.bounds.set(new THREE.Vector2(-HALF + 2, -HALF + 2), new THREE.Vector2(HALF - 2, HALF - 2));
-    this.rig.target.set(0, 0, 2);
+    this.rig.target.set(-3, 0, -2);
     this.env = new Environment(this.scene, renderer.profile.shadowMapSize, renderer.profile.ambientLife);
     this.farm = new FarmView(this.scene);
     this.input = new Input(canvas, this);

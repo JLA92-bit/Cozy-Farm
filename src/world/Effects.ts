@@ -80,6 +80,7 @@ export class Effects {
     const box = new THREE.Box3().setFromObject(mesh);
     const size = box.getSize(new THREE.Vector3());
     const s = scale / Math.max(size.x, size.y, size.z, 0.01);
+    mesh.traverse((o) => { (o as THREE.Mesh).castShadow = false; });
     mesh.scale.setScalar(0.01);
     mesh.position.copy(pos);
     this.group.add(mesh);

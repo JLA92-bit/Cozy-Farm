@@ -272,9 +272,9 @@ class UIManager {
     if (!text) return;
     this.banner = h('div', { class: 'mode-banner outlined' }, text);
     if (onClose) {
-      this.banner.style.cursor = 'pointer';
-      this.banner.append(h('span', { style: 'margin-left:10px' }, '✕'));
-      this.banner.addEventListener('click', () => onClose());
+      const x = h('span', { class: 'banner-x' }, '✕');
+      x.addEventListener('click', () => onClose());
+      this.banner.append(x);
     }
     this.root.append(this.banner);
   }
