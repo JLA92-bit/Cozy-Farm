@@ -13,6 +13,17 @@
       { "gems": 5, "crate": "rare", "big": true }
     ]
   },
+  "collection": {
+    "_comment": "Finishing a Collection Book page pays this once.",
+    "pages": {
+      "Crops": { "gems": 3, "crate": "rare" },
+      "Fruit": { "gems": 3, "crate": "rare" },
+      "Animal goods": { "gems": 3, "crate": "rare" },
+      "Animals": { "gems": 3, "crate": "rare" },
+      "Goods": { "gems": 8, "crate": "epic" },
+      "Styles": { "gems": 8, "crate": "epic" }
+    }
+  },
   "crates": {
     "rarities": ["common", "rare", "epic", "legendary"],
     "rolls": { "common": 2, "rare": 3, "epic": 3, "legendary": 4 },

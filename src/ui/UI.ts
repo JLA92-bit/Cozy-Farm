@@ -337,7 +337,14 @@ class UIManager {
       if (!land.expand(chunk)) { this.feedback.toast(land.canExpand().reason ?? '', undefined, 'lock'); audio.play('error'); return; }
       this.world.hidePopup();
     }, check.ok ? 'small' : 'small disabled');
-    this.world.showPopup(c, this.card('Land for sale', h('div', { class: 'card-sub' }, check.ok ? `+${LAND.expansion.xp} XP. ${LAND.obstacles.perLockedChunk} wild spots to clear.` : check.reason!), btn));
+    // when you can't buy yet, show exactly how close you are
+    const short = game.level >= next.level && game.coins < next.cost;
+    const goal = short ? h('div', { class: 'progress', style: 'margin-top:2px;align-self:stretch;min-width:160px' },
+      h('div', { class: 'fill', style: `width:${Math.min(100, (game.coins / Math.max(1, next.cost)) * 100)}%` }),
+      h('div', { class: 'label' }, `${fmt(game.coins)}/${fmt(next.cost)}`)) : null;
+    const sub = check.ok ? `+${LAND.expansion.xp} XP. ${LAND.obstacles.perLockedChunk} wild spots to clear, each with a little treasure.`
+      : short ? `${fmt(next.cost - game.coins)} more coins to go!` : `Opens at level ${next.level}. Keep farming!`;
+    this.world.showPopup(c, this.card(`Land for sale${game.state.land.bought ? '' : ' - your first!'}`, h('div', { class: 'card-sub' }, sub), goal, btn));
   }
 
   private isPurchasable(chunk: string): boolean {

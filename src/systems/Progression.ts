@@ -304,6 +304,36 @@ export function collectionEntries(): CollectionEntry[] {
   return out;
 }
 
+/** Collection Book pages: finishing every entry on a page pays a one-off reward. */
+export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles'] as const;
+type PageReward = { gems?: number; crate?: string };
+let bookCache: CollectionEntry[] | null = null;
+export const book = {
+  entries(): CollectionEntry[] { return (bookCache ??= collectionEntries()); },
+  reward(page: string): PageReward { return (REWARDS.collection.pages as Record<string, PageReward>)[page] ?? {}; },
+  progress(page: string): { found: number; total: number } {
+    let found = 0, total = 0;
+    for (const e of this.entries()) if (e.group === page) { total++; if (game.state.collection[e.key]) found++; }
+    return { found, total };
+  },
+  claimed(page: string): boolean { return game.state.seen.bookPages.includes(page); },
+  claimable(page: string): boolean {
+    if (this.claimed(page)) return false;
+    const { found, total } = this.progress(page);
+    return total > 0 && found >= total;
+  },
+  claimableCount(): number { let n = 0; for (const p of BOOK_PAGES) if (this.claimable(p)) n++; return n; },
+  claim(page: string): PageReward | null {
+    if (!this.claimable(page)) return null;
+    const r = this.reward(page);
+    game.state.seen.bookPages.push(page);
+    if (r.gems) game.addGems(r.gems);
+    if (r.crate) { game.state.crates.push(r.crate); game.bus.emit('crate:granted', { rarity: r.crate }); }
+    game.bus.emit('sfx', { name: 'reward' });
+    return r;
+  },
+};
+
 /** Mark cosmetics that are now unlocked as discovered. */
 export function syncCosmeticDiscovery(isUnlocked: (id: string, unlock: { level?: number; achievement?: string; default?: boolean }) => boolean): void {
   for (const c of [...COSMETICS.hats, ...COSMETICS.accessories, ...COSMETICS.pets]) {
@@ -335,7 +365,26 @@ export class EventSystem {
       game.state.stats.event_tokens_start = game.stat('event_tokens');
       // event quests track progress from the start of the event
       for (const q of e.quests) game.state.stats[`event_start_${q.stat}`] = game.stat(q.stat);
+      game.bus.emit('toast', { title: `${e.name} is here!`, sub: 'Festival quests and treats await. Tap the Event button!', icon: e.icon, style: 'gold' });
     }
+  }
+  /** Event quests that are finished but not yet claimed. */
+  claimable(): number {
+    const e = this.current, st = game.state.event;
+    if (!e || !st) return 0;
+    let n = 0;
+    for (let i = 0; i < e.quests.length; i++) if (!st.questsClaimed.includes(i) && this.questProgress(i) >= e.quests[i].n) n++;
+    return n;
+  }
+  /** Milliseconds until the current event ends (end of its last day). */
+  timeLeft(now = game.now()): number {
+    const e = this.current;
+    if (!e) return 0;
+    const [em, ed] = e.end.split('-').map(Number);
+    const d = new Date(now);
+    let end = new Date(d.getFullYear(), em - 1, ed + 1).getTime();
+    if (end <= now) end = new Date(d.getFullYear() + 1, em - 1, ed + 1).getTime();
+    return end - now;
   }
   questProgress(i: number): number {
     const e = this.current;

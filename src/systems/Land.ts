@@ -1,5 +1,5 @@
 import { LAND } from '../data';
-import { CHUNK } from '../world/Grid';
+import { CHUNK, CHUNKS } from '../world/Grid';
 import { rng } from '../world/Procedural';
 import { game, type Vec } from './Game';
 import type { Obstacle } from './State';
@@ -19,6 +19,33 @@ export class LandSystem {
     if (game.level < level) return { ok: false, reason: `Reach level ${level}` };
     if (game.coins < cost) return { ok: false, reason: 'Not enough coins' };
     return { ok: true };
+  }
+
+  /** Locked chunks that touch the farm and can be bought next, nearest to the farm centre first. */
+  purchasableChunks(): string[] {
+    const out: { key: string; d: number }[] = [];
+    const unlocked = game.state.land.unlocked;
+    let sx = 0, sz = 0;
+    for (const k of unlocked) { const [x, z] = k.split(',').map(Number); sx += x; sz += z; }
+    const cx = sx / Math.max(1, unlocked.length), cz = sz / Math.max(1, unlocked.length);
+    for (let z = 0; z < CHUNKS; z++) for (let x = 0; x < CHUNKS; x++) {
+      const key = `${x},${z}`;
+      if (game.isUnlocked(key)) continue;
+      if (![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => game.isUnlocked(`${x + dx},${z + dz}`))) continue;
+      out.push({ key, d: Math.hypot(x - cx, z - cz) });
+    }
+    return out.sort((a, b) => a.d - b.d).map((o) => o.key);
+  }
+
+  /** Cheapest obstacle on land the player owns (for "clear an obstacle" nudges). */
+  easiestObstacle(): Obstacle | null {
+    let best: Obstacle | null = null, bestCost = Infinity;
+    for (const o of game.state.obstacles) {
+      if (!game.isUnlocked(`${Math.floor(o.x / CHUNK)},${Math.floor(o.z / CHUNK)}`)) continue;
+      const c = this.obstacleDef(o).clearCost;
+      if (c < bestCost) { best = o; bestCost = c; }
+    }
+    return best;
   }
 
   expand(chunk: string): boolean {

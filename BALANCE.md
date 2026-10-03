@@ -105,5 +105,8 @@ coins (max 25%). Villager count is 2 + Charm / 60 (max 8).
   crate).
 - Mystery crates roll an upgrade chance (common to legendary) and contain coins, gems, items, decorations or
   crate-only cosmetics.
+- Collection Book pages pay once when every entry on the page is found (`rewards.json` collection.pages):
+  Crops, Fruit, Animal goods and Animals give 3 gems and a rare crate; Goods and Styles give 8 gems and an epic
+  crate.
 - Seasonal events by calendar date (Harvest Festival, Winter Wonderland, Spring Blossom, Summer Fair): harvesting
   drops event tokens (12%) that buy limited decorations and cosmetics, plus 3 event quests.
