@@ -94,9 +94,23 @@ const unlockCard = (u: UnlockEntry, locked: boolean, onTry?: () => void, tag = t
 const TRY_SKILL: Record<string, Skill | undefined> = { Crop: 'plant', Tree: 'fruit', Animal: 'feed', Recipe: 'produce', Building: 'build', Orders: 'orders', Land: 'expand' };
 const levelQueue: number[] = [];
 let showingLevel = false;
+/** Fingers or mouse buttons currently down: the level-up screen waits for them to lift, so a harvest swipe can't tap it. */
+let pointersDown = 0;
+addEventListener('pointerdown', () => { pointersDown++; }, true);
+for (const ev of ['pointerup', 'pointercancel'] as const) addEventListener(ev, () => { pointersDown = Math.max(0, pointersDown - 1); }, true);
+addEventListener('blur', () => { pointersDown = 0; });
+
 export function showLevelUp(level: number): void {
   levelQueue.push(level);
-  if (!showingLevel) nextLevelUp();
+  if (showingLevel) return;
+  showingLevel = true;
+  const start = performance.now();
+  const wait = () => {
+    // wait for the swipe to end (plus a short beat), but never more than 4 s
+    if (pointersDown > 0 && performance.now() - start < 4000) { setTimeout(wait, 120); return; }
+    setTimeout(nextLevelUp, 250);
+  };
+  wait();
 }
 function nextLevelUp(): void {
   const level = levelQueue.shift();

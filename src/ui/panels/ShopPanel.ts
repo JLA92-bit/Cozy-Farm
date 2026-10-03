@@ -38,7 +38,8 @@ export function openShop(tab?: string): void {
   if (game.state.event) tabs.push({ id: 'event', label: 'Event', icon: ITEMS[eventTokenItem(game.state.event.id)]?.icon ?? 'party' });
   const p = new Panel({ title: 'Shop', icon: 'cart', tabs, color: 'green', wallet: true });
   p.onTab = (id) => { lastTab = id; render(p, id); };
-  const start = tab ?? lastTab;
+  // during the first-day tutorial the shop always opens on the Farm tab, where the Field is
+  const start = tab ?? (game.state.tutorial.done ? lastTab : TABS[0].id);
   if (start && tabs.some((t) => t.id === start)) p.tab = start;
   // little dots on tabs that hold something new for this level
   p.tabsEl?.querySelectorAll<HTMLElement>('.tab').forEach((t) => {

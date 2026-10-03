@@ -54,10 +54,17 @@ const plots = await ev(() => window.__game.state.buildings.filter((b) => b.type 
 for (const [px, pz] of plots) { const [a, b] = await tile(px, pz); await page.mouse.click(a, b); await wait(120); }
 await wait(800);
 log('harvested', JSON.stringify(await state()));
-// deliver order
+// deliver order (close the level-up screen the harvest may have opened first)
+for (let k = 0; k < 3; k++) {
+  const closed = await ev(() => { const b = [...document.querySelectorAll('.panel .btn')].find((x) => /^(Great!|OK|Awesome|Yay|Continue|Claim!)/.test(x.textContent?.trim() ?? '')) ?? document.querySelector('.close-btn'); b?.click(); return !!b; });
+  if (!closed) break;
+  await wait(700);
+}
+// the camera may have moved since: find the board again
+{ const p = await ev(() => { const b = window.__game.buildingsOf('order_board')[0]; const a = window.__scene.farm.anchor(b.uid); const q = window.__scene.project(a); return [q.x, q.y + 20]; }); ob[0] = p[0]; ob[1] = p[1]; }
 await page.mouse.click(ob[0], ob[1]);
 await wait(900);
-const deliver = await page.$('.panel .card.done .btn');
+const deliver = await page.$('.panel .card.done .btn:has-text("Deliver")');
 if (deliver) await deliver.click();
 await wait(700);
 await ev(() => document.querySelectorAll('.close-btn').forEach((b) => b.click()));
@@ -125,7 +132,7 @@ for (let cycle = 0; cycle < 40; cycle++) {
   // complete any orders possible
   await page.mouse.click(ob[0], ob[1]);
   await wait(500);
-  for (let k = 0; k < 4; k++) { const d = await page.$('.panel .card.done .btn'); if (!d) break; await d.click(); await wait(300); }
+  for (let k = 0; k < 4; k++) { const d = await page.$('.panel .card.done .btn:has-text("Deliver")'); if (!d) break; await d.click(); await wait(300); }
   await ev(() => document.querySelectorAll('.close-btn').forEach((b) => b.click()));
   await wait(400);
   // claim quests / levelups

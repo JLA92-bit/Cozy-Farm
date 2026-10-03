@@ -332,7 +332,8 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .toast {
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; min-height: 56px;
   background: var(--cream); border: 3px solid var(--outline); border-radius: 16px; box-shadow: 0 4px 0 var(--outline);
-  pointer-events: auto;
+  /* plain toasts never block taps on the farm below; only toasts with an action (.tappable) catch taps */
+  pointer-events: none;
 }
 .toast .icon { width: 40px; height: 40px; flex: 0 0 40px; }
 .toast .t-title { font-family: var(--font-display); font-size: 15px; }
