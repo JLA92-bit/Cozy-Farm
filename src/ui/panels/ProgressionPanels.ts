@@ -7,6 +7,7 @@ import { game } from '../../systems/Game';
 import { achievements, book, BOOK_PAGES, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
 import { actionForStat, actionForUnlock } from '../../systems/Goals';
 import { audio, haptics } from '../../systems/Audio';
+import { hints, type Skill } from '../../systems/Hints';
 import { eventTokenItem } from '../../systems/Farming';
 import { cosmeticUnlocked, unlockText } from './CharacterPanel';
 import { formatTime } from '../../systems/Timers';
@@ -80,15 +81,17 @@ function showActiveTab(p: Panel): void {
   if (t && p.tabsEl) p.tabsEl.scrollLeft = Math.max(0, t.offsetLeft - (p.tabsEl.clientWidth - t.offsetWidth) / 2);
 }
 
-const unlockCard = (u: UnlockEntry, locked: boolean, onTry?: () => void) => {
+const unlockCard = (u: UnlockEntry, locked: boolean, onTry?: () => void, tag = true) => {
   const c = h('div', { class: `card ${locked ? 'locked' : ''} ${onTry ? 'clickable' : ''}`, style: 'width:104px' },
     locked ? h('div', { class: 'lock-tag' }, `Lv ${u.level}`) : null, icon(u.icon, 'card-icon'), h('div', { class: 'card-title', style: 'font-size:13px' }, u.name), h('div', { class: 'card-sub' }, u.kind),
-    onTry ? h('div', { class: 'try-tag outlined' }, 'Try it!') : null);
+    onTry && tag ? h('div', { class: 'try-tag outlined' }, 'Try it!') : null);
   if (onTry) c.addEventListener('click', onTry);
   return c;
 };
 
 // ======================================================================== level up
+/** Unlock kinds the player already knows how to use once they have done this. */
+const TRY_SKILL: Record<string, Skill | undefined> = { Crop: 'plant', Tree: 'fruit', Animal: 'feed', Recipe: 'produce', Building: 'build', Orders: 'orders', Land: 'expand' };
 const levelQueue: number[] = [];
 let showingLevel = false;
 export function showLevelUp(level: number): void {
@@ -119,7 +122,9 @@ function nextLevelUp(): void {
   };
   if (now.length) {
     p.body.append(h('div', { class: 'section-title center' }, 'New for you'));
-    p.body.append(h('div', { class: 'unlock-strip' }, ...now.slice(0, 8).map((u) => unlockCard(u, false, tryIt(u)))));
+    // "Try it!" is for kinds of things that are new to the player; cards stay tappable either way
+    const tryTag = (u: UnlockEntry) => hints.mode === 'all' || hints.firstTime(`try:${u.kind}`, TRY_SKILL[u.kind]);
+    p.body.append(h('div', { class: 'unlock-strip' }, ...now.slice(0, 8).map((u) => unlockCard(u, false, tryIt(u), tryTag(u)))));
     if (now.length > 8) p.body.append(h('div', { class: 'muted center', style: 'margin-top:6px' }, `and ${now.length - 8} more!`));
   }
   if (level < MAX_LEVEL) {
@@ -605,7 +610,7 @@ export function wireProgressionNotes(): void {
       const next = land.nextExpansion();
       if (wild.length) {
         const easiest = wild.reduce((a, b) => (land.obstacleDef(b).clearCost < land.obstacleDef(a).clearCost ? b : a));
-        ui.feedback.toast(`${wild.length} wild spots to clear`, 'Each one hides a little treasure. Tap to start!', land.obstacleDef(easiest).icon);
+        ui.feedback.toast(`${wild.length} wild spots to clear`, hints.coach('clear') ? 'Each one hides a little treasure. Tap to start!' : 'Tap to start', land.obstacleDef(easiest).icon);
         tapLastToast(() => runGoalAction({ obstacle: easiest.id }, true));
       }
       if (land.purchasableChunks().length) ui.feedback.toast('More land later', game.level >= next.level ? `Next plot: ${fmt(next.cost)} coins` : `Next plot opens at level ${next.level}`, 'map');

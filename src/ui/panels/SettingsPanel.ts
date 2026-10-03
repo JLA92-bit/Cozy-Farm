@@ -11,6 +11,7 @@ import credits from '../../../CREDITS.md?raw';
 import { tutorial } from '../Tutorial';
 import { onlineSettingsSection } from './OnlineSettings';
 import { openWhatsNew, whatsNewPending } from './WhatsNewPanel';
+import { hints, HINT_MODES } from '../../systems/Hints';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -56,6 +57,7 @@ export function openSettings(): void {
       return seg;
     })()),
     row('Show FPS', toggle(settings.showFps, (v) => { settings.showFps = v; saveSettings(settings); ui.setFps(v); })),
+    hintsRow(),
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),
       button([icon('farmer'), 'Edit'], () => { p.close(); ui.open('character'); }, 'small blue'))),
   );
@@ -86,6 +88,29 @@ function whatsNewButton(): HTMLElement {
   b.style.position = 'relative';
   if (whatsNewPending()) b.append(h('span', { class: 'badge-dot' }));
   return b;
+}
+
+const HINT_NOTE: Record<string, string> = {
+  all: 'Tips for the basics until you know them, and a short intro to new things.',
+  new: 'Just a short intro the first time you get something new.',
+  off: 'No tips. You can replay the first-day tips below.',
+};
+
+/** "Helpful hints: All / New things only / Off". */
+function hintsRow(): HTMLElement {
+  const note = h('div', { class: 'muted hint-note' }, HINT_NOTE[hints.mode]);
+  const seg = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': 'Helpful hints' });
+  for (const m of HINT_MODES) {
+    const b = h('button', { class: hints.mode === m.id ? 'active' : '', role: 'radio', 'aria-checked': String(hints.mode === m.id) }, m.label);
+    b.addEventListener('click', () => {
+      hints.setMode(m.id);
+      seg.querySelectorAll('button').forEach((x) => { x.classList.toggle('active', x === b); x.setAttribute('aria-checked', String(x === b)); });
+      note.textContent = HINT_NOTE[m.id];
+      audio.play('select');
+    });
+    seg.append(b);
+  }
+  return h('div', { class: 'setting-row stack' }, h('label', null, 'Helpful hints'), seg, note);
 }
 
 function confirmImport(data: SaveData): void {

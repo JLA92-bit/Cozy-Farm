@@ -11,6 +11,7 @@ import { formatTime, isBuilt, settleProduction } from '../../systems/Timers';
 import type { PlacedBuilding } from '../../systems/State';
 import { sourceText } from './InventoryPanel';
 import './economy.css';
+import { hints } from '../../systems/Hints';
 
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
@@ -151,7 +152,7 @@ export function openProduction(b: PlacedBuilding): void {
           const c = production.canQueue(b, r.id);
           if (c.reason === 'Missing ingredients') {
             const miss = Object.entries(r.in).filter(([i, n]) => game.count(i) < n).map(([i, n]) => `${n - game.count(i)} ${ITEMS[i].name} (${sourceText(i)})`);
-            detail.textContent = `Need ${miss.join(', ')}. Tap a red item to find it.`;
+            detail.textContent = `Need ${miss.join(', ')}.${hints.coach('produce') ? ' Tap a red item to find it.' : ''}`;
             detail.dataset.sticky = '1';
           }
           ui.feedback.toast(c.reason ?? 'Cannot make', undefined, 'cross');

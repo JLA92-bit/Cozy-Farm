@@ -8,6 +8,7 @@ import { game } from '../systems/Game';
 import type { PlacedBuilding } from '../systems/State';
 import { isBuilt, plotReady, treeReady } from '../systems/Timers';
 import { audio, haptics } from '../systems/Audio';
+import { hints } from '../systems/Hints';
 import { HALF, MAP, chunkOf, footprintCenter, inMap, rotatedSize, worldToTile } from '../world/Grid';
 import { ghostMaterial, objectFor, visualFor, footprintMesh, tintGhost } from '../world/Visuals';
 import type { FarmScene, WorldHandler } from './FarmScene';
@@ -263,7 +264,7 @@ export class Interaction implements WorldHandler {
   private plantOne(b: PlacedBuilding, crop: string, combo: number): boolean {
     const check = farming.canPlant(b, crop);
     if (!check.ok) {
-      if (check.reason === 'Not enough coins') { ui.feedback.toast(`Need ${CROP[crop].seedCost} coins for ${CROP[crop].name}`, 'Sell some goods to earn more', 'coin'); audio.play('error'); }
+      if (check.reason === 'Not enough coins') { ui.feedback.toast(`Need ${CROP[crop].seedCost} coins for ${CROP[crop].name}`, hints.coach('orders') ? 'Sell some goods to earn more' : undefined, 'coin'); audio.play('error'); }
       else if (check.reason) { ui.feedback.toast(check.reason, undefined, 'cross'); audio.play('error'); }
       return false;
     }
@@ -313,7 +314,7 @@ export class Interaction implements WorldHandler {
     this.cancelPlacement();
     this.mode = { kind: 'edit' };
     this.scene.farm.terrain.gridLines.visible = true;
-    ui.setModeBanner('Build mode: tap a building to move it', () => this.exitEdit());
+    ui.setModeBanner(hints.explain('build_mode', 'move') ? 'Build mode: tap a building to move it' : 'Build mode', () => this.exitEdit());
   }
   exitEdit(): void {
     if (this.mode.kind === 'place') this.cancelPlacement();
@@ -461,7 +462,7 @@ export class Interaction implements WorldHandler {
   confirmPlacement(): void {
     const m = this.placing;
     if (!m) return;
-    if (!m.valid) { audio.play('error'); ui.feedback.toast("Can't place here", 'Find a free green spot', 'cross'); return; }
+    if (!m.valid) { audio.play('error'); ui.feedback.toast("Can't place here", hints.coach('build') ? 'Find a free green spot' : undefined, 'cross'); return; }
     if (m.uid) {
       if (!buildings.move(m.uid, m.x, m.z, m.rot)) { audio.play('error'); return; }
       this.endPlacement();

@@ -109,5 +109,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     debugTimeOffset: 0,
     weeklyXp: { week: '', xp: 0 },
     lastSeenVersion: APP_VERSION,
+    hints: { mode: '', intros: [] },
   };
 }

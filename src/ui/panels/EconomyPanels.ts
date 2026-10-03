@@ -5,6 +5,7 @@ import { BUILDING, ITEMS, ECONOMY } from '../../data';
 import { game } from '../../systems/Game';
 import { orders, truck, stall, merchant, requestedCount, type MerchantOffer } from '../../systems/Economy';
 import { audio, haptics } from '../../systems/Audio';
+import { hints } from '../../systems/Hints';
 import { formatTime, isBuilt } from '../../systems/Timers';
 import { addBubbleProvider } from '../Bubbles';
 import { sourceText } from './InventoryPanel';
@@ -46,6 +47,8 @@ function needPill(item: string, have: number, need: number): HTMLElement {
 export function openOrders(): void {
   orders.refresh();
   const p = new Panel({ title: 'Order Board', icon: 'clipboard', color: 'orange' });
+  // how orders work: while still learning, or once for players who skipped the tutorial
+  const explain = hints.explain('orders_panel', 'orders');
   let timer = 0;
   let confirmSkip = -1;
   let skipTimer = 0;
@@ -54,7 +57,7 @@ export function openOrders(): void {
     const now = game.now();
     const list = game.state.orders.list;
     const readyN = list.filter((o) => orders.canComplete(o)).length;
-    p.body.append(h('div', { class: 'econ-intro' }, icon(readyN ? 'check' : 'info', 'icon'),
+    if (readyN || explain) p.body.append(h('div', { class: 'econ-intro' }, icon(readyN ? 'check' : 'info', 'icon'),
       h('span', null, readyN ? `${readyN} order${readyN > 1 ? 's' : ''} ready to deliver!` : 'Orders pay much more than selling at the barn. Tap a red number to see where to get it.')));
     const grid = h('div', { class: 'grid order-grid' });
     for (const o of list) {
@@ -183,6 +186,7 @@ function stallWait(item: string, qty: number, price: number): number {
 export function openStall(): void {
   const p = new Panel({ title: 'Roadside Stall', icon: 'store', color: 'pink' });
   let timer = 0;
+  const explainStall = hints.explain('stall_panel', 'stall');
   let picking: number | null = null;
   const render = () => {
     clear(p.body);
@@ -191,7 +195,7 @@ export function openStall(): void {
     const slots = stall.ensureSlots();
     if (picking !== null) { renderPicker(picking); return; }
     const sold = stall.soldCount();
-    p.body.append(h('div', { class: 'econ-intro' }, icon(sold ? 'coin' : 'store', 'icon'),
+    if (sold || explainStall) p.body.append(h('div', { class: 'econ-intro' }, icon(sold ? 'coin' : 'store', 'icon'),
       h('span', null, sold ? `${sold} sold! Tap to collect your coins.` : 'Set your own price. Passers-by buy cheaper things sooner.')));
     const grid = h('div', { class: 'grid tight', style: 'grid-template-columns:repeat(auto-fill,minmax(110px,1fr))' });
     const now = game.now();

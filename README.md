@@ -38,6 +38,12 @@ The built assets in `public/assets` are committed, so you do not need to run the
 Other buttons: Shop, Build, Barn (inventory and storage), Quests, Awards, Book (collection), Me (character),
 Settings (gear). Tap the level badge for the unlock path. Tap the goal card for the next thing to do.
 
+**Helpful hints** (Settings): *All* coaches the basics (planting, swiping, orders...) until you have done each a few
+times, *New things only* (automatic from level 5) keeps just one short intro the first time you get something new
+(animals, production, fruit trees, the stall, the truck), *Off* hides both. Skills and thresholds live in
+`src/systems/Hints.ts`; `hints.coach(skill)`, `hints.firstTime(id)` and `hints.explain(id, skill)` are the hooks to use
+for new hint text.
+
 **Debug panel:** tap the level badge 5 times quickly. It can add currency/XP, skip time, finish timers, grant
 crates, show FPS and reset the save.
 

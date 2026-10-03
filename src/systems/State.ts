@@ -84,6 +84,8 @@ export interface SaveData {
   weeklyXp: { week: string; xp: number };
   /** Newest app version whose "What's new" page the player has seen (older saves count as 1.0.0). */
   lastSeenVersion: string;
+  /** Helpful hints: the player's chosen mode ('' = automatic) and one-time intros already shown. */
+  hints: { mode: '' | 'all' | 'new' | 'off'; intros: string[] };
 }
 
 export const SAVE_VERSION = 1;

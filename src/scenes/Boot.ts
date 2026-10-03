@@ -34,6 +34,7 @@ import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
+import { wireHintIntros } from '../systems/Hints';
 
 function setProgress(f: number, text?: string): void {
   const pct = `${Math.round(f * 100)}%`;
@@ -263,4 +264,5 @@ function wireProgression(): void {
   sideEntries.push(() => (game.state.crates.length ? { id: 'crates', icon: 'gift', label: `Crates`, color: 'purple', badge: true } : null));
   sideEntries.push(() => (events.current ? { id: 'event', icon: events.current.icon, label: 'Event', color: 'red', badge: events.claimable() > 0 } : null));
   wireProgressionNotes();
+  wireHintIntros();
 }

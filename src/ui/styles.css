@@ -826,3 +826,8 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .fh-row.next { box-shadow: 0 0 0 3px var(--btn-yellow); }
 .fh-row-lv { font-family: var(--font-display); font-size: 20px; color: #fff; width: 34px; flex: 0 0 34px; text-align: center; }
 .fh-row .icon { width: 24px; height: 24px; flex: 0 0 24px; }
+/* settings: helpful hints (label above a full-width choice) */
+.setting-row.stack { flex-wrap: wrap; }
+.setting-row.stack .segmented { flex: 1 1 100%; }
+.setting-row.stack .segmented button { flex: 1 1 auto; padding: 0 8px; }
+.setting-row.stack .hint-note { flex: 1 1 100%; font-size: 13px; }

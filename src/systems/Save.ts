@@ -32,6 +32,9 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   // saves from before versions were tracked have seen nothing new yet
   if (typeof s.lastSeenVersion !== 'string' || !/^\d+(\.\d+)*$/.test(s.lastSeenVersion)) out.lastSeenVersion = FIRST_VERSION;
   if (typeof out.weeklyXp.week !== 'string' || !Number.isFinite(out.weeklyXp.xp) || out.weeklyXp.xp < 0) out.weeklyXp = { ...base.weeklyXp };
+  out.hints = { ...base.hints, ...(isObj(s.hints) ? s.hints : {}) };
+  if (!['', 'all', 'new', 'off'].includes(out.hints.mode)) out.hints.mode = '';
+  out.hints.intros = strArr(out.hints.intros);
   return sanitize(out, base);
 }
 

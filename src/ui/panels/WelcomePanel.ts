@@ -4,6 +4,7 @@ import { h, icon, button } from '../dom';
 import type { OfflineSummary } from '../../systems/Offline';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
+import { hints } from '../../systems/Hints';
 
 /** "about 3 hours" style wording, kinder than an exact timer. */
 function awayText(ms: number): string {
@@ -32,11 +33,11 @@ export function openWelcome(s: OfflineSummary, onClose?: () => void): void {
   const list = h('div', { class: 'list' });
   const row = (ic: string, text: string, tag?: string) => list.append(h('div', { class: 'list-item' }, icon(ic, 'icon big'), h('div', { class: 'grow title' }, text), tag ? h('span', { class: 'pill' }, tag) : null));
   const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-  if (s.crops) row('wheat', `${plural(s.crops, 'field')} ready to harvest`, 'Swipe!');
+  if (s.crops) row('wheat', `${plural(s.crops, 'field')} ready to harvest`, hints.coach('swipe') ? 'Swipe!' : undefined);
   if (s.trees) row('apple', `${plural(s.trees, 'tree')} full of fruit`);
   if (s.animals) row('egg', `${plural(s.animals, 'animal product')} waiting`);
   if (s.goods) row('bread', `${plural(s.goods, 'finished good')} to collect`);
-  for (const b of s.built) row('construction', `${b} finished building`, 'Tap it!');
+  for (const b of s.built) row('construction', `${b} finished building`, hints.coach('build') ? 'Tap it!' : undefined);
   if (s.stallSold.length) row('store', `${plural(s.stallSold.length, 'stall sale')} (${s.stallSold.reduce((a, b) => a + b.coins, 0)} coins to collect)`);
   p.body.append(list);
   p.footer.append(button("Let's go!", () => p.close(), 'wide'));
