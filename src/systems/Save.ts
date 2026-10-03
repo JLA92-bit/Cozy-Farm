@@ -20,6 +20,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.daily = { ...base.daily, ...(s.daily ?? {}) };
   out.tutorial = { ...base.tutorial, ...(s.tutorial ?? {}) };
   out.seen = { ...base.seen, ...(s.seen ?? {}) };
+  // older saves: treat everything already in the book as seen
+  if (s.seen && s.seen.collectionSeenAt === undefined) out.seen.collectionSeenAt = Date.now() + (s.debugTimeOffset ?? 0);
   out.stall = { ...base.stall, ...(s.stall ?? {}) };
   out.merchant = { ...base.merchant, ...(s.merchant ?? {}) };
   out.orders = { ...base.orders, ...(s.orders ?? {}) };

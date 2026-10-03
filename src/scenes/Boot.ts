@@ -22,7 +22,8 @@ import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
 import { achievements, quests, daily, events, syncCosmeticDiscovery } from '../systems/Progression';
 import { nextGoal, type Goal } from '../systems/Goals';
-import { showLevelUp, openDaily, openUnlockTree } from '../ui/panels/ProgressionPanels';
+import { showLevelUp, openDaily, openUnlockTree, newDiscoveries, wireProgressionNotes } from '../ui/panels/ProgressionPanels';
+import { runGoalAction } from '../ui/GoalActions';
 import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
 import { Panel } from '../ui/Panel';
@@ -131,20 +132,12 @@ function wireProgression(): void {
   const refreshGoal = () => {
     goal = nextGoal();
     ui.hud.setGoal(goal.title, goal.text, goal.icon, goal.progress);
-    ui.hud.setBadge('quests', quests.claimable());
+    ui.hud.setBadge('quests', quests.claimable() + events.claimable());
+    ui.hud.setBadge('collection', newDiscoveries());
   };
   scene.onTick(() => refreshGoal());
   refreshGoal();
-  ui.register('__goal', () => {
-    if (!goal?.action) return;
-    if (goal.action.panel) ui.open(goal.action.panel, goal.action.arg);
-    else if (goal.action.focusUid) {
-      const a = scene.farm.anchor(goal.action.focusUid);
-      scene.rig.focus(a.x, a.z);
-      const v = scene.farm.views.get(goal.action.focusUid);
-      if (v) scene.farm.bounce(v);
-    }
-  });
+  ui.register('__goal', () => { if (goal?.action) runGoalAction(goal.action); });
   // level badge: tap = unlock path, 5 quick taps = debug panel
   let taps = 0, tapTimer = 0;
   ui.register('__levelbadge', () => {
@@ -172,5 +165,6 @@ function wireProgression(): void {
   });
   sideEntries.push(() => (daily.check() ? { id: 'daily', icon: 'calendar', label: 'Daily', color: 'yellow', badge: true } : null));
   sideEntries.push(() => (game.state.crates.length ? { id: 'crates', icon: 'gift', label: `Crates`, color: 'purple', badge: true } : null));
-  sideEntries.push(() => (events.current ? { id: 'event', icon: events.current.icon, label: 'Event', color: 'red' } : null));
+  sideEntries.push(() => (events.current ? { id: 'event', icon: events.current.icon, label: 'Event', color: 'red', badge: events.claimable() > 0 } : null));
+  wireProgressionNotes();
 }

@@ -335,7 +335,26 @@ export class EventSystem {
       game.state.stats.event_tokens_start = game.stat('event_tokens');
       // event quests track progress from the start of the event
       for (const q of e.quests) game.state.stats[`event_start_${q.stat}`] = game.stat(q.stat);
+      game.bus.emit('toast', { title: `${e.name} is here!`, sub: 'Festival quests and treats await. Tap the Event button!', icon: e.icon, style: 'gold' });
     }
+  }
+  /** Event quests that are finished but not yet claimed. */
+  claimable(): number {
+    const e = this.current, st = game.state.event;
+    if (!e || !st) return 0;
+    let n = 0;
+    for (let i = 0; i < e.quests.length; i++) if (!st.questsClaimed.includes(i) && this.questProgress(i) >= e.quests[i].n) n++;
+    return n;
+  }
+  /** Milliseconds until the current event ends (end of its last day). */
+  timeLeft(now = game.now()): number {
+    const e = this.current;
+    if (!e) return 0;
+    const [em, ed] = e.end.split('-').map(Number);
+    const d = new Date(now);
+    let end = new Date(d.getFullYear(), em - 1, ed + 1).getTime();
+    if (end <= now) end = new Date(d.getFullYear() + 1, em - 1, ed + 1).getTime();
+    return end - now;
   }
   questProgress(i: number): number {
     const e = this.current;

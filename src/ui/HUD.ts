@@ -93,11 +93,31 @@ export class HUD {
   }
   setGems(n: number): void { this.gemsVal.textContent = fmt(n); }
 
+  private goalKey = '';
+  private goalText: HTMLElement | null = null;
+  private goalBar: HTMLElement | null = null;
+
+  /** Update the goal card. Only rebuilds (with a little pop) when the goal itself changes. */
   setGoal(title: string, text: string, iconKey: string, progress?: number): void {
-    this.goal.replaceChildren(icon(iconKey), h('div', { class: 'goal-title' }, title), h('div', null, text));
+    const key = `${title}|${iconKey}|${progress === undefined ? '' : 'p'}`;
+    if (key === this.goalKey && this.goalText) {
+      if (this.goalText.textContent !== text) this.goalText.textContent = text;
+      if (this.goalBar && progress !== undefined) this.goalBar.style.width = `${Math.round(Math.min(1, progress) * 100)}%`;
+      return;
+    }
+    const first = !this.goalKey;
+    this.goalKey = key;
+    this.goalText = h('div', { class: 'goal-text' }, text);
+    this.goal.replaceChildren(icon(iconKey), h('div', { class: 'goal-title' }, title), this.goalText, h('span', { class: 'goal-go outlined' }, '›'));
+    this.goalBar = null;
     if (progress !== undefined) {
-      const bar = h('div', { class: 'goal-progress' }, h('div', { style: `width:${Math.round(progress * 100)}%` }));
-      this.goal.append(bar);
+      this.goalBar = h('div', { style: 'width:0%' });
+      this.goal.append(h('div', { class: 'goal-progress' }, this.goalBar));
+      const bar = this.goalBar, w = `${Math.round(Math.min(1, progress) * 100)}%`;
+      requestAnimationFrame(() => { bar.style.width = w; });
+    }
+    if (!first) {
+      gsap.fromTo(this.goal, { scale: 0.85 }, { scale: 1, duration: 0.45, ease: 'back.out(3)' });
     }
   }
 

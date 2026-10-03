@@ -78,7 +78,7 @@ export interface SaveData {
   crates: string[];
   event: { id: string; tokens: number; questsClaimed: number[]; bought: Record<string, number> } | null;
   tutorial: { step: number; done: boolean };
-  seen: { levelUnlocks: number; loginDays: string[] };
+  seen: { levelUnlocks: number; loginDays: string[]; /** Game time the collection book was last opened (newer discoveries show as New). */ collectionSeenAt: number };
   debugTimeOffset: number;
 }
 
