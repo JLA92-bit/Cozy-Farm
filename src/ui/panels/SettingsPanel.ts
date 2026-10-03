@@ -30,7 +30,10 @@ export function openSettings(): void {
   p.body.append(
     row('Music', slider(settings.music, (v) => { settings.music = v; audio.setMusicVolume(v); saveSettings(settings); })),
     row('Sound effects', slider(settings.sfx, (v) => { settings.sfx = v; audio.setSfxVolume(v); saveSettings(settings); audio.play('tap'); })),
-    row('Vibration', toggle(settings.haptics, (v) => { settings.haptics = v; haptics.enabled = v; saveSettings(settings); if (v) haptics.buzz(30); })),
+    row('Vibration', haptics.supported
+      ? toggle(settings.haptics, (v) => { settings.haptics = v; haptics.enabled = v; saveSettings(settings); if (v) haptics.play('success'); })
+      : h('span', { class: 'muted' }, 'Not on this device')),
+    row('Screen shake', toggle(settings.shake, (v) => { settings.shake = v; ui.scene.rig.shakeScale = v ? 1 : 0; saveSettings(settings); if (v) ui.scene.rig.shake(0.15, 0.3); })),
     row('Graphics', (() => {
       const seg = h('div', { class: 'segmented' });
       for (const q of ['low', 'medium', 'high'] as Quality[]) {

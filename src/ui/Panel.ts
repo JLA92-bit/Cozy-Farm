@@ -58,18 +58,18 @@ export class Panel {
     });
   }
 
-  setTab(id: string): void {
+  setTab(id: string, silent = false): void {
     this.tab = id;
     this.tabsEl?.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', (t as HTMLElement).dataset.tab === id));
     this.body.scrollTop = 0;
-    audio.play('page', { volume: 0.5 });
+    if (!silent) audio.play('page', { volume: 0.5 });
     this.onTab?.(id);
   }
 
   open(): this {
     Panel.root.append(this.overlay);
     Panel.stack.push(this);
-    if (this.tabsEl) this.setTab(this.tab);
+    if (this.tabsEl) this.setTab(this.tab, true);
     if (!this.footer.childElementCount) this.footer.style.display = 'none';
     gsap.fromTo(this.overlay, { opacity: 0 }, { opacity: 1, duration: 0.18 });
     gsap.fromTo(this.panel, { scale: 0.6, y: 30 }, { scale: 1, y: 0, duration: 0.42, ease: 'back.out(1.8)' });

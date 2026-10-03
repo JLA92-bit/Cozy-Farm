@@ -67,7 +67,7 @@ class UIManager {
       if (this.effects.active) scene.loop.wake(0.2);
     });
     scene.onTick((now) => { for (const fn of this.tickHooks) fn(now); });
-    uiHooks.press = () => { audio.play('press', { volume: 0.7 }); haptics.buzz(5); };
+    this.wirePressFeel(root);
     this.wireJuice();
     this.open = this.open.bind(this);
   }
@@ -92,25 +92,64 @@ class UIManager {
     return { x: p.x, y: p.y };
   }
 
+  /**
+   * Instant press response: a soft click + tiny haptic on pointerdown (not on click, which only
+   * fires on release) for everything tappable in the overlay. Disabled buttons wiggle "no".
+   */
+  private wirePressFeel(root: HTMLElement): void {
+    uiHooks.press = undefined;
+    const sel = '.btn, .tab, .card.clickable, .tray-item, .currency, .goal-card, .level-badge, .charm-pill, .bubble, .toggle, .segmented button, .opt-btn, .list-item.clickable';
+    root.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement | null)?.closest?.(sel) as HTMLElement | null;
+      if (!el || !root.contains(el)) return;
+      if ((el as HTMLButtonElement).disabled || el.classList.contains('disabled') || el.classList.contains('locked')) {
+        // locked things explain themselves on click (toast + error sound); disabled ones never click
+        if (!el.classList.contains('locked')) { audio.play('press', { volume: 0.5, rate: 0.7 }); haptics.play('tap'); }
+        el.classList.remove('nope');
+        void el.offsetWidth;
+        el.classList.add('nope');
+        return;
+      }
+      audio.play('press', { volume: 0.8, throttleMs: 30 });
+      haptics.play('tap');
+    }, { capture: true });
+    root.addEventListener('animationend', (e) => {
+      if ((e as AnimationEvent).animationName === 'nope') (e.target as HTMLElement).classList.remove('nope');
+    });
+  }
+
   // ------------------------------------------------------------------ juice
   private wireJuice(): void {
     const bus = game.bus;
+    // each icon that lands in a HUD counter ticks, rising in pitch; the last one gives a tiny buzz
+    this.feedback.onLand = (target, i, n) => {
+      if (target === 'coins') audio.tick(i, n);
+      else if (target === 'gems') audio.tick(i + 2, n, true);
+      else if (target === 'xp') audio.play('pop', { volume: 0.35, rate: 1.5, throttleMs: 60 });
+      else if (target === 'barn') audio.play('pop', { volume: 0.3, rate: 1.25, throttleMs: 80 });
+      if (i === n - 1 && (target === 'coins' || target === 'gems')) haptics.play('tap');
+    };
+    this.feedback.onLaunch = (target, n) => {
+      if (n >= 5 && (target === 'coins' || target === 'gems')) audio.play('whoosh', { volume: 0.6, throttleMs: 200 });
+    };
     bus.on('coins', ({ delta, total, at }) => {
       if (delta > 0 && at) {
         const s = this.screen(at);
         this.feedback.reward(s.x, s.y - 10, 'coins', delta);
-        this.feedback.fly(s.x, s.y, 'coin', 'coins', Math.ceil(delta / 15), () => this.hud.setCoins(game.coins));
-        audio.play('coins', { volume: 0.7 });
+        this.hud.coinsHeld++;
+        this.feedback.fly(s.x, s.y, 'coin', 'coins', Math.ceil(delta / 15), () => { this.hud.coinsHeld = Math.max(0, this.hud.coinsHeld - 1); this.hud.setCoins(game.coins); });
+        audio.play('coins', { volume: 0.7, pan: audio.panFor(s.x) });
       } else this.hud.setCoins(total);
     });
     bus.on('gems', ({ delta, total, at }) => {
       if (delta > 0 && at) {
         const s = this.screen(at);
         this.feedback.reward(s.x, s.y - 30, 'gems', delta, undefined, 0.15);
-        this.feedback.fly(s.x, s.y, 'gem', 'gems', delta, () => this.hud.setGems(game.gems));
+        this.hud.gemsHeld++;
+        this.feedback.fly(s.x, s.y, 'gem', 'gems', delta, () => { this.hud.gemsHeld = Math.max(0, this.hud.gemsHeld - 1); this.hud.setGems(game.gems); });
         this.effects.sparkle(new THREE.Vector3(at.x, at.y, at.z), '#9ff7ee', 12);
         audio.play('gem');
-        haptics.buzz(15);
+        haptics.play('success');
       } else this.hud.setGems(total);
     });
     bus.on('xp', ({ delta, at }) => {
@@ -142,6 +181,7 @@ class UIManager {
       this.effects.dust(at.clone().setY(0.2), 14, 2);
       this.effects.sparkle(at, '#fff6a0', 12);
       audio.play('jingle', { volume: 0.6 });
+      haptics.play('success');
     });
     bus.on('obstacle:cleared', ({ o }) => {
       this.scene.farm.removeObstacle(o);
@@ -149,7 +189,7 @@ class UIManager {
       this.effects.dust(p, 10, 1);
       this.effects.leaves(p, o.type.includes('rock') ? '#b8b8b0' : '#7cd65a', 10);
       this.scene.rig.shake(0.1, 0.2);
-      haptics.buzz(18);
+      haptics.play('medium');
     });
     bus.on('land:expanded', ({ chunk }) => {
       this.scene.farm.refreshLand();
@@ -157,8 +197,9 @@ class UIManager {
       this.effects.levelUp(c.clone().setY(0.5));
       this.scene.rig.focus(c.x, c.z);
       this.scene.rig.shake(0.2, 0.4);
+      setTimeout(() => this.scene.rig.punch(0.05, 0.7), 450);
       this.feedback.toast('New land!', 'Your farm just got bigger', 'map', 'gold');
-      haptics.buzz([20, 40, 30]);
+      haptics.play('celebrate');
     });
     bus.on('charm', () => this.hud.refresh());
     bus.on('levelup', () => { this.hud.refresh(); this.hud.levelUpFlash(); });
@@ -384,6 +425,8 @@ class UIManager {
 
   /** Taps on non-farm buildings route to the system that owns them. */
   tapBuilding(b: PlacedBuilding, _p: Pointer): void {
+    // stepping into a workshop: a soft door creak under the panel's open sound
+    if (BUILDING[b.type].cat === 'production') audio.play('door', { volume: 0.7, throttleMs: 400 });
     for (const fn of this.tapHandlers) if (fn(b)) return;
     this.buildingPopup(b);
   }
@@ -410,6 +453,8 @@ class UIManager {
     if (game.coins >= n) return true;
     this.feedback.toast('Not enough coins', `You need ${fmt(n - game.coins)} more`, 'coin');
     audio.play('error');
+    haptics.play('error');
+    this.feedback.bump(this.hud.coinsEl);
     return false;
   }
 }

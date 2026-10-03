@@ -9,13 +9,17 @@ import { procGeometry } from './ProcModels';
  */
 interface Particle { sprite: THREE.Sprite; vel: THREE.Vector3; life: number; max: number; spin: number; grow: number; gravity: number }
 
+/** Live particles above this are skipped (keeps big celebrations within the draw-call budget). */
+const MAX_PARTICLES = 80;
+
 export class Effects {
   readonly group = new THREE.Group();
   private particles: Particle[] = [];
   private textures = new Map<string, THREE.Texture>();
   private materials = new Map<string, THREE.SpriteMaterial>();
   private loader = new THREE.TextureLoader();
-  private free: THREE.Sprite[] = [];
+  /** Recycled particles: each keeps its own sprite, material and velocity vector (no GC churn). */
+  private free: Particle[] = [];
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
@@ -38,16 +42,28 @@ export class Effects {
 
   private spawn(pos: THREE.Vector3, tex: string, color: string, opts: { count: number; speed: number; up: number; size: number; life: number; additive?: boolean; gravity?: number; spread?: number; grow?: number }): void {
     const mat = this.material(tex, color, opts.additive ?? true);
-    for (let i = 0; i < opts.count; i++) {
-      const s = this.free.pop() ?? new THREE.Sprite();
-      s.material = mat.clone();
-      s.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * (opts.spread ?? 0.3), Math.random() * 0.2, (Math.random() - 0.5) * (opts.spread ?? 0.3)));
+    const count = Math.min(opts.count, MAX_PARTICLES - this.particles.length);
+    const spread = opts.spread ?? 0.3;
+    for (let i = 0; i < count; i++) {
+      let p = this.free.pop();
+      if (!p) p = { sprite: new THREE.Sprite(mat.clone()), vel: new THREE.Vector3(), life: 0, max: 1, spin: 0, grow: 0, gravity: 0 };
+      else (p.sprite.material as THREE.SpriteMaterial).copy(mat);
+      const s = p.sprite;
+      (s.material as THREE.SpriteMaterial).opacity = 0;
+      (s.material as THREE.SpriteMaterial).rotation = Math.random() * Math.PI * 2;
+      s.position.set(pos.x + (Math.random() - 0.5) * spread, pos.y + Math.random() * 0.2, pos.z + (Math.random() - 0.5) * spread);
       const a = Math.random() * Math.PI * 2;
       const sp = opts.speed * (0.5 + Math.random() * 0.8);
       s.scale.setScalar(opts.size * (0.7 + Math.random() * 0.6));
       s.renderOrder = 5;
       this.group.add(s);
-      this.particles.push({ sprite: s, vel: new THREE.Vector3(Math.cos(a) * sp, opts.up * (0.6 + Math.random() * 0.8), Math.sin(a) * sp), life: 0, max: opts.life * (0.7 + Math.random() * 0.6), spin: (Math.random() - 0.5) * 4, grow: opts.grow ?? 0, gravity: opts.gravity ?? 6 });
+      p.vel.set(Math.cos(a) * sp, opts.up * (0.6 + Math.random() * 0.8), Math.sin(a) * sp);
+      p.life = 0;
+      p.max = opts.life * (0.7 + Math.random() * 0.6);
+      p.spin = (Math.random() - 0.5) * 4;
+      p.grow = opts.grow ?? 0;
+      p.gravity = opts.gravity ?? 6;
+      this.particles.push(p);
     }
   }
 
@@ -105,9 +121,10 @@ export class Effects {
       const k = p.life / p.max;
       if (k >= 1) {
         this.group.remove(p.sprite);
-        (p.sprite.material as THREE.SpriteMaterial).dispose();
-        this.free.push(p.sprite);
-        this.particles.splice(i, 1);
+        this.free.push(p);
+        // swap-remove: order does not matter and avoids shifting the array
+        this.particles[i] = this.particles[this.particles.length - 1];
+        this.particles.pop();
         continue;
       }
       p.vel.y -= p.gravity * dt;
