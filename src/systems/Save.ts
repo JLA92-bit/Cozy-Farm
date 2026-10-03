@@ -156,7 +156,11 @@ class SaveSystem {
   private warned = false;
   private autosaveWired = false;
 
+  /** Set once the save has been read (a boot failure after this may be caused by the save). */
+  loadAttempted = false;
+
   load(): { data: SaveData; fresh: boolean } {
+    this.loadAttempted = true;
     const tryParse = (key: string) => {
       const txt = store.get(key);
       if (!txt) return null;
