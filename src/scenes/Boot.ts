@@ -26,6 +26,7 @@ import { showLevelUp, openDaily, openUnlockTree } from '../ui/panels/Progression
 import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
 import { Panel } from '../ui/Panel';
+import { h } from '../ui/dom';
 import { Villagers } from '../world/Villagers';
 import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
@@ -66,6 +67,7 @@ export async function boot(): Promise<void> {
   await assets.preload(coreModels(), (f) => setProgress(0.15 + f * 0.65));
   await Promise.all(ANIMALS.map((a) => assets.static(a.model)));
 
+  await saves.claimTab();
   const { data, fresh } = saves.load();
   game.load(data);
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
@@ -103,6 +105,17 @@ export async function boot(): Promise<void> {
   scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();
+  saves.onTakenOver = () => {
+    audio.setMusicVolume(0);
+    audio.setSfxVolume(0);
+    Panel.closeAll();
+    const btn = h('button', { class: 'btn green' }, 'Play here');
+    btn.addEventListener('click', () => location.reload());
+    document.body.append(h('div', { class: 'tab-overlay' },
+      h('div', { class: 'tab-card' }, h('div', { class: 'tab-title' }, 'Your farm is open somewhere else'), h('div', null, 'To keep your progress safe, only one window can play at a time.'), btn)));
+  };
+  // another tab may have started while we were still loading
+  if (saves.locked) saves.onTakenOver();
   watchDayAndResume();
   scene.loop.start();
   setProgress(1, 'Welcome!');

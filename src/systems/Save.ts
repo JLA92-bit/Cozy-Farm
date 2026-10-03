@@ -195,6 +195,33 @@ class SaveSystem {
     return false;
   }
 
+  private tabId = Math.random().toString(36).slice(2);
+  /** Called when the farm is opened in another tab/window and this one stops saving. */
+  onTakenOver: (() => void) | null = null;
+
+  /**
+   * One farm, one writer: tell other open tabs we are starting so they save, stop saving and step
+   * aside. Waits briefly for their final save so we load the freshest farm. Without this two tabs
+   * keep overwriting each other and progress made in one silently disappears.
+   */
+  async claimTab(): Promise<void> {
+    if (typeof BroadcastChannel === 'undefined') return;
+    let ch: BroadcastChannel;
+    try { ch = new BroadcastChannel('cozy-acres-tabs'); } catch { return; }
+    let acked: () => void = () => {};
+    const ack = new Promise<void>((r) => { acked = r; });
+    ch.onmessage = (e: MessageEvent) => {
+      const m = e.data as { type?: string; id?: string } | null;
+      if (!m || m.id === this.tabId) return;
+      if (m.type === 'hello') {
+        if (!this.locked) { this.save(); this.locked = true; this.onTakenOver?.(); }
+        ch.postMessage({ type: 'saved', id: this.tabId });
+      } else if (m.type === 'saved') acked();
+    };
+    ch.postMessage({ type: 'hello', id: this.tabId });
+    await Promise.race([ack, new Promise((r) => setTimeout(r, 250))]);
+  }
+
   /** Autosave every 30 s and whenever the page is hidden or closed. */
   startAutosave(intervalMs = 30000): void {
     clearInterval(this.timer);
