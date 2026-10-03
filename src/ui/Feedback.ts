@@ -16,13 +16,22 @@ export class Feedback {
   }
 
   toast(title: string, sub?: string, iconKey = 'star', style = ''): void {
-    const el = h('div', { class: `toast ${style}` }, icon(iconKey), h('div', null, h('div', { class: 't-title' }, title), sub ? h('div', { class: 't-sub' }, sub) : null));
+    // the same message again (e.g. tapping a locked item twice) nudges the visible toast instead of stacking copies
+    const key = `${style}|${title}|${sub ?? ''}`;
+    const dup = this.toastQueue.find((t) => t.dataset.key === key);
+    if (dup) {
+      gsap.fromTo(dup, { x: -6 }, { x: 0, duration: 0.35, ease: 'elastic.out(1.5, 0.3)' });
+      clearTimeout(Number(dup.dataset.timer));
+      dup.dataset.timer = String(setTimeout(() => this.dismiss(dup), 3200));
+      return;
+    }
+    const el = h('div', { class: `toast ${style}`, role: 'status', dataset: { key } }, icon(iconKey), h('div', null, h('div', { class: 't-title' }, title), sub ? h('div', { class: 't-sub' }, sub) : null));
     this.toastStack.append(el);
     this.toastQueue.push(el);
     while (this.toastQueue.length > 3) this.dismiss(this.toastQueue[0]);
     gsap.fromTo(el, { y: -30, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' });
     el.addEventListener('click', () => this.dismiss(el));
-    setTimeout(() => this.dismiss(el), 3200);
+    el.dataset.timer = String(setTimeout(() => this.dismiss(el), 3200));
   }
 
   private dismiss(el: HTMLElement): void {

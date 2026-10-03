@@ -468,3 +468,164 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 #ui-root .tut-box .btn { pointer-events: auto !important; }
 .tut-box { padding-top: 22px; }
 .tut-box .tut-skip { top: -20px; }
+
+/* ---------- HUD & UI polish ---------- */
+/* top bar: the name shrinks before the charm pill does */
+.xp-wrap { min-width: 0; }
+.player-name { min-width: 0; }
+.player-name .name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.charm-pill { flex: 0 0 auto; }
+.hud-settings { flex: 0 0 auto; width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+.hud-settings .icon { width: 28px; height: 28px; }
+.currency { transition: transform .1s ease; }
+.currency:active { transform: scale(.95); }
+.currency.gems { padding-right: 18px; }
+/* HUD sits above world bubbles (z 30) but below trays, banners, panels and toasts */
+.hud-layer { z-index: 31; }
+.cur-plus {
+  position: absolute; right: -7px; bottom: -7px; width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 17px; line-height: 1;
+  background: var(--btn-green); border: 2px solid var(--outline); box-shadow: 0 2px 0 var(--outline);
+}
+
+/* spending coins gives the pill a quick warm blink */
+.currency.spend { animation: spendFlash .45s ease-out; }
+@keyframes spendFlash {
+  0% { background: rgba(242, 95, 92, .85); transform: scale(.94); }
+  100% { background: rgba(40, 25, 10, .55); transform: scale(1); }
+}
+
+/* XP bar gets a quick shine sweep whenever XP lands */
+.xp-bar.gain::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .75) 50%, transparent 70%);
+  transform: translateX(-100%); animation: xpShine .7s ease-out forwards;
+}
+@keyframes xpShine { to { transform: translateX(100%); } }
+
+/* goal card: reads as tappable, announces a new goal */
+.goal-card { padding-right: 26px; transition: transform .1s ease; }
+.goal-card:active { transform: scale(.97); }
+.goal-card .goal-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.goal-card .goal-chevron {
+  position: absolute; right: 9px; top: 50%; width: 10px; height: 10px; margin-top: -5px;
+  border-right: 3px solid var(--ink-soft); border-top: 3px solid var(--ink-soft); border-radius: 2px; transform: rotate(45deg);
+}
+.goal-card.goal-new { animation: goalNew .7s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes goalNew {
+  0% { transform: scale(.85); box-shadow: 0 3px 0 var(--outline), 0 0 0 0 rgba(255, 214, 70, .9); }
+  50% { transform: scale(1.05); box-shadow: 0 3px 0 var(--outline), 0 0 0 8px rgba(255, 214, 70, .5); }
+  100% { transform: scale(1); box-shadow: 0 3px 0 var(--outline), 0 0 0 14px rgba(255, 214, 70, 0); }
+}
+
+/* badges pop in, then breathe */
+.badge-dot.pop { animation: badgePop .45s cubic-bezier(.3, 1.8, .5, 1), pulse 1.2s ease-in-out .45s infinite; }
+@keyframes badgePop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+/* the shop is the main call to action of the dock */
+.hud-btn.primary { width: calc(var(--hud-btn) + 8px); height: calc(var(--hud-btn) + 8px); border-radius: 18px; }
+.hud-btn.primary .icon { width: 40px; height: 40px; }
+.hud-btn .lbl { pointer-events: none; }
+.hud-side .hud-btn .lbl { max-width: calc(var(--hud-btn) + 14px); overflow: hidden; text-overflow: ellipsis; }
+
+/* portrait: settings tucks under the gems so the name has room; one-row thumb dock at the bottom */
+@media (orientation: portrait) {
+  .hud-top .hud-settings { position: absolute; right: 0; top: 52px; width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+  .hud-top .hud-settings .icon { width: 24px; height: 24px; }
+  .hud-side { top: calc(var(--safe-top) + 108px); }
+  .xp-wrap { flex: 1 1 auto; max-width: 190px; }
+  .goal-card { max-width: min(300px, calc(100vw - var(--safe-left) - var(--safe-right) - 92px)); }
+  .hud-bottom { flex-direction: row; align-items: flex-end; gap: 0; }
+  .hud-bottom > div:first-child { display: none; }
+  .hud-menu {
+    flex: 1 1 auto; flex-wrap: nowrap; justify-content: space-between; align-items: flex-end; gap: 4px;
+    --dock: min(var(--hud-btn), calc((100vw - var(--safe-left) - var(--safe-right) - 16px - 24px - 8px) / 7));
+  }
+  .hud-menu .hud-btn { width: var(--dock); height: calc(var(--dock) + 2px); min-width: 0; min-height: 0; border-radius: 14px; }
+  .hud-menu .hud-btn .icon { width: calc(var(--dock) * .62); height: calc(var(--dock) * .62); }
+  .hud-menu .hud-btn.primary { width: calc(var(--dock) + 8px); height: calc(var(--dock) + 10px); border-radius: 16px; }
+  .hud-menu .hud-btn.primary .icon { width: calc(var(--dock) * .72); height: calc(var(--dock) * .72); }
+}
+
+/* panels: bigger close target, scroll hint, compact tabs on small phones */
+.close-btn::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; }
+.panel-wallet { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; }
+.wallet-pill {
+  display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 10px 0 3px; border-radius: 15px;
+  background: rgba(40, 25, 10, .35); border: 2px solid var(--outline); font-size: 15px;
+}
+.wallet-pill .icon { width: 24px; height: 24px; }
+@media (max-width: 480px) {
+  .panel-wallet .wallet-pill.gem { display: none; }
+}
+/* reward icons fly above open panels (e.g. coins from selling land in the panel wallet) */
+.float-layer { z-index: 60; }
+.hud-btn.bump, .wallet-pill.bump, .level-badge.bump { animation: pulse .3s ease; }
+.panel.more-below .panel-body {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), rgba(0, 0, 0, .2));
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), rgba(0, 0, 0, .2));
+}
+.tab { position: relative; transition: background .15s, transform .1s; }
+.tab:active { transform: translateY(1px); }
+.tab-dot { position: absolute; top: -5px; right: -4px; width: 14px; height: 14px; border-radius: 50%; background: var(--btn-red); border: 2px solid var(--outline); }
+@media (max-width: 480px) {
+  .tab { padding: 6px 10px; font-size: 14px; gap: 3px; }
+  .tab .icon { width: 20px; height: 20px; }
+}
+
+/* cards: counts sit in the corner so they never cover the name */
+.card .count-tag {
+  top: 4px; right: 4px; bottom: auto; font-size: 13px; line-height: 18px; padding: 0 6px;
+  background: var(--btn-blue); border: 2px solid var(--outline); border-radius: 10px;
+}
+.card .lock-tag { display: inline-flex; align-items: center; gap: 2px; }
+.card .lock-tag .icon { width: 12px; height: 12px; filter: brightness(0) invert(1); }
+.card.item-card .card-sub { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card.item-card.selected { background: #eef8ff; }
+
+/* shop */
+.grid.shop-grid { grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 8px; }
+.shop-card { padding: 10px 6px 8px; justify-content: flex-start; }
+.shop-card .card-icon { width: 54px; height: 54px; }
+.shop-card .card-title { font-size: 14px; }
+.shop-card .card-sub { font-size: 12px; min-height: 14px; }
+.shop-card .pill { margin-top: auto; }
+.shop-card.locked .card-title { color: var(--ink-soft); }
+.shop-card.maxed .card-icon { opacity: .55; }
+.pill.cant { background: #ffe0dc; color: var(--btn-red-dark); }
+.pill.maxed { background: #e6e0d2; color: var(--ink-soft); }
+.pill.stored { background: #dff3ff; color: var(--btn-blue-dark); }
+.new-tag {
+  position: absolute; top: -9px; left: -7px; z-index: 1; padding: 1px 7px; font-size: 12px;
+  background: var(--btn-red); border: 2px solid var(--outline); border-radius: 10px; transform: rotate(-8deg);
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .grid.shop-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+  .shop-card { padding: 6px; gap: 2px; }
+  .shop-card .card-icon { width: 44px; height: 44px; }
+}
+
+/* barn */
+.barn-summary { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 12px; text-align: center; font-family: var(--font-display); color: var(--ink-soft); font-size: 16px; }
+.empty-state .icon { width: 64px; height: 64px; opacity: .55; }
+.sell-info {
+  flex: 1 1 100%; display: flex; align-items: center; gap: 10px; padding: 6px 10px; text-align: left;
+  background: #fff; border: 3px solid var(--outline); border-radius: 14px;
+}
+.sell-info .grow { flex: 1 1 auto; min-width: 0; }
+.sell-info .title { font-family: var(--font-display); font-size: 16px; }
+.sell-info .muted .icon { width: 16px; height: 16px; }
+.sell-info .icon.big { width: 40px; height: 40px; flex: 0 0 40px; }
+.qty-stepper { display: inline-flex; align-items: center; gap: 4px; padding: 3px; background: var(--cream-2); border: 3px solid var(--outline); border-radius: 14px; }
+.qty-stepper .qty-btn { min-width: 44px; min-height: 40px; padding: 0; font-size: 24px; }
+.qty-val { min-width: 44px; text-align: center; font-size: 22px; }
+.sell-btn { min-width: 108px; }
+@media (orientation: landscape) {
+  .sell-info { flex: 1 1 220px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-dot, .badge-dot.pop, .calendar .card.today { animation: none; }
+  .goal-card.goal-new, .xp-bar.gain::after { animation: none; }
+}

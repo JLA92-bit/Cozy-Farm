@@ -55,10 +55,24 @@ export const itemIcon = (item: string, cls = 'icon'): HTMLImageElement => icon(I
 
 const TRANSPARENT = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
+/**
+ * Friendly number: exact with separators below 100,000 (players care about every coin early on),
+ * then compact (123K, 1.2M, 12M). Compact values round down so we never show more than you have.
+ */
 export function fmt(n: number): string {
-  if (n >= 1e6) return `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)}M`;
-  if (n >= 1e4) return `${(n / 1e3).toFixed(n >= 1e5 ? 0 : 1)}K`;
-  return Math.floor(n).toLocaleString('en-US');
+  const v = Math.floor(n);
+  if (v < 0) return `-${fmt(-v)}`;
+  if (v >= 1e9) return `${trim(Math.floor(v / 1e8) / 10)}B`;
+  if (v >= 1e6) return `${trim(Math.floor(v / (v >= 1e7 ? 1e6 : 1e5)) / (v >= 1e7 ? 1 : 10))}M`;
+  if (v >= 1e5) return `${Math.floor(v / 1e3)}K`;
+  return v.toLocaleString('en-US');
+}
+const trim = (x: number): string => (Number.isInteger(x) ? String(x) : x.toFixed(1));
+
+/** Badge text for counters on buttons: "", "2"... "9+". */
+export function badgeText(n: number | boolean): string {
+  if (typeof n !== 'number' || n <= 1) return '';
+  return n > 9 ? '9+' : String(n);
 }
 
 /** Button helper with press feedback. */

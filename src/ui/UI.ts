@@ -55,8 +55,8 @@ class UIManager {
     });
     this.feedback = new Feedback(root);
     this.feedback.targets = {
-      coins: () => this.hud.coinsEl,
-      gems: () => this.hud.gemsEl,
+      coins: () => Panel.walletTarget('coins') ?? this.hud.coinsEl,
+      gems: () => Panel.walletTarget('gems') ?? this.hud.gemsEl,
       xp: () => this.hud.levelEl.parentElement,
       barn: () => this.hud.buttons.inventory,
     };

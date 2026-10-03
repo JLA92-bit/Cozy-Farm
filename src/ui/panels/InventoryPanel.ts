@@ -1,7 +1,7 @@
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, fmt, clear, priceTag } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL } from '../../data';
+import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL, ECONOMY } from '../../data';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
 
@@ -23,8 +23,20 @@ export function sourceText(item: string): string {
   return 'Found during events';
 }
 
+const EMPTY: Record<string, string> = {
+  all: 'Your barn is empty. Grow some crops!',
+  crop: 'No crops yet. Plant seeds in your fields!',
+  animal: 'No animal goods yet. Feed your animals!',
+  goods: 'No goods yet. Make some in your workshops!',
+};
+
+const inCat = (id: string, t: string): boolean => {
+  const c = ITEMS[id]?.cat;
+  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed');
+};
+
 export function openInventory(tab = 'all'): void {
-  const p = new Panel({ title: 'Barn', icon: 'hut', tabs: CATS, color: 'blue' });
+  const p = new Panel({ title: 'Barn', icon: 'hut', tabs: CATS, color: 'blue', wallet: true });
   let selected: string | null = null;
   const render = (t: string) => {
     clear(p.body);
@@ -32,15 +44,21 @@ export function openInventory(tab = 'all'): void {
     p.footer.style.display = 'none';
     if (t === 'stored') { renderStored(p); return; }
     const items = Object.entries(game.state.inventory)
-      .filter(([id, n]) => n > 0 && ITEMS[id] && (t === 'all' || ITEMS[id].cat === t || (t === 'crop' && ITEMS[id].cat === 'fruit') || (t === 'goods' && ITEMS[id].cat === 'feed')))
-      .sort((a, b) => ITEMS[a[0]].sell - ITEMS[b[0]].sell);
+      .filter(([id, n]) => n > 0 && ITEMS[id] && inCat(id, t))
+      .sort((a, b) => ITEMS[a[0]].sell - ITEMS[b[0]].sell || ITEMS[a[0]].name.localeCompare(ITEMS[b[0]].name));
+    if (selected && !items.some(([id]) => id === selected)) selected = null;
     const total = Object.values(game.state.inventory).reduce((s, n) => s + n, 0);
-    p.body.append(h('div', { class: 'muted', style: 'margin-bottom:8px' }, `${fmt(total)} items in your barn. Tap one to sell it.`));
-    if (!items.length) p.body.append(h('div', { class: 'center muted', style: 'padding:30px' }, 'Nothing here yet. Grow some crops!'));
+    const worth = Object.entries(game.state.inventory).reduce((s, [id, n]) => s + (n > 0 && ITEMS[id] ? sellValue(id, n) : 0), 0);
+    p.body.append(h('div', { class: 'barn-summary' },
+      h('span', { class: 'pill' }, icon('package'), `${fmt(total)} items`),
+      worth ? h('span', { class: 'pill' }, 'Worth ', icon('coin'), fmt(worth)) : null,
+      h('span', { class: 'muted' }, items.length ? 'Tap an item to sell it' : ''),
+    ));
+    if (!items.length) p.body.append(h('div', { class: 'empty-state' }, icon(CATS.find((c) => c.id === t)?.icon ?? 'package'), h('div', null, EMPTY[t] ?? EMPTY.all)));
     const grid = h('div', { class: 'grid tight' });
     for (const [id, n] of items) {
-      const el = h('div', { class: `card clickable ${selected === id ? 'selected' : ''}` }, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name), h('div', { class: 'count-tag outlined' }, `x${fmt(n)}`));
-      el.addEventListener('click', () => { selected = id; audio.play('select'); render(t); });
+      const el = h('div', { class: `card clickable item-card ${selected === id ? 'selected' : ''}` }, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name), h('div', { class: 'count-tag outlined' }, `x${fmt(n)}`));
+      el.addEventListener('click', () => { selected = selected === id ? null : id; audio.play('select'); render(t); });
       grid.append(el);
     }
     p.body.append(grid);
@@ -51,34 +69,58 @@ export function openInventory(tab = 'all'): void {
   p.open();
 }
 
+/** Press-and-hold on a +/- button keeps stepping, speeding up the longer you hold. */
+function holdRepeat(b: HTMLButtonElement, step: () => void): void {
+  let t = 0, held = false;
+  const stop = () => { clearTimeout(t); t = 0; };
+  const tick = (delay: number) => { t = window.setTimeout(() => { held = true; step(); tick(Math.max(40, delay * 0.82)); }, delay); };
+  b.addEventListener('pointerdown', () => { held = false; stop(); tick(380); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
+  // the click after a hold should not add one more step
+  b.addEventListener('click', (e) => { if (held) { e.stopImmediatePropagation(); held = false; } }, { capture: true });
+}
+
+/** What the barn pays for n of an item (same formula as Game.sellItem). */
+const sellValue = (item: string, n: number): number => Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult);
+
 function sellBar(p: Panel, item: string, rerender: () => void): void {
   const def = ITEMS[item];
   if (def.sell <= 0) return;
+  const max = () => Math.max(1, game.count(item));
   let qty = 1;
-  const qtyEl = h('span', { class: 'outlined', style: 'font-size:22px;min-width:40px;text-align:center' }, '1');
+  const qtyEl = h('span', { class: 'qty-val outlined' }, '1');
   const priceEl = h('span');
-  const update = () => { qtyEl.textContent = String(qty); priceEl.replaceChildren(priceTag(def.sell * qty)); };
+  const minus = button('-', () => { qty = Math.max(1, qty - 1); update(); }, 'small grey qty-btn', { 'aria-label': 'One less' });
+  const plus = button('+', () => { qty = Math.min(max(), qty + 1); update(); }, 'small grey qty-btn', { 'aria-label': 'One more' });
+  const all = button('All', () => { qty = qty === max() ? 1 : max(); update(); }, 'small blue');
+  const update = () => {
+    qtyEl.textContent = String(qty);
+    priceEl.replaceChildren(priceTag(sellValue(item, qty)));
+    minus.classList.toggle('disabled', qty <= 1);
+    plus.classList.toggle('disabled', qty >= max());
+    all.textContent = qty === max() && max() > 1 ? 'One' : 'All';
+  };
+  holdRepeat(minus, () => { qty = Math.max(1, qty - 1); update(); });
+  holdRepeat(plus, () => { qty = Math.min(max(), qty + 1); update(); });
   update();
   p.footer.style.display = '';
   p.footer.append(
-    h('div', { class: 'row', style: 'flex:1 1 100%;justify-content:center' }, itemIcon(item), h('b', null, def.name), h('span', { class: 'muted' }, sourceText(item))),
-    button('−', () => { qty = Math.max(1, qty - 1); update(); }, 'small grey'),
-    qtyEl,
-    button('+', () => { qty = Math.min(game.count(item), qty + 1); update(); }, 'small grey'),
-    button('All', () => { qty = game.count(item); update(); }, 'small blue'),
+    h('div', { class: 'sell-info' }, itemIcon(item, 'icon big'), h('div', { class: 'grow' }, h('div', { class: 'title' }, def.name, h('span', { class: 'muted' }, `  x${fmt(game.count(item))}`)), h('div', { class: 'muted' }, `${sourceText(item)}${sourceText(item) ? ' · ' : ''}`, icon('coin'), `${fmt(sellValue(item, 1))} each`))),
+    h('div', { class: 'qty-stepper' }, minus, qtyEl, plus),
+    all,
     button(['Sell', priceEl], () => {
       const r = p.footer.getBoundingClientRect();
       const coins = game.sellItem(item, qty);
       if (coins) ui.feedback.fly(r.left + r.width / 2, r.top, 'coin', 'coins', Math.ceil(coins / 20));
       rerender();
-    }, 'small yellow'),
+    }, 'small yellow sell-btn'),
   );
 }
 
 function renderStored(p: Panel): void {
   const entries = Object.entries(game.state.storage).filter(([, n]) => n > 0);
   p.body.append(h('div', { class: 'muted', style: 'margin-bottom:8px' }, 'Buildings and decorations you put away. Tap to place one.'));
-  if (!entries.length) p.body.append(h('div', { class: 'center muted', style: 'padding:30px' }, 'Storage is empty. In Build mode you can store decorations.'));
+  if (!entries.length) p.body.append(h('div', { class: 'empty-state' }, icon('hut'), h('div', null, 'Storage is empty. In Build mode you can store decorations.')));
   const grid = h('div', { class: 'grid' });
   for (const [type, n] of entries) {
     const el = h('div', { class: 'card clickable' }, icon(`building:${type}`, 'card-icon'), h('div', { class: 'card-title' }, BUILDING[type].name), h('div', { class: 'count-tag outlined' }, `x${n}`));
