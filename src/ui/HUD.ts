@@ -37,6 +37,11 @@ export class HUD {
   private goalFill?: HTMLElement;
 
   private coinTween?: gsap.core.Tween;
+  private gemTween?: gsap.core.Tween;
+  private shownGems = 0;
+  /** Coin/gem icons still flying in: refresh() leaves those counters alone until they land. */
+  coinsHeld = 0;
+  gemsHeld = 0;
 
   constructor(root: HTMLElement, private actions: HudActions) {
     this.levelEl = h('div', { class: 'outlined' }, '1');
@@ -90,19 +95,24 @@ export class HUD {
     this.lastXp = p.xp;
     this.lastLevel = p.level;
     this.xpText.textContent = p.level >= MAX_LEVEL ? 'MAX' : `${fmt(p.xp)}/${fmt(need)}`;
-    this.setCoins(game.coins, false);
-    this.setGems(game.gems);
+    if (!this.coinsHeld && !this.coinTween?.isActive()) this.setCoins(game.coins, false);
+    if (!this.gemsHeld && !this.gemTween?.isActive()) this.setGems(game.gems, false);
   }
 
   /** Count coins up smoothly (so flying coins look like they land). */
   setCoins(n: number, animate = true): void {
-    if (!animate) { this.shownCoins = n; this.coinsVal.textContent = fmt(n); return; }
+    if (!animate) { this.coinTween?.kill(); this.shownCoins = n; this.coinsVal.textContent = fmt(n); return; }
     if (n < this.shownCoins - 0.5) this.flash(this.coinsEl, 'spend');
     this.coinTween?.kill();
     const o = { v: this.shownCoins };
     this.coinTween = gsap.to(o, { v: n, duration: 0.6, ease: 'power1.out', onUpdate: () => { this.shownCoins = o.v; this.coinsVal.textContent = fmt(o.v); } });
   }
-  setGems(n: number): void { this.gemsVal.textContent = fmt(n); }
+  setGems(n: number, animate = true): void {
+    this.gemTween?.kill();
+    if (!animate || n === this.shownGems) { this.shownGems = n; this.gemsVal.textContent = fmt(n); return; }
+    const o = { v: this.shownGems };
+    this.gemTween = gsap.to(o, { v: n, duration: 0.5, ease: 'power1.out', onUpdate: () => { this.shownGems = o.v; this.gemsVal.textContent = fmt(o.v); } });
+  }
 
   /** Restart a one-shot CSS animation class on an element. */
   private flash(el: HTMLElement, cls: string): void {

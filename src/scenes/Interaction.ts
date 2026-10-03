@@ -58,8 +58,8 @@ export class Interaction implements WorldHandler {
   pointerDown(): void {}
 
   tap(p: Pointer): void {
-    const m = this.mode;
     this.lastPointer = p;
+    const m = this.mode;
     if (m.kind === 'place') {
       // tapping elsewhere moves the ghost there
       const t = this.scene.tileAt(p);
@@ -99,7 +99,8 @@ export class Interaction implements WorldHandler {
     const view = this.scene.farm.views.get(b.uid);
     const now = game.now();
     if (view) this.scene.farm.bounce(view);
-    audio.play('tap', { volume: 0.6 });
+    audio.play('tap', { volume: 0.6, pan: audio.panFor(p.x) });
+    haptics.play('tap');
     if (!isBuilt(b, now)) { ui.buildingPopup(b); return; }
     if (b.type === 'plot') {
       if (!b.plot) { this.enterPlant(null); return; }
@@ -119,7 +120,7 @@ export class Interaction implements WorldHandler {
     if (this.mode.kind === 'place') return;
     const b = this.pickBuilding(p);
     if (!b) return;
-    haptics.buzz(15);
+    haptics.play('medium');
     this.startMove(b.uid, false);
     // continue as a ghost drag if the finger keeps moving
     this.dragGhost = true;
@@ -205,9 +206,10 @@ export class Interaction implements WorldHandler {
         this.scene.rig.shake(0.12, 0.25);
         const p = this.lastPointer;
         ui.feedback.floatText(p.x, p.y - 90, this.swipe.count >= 12 ? 'Amazing harvest!' : 'Great swipe!', undefined, '#ffe066', 0.1);
-        haptics.buzz([10, 30, 14]);
+        haptics.play('success');
       }
     }
+    if (this.swipe) ui.feedback.endCombo();
     const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
     this.swipe = null;
     if (planted) this.maybeAllPlanted();
@@ -221,8 +223,15 @@ export class Interaction implements WorldHandler {
     const n = b.plot ? farming.harvest(b, at) : farming.harvestTree(b, at);
     if (!n) return;
     if (this.scene.env.night > 0.6) game.incStat('night_harvests');
-    audio.playCombo(combo % 2 ? 'harvest2' : 'harvest', combo);
-    haptics.buzz(combo >= 4 ? 14 : 10);
+    const pan = audio.panFor(this.lastPointer.x);
+    audio.playCombo(combo % 2 ? 'harvest2' : 'harvest', combo, pan);
+    haptics.play('light');
+    if (combo >= 2) ui.feedback.combo(this.lastPointer.x, this.lastPointer.y, combo + 1);
+    // every 5 in a chain earns a little sparkle chime
+    if (combo >= 4 && (combo + 1) % 5 === 0) {
+      audio.play('sparkle', { rate: 1 + Math.min(0.3, combo * 0.015), pan });
+      ui.effects.sparkle(at.clone().setY(0.8), '#ffe066', 10);
+    }
     const fx = ui.effects;
     const ground = at.clone().setY(0.4);
     if (crop) {
@@ -258,8 +267,8 @@ export class Interaction implements WorldHandler {
     }
     farming.plant(b, crop);
     this.lastCrop = crop;
-    audio.playCombo(combo % 2 ? 'plant2' : 'plant', combo);
-    haptics.buzz(6);
+    audio.playCombo(combo % 2 ? 'plant2' : 'plant', combo, audio.panFor(this.lastPointer.x));
+    haptics.play('tap');
     ui.effects.dust(this.anchorOf(b).setY(0.2), 3, 1.2);
     return true;
   }
@@ -450,7 +459,7 @@ export class Interaction implements WorldHandler {
   confirmPlacement(): void {
     const m = this.placing;
     if (!m) return;
-    if (!m.valid) { audio.play('error'); haptics.buzz([20, 40, 20]); ui.feedback.toast("Can't place here", 'Find a free green spot', 'cross'); return; }
+    if (!m.valid) { audio.play('error'); ui.feedback.toast("Can't place here", 'Find a free green spot', 'cross'); return; }
     if (m.uid) {
       if (!buildings.move(m.uid, m.x, m.z, m.rot)) { audio.play('error'); return; }
       this.endPlacement();
@@ -459,6 +468,7 @@ export class Interaction implements WorldHandler {
       if (v) { this.scene.farm.squash(v); ui.effects.landing(v.center.clone().setY(0.1), Math.max(...rotatedSize(v.def.size, m.rot))); }
       audio.play('build');
       this.scene.rig.shake(0.08, 0.15);
+      haptics.play('medium');
     } else {
       const check = buildings.canBuy(m.type);
       if (!m.fromStorage && !check.ok) { ui.feedback.toast(check.reason, undefined, 'cross'); audio.play('error'); return; }
@@ -471,7 +481,7 @@ export class Interaction implements WorldHandler {
       const [fw, fd] = rotatedSize(def.size, b.rot);
       ui.effects.landing(new THREE.Vector3(footprintCenter(b.x, fw), 0.1, footprintCenter(b.z, fd)), Math.max(fw, fd));
       this.scene.rig.shake(0.1, 0.18);
-      haptics.buzz(20);
+      haptics.play('medium');
       game.bus.emit('tutorial', { signal: `placed:${type}` });
       // keep placing more of the same small things (fences, paths, fields) for convenience
       const more = fromStorage ? (game.state.storage[type] ?? 0) > 0 : keep && buildings.canBuy(type).ok;
@@ -488,6 +498,7 @@ export class Interaction implements WorldHandler {
     if (!buildings.store(uid)) { this.scene.farm.setHidden(uid, false); ui.feedback.toast("Can't store this right now", 'Harvest crops first', 'cross'); return; }
     ui.feedback.toast('Stored in inventory', BUILDING[m.type].name, 'package');
     audio.play('collect');
+    haptics.play('light');
     if (m.returnToEdit) this.enterEdit();
   }
 

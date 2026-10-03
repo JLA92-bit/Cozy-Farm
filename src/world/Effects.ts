@@ -9,6 +9,9 @@ import { procGeometry } from './ProcModels';
  */
 interface Particle { sprite: THREE.Sprite; vel: THREE.Vector3; life: number; max: number; spin: number; grow: number; gravity: number }
 
+/** Live particles above this are skipped (keeps big celebrations within the draw-call budget). */
+const MAX_PARTICLES = 80;
+
 export class Effects {
   readonly group = new THREE.Group();
   private particles: Particle[] = [];
@@ -41,12 +44,15 @@ export class Effects {
 
   private spawn(pos: THREE.Vector3, tex: string, color: string, opts: { count: number; speed: number; up: number; size: number; life: number; additive?: boolean; gravity?: number; spread?: number; grow?: number }): void {
     const mat = this.material(tex, color, opts.additive ?? true);
-    for (let i = 0; i < opts.count; i++) {
+    const count = Math.min(opts.count, MAX_PARTICLES - this.particles.length);
+    const spread = opts.spread ?? 0.3;
+    for (let i = 0; i < count; i++) {
       let p = this.free.pop();
-      if (p) (p.sprite.material as THREE.SpriteMaterial).copy(mat);
-      else p = { sprite: new THREE.Sprite(mat.clone()), vel: new THREE.Vector3(), life: 0, max: 1, spin: 0, grow: 0, gravity: 0 };
+      if (!p) p = { sprite: new THREE.Sprite(mat.clone()), vel: new THREE.Vector3(), life: 0, max: 1, spin: 0, grow: 0, gravity: 0 };
+      else (p.sprite.material as THREE.SpriteMaterial).copy(mat);
       const s = p.sprite;
-      const spread = opts.spread ?? 0.3;
+      (s.material as THREE.SpriteMaterial).opacity = 0;
+      (s.material as THREE.SpriteMaterial).rotation = Math.random() * Math.PI * 2;
       s.position.set(pos.x + (Math.random() - 0.5) * spread, pos.y + Math.random() * 0.2, pos.z + (Math.random() - 0.5) * spread);
       const a = Math.random() * Math.PI * 2;
       const sp = opts.speed * (0.5 + Math.random() * 0.8);
@@ -55,7 +61,11 @@ export class Effects {
       (s.material as THREE.SpriteMaterial).opacity = 0;
       this.group.add(s);
       p.vel.set(Math.cos(a) * sp, opts.up * (0.6 + Math.random() * 0.8), Math.sin(a) * sp);
-      p.life = 0; p.max = opts.life * (0.7 + Math.random() * 0.6); p.spin = (Math.random() - 0.5) * 4; p.grow = opts.grow ?? 0; p.gravity = opts.gravity ?? 6;
+      p.life = 0;
+      p.max = opts.life * (0.7 + Math.random() * 0.6);
+      p.spin = (Math.random() - 0.5) * 4;
+      p.grow = opts.grow ?? 0;
+      p.gravity = opts.gravity ?? 6;
       this.particles.push(p);
     }
   }
@@ -145,7 +155,9 @@ export class Effects {
       if (k >= 1) {
         this.group.remove(p.sprite);
         this.free.push(p);
-        this.particles.splice(i, 1);
+        // swap-remove: order does not matter and avoids shifting the array
+        this.particles[i] = this.particles[this.particles.length - 1];
+        this.particles.pop();
         continue;
       }
       p.vel.y -= p.gravity * dt;

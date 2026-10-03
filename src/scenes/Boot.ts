@@ -109,6 +109,7 @@ export async function boot(): Promise<void> {
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;
+  scene.rig.shakeScale = settings.shake ? 1 : 0;
 
   const away = fresh ? null : offlineSummary(data.lastSeen);
   setProgress(0.88, 'Waking the animals...');
@@ -153,6 +154,7 @@ function wireProgression(): void {
     showLevelUp(level);
     ui.effects.levelUp(player.position.clone().setY(1));
     scene.rig.shake(0.25, 0.5);
+    scene.rig.punch(0.07, 0.8);
     syncCosmeticDiscovery(cosmeticUnlocked);
     quests.refresh(game.now());
   });
