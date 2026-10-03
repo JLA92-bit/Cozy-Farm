@@ -75,20 +75,46 @@ Every level also adds land expansions every ~1.4 levels, order-board slots (3 to
   and gems for coins. Bulk goods cost 1.1 x value (`bulkPriceMult`) so they cannot be flipped at the barn; they
   save time on orders, which pay 1.8 x.
 - **Production queue:** a job that has not started yet can be cancelled for a full ingredient refund.
-- **Fields** cost 10 coins + 8 per field beyond the 6 you start with. Animals get 25% pricier per animal owned.
+- **Fields** cost 10 coins + 8 per field beyond the 8 you start with. Animals get 25% pricier per animal owned.
 - **Gems** are only earned (levels, awards, daily calendar, rocks, some orders, crates, merchant). Finishing a
   timer costs 0.2 gems per minute left (minimum 1).
 
 ## Building caps (farmhouse level)
 
-| Farmhouse | Needs player level | Fields | Fruit trees | Each animal home | Each production building | Decorations |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | 1 | 10 | 4 | 1 | 1 | 25 |
-| 2 | 5 | 16 | 6 | 1 | 1 | 40 |
-| 3 | 10 | 22 | 9 | 2 | 1 | 60 |
-| 4 | 16 | 28 | 12 | 2 | 2 | 85 |
-| 5 | 22 | 34 | 16 | 2 | 2 | 115 |
-| 8 | 44 | 56 | 30 | 3 | 3 | 260 |
+| Farmhouse | Needs player level | Cost | Fields | Fruit trees | Each animal home | Each production building | Decorations |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | - | 14 | 4 | 1 | 1 | 25 |
+| 2 | 5 | 800 | 20 | 6 | 1 | 1 | 40 |
+| 3 | 10 | 2,500 | 28 | 9 | 2 | 1 | 60 |
+| 4 | 16 | 7,000 | 36 | 12 | 2 | 2 | 85 |
+| 5 | 22 | 16,000 | 44 | 16 | 2 | 2 | 115 |
+| 6 | 29 | 32,000 | 52 | 20 | 3 | 2 | 150 |
+| 7 | 36 | 55,000 | 60 | 24 | 3 | 2 | 200 |
+| 8 | 44 | 90,000 | 70 | 30 | 3 | 3 | 260 |
+
+**Fields (Update 2).** Players ran out of plantable squares too early, so a new farm starts with 8 fields (was 6)
+and every farmhouse level allows more (old caps: 10/16/22/28/34/40/48/56). Why this stays balanced:
+
+- Field price rises by 8 per field, so the extra fields cost real coins: filling farmhouse level 1 (fields 9-14)
+  costs 180 coins, level 2 (15-20) 468, level 8 (up to 70) about 15.7k in total. The 70th field costs 498.
+- Crop income per field per hour drops as crops get longer (wheat ~600 coins/h when replanted constantly, tomato
+  ~145, strawberry ~105, watermelon ~48, cauliflower ~41). A full level 8 farm of cauliflower makes about 2.9k
+  coins/h of check-in income, well below production chains and the 90k farmhouse upgrade.
+- Early levels are limited by attention, not fields: a level 1-4 player cannot keep 14 wheat fields busy for long,
+  so the extra room mostly helps players who plant longer crops between check-ins.
+- More fields mostly feed production buildings and orders, which still need the animal and workshop caps.
+
+Existing farms keep every field they own. The higher cap applies at once, and `freeCount` (8) only changes the
+price of the next field, which becomes slightly cheaper.
+
+**Getting more fields is always explained:** the Shop Field card shows `owned / cap`; when it is full it says
+which farmhouse level adds how many and opens the Farmhouse panel. The Farmhouse panel lists what every level
+adds. A tip appears when every field is planted (at most every 6 minutes) and after buying the last allowed field,
+and the goal card suggests a new field while one is affordable (1.5 x price) and the farmhouse upgrade once fields
+are full.
+
+A 2x2 "Big field" was considered and skipped: a field already is a 2x2 building holding one crop, and a bigger one
+would need its own crop layout, harvest yield and plant-hint visuals for little gameplay gain.
 
 Paths, fences and hedges don't count toward the decoration cap.
 

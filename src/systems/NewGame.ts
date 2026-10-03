@@ -16,10 +16,10 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
   place('barn', 28, 16);
   for (let x = 16; x < 32; x++) place('path_dirt', x, 20);
   for (let z = 16; z < 20; z++) place('path_dirt', 24, z);
-  const plotPos: [number, number][] = [[17, 22], [19, 22], [21, 22], [17, 24], [19, 24], [21, 24]];
+  const plotPos: [number, number][] = [[17, 22], [19, 22], [21, 22], [23, 22], [17, 24], [19, 24], [21, 24], [23, 24]];
   plotPos.forEach(([x, z], i) => {
     // two fields start with ripe wheat for an instant first harvest
-    place('plot', x, z, { plot: i >= 4 ? { crop: 'wheat', plantedAt: now - 60000, growSec: 30 } : null });
+    place('plot', x, z, { plot: i >= 6 ? { crop: 'wheat', plantedAt: now - 60000, growSec: 30 } : null });
   });
 
   const occupied = new Set<string>();
