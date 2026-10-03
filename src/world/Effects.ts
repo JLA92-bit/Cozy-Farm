@@ -63,6 +63,10 @@ export class Effects {
   leaves(pos: THREE.Vector3, color = '#7cd65a', count = 8): void {
     this.spawn(pos, 'circle_05', color, { count, speed: 1.8, up: 2.8, size: 0.25, life: 0.9, additive: false, gravity: 6 });
   }
+  /** A single soft star that blinks in place (ripe crops catching the light). */
+  twinkle(pos: THREE.Vector3, color = '#fff3b0'): void {
+    this.spawn(pos, 'star_04', color, { count: 1, speed: 0.05, up: 0.25, size: 0.42, life: 0.75, gravity: 0, spread: 0.05 });
+  }
   hearts(pos: THREE.Vector3): void {
     this.spawn(pos, 'light_01', '#ff7fb0', { count: 6, speed: 0.6, up: 1.6, size: 0.4, life: 1.1, gravity: -0.3 });
   }

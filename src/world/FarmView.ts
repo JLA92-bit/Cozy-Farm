@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { assets } from '../core/Assets';
-import { ANIMAL, BUILDING, CROP, LAND, TREE, type BuildingDef } from '../data';
+import { ANIMAL, BUILDING, CROP, ITEMS, LAND, TREE, type BuildingDef } from '../data';
 import { game } from '../systems/Game';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } from './Grid';
@@ -16,12 +16,44 @@ const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
 const tmpV = new THREE.Vector3();
 const tmpS = new THREE.Vector3();
+const tmpV2 = new THREE.Vector3();
+const tmpQ2 = new THREE.Quaternion();
 const UP = new THREE.Vector3(0, 1, 0);
+const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
+/** Seconds a freshly grown / planted crop takes to spring up. */
+const SPRING_SEC = 0.5;
+/** Growing stages that reuse a tinted ripe model are drawn in this fresh green. */
+const GROWING_TINT = '#8fd45a';
+
+/** Elastic overshoot 0..1 -> scale factor (starts small, pops past 1, settles). */
+function springScale(k: number): number {
+  if (k >= 1) return 1;
+  return 1 - Math.cos(k * Math.PI * 2.5) * Math.exp(-k * 5.5) * 0.85;
+}
 
 interface AnimalSprite {
   pool: InstancePool; handle: number; scale: number;
   x: number; z: number; tx: number; tz: number; heading: number;
   wait: number; hop: number; phase: number; ready: boolean; hungry: boolean;
+  /** seconds left of a happy jump (fed / collected) */
+  jump: number;
+  /** the product it laid, waiting on the ground until collected */
+  prod: { pool: InstancePool; handle: number } | null;
+}
+
+/** One crop / fruit instance with its rest transform, so it can spring up and sway in the breeze. */
+interface PlantInst {
+  pool: InstancePool; handle: number;
+  x: number; y: number; z: number; s: number; sy: number; yaw: number;
+  /** breeze sway amplitude in radians (0 = still) */
+  sway: number; phase: number;
+}
+
+/** 3D model used for an item lying on the ground (animal products, harvest pops). */
+export function productModel(item: string): string {
+  const icon = ITEMS[item]?.icon ?? '';
+  if (icon.startsWith('model:')) return icon.slice(6);
+  return ({ egg: 'food/egg', milk: 'food/carton', truffle: 'food/mushroom' } as Record<string, string>)[item] ?? 'food/bag';
 }
 
 export interface BuildingView {
@@ -36,8 +68,12 @@ export interface BuildingView {
   center: THREE.Vector3;
   height: number;
   box: THREE.Box3;
-  plants: { pool: InstancePool; handle: number }[];
+  plants: PlantInst[];
   plantKey: string;
+  /** seconds since the plants last changed (drives the spring-up animation) */
+  plantAge: number;
+  /** plants sway gently (ripe crops / fruit) */
+  swaying: boolean;
   animals: AnimalSprite[];
   fan?: THREE.Object3D;
   fanAxis?: 'x' | 'y' | 'z';
@@ -59,12 +95,23 @@ export class FarmView {
   private pending = new Set<number>();
   private hidden = new Set<number>();
 
+  /** set once the initial farm is built: later crop changes animate */
+  private live = false;
+
   constructor(scene: THREE.Scene) {
     this.terrain = new Terrain(assets.vertexMaterial);
     this.root.add(this.terrain.group);
     this.pools = new PoolSet(this.root);
     scene.add(this.root);
     this.glowTex = makeGlowTexture();
+    // happy little jumps when animals are fed or give their product
+    game.bus.on('animal:fed', ({ b, index }) => this.animalJump(b.uid, index, 0.45));
+    game.bus.on('animal:collected', ({ b, index }) => this.animalJump(b.uid, index, 0.55));
+  }
+
+  private animalJump(uid: number, index: number, sec: number): void {
+    const a = this.views.get(uid)?.animals[index];
+    if (a) a.jump = sec + index * 0.06;
   }
 
   // ------------------------------------------------------------------ setup
@@ -73,6 +120,7 @@ export class FarmView {
     for (const o of game.state.obstacles) await this.addObstacle(o);
     await Promise.all(game.state.buildings.map((b) => this.addBuilding(b)));
     this.tick(game.now());
+    this.live = true;
   }
 
   refreshLand(): void {
@@ -171,7 +219,7 @@ export class FarmView {
     if (!game.byUid(b.uid)) return; // removed while loading
     const view: BuildingView = {
       b, def, visual, obj: null, construction: null, center: new THREE.Vector3(), height: visual?.height ?? 0.1,
-      box: new THREE.Box3(), plants: [], plantKey: '', animals: [], busy: false,
+      box: new THREE.Box3(), plants: [], plantKey: '', plantAge: 99, swaying: false, animals: [], busy: false,
     };
     this.views.set(b.uid, view);
     this.paintFor(b, true);
@@ -318,6 +366,7 @@ export class FarmView {
     for (const p of view.plants) p.pool.remove(p.handle);
     view.plants = [];
     view.plantKey = '';
+    view.swaying = false;
   }
 
   private cropPool(model: string, tint?: string): InstancePool | null {
@@ -339,13 +388,16 @@ export class FarmView {
     let key = '';
     if (plot && built) key = `${plot.crop}:${cropStage(plot, now)}`;
     if (key === view.plantKey) return;
+    const prevKey = view.plantKey.replace(/\*+$/, '');
     this.clearPlants(view);
     if (!plot || !built) return;
     const crop = CROP[plot.crop];
     const stage = cropStage(plot, now);
     const ready = stage >= 3;
     const model = ready ? crop.ready.model : crop.stages[Math.min(stage, crop.stages.length - 1)];
-    const pool = this.cropPool(model, ready ? crop.ready.tint : undefined);
+    // growing stages that reuse the (tinted) ripe model stay fresh green so ripe crops stand out
+    const tint = ready ? crop.ready.tint : model === crop.ready.model && crop.ready.tint ? GROWING_TINT : undefined;
+    const pool = this.cropPool(model, tint);
     if (!pool) { view.plantKey = ''; return; }
     const sm = assets.getStatic(model)!;
     const isFood = model.startsWith('food/');
@@ -355,28 +407,50 @@ export class FarmView {
     const produce = ready && crop.ready.produce;
     const prodPool = produce ? (produce.startsWith('proc/') ? this.procPool(produce.slice(5)) : this.cropPool(produce)) : null;
     const prodSm = produce && !produce.startsWith('proc/') ? assets.getStatic(produce) : null;
+    // a slow wave of wind rolls across the farm: phase follows position
+    const wave = view.center.x * 0.55 + view.center.z * 0.35;
     for (let i = 0; i < 4; i++) {
       const ox = (i % 2 === 0 ? -0.45 : 0.45) + (r() - 0.5) * 0.08;
       const oz = (i < 2 ? -0.45 : 0.45) + (r() - 0.5) * 0.08;
-      const pos = tmpV.set(view.center.x + ox, 0.12, view.center.z + oz);
-      tmpM.compose(pos, tmpQ.setFromAxisAngle(UP, r() * Math.PI * 2), tmpS.set(s, s * (0.9 + r() * 0.2), s));
-      view.plants.push({ pool, handle: pool.add(tmpM) });
+      const px = view.center.x + ox, pz = view.center.z + oz;
+      view.plants.push(this.addPlant(pool, px, 0.12, pz, s, s * (0.9 + r() * 0.2), r() * Math.PI * 2, ready ? 0.07 : 0, wave + ox * 0.5 + oz * 0.3));
       if (prodPool) {
         const ps = prodSm ? 0.26 / Math.max(prodSm.size.x, prodSm.size.y, prodSm.size.z) : 1.0;
         for (let k = 0; k < 2; k++) {
           const a = r() * Math.PI * 2;
-          tmpM.compose(tmpV.set(pos.x + Math.cos(a) * 0.14, 0.18 + r() * 0.2, pos.z + Math.sin(a) * 0.14), tmpQ.setFromAxisAngle(UP, a), tmpS.set(ps, ps, ps));
-          view.plants.push({ pool: prodPool, handle: prodPool.add(tmpM) });
+          view.plants.push(this.addPlant(prodPool, px + Math.cos(a) * 0.14, 0.18 + r() * 0.2, pz + Math.sin(a) * 0.14, ps, ps, a, 0, 0));
         }
       }
     }
     view.plantKey = key;
+    this.startGrow(view, prevKey !== key, ready);
+  }
+
+  private addPlant(pool: InstancePool, x: number, y: number, z: number, s: number, sy: number, yaw: number, sway: number, phase: number): PlantInst {
+    tmpM.compose(tmpV.set(x, y, z), tmpQ.setFromAxisAngle(UP, yaw), tmpS.set(s, sy, s));
+    return { pool, handle: pool.add(tmpM), x, y, z, s, sy, yaw, sway, phase };
+  }
+
+  /** Kick off the spring-up animation for freshly changed plants (only once the farm is live). */
+  private startGrow(view: BuildingView, changed: boolean, sway: boolean): void {
+    view.swaying = sway;
+    view.plantAge = this.live && changed ? 0 : 99;
+    if (view.plantAge === 0) for (const p of view.plants) this.writePlant(p, 0, 0);
+  }
+
+  private writePlant(p: PlantInst, grow: number, t: number): void {
+    const k = springScale(grow);
+    const sw = p.sway ? Math.sin(t * 1.7 + p.phase) * p.sway : 0;
+    tmpQ.setFromEuler(tmpE.set(sw, p.yaw, sw * 0.6));
+    tmpM.compose(tmpV.set(p.x, p.y, p.z), tmpQ, tmpS.set(p.s * k, p.sy * k, p.s * k));
+    p.pool.set(p.handle, tmpM);
   }
 
   private updateTree(view: BuildingView, now: number): void {
     const ready = treeReady(view.b, now);
     const key = ready ? 'ready' : 'growing';
     if (key === view.plantKey) return;
+    const prevKey = view.plantKey.replace(/\*+$/, '');
     this.clearPlants(view);
     view.plantKey = key;
     if (!ready || !view.visual) return;
@@ -386,18 +460,81 @@ export class FarmView {
     if (!pool || !sm) { view.plantKey = ''; return; }
     const s = 0.3 / Math.max(sm.size.x, sm.size.y, sm.size.z);
     const r = rng(view.b.uid);
-    const h = view.height;
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * Math.PI * 2 + r();
-      const rad = 0.35 + r() * 0.2;
-      tmpM.compose(tmpV.set(view.center.x + Math.cos(a) * rad, h * (0.5 + r() * 0.3), view.center.z + Math.sin(a) * rad), tmpQ.setFromAxisAngle(UP, a), tmpS.set(s, s, s));
-      view.plants.push({ pool, handle: pool.add(tmpM) });
+    const rotQ = tmpQ2.setFromAxisAngle(UP, -view.b.rot * Math.PI / 2);
+    for (const spot of this.fruitSpots(view.visual)) {
+      const p = tmpV2.copy(spot).applyQuaternion(rotQ).add(view.center);
+      view.plants.push(this.addPlant(pool, p.x, p.y, p.z, s, s, r() * Math.PI * 2, 0, 0));
     }
+    this.startGrow(view, prevKey === 'growing', false);
+  }
+
+  private fruitSpotCache = new Map<string, THREE.Vector3[]>();
+  /**
+   * Where fruit hangs on a tree model: rays cast in from 8 directions (alternating an upper and a lower
+   * height) find the outside of the canopy, so fruit sits on the leaves instead of hidden inside them.
+   * Computed once per tree type.
+   */
+  private fruitSpots(visual: Visual): THREE.Vector3[] {
+    let spots = this.fruitSpotCache.get(visual.key);
+    if (spots) return spots;
+    const pos = visual.geometry.attributes.position as THREE.BufferAttribute;
+    const v = new THREE.Vector3();
+    let minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(visual.local);
+      minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
+    }
+    const H = maxY - minY, N = 8;
+    const mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(visual.geometry, mat);
+    mesh.matrixAutoUpdate = false;
+    mesh.matrix.copy(visual.local);
+    mesh.matrixWorld.copy(visual.local);
+    const rc = new THREE.Raycaster();
+    const dir = new THREE.Vector3();
+    spots = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2 + 0.35;
+      dir.set(-Math.cos(a), 0, -Math.sin(a));
+      rc.set(v.set(Math.cos(a) * 6, minY + H * (i % 2 ? 0.56 : 0.74), Math.sin(a) * 6), dir);
+      const hit = rc.intersectObject(mesh, false)[0];
+      if (hit && Math.hypot(hit.point.x, hit.point.z) > 0.2) spots.push(hit.point.clone().addScaledVector(dir, -0.05));
+    }
+    mat.dispose();
+    if (spots.length < 4) {
+      // odd model: fall back to a simple ring
+      spots = [];
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; spots.push(new THREE.Vector3(Math.cos(a) * 0.45, minY + H * 0.6, Math.sin(a) * 0.45)); }
+    }
+    this.fruitSpotCache.set(visual.key, spots);
+    return spots;
   }
 
   private clearAnimals(view: BuildingView): void {
-    for (const a of view.animals) a.pool.remove(a.handle);
+    for (const a of view.animals) { a.pool.remove(a.handle); this.dropProduct(a); }
     view.animals = [];
+  }
+
+  private dropProduct(a: AnimalSprite): void {
+    if (a.prod) { a.prod.pool.remove(a.prod.handle); a.prod = null; }
+  }
+
+  /** Instance pool for an item model lying on the ground (null until the model has loaded). */
+  private itemPool(model: string): InstancePool | null {
+    return model.startsWith('proc/') ? this.procPool(model.slice(5)) : this.cropPool(model);
+  }
+
+  /** A ready animal leaves its product on the ground beside it (egg, milk, wool...). */
+  private layProduct(a: AnimalSprite, item: string): void {
+    const model = productModel(item);
+    const pool = this.itemPool(model);
+    if (!pool) return; // model still loading: try again next tick
+    const sm = model.startsWith('proc/') ? null : assets.getStatic(model);
+    const s = sm ? 0.36 / Math.max(sm.size.x, sm.size.y, sm.size.z) : 0.9;
+    const side = a.heading + Math.PI * 0.75;
+    const off = 0.25 + a.scale * 0.6;
+    tmpM.compose(tmpV.set(a.x + Math.sin(side) * off, 0.02, a.z + Math.cos(side) * off), tmpQ.setFromAxisAngle(UP, a.phase), tmpS.set(s, s, s));
+    a.prod = { pool, handle: pool.add(tmpM) };
   }
 
   private async syncAnimals(view: BuildingView, now: number): Promise<void> {
@@ -410,14 +547,18 @@ export class FarmView {
         const r = Math.random;
         const x = view.center.x + (r() - 0.5) * (w - 1.4), z = view.center.z + (r() - 0.5) * (d - 1.4) + 0.3;
         tmpM.makeTranslation(x, 0, z);
-        view.animals.push({ pool, handle: pool.add(tmpM), scale: def.scale, x, z, tx: x, tz: z, heading: r() * 6, wait: r() * 3, hop: 0, phase: r() * 10, ready: false, hungry: true });
+        view.animals.push({ pool, handle: pool.add(tmpM), scale: def.scale, x, z, tx: x, tz: z, heading: r() * 6, wait: r() * 3, hop: 0, phase: r() * 10, ready: false, hungry: true, jump: 0, prod: null });
       }
-      while (view.animals.length > list.length) { const a = view.animals.pop()!; a.pool.remove(a.handle); }
+      while (view.animals.length > list.length) { const a = view.animals.pop()!; a.pool.remove(a.handle); this.dropProduct(a); }
     }
     list.forEach((_a, i) => {
       const st = animalState(view.b, i, now);
-      view.animals[i].ready = st === 'ready';
-      view.animals[i].hungry = st === 'hungry';
+      const a = view.animals[i];
+      if (!a) return;
+      a.ready = st === 'ready';
+      a.hungry = st === 'hungry';
+      if (a.ready && !a.prod && !this.hidden.has(view.b.uid)) this.layProduct(a, def.product);
+      else if (!a.ready && a.prod) this.dropProduct(a);
     });
   }
 
@@ -468,10 +609,26 @@ export class FarmView {
       }
       // idle head-turn sway, walking hop, happy bounce when product ready
       const sway = moving ? 0 : Math.sin(t * 0.9 + a.phase) * 0.35;
-      const hop = moving ? Math.abs(Math.sin(t * 9 + a.phase)) * 0.08 : a.ready ? Math.abs(Math.sin(t * 4 + a.phase)) * 0.06 : 0;
-      const breathe = 1 + Math.sin(t * 2.2 + a.phase) * 0.025;
+      let hop = moving ? Math.abs(Math.sin(t * 9 + a.phase)) * 0.08 : a.ready ? Math.abs(Math.sin(t * 4 + a.phase)) * 0.06 : 0;
+      // head pitch: hungry animals droop, fed ones stop now and then to nibble the grass
+      let pitch = 0;
+      if (!moving) {
+        if (a.hungry) pitch = 0.16 + Math.sin(t * 0.7 + a.phase) * 0.04;
+        else if (!a.ready) {
+          const gate = Math.sin(t * 0.45 + a.phase);
+          if (gate > 0.45) pitch = Math.min(1, (gate - 0.45) * 5) * (0.22 + Math.sin(t * 11 + a.phase) * 0.06);
+        }
+      }
+      let squash = 0;
+      if (a.jump > 0) {
+        a.jump = Math.max(0, a.jump - dt);
+        const k = 1 - Math.min(1, a.jump / 0.45);
+        if (k > 0) { hop += Math.sin(k * Math.PI) * 0.28 * Math.min(1.4, a.scale * 2); squash = Math.sin(k * Math.PI * 2) * 0.08; pitch = -0.15 * Math.sin(k * Math.PI); }
+      }
+      const breathe = 1 + Math.sin(t * 2.2 + a.phase) * 0.025 + squash;
       const s = a.scale;
-      tmpM.compose(tmpV.set(a.x, hop, a.z), tmpQ.setFromAxisAngle(UP, a.heading + sway), tmpS.set(s * (2 - breathe), s * breathe, s * (2 - breathe)));
+      tmpQ.setFromEuler(tmpE.set(pitch, a.heading + sway, 0));
+      tmpM.compose(tmpV.set(a.x, hop, a.z), tmpQ, tmpS.set(s * (2 - breathe), s * breathe, s * (2 - breathe)));
       a.pool.set(a.handle, tmpM);
     }
   }
@@ -497,6 +654,16 @@ export class FarmView {
   frame(dt: number, t: number, night: number): void {
     for (const v of this.views.values()) {
       if (v.animals.length) this.animateAnimals(v, dt, t);
+      if (v.plants.length && (v.swaying || v.plantAge < 1)) {
+        const age = v.plantAge;
+        v.plantAge += dt;
+        const done = age >= SPRING_SEC + 0.15;
+        for (let i = 0; i < v.plants.length; i++) {
+          // stagger the plants of a field so they pop up one after another
+          const g = done ? 1 : THREE.MathUtils.clamp((age - (i % 4) * 0.05) / SPRING_SEC, 0, 1);
+          this.writePlant(v.plants[i], g, t);
+        }
+      }
       if (v.fan) {
         const busy = productionState(v.b, game.now()).running;
         v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
