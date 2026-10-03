@@ -55,9 +55,16 @@ export class AchievementSystem {
 }
 
 // ======================================================================== quests
-function localDay(now: number): string {
+export function localDay(now: number): string {
   const d = new Date(now);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+/** Local calendar day `n` days from `now` (DST safe: steps by calendar date, not by 24 h). */
+function dayShift(now: number, n: number): string {
+  const d = new Date(now);
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() + n);
+  return localDay(d.getTime());
 }
 function weekKey(now: number): string {
   const d = new Date(now);
@@ -191,8 +198,8 @@ export class DailySystem {
         if (game.state.seen.loginDays.length > 120) game.state.seen.loginDays.shift();
         game.incStat('login_days');
       }
-      const yesterday = localDay(now - 86400000);
-      const twoAgo = localDay(now - 2 * 86400000);
+      const yesterday = dayShift(now, -1);
+      const twoAgo = dayShift(now, -2);
       const week = weekKey(now);
       if (d.lastDay === yesterday) { /* streak continues */ }
       else if (d.lastDay === twoAgo && d.protectionUsedWeek !== week && d.streak > 0) {

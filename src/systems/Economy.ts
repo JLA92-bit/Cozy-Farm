@@ -119,11 +119,13 @@ export class TruckSystem {
     const s = game.state;
     if (!this.depot) return;
     if (s.truck && now >= s.truck.leavesAt) {
-      // ran out of time: the truck leaves with whatever was filled (no penalty)
+      // ran out of time: the truck leaves with whatever was filled (no penalty).
+      // The cooldown counts from when it actually left, so a long absence does not add a wait.
+      const leftAt = s.truck.leavesAt;
       s.truck = null;
-      s.truckNextAt = now + ECONOMY.truck.cooldownSec * 1000;
+      s.truckNextAt = leftAt + ECONOMY.truck.cooldownSec * 1000;
       game.bus.emit('truck:changed', {});
-      game.bus.emit('toast', { title: 'The truck had to leave', sub: 'It will be back soon', icon: 'truck' });
+      if (now - leftAt < 60000) game.bus.emit('toast', { title: 'The truck had to leave', sub: 'It will be back soon', icon: 'truck' });
     }
     if (!s.truck && now >= s.truckNextAt) this.arrive(now);
   }
