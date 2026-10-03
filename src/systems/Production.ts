@@ -35,6 +35,22 @@ export class ProductionSystem {
     return true;
   }
 
+  /** Take back a job that has not started yet: ingredients are refunded and later jobs move up. */
+  cancel(b: PlacedBuilding, index: number): boolean {
+    const now = game.now();
+    settleProduction(b, now);
+    const q = b.queue ?? [];
+    const e = q[index];
+    if (!e || e.start <= now) return false;
+    const dur = e.end - e.start;
+    q.splice(index, 1);
+    for (let k = index; k < q.length; k++) { q[k].start -= dur; q[k].end -= dur; }
+    for (const [item, n] of Object.entries(RECIPE[e.recipe].in)) game.addItem(item, n);
+    game.bus.emit('building:changed', { b });
+    game.bus.emit('sfx', { name: 'close' });
+    return true;
+  }
+
   /** Collect everything finished. */
   collect(b: PlacedBuilding, at?: Vec, night = false): string[] {
     settleProduction(b, game.now());

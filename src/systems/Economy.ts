@@ -91,10 +91,12 @@ export class OrderSystem {
       };
       const nLines = Math.min(ECONOMY.orders.maxLines, game.level < 3 ? 1 : game.level < 8 ? 1 + Math.floor(r() * 2) : 1 + Math.floor(r() * 3));
       const used = new Set<string>();
+      // prefer goods the other orders on the board do not already ask for, so the board feels varied
+      const others = new Set(o.list.flatMap((x) => x.lines.map((l) => l.item)));
       lines = [];
       for (let k = 0; k < nLines; k++) {
         let item = pick();
-        for (let t = 0; t < 6 && used.has(item); t++) item = pick();
+        for (let t = 0; t < 8 && (used.has(item) || (t < 5 && others.has(item))); t++) item = pick();
         if (used.has(item)) continue;
         used.add(item);
         const value = ITEMS[item].sell;

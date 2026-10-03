@@ -63,6 +63,8 @@ export function openProduction(b: PlacedBuilding): void {
   p.body.append(queueTitle, queueEl, detail, h('div', { class: 'section-title' }, 'Recipes'), recipesEl);
   let timer = 0;
   let lastSig = '';
+  let cancelAt = -1;
+  let cancelTimer = 0;
 
   const renderQueue = () => {
     const now = game.now();
@@ -86,9 +88,21 @@ export function openProduction(b: PlacedBuilding): void {
       const r = RECIPE[e.recipe];
       const running = e.start <= now;
       const pct = running ? Math.min(100, ((now - e.start) / (e.end - e.start)) * 100) : 0;
-      queueEl.append(h('div', { class: `card prod-slot ${running ? 'running' : ''}` }, itemIcon(r.item, 'icon'),
+      // waiting jobs can be taken back (two taps) in case of a mis-tap
+      const confirming = !running && cancelAt === i;
+      const slot = h('div', { class: `card prod-slot ${running ? 'running' : 'clickable waiting'} ${confirming ? 'confirm' : ''}` }, itemIcon(r.item, 'icon'),
         r.out > 1 ? h('div', { class: 'count-tag outlined' }, `x${r.out}`) : null,
-        h('div', { class: 'progress', style: 'width:100%' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, running ? formatTime(e.end - now) : 'Next'))));
+        confirming ? h('div', { class: 'card-sub prod-cancel' }, 'Cancel?')
+          : h('div', { class: 'progress', style: 'width:100%' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, running ? formatTime(e.end - now) : 'Next')));
+      if (!running) {
+        slot.addEventListener('click', () => {
+          if (!confirming) { cancelAt = i; clearTimeout(cancelTimer); cancelTimer = window.setTimeout(() => { cancelAt = -1; if (p.overlay.isConnected) renderQueue(); }, 3000); renderQueue(); return; }
+          cancelAt = -1;
+          if (production.cancel(b, i)) ui.feedback.toast('Job cancelled', 'Ingredients are back in your barn', ITEMS[r.item].icon);
+          renderQueue();
+        });
+      }
+      queueEl.append(slot);
     }
     const cost = production.speedupCost(b);
     const btns = h('div', { class: 'col prod-actions' });
@@ -173,7 +187,7 @@ export function openProduction(b: PlacedBuilding): void {
     button(['Upgrade', icon('hammer')], () => { p.close(); ui.buildingPopup(b); }, 'small yellow'),
     button('Move', () => { p.close(); void ui.interaction.startMove(b.uid, false); }, 'small blue'),
   );
-  p.onClose = () => clearInterval(timer);
+  p.onClose = () => { clearInterval(timer); clearTimeout(cancelTimer); };
   p.open();
 }
 

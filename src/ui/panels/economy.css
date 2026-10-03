@@ -66,3 +66,6 @@
 .merchant-offer { padding-top: 12px; }
 .deal-tag { position: absolute; top: -10px; right: -6px; background: #ff6b6b; color: #fff; border: 2px solid var(--outline); border-radius: 10px; padding: 1px 6px; font-size: 13px; transform: rotate(8deg); }
 .was-price { font-size: 12px; color: var(--ink-soft); text-decoration: line-through; }
+.prod-slot.waiting { cursor: pointer; }
+.prod-slot.confirm { background: #ffd6d0; }
+.prod-cancel { font-family: var(--font-display); color: #b8322a; }
