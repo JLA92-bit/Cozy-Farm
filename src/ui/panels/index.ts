@@ -9,3 +9,4 @@ import './ProgressionPanels';
 import './SettingsPanel';
 import './WhatsNewPanel';
 import './FarmhousePanel';
+import './FriendsPanel';

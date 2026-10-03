@@ -35,6 +35,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.hints = { ...base.hints, ...(isObj(s.hints) ? s.hints : {}) };
   if (!['', 'all', 'new', 'off'].includes(out.hints.mode)) out.hints.mode = '';
   out.hints.intros = strArr(out.hints.intros);
+  out.social = { ...base.social, ...(isObj(s.social) ? s.social : {}) };
   return sanitize(out, base);
 }
 
@@ -115,6 +116,12 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   for (const k of ['stats', 'achievements', 'collection'] as const) if (!isObj(out[k])) out[k] = { ...base[k] };
   for (const k of ['daily', 'weekly'] as const) if (!Array.isArray(out.quests[k])) { out.quests[k] = []; out.quests[`${k}Key`] = ''; }
   if (out.event && !isObj(out.event)) out.event = null;
+  const so = out.social;
+  so.friends = (Array.isArray(so.friends) ? so.friends : []).filter((f) => isObj(f) && typeof f.id === 'string' && typeof f.name === 'string').map((f) => ({ id: f.id, name: f.name, code: typeof f.code === 'string' ? f.code : '', addedAt: finite(f.addedAt, 0) }));
+  so.sent = isObj(so.sent) ? { day: typeof so.sent.day === 'string' ? so.sent.day : '', gifts: Math.floor(finite(so.sent.gifts, 0, 0)), coins: Math.floor(finite(so.sent.coins, 0, 0)) } : { ...base.social.sent };
+  so.claimedCodes = strArr(so.claimedCodes).slice(-300);
+  so.madeCodes = strArr(so.madeCodes).slice(-300);
+  if (typeof so.botGiftDay !== 'string') so.botGiftDay = '';
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;
 }

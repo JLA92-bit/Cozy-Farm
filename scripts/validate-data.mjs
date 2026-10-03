@@ -100,6 +100,15 @@ releases?.forEach((r, i) => {
   for (const l of lines) { icon(l.icon); if (!l.text) err(`changelog ${r.version}: empty line`); }
   if (JSON.stringify(r).includes('—')) err(`changelog ${r.version}: use "-" instead of an em dash`);
 });
+// friends and gifts (economy.social)
+{
+  const so = read('economy.json').social;
+  if (!so) err('economy.social missing');
+  else {
+    for (const k of ['giftsPerDay', 'maxCoinsPerGift', 'maxCoinsPerDay', 'maxItemsPerGift', 'maxStacksPerGift', 'messageMax', 'maxFriends', 'pollSec']) if (!(so[k] > 0)) err(`economy.social.${k} must be > 0`);
+    for (const i of so.botGift?.items ?? []) if (!items[i]) err(`economy.social.botGift: unknown item ${i}`);
+  }
+}
 
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);

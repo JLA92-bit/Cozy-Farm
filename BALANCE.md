@@ -229,3 +229,20 @@ because it absorbs everything orders do not ask for (at a lower price per item).
 About two thirds of truck crates get filled and a full truck about once every 3-4 trucks. The first hour is
 identical (level 7 at ~65 min of simulated play).
 
+## Friends and gifts (`economy.json` > `social`)
+
+Gifting is meant to be cozy, not a way to farm coins between accounts. Items and coins leave the
+sender's save first (escrow) and are refunded if the send fails.
+
+| Setting | Value | Why |
+|---|---|---|
+| Gifts per day | 5 | mailbox gifts and gift codes share this count |
+| Coins per gift / per day | 500 / 1,000 | small help, never a whole building |
+| Items per gift | 20 units, up to 4 kinds | fits one tidy gift card |
+| Message | 60 characters | a short note |
+| Friends | 30 | keeps the list readable on a phone |
+| Mailbox poll | every 25 s while visible | plus on panel open and on return; never on the frame loop |
+
+Received gifts are clamped to the same per-gift caps and to known items. Gift codes can be opened
+once per farm (the save remembers claimed nonces) and never by the farm that made them. In practice
+mode a demo neighbour sends at most one small thank-you gift a day (`botGift`).

@@ -191,5 +191,18 @@ export class LocalBackend implements OnlineBackend {
     });
   }
 
+  /** Practice mode only: a demo neighbour sends this player a gift (so the mailbox can be tried). */
+  async botGift(botId: string, items: Record<string, number>, coins: number, message?: string): Promise<Gift> {
+    const g = this.write((db) => {
+      const bot = db.profiles.find((p) => p.id === botId && p.bot);
+      if (!bot || !this.id) throw new Error('unknown player');
+      const g: Gift = { id: this.nextId(db, 'g'), from: { id: bot.id, name: bot.name }, to: this.id, items, coins, message, sentAt: this.now(), claimed: false };
+      db.gifts.push(g);
+      return g;
+    });
+    this.emit({ type: 'gift', gift: g });
+    return g;
+  }
+
   subscribe(cb: (e: OnlineEvent) => void): () => void { this.subs.add(cb); return () => this.subs.delete(cb); }
 }

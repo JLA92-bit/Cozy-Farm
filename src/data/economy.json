@@ -97,5 +97,23 @@
   "gemsPerMinute": 0.2,
   "minGems": 1
  },
- "eventTokenChance": 0.12
+ "eventTokenChance": 0.12,
+ "social": {
+  "_comment": "Friends and gifts. Daily limits keep gifting cozy: gifts and gift codes both count. Coins per gift and per day are capped; items per gift count every unit.",
+  "giftsPerDay": 5,
+  "maxCoinsPerGift": 500,
+  "maxCoinsPerDay": 1000,
+  "maxItemsPerGift": 20,
+  "maxStacksPerGift": 4,
+  "messageMax": 60,
+  "maxFriends": 30,
+  "pollSec": 25,
+  "botGift": {
+   "_comment": "Practice mode only: at most once a day a demo neighbour sends a small thank-you gift.",
+   "delaySec": 40,
+   "coins": [10, 40],
+   "items": ["wheat", "corn", "carrot", "egg", "milk", "bread"],
+   "qty": [2, 5]
+  }
+ }
 }
