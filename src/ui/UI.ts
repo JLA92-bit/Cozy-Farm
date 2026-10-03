@@ -155,6 +155,7 @@ class UIManager {
       this.scene.farm.refreshLand();
       const c = Terrain.chunkCenter(chunk);
       this.effects.levelUp(c.clone().setY(0.5));
+      this.effects.ring(c, 6, '#fff3b0');
       this.scene.rig.focus(c.x, c.z);
       this.scene.rig.shake(0.2, 0.4);
       this.feedback.toast('New land!', 'Your farm just got bigger', 'map', 'gold');
