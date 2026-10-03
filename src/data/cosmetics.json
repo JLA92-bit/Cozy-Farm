@@ -1,0 +1,71 @@
+{
+  "_comment": "Character customisation. unlock: {level:N} | {achievement:id} | {event:id, cost:N tokens} | {crate:rarity} | {default:true}",
+  "bodies": [
+    { "id": "female-a", "name": "Style A", "body": "female" },
+    { "id": "female-b", "name": "Style B", "body": "female" },
+    { "id": "female-c", "name": "Style C", "body": "female" },
+    { "id": "female-d", "name": "Style D", "body": "female" },
+    { "id": "female-e", "name": "Style E", "body": "female" },
+    { "id": "female-f", "name": "Style F", "body": "female" },
+    { "id": "male-a", "name": "Style A", "body": "male" },
+    { "id": "male-b", "name": "Style B", "body": "male" },
+    { "id": "male-c", "name": "Style C", "body": "male" },
+    { "id": "male-d", "name": "Style D", "body": "male" },
+    { "id": "male-e", "name": "Style E", "body": "male" },
+    { "id": "male-f", "name": "Style F", "body": "male" }
+  ],
+  "skinTones": ["#ffe0c2", "#f6c9a0", "#e8b38a", "#c98a5e", "#a26a43", "#7a4b2c", "#5a3720"],
+  "hairColors": ["#2b2622", "#5a3a22", "#8a5a33", "#c98a4b", "#e8c06a", "#f2e2b0", "#d9473a", "#ff8fb4", "#7cb8ff", "#a77bf3", "#9aa5b1"],
+  "outfitColors": [
+    { "color": "#3fa9f5", "unlock": { "default": true } },
+    { "color": "#e2533c", "unlock": { "default": true } },
+    { "color": "#6cc644", "unlock": { "default": true } },
+    { "color": "#ffc93c", "unlock": { "default": true } },
+    { "color": "#f7f1e3", "unlock": { "default": true } },
+    { "color": "#3b3b45", "unlock": { "default": true } },
+    { "color": "#8a5528", "unlock": { "default": true } },
+    { "color": "#ff8fb4", "unlock": { "level": 4 } },
+    { "color": "#a77bf3", "unlock": { "level": 7 } },
+    { "color": "#2fbfa8", "unlock": { "level": 13 } },
+    { "color": "#ff8c3a", "unlock": { "level": 21 } },
+    { "color": "#1f4e9c", "unlock": { "level": 28 } },
+    { "color": "#ffb820", "name": "Gold", "unlock": { "level": 41 } },
+    { "color": "#d4f2ff", "name": "Frost", "unlock": { "event": "winter_wonderland", "cost": 30 } },
+    { "color": "#c0582b", "name": "Autumn Rust", "unlock": { "event": "harvest_festival", "cost": 25 } }
+  ],
+  "hats": [
+    { "id": "none", "name": "No Hat", "unlock": { "default": true } },
+    { "id": "straw", "name": "Straw Hat", "unlock": { "default": true } },
+    { "id": "cap", "name": "Farm Cap", "unlock": { "level": 3 } },
+    { "id": "beanie", "name": "Beanie", "unlock": { "level": 9 } },
+    { "id": "flower_crown", "name": "Flower Crown", "unlock": { "level": 14 } },
+    { "id": "bucket", "name": "Bucket Hat", "unlock": { "level": 18 } },
+    { "id": "cowboy", "name": "Cowboy Hat", "unlock": { "level": 25 } },
+    { "id": "chef", "name": "Chef Hat", "unlock": { "achievement": "baker" } },
+    { "id": "top", "name": "Top Hat", "unlock": { "level": 32 } },
+    { "id": "party", "name": "Party Hat", "unlock": { "crate": "rare" } },
+    { "id": "bunny_ears", "name": "Bunny Ears", "unlock": { "crate": "epic" } },
+    { "id": "viking", "name": "Viking Helmet", "unlock": { "level": 39 } },
+    { "id": "crown", "name": "Golden Crown", "unlock": { "level": 50 } },
+    { "id": "pumpkin", "name": "Pumpkin Hat", "unlock": { "event": "harvest_festival", "cost": 40 } },
+    { "id": "witch", "name": "Witch Hat", "unlock": { "crate": "legendary" } },
+    { "id": "santa", "name": "Cozy Santa Hat", "unlock": { "event": "winter_wonderland", "cost": 40 } }
+  ],
+  "accessories": [
+    { "id": "none", "name": "None", "unlock": { "default": true } },
+    { "id": "backpack", "name": "Backpack", "unlock": { "level": 12 } },
+    { "id": "scarf", "name": "Knitted Scarf", "unlock": { "achievement": "weaver" } },
+    { "id": "glasses", "name": "Round Glasses", "unlock": { "level": 31 } },
+    { "id": "flower", "name": "Hair Flower", "unlock": { "crate": "rare" } },
+    { "id": "bowtie", "name": "Bow Tie", "unlock": { "level": 46 } }
+  ],
+  "pets": [
+    { "id": "none", "name": "No Pet", "unlock": { "default": true } },
+    { "id": "dog", "name": "Pup", "model": "pet/dog", "unlock": { "level": 5 } },
+    { "id": "cat", "name": "Kitty", "model": "pet/cat", "unlock": { "level": 11 } },
+    { "id": "bunny", "name": "Bunny", "model": "pet/bunny", "unlock": { "level": 20 } },
+    { "id": "fox", "name": "Fox", "model": "pet/fox", "unlock": { "level": 27 } },
+    { "id": "penguin", "name": "Penguin", "model": "pet/penguin", "unlock": { "crate": "epic" } },
+    { "id": "panda", "name": "Panda", "model": "pet/panda", "unlock": { "level": 43 } }
+  ]
+}

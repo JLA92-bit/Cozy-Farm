@@ -1,0 +1,712 @@
+{
+ "_comment": "tiers = [bronze, silver, gold] thresholds of a lifetime stat. gauge = the stat is a current value (tracked as max-ever) rather than a running total.",
+ "rewards": [
+  {
+   "coins": 50,
+   "gems": 1,
+   "xp": 10
+  },
+  {
+   "coins": 250,
+   "gems": 3,
+   "xp": 40
+  },
+  {
+   "coins": 1000,
+   "gems": 10,
+   "xp": 150
+  }
+ ],
+ "achievements": [
+  {
+   "id": "green_thumb",
+   "name": "Green Thumb",
+   "category": "farming",
+   "stat": "crops_harvested",
+   "tiers": [
+    50,
+    500,
+    5000
+   ],
+   "desc": "Harvest {n} crops",
+   "icon": "wheat"
+  },
+  {
+   "id": "planter",
+   "name": "Busy Planter",
+   "category": "farming",
+   "stat": "plants_planted",
+   "tiers": [
+    50,
+    500,
+    5000
+   ],
+   "desc": "Plant {n} seeds",
+   "icon": "seedling"
+  },
+  {
+   "id": "wheat_king",
+   "name": "Wheat Royalty",
+   "category": "farming",
+   "stat": "harvest_wheat",
+   "tiers": [
+    100,
+    1000,
+    10000
+   ],
+   "desc": "Harvest {n} wheat",
+   "icon": "wheat"
+  },
+  {
+   "id": "orchardist",
+   "name": "Orchardist",
+   "category": "farming",
+   "stat": "fruit_harvested",
+   "tiers": [
+    30,
+    300,
+    3000
+   ],
+   "desc": "Pick {n} fruit",
+   "icon": "apple"
+  },
+  {
+   "id": "pumpkin_patch",
+   "name": "Pumpkin Patch",
+   "category": "farming",
+   "stat": "harvest_pumpkin",
+   "tiers": [
+    20,
+    200,
+    1000
+   ],
+   "desc": "Harvest {n} pumpkins",
+   "icon": "model:crop/pumpkin"
+  },
+  {
+   "id": "field_owner",
+   "name": "Field Owner",
+   "category": "farming",
+   "stat": "plots_owned",
+   "tiers": [
+    8,
+    20,
+    40
+   ],
+   "desc": "Own {n} fields",
+   "icon": "seedling",
+   "gauge": true
+  },
+  {
+   "id": "crop_explorer",
+   "name": "Crop Explorer",
+   "category": "farming",
+   "stat": "crop_types",
+   "tiers": [
+    5,
+    10,
+    18
+   ],
+   "desc": "Grow {n} different crops",
+   "icon": "corn",
+   "gauge": true
+  },
+  {
+   "id": "rancher",
+   "name": "Rancher",
+   "category": "animals",
+   "stat": "animals_owned",
+   "tiers": [
+    3,
+    10,
+    25
+   ],
+   "desc": "Own {n} animals",
+   "icon": "cow",
+   "gauge": true
+  },
+  {
+   "id": "feeder",
+   "name": "Feeding Time",
+   "category": "animals",
+   "stat": "animals_fed",
+   "tiers": [
+    25,
+    250,
+    2500
+   ],
+   "desc": "Feed animals {n} times",
+   "icon": "model:proc/feed_chicken"
+  },
+  {
+   "id": "egg_collector",
+   "name": "Egg Collector",
+   "category": "animals",
+   "stat": "collect_egg",
+   "tiers": [
+    25,
+    250,
+    2500
+   ],
+   "desc": "Collect {n} eggs",
+   "icon": "egg"
+  },
+  {
+   "id": "milkman",
+   "name": "Milk Run",
+   "category": "animals",
+   "stat": "collect_milk",
+   "tiers": [
+    20,
+    200,
+    2000
+   ],
+   "desc": "Collect {n} milk",
+   "icon": "milk"
+  },
+  {
+   "id": "shepherd",
+   "name": "Shepherd",
+   "category": "animals",
+   "stat": "collect_wool",
+   "tiers": [
+    15,
+    150,
+    1500
+   ],
+   "desc": "Shear {n} wool",
+   "icon": "sheep"
+  },
+  {
+   "id": "truffle_hunter",
+   "name": "Truffle Hunter",
+   "category": "animals",
+   "stat": "collect_truffle",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Find {n} truffles",
+   "icon": "mushroom"
+  },
+  {
+   "id": "goat_whisperer",
+   "name": "Goat Whisperer",
+   "category": "animals",
+   "stat": "collect_goat_milk",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Collect {n} goat milk",
+   "icon": "goat"
+  },
+  {
+   "id": "animal_friend",
+   "name": "Animal Friend",
+   "category": "animals",
+   "stat": "animal_pets",
+   "tiers": [
+    10,
+    100,
+    500
+   ],
+   "desc": "Pet animals {n} times",
+   "icon": "heart"
+  },
+  {
+   "id": "baker",
+   "name": "Baker",
+   "category": "production",
+   "stat": "made_bakery",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Bake {n} goods",
+   "icon": "bread"
+  },
+  {
+   "id": "dairy_maker",
+   "name": "Dairy Maker",
+   "category": "production",
+   "stat": "made_dairy",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Make {n} dairy goods",
+   "icon": "cheese"
+  },
+  {
+   "id": "weaver",
+   "name": "Weaver",
+   "category": "production",
+   "stat": "made_loom",
+   "tiers": [
+    5,
+    50,
+    500
+   ],
+   "desc": "Weave {n} goods",
+   "icon": "yarn"
+  },
+  {
+   "id": "jam_master",
+   "name": "Jam Master",
+   "category": "production",
+   "stat": "made_jam_kitchen",
+   "tiers": [
+    5,
+    50,
+    500
+   ],
+   "desc": "Cook {n} jars",
+   "icon": "jar"
+  },
+  {
+   "id": "sweet_tooth",
+   "name": "Sweet Tooth",
+   "category": "production",
+   "stat": "made_sugar_mill",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Make {n} sweets",
+   "icon": "candy"
+  },
+  {
+   "id": "feed_master",
+   "name": "Feed Master",
+   "category": "production",
+   "stat": "made_feed_mill",
+   "tiers": [
+    30,
+    300,
+    3000
+   ],
+   "desc": "Make {n} feed",
+   "icon": "model:proc/feed_cow"
+  },
+  {
+   "id": "industrious",
+   "name": "Industrious",
+   "category": "production",
+   "stat": "items_produced",
+   "tiers": [
+    50,
+    500,
+    5000
+   ],
+   "desc": "Produce {n} goods",
+   "icon": "hammer_wrench"
+  },
+  {
+   "id": "builder",
+   "name": "Master Builder",
+   "category": "building",
+   "stat": "buildings_built",
+   "tiers": [
+    5,
+    20,
+    50
+   ],
+   "desc": "Build {n} buildings",
+   "icon": "construction"
+  },
+  {
+   "id": "upgrader",
+   "name": "Upgrader",
+   "category": "building",
+   "stat": "upgrades_done",
+   "tiers": [
+    3,
+    15,
+    40
+   ],
+   "desc": "Finish {n} upgrades",
+   "icon": "hammer"
+  },
+  {
+   "id": "lumberjack",
+   "name": "Lumberjack",
+   "category": "building",
+   "stat": "clear_tree",
+   "tiers": [
+    10,
+    50,
+    150
+   ],
+   "desc": "Clear {n} trees",
+   "icon": "axe"
+  },
+  {
+   "id": "rock_breaker",
+   "name": "Rock Breaker",
+   "category": "building",
+   "stat": "clear_rock",
+   "tiers": [
+    10,
+    50,
+    150
+   ],
+   "desc": "Break {n} rocks",
+   "icon": "pick"
+  },
+  {
+   "id": "land_baron",
+   "name": "Land Baron",
+   "category": "building",
+   "stat": "land_expanded",
+   "tiers": [
+    2,
+    8,
+    20
+   ],
+   "desc": "Buy {n} land expansions",
+   "icon": "map"
+  },
+  {
+   "id": "homeowner",
+   "name": "Homeowner",
+   "category": "building",
+   "stat": "farmhouse_level",
+   "tiers": [
+    3,
+    5,
+    8
+   ],
+   "desc": "Upgrade your farmhouse to level {n}",
+   "icon": "house",
+   "gauge": true
+  },
+  {
+   "id": "decorator",
+   "name": "Decorator",
+   "category": "decorating",
+   "stat": "decorations_placed",
+   "tiers": [
+    10,
+    50,
+    150
+   ],
+   "desc": "Place {n} decorations",
+   "icon": "sparkles"
+  },
+  {
+   "id": "charming",
+   "name": "Charming",
+   "category": "decorating",
+   "stat": "charm",
+   "tiers": [
+    100,
+    500,
+    1500
+   ],
+   "desc": "Reach {n} charm",
+   "icon": "sparkle_heart",
+   "gauge": true
+  },
+  {
+   "id": "path_maker",
+   "name": "Path Maker",
+   "category": "decorating",
+   "stat": "paths_placed",
+   "tiers": [
+    20,
+    100,
+    300
+   ],
+   "desc": "Lay {n} path tiles",
+   "icon": "model:nat/path_stone"
+  },
+  {
+   "id": "fence_builder",
+   "name": "Fence Builder",
+   "category": "decorating",
+   "stat": "fences_placed",
+   "tiers": [
+    20,
+    100,
+    300
+   ],
+   "desc": "Build {n} fences",
+   "icon": "model:prop/fence_wood"
+  },
+  {
+   "id": "orchard_planter",
+   "name": "Tree Hugger",
+   "category": "decorating",
+   "stat": "trees_planted",
+   "tiers": [
+    3,
+    10,
+    25
+   ],
+   "desc": "Plant {n} fruit trees",
+   "icon": "tree"
+  },
+  {
+   "id": "coin_collector",
+   "name": "Coin Collector",
+   "category": "economy",
+   "stat": "coins_earned",
+   "tiers": [
+    1000,
+    25000,
+    250000
+   ],
+   "desc": "Earn {n} coins",
+   "icon": "coin"
+  },
+  {
+   "id": "big_spender",
+   "name": "Big Spender",
+   "category": "economy",
+   "stat": "coins_spent",
+   "tiers": [
+    1000,
+    25000,
+    250000
+   ],
+   "desc": "Spend {n} coins",
+   "icon": "bags"
+  },
+  {
+   "id": "order_up",
+   "name": "Order Up!",
+   "category": "economy",
+   "stat": "orders_completed",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Complete {n} orders",
+   "icon": "clipboard"
+  },
+  {
+   "id": "trucker",
+   "name": "Trucker",
+   "category": "economy",
+   "stat": "trucks_completed",
+   "tiers": [
+    1,
+    10,
+    50
+   ],
+   "desc": "Send off {n} full trucks",
+   "icon": "truck"
+  },
+  {
+   "id": "crate_filler",
+   "name": "Crate Filler",
+   "category": "economy",
+   "stat": "truck_crates",
+   "tiers": [
+    5,
+    50,
+    300
+   ],
+   "desc": "Fill {n} truck crates",
+   "icon": "package"
+  },
+  {
+   "id": "shopkeeper",
+   "name": "Shopkeeper",
+   "category": "economy",
+   "stat": "stall_sales",
+   "tiers": [
+    10,
+    100,
+    1000
+   ],
+   "desc": "Sell {n} items at your stall",
+   "icon": "store"
+  },
+  {
+   "id": "bargain_hunter",
+   "name": "Bargain Hunter",
+   "category": "economy",
+   "stat": "merchant_buys",
+   "tiers": [
+    3,
+    20,
+    60
+   ],
+   "desc": "Buy {n} things from the merchant",
+   "icon": "cart"
+  },
+  {
+   "id": "gem_finder",
+   "name": "Gem Finder",
+   "category": "economy",
+   "stat": "gems_earned",
+   "tiers": [
+    20,
+    100,
+    500
+   ],
+   "desc": "Earn {n} gems",
+   "icon": "gem"
+  },
+  {
+   "id": "collector",
+   "name": "Collector",
+   "category": "collection",
+   "stat": "collection_entries",
+   "tiers": [
+    15,
+    40,
+    75
+   ],
+   "desc": "Discover {n} collection entries",
+   "icon": "books",
+   "gauge": true
+  },
+  {
+   "id": "lucky",
+   "name": "Lucky Dip",
+   "category": "collection",
+   "stat": "crates_opened",
+   "tiers": [
+    3,
+    20,
+    80
+   ],
+   "desc": "Open {n} mystery crates",
+   "icon": "gift"
+  },
+  {
+   "id": "legendary",
+   "name": "Legendary!",
+   "category": "collection",
+   "stat": "legendary_crates",
+   "tiers": [
+    1,
+    3,
+    10
+   ],
+   "desc": "Find {n} legendary crates",
+   "icon": "crown"
+  },
+  {
+   "id": "dedicated",
+   "name": "Dedicated",
+   "category": "collection",
+   "stat": "best_streak",
+   "tiers": [
+    3,
+    7,
+    30
+   ],
+   "desc": "Reach a {n}-day login streak",
+   "icon": "calendar",
+   "gauge": true
+  },
+  {
+   "id": "quester",
+   "name": "Quester",
+   "category": "collection",
+   "stat": "quests_completed",
+   "tiers": [
+    5,
+    50,
+    250
+   ],
+   "desc": "Complete {n} quests",
+   "icon": "scroll"
+  },
+  {
+   "id": "rising_star",
+   "name": "Rising Star",
+   "category": "collection",
+   "stat": "level",
+   "tiers": [
+    10,
+    25,
+    50
+   ],
+   "desc": "Reach level {n}",
+   "icon": "glowing_star",
+   "gauge": true
+  },
+  {
+   "id": "night_owl",
+   "name": "Night Owl",
+   "category": "hidden",
+   "stat": "night_harvests",
+   "tiers": [
+    10,
+    100,
+    500
+   ],
+   "desc": "Harvest {n} crops at night",
+   "icon": "moon",
+   "hidden": true
+  },
+  {
+   "id": "combo_master",
+   "name": "Combo Master",
+   "category": "hidden",
+   "stat": "swipe_best",
+   "tiers": [
+    8,
+    16,
+    30
+   ],
+   "desc": "Harvest {n} plots in one swipe",
+   "icon": "sparkles",
+   "hidden": true,
+   "gauge": true
+  },
+  {
+   "id": "fashionista",
+   "name": "Fashionista",
+   "category": "hidden",
+   "stat": "character_changes",
+   "tiers": [
+    1,
+    5,
+    20
+   ],
+   "desc": "Restyle your farmer {n} times",
+   "icon": "paint",
+   "hidden": true
+  },
+  {
+   "id": "homebody",
+   "name": "Homebody",
+   "category": "hidden",
+   "stat": "login_days",
+   "tiers": [
+    7,
+    30,
+    100
+   ],
+   "desc": "Visit the farm on {n} different days",
+   "icon": "sunrise",
+   "hidden": true
+  },
+  {
+   "id": "night_shift",
+   "name": "Night Shift",
+   "category": "hidden",
+   "stat": "night_collects",
+   "tiers": [
+    10,
+    50,
+    200
+   ],
+   "desc": "Collect {n} goods at night",
+   "icon": "zzz",
+   "hidden": true
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+{
+  "start": { "coins": 150, "gems": 10, "items": { "wheat": 6, "corn": 2 } },
+  "orders": {
+    "_comment": "Order board. Rewards = sum(item sell * qty) * coinMult, XP = sum(qty * itemXp) where itemXp ~ sell/xpDivisor.",
+    "coinMult": 1.45,
+    "xpDivisor": 5,
+    "minXp": 3,
+    "refillSec": 20,
+    "discardSec": 180,
+    "maxLines": 3,
+    "maxQtyByLevel": [[1, 3], [5, 4], [10, 5], [18, 6], [26, 7]],
+    "gemChance": 0.05,
+    "recentWindow": 3
+  },
+  "truck": {
+    "_comment": "Truck depot: crates of items. Each crate pays out on fill; finishing all crates grants a bonus and a mystery crate.",
+    "crates": [3, 6],
+    "crateLines": 1,
+    "qtyMult": 1.6,
+    "coinMult": 1.8,
+    "bonusMult": 0.5,
+    "durationSec": 21600,
+    "cooldownSec": 1800,
+    "rewardCrate": "rare"
+  },
+  "stall": {
+    "slots": 4,
+    "maxSlots": 8,
+    "slotCostGems": 3,
+    "minPriceMult": 0.5,
+    "maxPriceMult": 1.6,
+    "defaultPriceMult": 1.2,
+    "buyDelaySec": [20, 240],
+    "adCooldownSec": 300
+  },
+  "merchant": {
+    "_comment": "Travelling merchant visits for visitSec every cycleSec. Stock is seeded by the visit number.",
+    "cycleSec": 14400,
+    "visitSec": 7200,
+    "level": 6,
+    "stockSize": 4,
+    "discount": 0.7,
+    "gemPriceCoins": 160
+  },
+  "barn": {
+    "_comment": "Selling straight from the barn pays this fraction of the item value (stall and orders pay more).",
+    "sellMult": 1.0
+  },
+  "charm": {
+    "_comment": "Every 'step' charm points gives the listed bonus, capped at max.",
+    "step": 40,
+    "growthPerStep": 0.01,
+    "growthMax": 0.2,
+    "orderCoinsPerStep": 0.01,
+    "orderCoinsMax": 0.25,
+    "villagersBase": 2,
+    "villagersPerCharm": 60,
+    "villagersMax": 8
+  },
+  "speedup": {
+    "_comment": "Gem cost to finish any timer immediately = max(minGems, ceil(minutesLeft * gemsPerMinute)).",
+    "gemsPerMinute": 0.2,
+    "minGems": 1
+  },
+  "eventTokenChance": 0.12
+}

@@ -1,0 +1,27 @@
+{
+  "mapSize": 48,
+  "chunkSize": 8,
+  "startChunks": ["2,2", "2,3", "3,2", "3,3"],
+  "expansion": {
+    "_comment": "Cost of the Nth expansion bought (0-based). Level gate grows by levelStep per expansion.",
+    "baseCost": 600,
+    "costGrowth": 1.32,
+    "baseLevel": 4,
+    "levelStep": 1.4,
+    "xp": 60,
+    "gemsAfter": 12,
+    "gemCost": 0
+  },
+  "obstacles": {
+    "startAreaCount": 9,
+    "perLockedChunk": 7,
+    "types": {
+      "tree_small": { "name": "Young Tree", "models": ["nat/tree_a", "nat/tree_b"], "clearCost": 15, "xp": 3, "drops": { "coins": [5, 20] }, "sound": "chop", "icon": "axe", "level": 1, "weight": 4 },
+      "tree_big": { "name": "Old Tree", "models": ["nat/trees_a", "nat/trees_b"], "clearCost": 60, "xp": 8, "drops": { "coins": [20, 60], "gems": 0.08 }, "sound": "chop", "icon": "axe", "level": 1, "weight": 3 },
+      "rock": { "name": "Boulder", "models": ["nat/rock_a", "nat/rock_c", "nat/rock_d"], "clearCost": 40, "xp": 6, "drops": { "coins": [10, 40], "gems": 0.1 }, "sound": "rock", "icon": "pick", "level": 1, "weight": 3 },
+      "bush": { "name": "Overgrown Bush", "models": ["nat/bush_large", "nat/bush_detailed"], "clearCost": 8, "xp": 2, "drops": { "coins": [2, 10] }, "sound": "chop", "icon": "axe", "level": 1, "weight": 4 },
+      "stump": { "name": "Stump", "models": ["nat/stump_old", "nat/stump_round"], "clearCost": 25, "xp": 4, "drops": { "coins": [8, 25] }, "sound": "chop", "icon": "axe", "level": 1, "weight": 2 },
+      "big_rock": { "name": "Big Rock", "models": ["nat/rock_e", "nat/rock_b"], "clearCost": 120, "xp": 14, "drops": { "coins": [40, 120], "gems": 0.25 }, "sound": "rock", "icon": "pick", "level": 1, "weight": 1 }
+    }
+  }
+}

@@ -1,0 +1,322 @@
+{
+ "_comment": "xpToNext = XP needed to reach the next level. coins/gems = reward on reaching this level. Unlocks are derived from the 'level' field of every crop, building, recipe, animal and cosmetic.",
+ "maxLevel": 50,
+ "levels": [
+  {
+   "level": 1,
+   "xpToNext": 25,
+   "coins": 0,
+   "gems": 0
+  },
+  {
+   "level": 2,
+   "xpToNext": 47,
+   "coins": 30,
+   "gems": 1
+  },
+  {
+   "level": 3,
+   "xpToNext": 89,
+   "coins": 45,
+   "gems": 1
+  },
+  {
+   "level": 4,
+   "xpToNext": 146,
+   "coins": 60,
+   "gems": 1
+  },
+  {
+   "level": 5,
+   "xpToNext": 214,
+   "coins": 175,
+   "gems": 5
+  },
+  {
+   "level": 6,
+   "xpToNext": 292,
+   "coins": 90,
+   "gems": 1
+  },
+  {
+   "level": 7,
+   "xpToNext": 379,
+   "coins": 105,
+   "gems": 1
+  },
+  {
+   "level": 8,
+   "xpToNext": 474,
+   "coins": 120,
+   "gems": 1
+  },
+  {
+   "level": 9,
+   "xpToNext": 577,
+   "coins": 135,
+   "gems": 1
+  },
+  {
+   "level": 10,
+   "xpToNext": 688,
+   "coins": 250,
+   "gems": 5
+  },
+  {
+   "level": 11,
+   "xpToNext": 806,
+   "coins": 165,
+   "gems": 1
+  },
+  {
+   "level": 12,
+   "xpToNext": 930,
+   "coins": 180,
+   "gems": 1
+  },
+  {
+   "level": 13,
+   "xpToNext": 1061,
+   "coins": 195,
+   "gems": 1
+  },
+  {
+   "level": 14,
+   "xpToNext": 1197,
+   "coins": 210,
+   "gems": 1
+  },
+  {
+   "level": 15,
+   "xpToNext": 1340,
+   "coins": 325,
+   "gems": 5
+  },
+  {
+   "level": 16,
+   "xpToNext": 1488,
+   "coins": 240,
+   "gems": 1
+  },
+  {
+   "level": 17,
+   "xpToNext": 1642,
+   "coins": 255,
+   "gems": 1
+  },
+  {
+   "level": 18,
+   "xpToNext": 1802,
+   "coins": 270,
+   "gems": 1
+  },
+  {
+   "level": 19,
+   "xpToNext": 1966,
+   "coins": 285,
+   "gems": 1
+  },
+  {
+   "level": 20,
+   "xpToNext": 2136,
+   "coins": 400,
+   "gems": 5
+  },
+  {
+   "level": 21,
+   "xpToNext": 2311,
+   "coins": 315,
+   "gems": 1
+  },
+  {
+   "level": 22,
+   "xpToNext": 2490,
+   "coins": 330,
+   "gems": 1
+  },
+  {
+   "level": 23,
+   "xpToNext": 2675,
+   "coins": 345,
+   "gems": 1
+  },
+  {
+   "level": 24,
+   "xpToNext": 2864,
+   "coins": 360,
+   "gems": 1
+  },
+  {
+   "level": 25,
+   "xpToNext": 3057,
+   "coins": 475,
+   "gems": 5
+  },
+  {
+   "level": 26,
+   "xpToNext": 3255,
+   "coins": 390,
+   "gems": 1
+  },
+  {
+   "level": 27,
+   "xpToNext": 3458,
+   "coins": 405,
+   "gems": 1
+  },
+  {
+   "level": 28,
+   "xpToNext": 3664,
+   "coins": 420,
+   "gems": 1
+  },
+  {
+   "level": 29,
+   "xpToNext": 3876,
+   "coins": 435,
+   "gems": 1
+  },
+  {
+   "level": 30,
+   "xpToNext": 4091,
+   "coins": 550,
+   "gems": 5
+  },
+  {
+   "level": 31,
+   "xpToNext": 4310,
+   "coins": 465,
+   "gems": 1
+  },
+  {
+   "level": 32,
+   "xpToNext": 4534,
+   "coins": 480,
+   "gems": 1
+  },
+  {
+   "level": 33,
+   "xpToNext": 4761,
+   "coins": 495,
+   "gems": 1
+  },
+  {
+   "level": 34,
+   "xpToNext": 4992,
+   "coins": 510,
+   "gems": 1
+  },
+  {
+   "level": 35,
+   "xpToNext": 5228,
+   "coins": 625,
+   "gems": 5
+  },
+  {
+   "level": 36,
+   "xpToNext": 5467,
+   "coins": 540,
+   "gems": 1
+  },
+  {
+   "level": 37,
+   "xpToNext": 5709,
+   "coins": 555,
+   "gems": 1
+  },
+  {
+   "level": 38,
+   "xpToNext": 5956,
+   "coins": 570,
+   "gems": 1
+  },
+  {
+   "level": 39,
+   "xpToNext": 6206,
+   "coins": 585,
+   "gems": 1
+  },
+  {
+   "level": 40,
+   "xpToNext": 6460,
+   "coins": 700,
+   "gems": 5
+  },
+  {
+   "level": 41,
+   "xpToNext": 6718,
+   "coins": 615,
+   "gems": 1
+  },
+  {
+   "level": 42,
+   "xpToNext": 6979,
+   "coins": 630,
+   "gems": 1
+  },
+  {
+   "level": 43,
+   "xpToNext": 7244,
+   "coins": 645,
+   "gems": 1
+  },
+  {
+   "level": 44,
+   "xpToNext": 7512,
+   "coins": 660,
+   "gems": 1
+  },
+  {
+   "level": 45,
+   "xpToNext": 7783,
+   "coins": 775,
+   "gems": 5
+  },
+  {
+   "level": 46,
+   "xpToNext": 8058,
+   "coins": 690,
+   "gems": 1
+  },
+  {
+   "level": 47,
+   "xpToNext": 8337,
+   "coins": 705,
+   "gems": 1
+  },
+  {
+   "level": 48,
+   "xpToNext": 8619,
+   "coins": 720,
+   "gems": 1
+  },
+  {
+   "level": 49,
+   "xpToNext": 8904,
+   "coins": 735,
+   "gems": 1
+  },
+  {
+   "level": 50,
+   "xpToNext": 0,
+   "coins": 850,
+   "gems": 5
+  }
+ ],
+ "orderSlots": {
+  "1": 3,
+  "3": 4,
+  "6": 5,
+  "10": 6,
+  "15": 7,
+  "22": 8,
+  "30": 9
+ },
+ "extras": {
+  "2": "Order board gets busier as you grow!",
+  "3": "Roadside Stall unlocked: sell at your own prices",
+  "8": "Truck Depot: big delivery orders",
+  "5": "Upgrade your Farmhouse to raise limits",
+  "50": "Master Farmer! Everything is unlocked."
+ }
+}

@@ -1,0 +1,15 @@
+{
+  "_comment": "First-session tutorial. target: where the pointing hand goes. wait: event that completes the step.",
+  "steps": [
+    { "id": "welcome", "text": "Welcome to Cozy Acres, {name}! This little farm is all yours. Let's grow something!", "target": "none", "wait": "tap" },
+    { "id": "tap_plot", "text": "Tap an empty field to plant.", "target": "plot", "wait": "tray_open" },
+    { "id": "pick_wheat", "text": "Pick Wheat. Then tap or swipe across fields to plant them all!", "target": "tray_wheat", "wait": "planted:3" },
+    { "id": "orders", "text": "Wheat takes 30 seconds. Meanwhile, tap the Order Board to see what villagers want.", "target": "order_board", "wait": "panel:orders" },
+    { "id": "orders_info", "text": "Orders pay coins and XP. Let's grow the wheat for this one!", "target": "none", "wait": "panel_closed" },
+    { "id": "harvest", "text": "When the wheat turns golden, swipe across the fields to harvest it.", "target": "ready_plot", "wait": "harvested" },
+    { "id": "deliver", "text": "Now open the Order Board and deliver an order.", "target": "order_board", "wait": "order_completed" },
+    { "id": "shop", "text": "Great! Open the Shop to build more fields.", "target": "ui:shop", "wait": "panel:shop" },
+    { "id": "place", "text": "Pick a Field, drag it where you like and tap the tick.", "target": "none", "wait": "placed:plot" },
+    { "id": "done", "text": "You're a natural! Follow the goal card at the top left whenever you're unsure what to do next. Have fun!", "target": "ui:goal", "wait": "tap" }
+  ]
+}

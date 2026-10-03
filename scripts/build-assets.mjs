@@ -7,7 +7,8 @@
 // Writes public/assets/manifest.json describing everything for the runtime loader.
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { dedup, prune, weld, meshopt, resample } from '@gltf-transform/functions';
+import { dedup, prune, weld, reorder, quantize, resample } from '@gltf-transform/functions';
+import { EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { MeshoptEncoder } from 'meshoptimizer';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -254,11 +255,15 @@ async function buildModels() {
     const skinned = root.listSkins().length > 0;
     await doc.transform(
       dedup(),
-      prune({ keepAttributes: false }),
+      prune({ keepAttributes: true }),
       ...(skinned ? [] : [weld()]),
       resample(),
-      meshopt({ encoder: MeshoptEncoder, level: 'medium' }),
+      reorder({ encoder: MeshoptEncoder, target: 'size' }),
+      // UVs stay float: textures are stripped into shared atlases, so a KHR_texture_transform
+      // (which UV quantization relies on) would be lost.
+      quantize({ pattern: /^(POSITION|NORMAL|JOINTS|WEIGHTS|COLOR)(_\d+)?$/, patternTargets: /^(POSITION|NORMAL)(_\d+)?$/, quantizeNormal: 10 }),
     );
+    doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
     // bounding box of all positions in world space (rest pose)
     let min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
     const scene = root.listScenes()[0];
@@ -470,7 +475,7 @@ const ICONS = {
   dice: 'game-die', mailbox: 'open-mailbox-with-raised-flag', bookmark: 'bookmark-tabs', puzzle: 'puzzle-piece', world: 'globe-showing-europe-africa',
   sunrise: 'sunrise', rocket: 'rocket', zzz: 'zzz', wave: 'waving-hand', thumbs: 'thumbs-up', smile: 'smiling-face-with-smiling-eyes',
   hug: 'smiling-face-with-hearts', bat: 'bat', spider_web: 'spider-web', leaf: 'leaf-fluttering-in-wind', chestnut: 'chestnut',
-  acorn: 'chestnut', framed: 'framed-picture', bricks: 'brick', tractor: 'tractor', seed: 'seedling', plus: 'plus', info: 'information',
+  acorn: 'chestnut', shell: 'spiral-shell', framed: 'framed-picture', bricks: 'brick', tractor: 'tractor', seed: 'seedling', plus: 'plus', info: 'information',
 };
 
 function buildIcons() {

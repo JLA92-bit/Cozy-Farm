@@ -1,0 +1,425 @@
+{
+ "_comment": "Every inventory item. sell = coins at the barn/market. icon = key in public/assets/icons, or 'model:<id>' to render a 3D thumbnail. cat: crop|fruit|animal|feed|goods|event",
+ "items": {
+  "wheat": {
+   "name": "Wheat",
+   "cat": "crop",
+   "sell": 3,
+   "icon": "wheat"
+  },
+  "corn": {
+   "name": "Corn",
+   "cat": "crop",
+   "sell": 6,
+   "icon": "corn"
+  },
+  "carrot": {
+   "name": "Carrot",
+   "cat": "crop",
+   "sell": 9,
+   "icon": "carrot"
+  },
+  "turnip": {
+   "name": "Turnip",
+   "cat": "crop",
+   "sell": 12,
+   "icon": "model:crop/turnip"
+  },
+  "sugarcane": {
+   "name": "Sugarcane",
+   "cat": "crop",
+   "sell": 15,
+   "icon": "model:crop/bamboo_b"
+  },
+  "tomato": {
+   "name": "Tomato",
+   "cat": "crop",
+   "sell": 21,
+   "icon": "tomato"
+  },
+  "cotton": {
+   "name": "Cotton",
+   "cat": "crop",
+   "sell": 25,
+   "icon": "model:proc/cotton"
+  },
+  "strawberry": {
+   "name": "Strawberry",
+   "cat": "crop",
+   "sell": 30,
+   "icon": "strawberry"
+  },
+  "pumpkin": {
+   "name": "Pumpkin",
+   "cat": "crop",
+   "sell": 40,
+   "icon": "model:crop/pumpkin"
+  },
+  "cabbage": {
+   "name": "Cabbage",
+   "cat": "crop",
+   "sell": 48,
+   "icon": "model:food/cabbage"
+  },
+  "onion": {
+   "name": "Onion",
+   "cat": "crop",
+   "sell": 54,
+   "icon": "onion"
+  },
+  "beet": {
+   "name": "Beetroot",
+   "cat": "crop",
+   "sell": 60,
+   "icon": "model:food/beet"
+  },
+  "eggplant": {
+   "name": "Eggplant",
+   "cat": "crop",
+   "sell": 68,
+   "icon": "eggplant"
+  },
+  "pepper": {
+   "name": "Bell Pepper",
+   "cat": "crop",
+   "sell": 78,
+   "icon": "pepper"
+  },
+  "broccoli": {
+   "name": "Broccoli",
+   "cat": "crop",
+   "sell": 88,
+   "icon": "broccoli"
+  },
+  "watermelon": {
+   "name": "Watermelon",
+   "cat": "crop",
+   "sell": 105,
+   "icon": "watermelon"
+  },
+  "radish": {
+   "name": "Radish",
+   "cat": "crop",
+   "sell": 120,
+   "icon": "model:food/radish"
+  },
+  "cauliflower": {
+   "name": "Cauliflower",
+   "cat": "crop",
+   "sell": 136,
+   "icon": "model:food/cauliflower"
+  },
+  "apple": {
+   "name": "Apple",
+   "cat": "fruit",
+   "sell": 30,
+   "icon": "apple"
+  },
+  "cherry": {
+   "name": "Cherries",
+   "cat": "fruit",
+   "sell": 45,
+   "icon": "cherry"
+  },
+  "grapes": {
+   "name": "Grapes",
+   "cat": "fruit",
+   "sell": 55,
+   "icon": "grapes"
+  },
+  "pear": {
+   "name": "Pear",
+   "cat": "fruit",
+   "sell": 60,
+   "icon": "pear"
+  },
+  "orange": {
+   "name": "Orange",
+   "cat": "fruit",
+   "sell": 75,
+   "icon": "orange"
+  },
+  "lemon": {
+   "name": "Lemon",
+   "cat": "fruit",
+   "sell": 85,
+   "icon": "lemon"
+  },
+  "banana": {
+   "name": "Banana",
+   "cat": "fruit",
+   "sell": 100,
+   "icon": "banana"
+  },
+  "coconut": {
+   "name": "Coconut",
+   "cat": "fruit",
+   "sell": 120,
+   "icon": "coconut"
+  },
+  "egg": {
+   "name": "Egg",
+   "cat": "animal",
+   "sell": 20,
+   "icon": "egg"
+  },
+  "milk": {
+   "name": "Milk",
+   "cat": "animal",
+   "sell": 40,
+   "icon": "milk"
+  },
+  "wool": {
+   "name": "Wool",
+   "cat": "animal",
+   "sell": 70,
+   "icon": "model:proc/wool"
+  },
+  "truffle": {
+   "name": "Truffle",
+   "cat": "animal",
+   "sell": 90,
+   "icon": "mushroom"
+  },
+  "goat_milk": {
+   "name": "Goat Milk",
+   "cat": "animal",
+   "sell": 110,
+   "icon": "model:proc/goat_milk"
+  },
+  "chicken_feed": {
+   "name": "Chicken Feed",
+   "cat": "feed",
+   "sell": 5,
+   "icon": "model:proc/feed_chicken"
+  },
+  "cow_feed": {
+   "name": "Cow Feed",
+   "cat": "feed",
+   "sell": 10,
+   "icon": "model:proc/feed_cow"
+  },
+  "sheep_feed": {
+   "name": "Sheep Feed",
+   "cat": "feed",
+   "sell": 15,
+   "icon": "model:proc/feed_sheep"
+  },
+  "pig_feed": {
+   "name": "Pig Feed",
+   "cat": "feed",
+   "sell": 20,
+   "icon": "model:proc/feed_pig"
+  },
+  "goat_feed": {
+   "name": "Goat Feed",
+   "cat": "feed",
+   "sell": 26,
+   "icon": "model:proc/feed_goat"
+  },
+  "bread": {
+   "name": "Bread",
+   "cat": "goods",
+   "sell": 28,
+   "icon": "bread"
+  },
+  "corn_bread": {
+   "name": "Corn Bread",
+   "cat": "goods",
+   "sell": 75,
+   "icon": "model:food/loaf"
+  },
+  "cookie": {
+   "name": "Cookies",
+   "cat": "goods",
+   "sell": 100,
+   "icon": "cookie"
+  },
+  "carrot_cake": {
+   "name": "Carrot Cake",
+   "cat": "goods",
+   "sell": 160,
+   "icon": "model:food/cake"
+  },
+  "pancakes": {
+   "name": "Pancakes",
+   "cat": "goods",
+   "sell": 240,
+   "icon": "pancakes"
+  },
+  "strawberry_cake": {
+   "name": "Strawberry Cake",
+   "cat": "goods",
+   "sell": 340,
+   "icon": "cake"
+  },
+  "pumpkin_pie": {
+   "name": "Pumpkin Pie",
+   "cat": "goods",
+   "sell": 350,
+   "icon": "pie"
+  },
+  "apple_pie": {
+   "name": "Apple Pie",
+   "cat": "goods",
+   "sell": 290,
+   "icon": "model:food/pie"
+  },
+  "cherry_pie": {
+   "name": "Cherry Tart",
+   "cat": "goods",
+   "sell": 400,
+   "icon": "model:food/muffin"
+  },
+  "sugar": {
+   "name": "Sugar",
+   "cat": "goods",
+   "sell": 45,
+   "icon": "model:proc/sugar"
+  },
+  "syrup": {
+   "name": "Syrup",
+   "cat": "goods",
+   "sell": 135,
+   "icon": "honey"
+  },
+  "caramel": {
+   "name": "Caramel",
+   "cat": "goods",
+   "sell": 250,
+   "icon": "candy"
+  },
+  "cream": {
+   "name": "Cream",
+   "cat": "goods",
+   "sell": 60,
+   "icon": "model:food/carton"
+  },
+  "butter": {
+   "name": "Butter",
+   "cat": "goods",
+   "sell": 120,
+   "icon": "butter"
+  },
+  "cheese": {
+   "name": "Cheese",
+   "cat": "goods",
+   "sell": 180,
+   "icon": "cheese"
+  },
+  "goat_cheese": {
+   "name": "Goat Cheese",
+   "cat": "goods",
+   "sell": 320,
+   "icon": "model:food/cheese"
+  },
+  "ice_cream": {
+   "name": "Ice Cream",
+   "cat": "goods",
+   "sell": 210,
+   "icon": "ice_cream"
+  },
+  "yarn": {
+   "name": "Yarn",
+   "cat": "goods",
+   "sell": 210,
+   "icon": "yarn"
+  },
+  "cotton_fabric": {
+   "name": "Cotton Fabric",
+   "cat": "goods",
+   "sell": 110,
+   "icon": "thread"
+  },
+  "scarf": {
+   "name": "Scarf",
+   "cat": "goods",
+   "sell": 470,
+   "icon": "scarf"
+  },
+  "sweater": {
+   "name": "Sweater",
+   "cat": "goods",
+   "sell": 780,
+   "icon": "coat"
+  },
+  "socks": {
+   "name": "Wool Socks",
+   "cat": "goods",
+   "sell": 1250,
+   "icon": "socks"
+  },
+  "strawberry_jam": {
+   "name": "Strawberry Jam",
+   "cat": "goods",
+   "sell": 200,
+   "icon": "model:proc/jam_red"
+  },
+  "apple_jam": {
+   "name": "Apple Jam",
+   "cat": "goods",
+   "sell": 200,
+   "icon": "model:proc/jam_gold"
+  },
+  "tomato_sauce": {
+   "name": "Tomato Sauce",
+   "cat": "goods",
+   "sell": 270,
+   "icon": "model:proc/sauce"
+  },
+  "grape_jam": {
+   "name": "Grape Jam",
+   "cat": "goods",
+   "sell": 310,
+   "icon": "model:proc/jam_purple"
+  },
+  "cherry_jam": {
+   "name": "Cherry Jam",
+   "cat": "goods",
+   "sell": 270,
+   "icon": "model:proc/jam_cherry"
+  },
+  "orange_marmalade": {
+   "name": "Marmalade",
+   "cat": "goods",
+   "sell": 520,
+   "icon": "model:proc/jam_orange"
+  },
+  "pickled_beets": {
+   "name": "Pickled Beets",
+   "cat": "goods",
+   "sell": 330,
+   "icon": "model:proc/jam_beet"
+  },
+  "salsa": {
+   "name": "Salsa",
+   "cat": "goods",
+   "sell": 370,
+   "icon": "stew"
+  },
+  "acorn": {
+   "name": "Acorn",
+   "cat": "event",
+   "sell": 0,
+   "icon": "acorn"
+  },
+  "snowflake_token": {
+   "name": "Snowflake",
+   "cat": "event",
+   "sell": 0,
+   "icon": "snowflake"
+  },
+  "petal": {
+   "name": "Petal",
+   "cat": "event",
+   "sell": 0,
+   "icon": "blossom"
+  },
+  "seashell": {
+   "name": "Seashell",
+   "cat": "event",
+   "sell": 0,
+   "icon": "shell"
+  }
+ }
+}

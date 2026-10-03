@@ -1,0 +1,27 @@
+{
+  "_comment": "Daily login calendar and mystery crate tables. coins are multiplied by (1 + level * levelScale).",
+  "daily": {
+    "levelScale": 0.08,
+    "streakProtectionDays": 1,
+    "days": [
+      { "coins": 60 },
+      { "coins": 100, "items": 3 },
+      { "gems": 2 },
+      { "coins": 180 },
+      { "items": 5, "gems": 1 },
+      { "coins": 300, "gems": 2 },
+      { "gems": 5, "crate": "rare", "big": true }
+    ]
+  },
+  "crates": {
+    "rarities": ["common", "rare", "epic", "legendary"],
+    "rolls": { "common": 2, "rare": 3, "epic": 3, "legendary": 4 },
+    "upgradeChance": { "common": [0.78, 0.18, 0.035, 0.005], "rare": [0, 0.82, 0.15, 0.03], "epic": [0, 0, 0.9, 0.1], "legendary": [0, 0, 0, 1] },
+    "pools": {
+      "common": [ { "type": "coins", "min": 40, "max": 120, "w": 5 }, { "type": "items", "min": 3, "max": 6, "w": 5 }, { "type": "gems", "min": 1, "max": 1, "w": 1 } ],
+      "rare": [ { "type": "coins", "min": 150, "max": 400, "w": 4 }, { "type": "items", "min": 5, "max": 10, "w": 3 }, { "type": "gems", "min": 2, "max": 4, "w": 2 }, { "type": "decor", "w": 2 }, { "type": "cosmetic", "w": 1 } ],
+      "epic": [ { "type": "coins", "min": 500, "max": 1200, "w": 3 }, { "type": "gems", "min": 5, "max": 10, "w": 3 }, { "type": "decor", "w": 3 }, { "type": "cosmetic", "w": 2 } ],
+      "legendary": [ { "type": "gems", "min": 15, "max": 25, "w": 3 }, { "type": "coins", "min": 2500, "max": 5000, "w": 2 }, { "type": "decor", "w": 2 }, { "type": "cosmetic", "w": 3 } ]
+    }
+  }
+}
