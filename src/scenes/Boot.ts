@@ -15,6 +15,8 @@ import '../ui/panels';
 import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
 import { updateBubbles } from '../ui/Bubbles';
+import { player } from './Player';
+import { openCharacter } from '../ui/panels/CharacterPanel';
 
 function setProgress(f: number, text?: string): void {
   const fill = document.querySelector<HTMLElement>('.boot-fill');
@@ -73,13 +75,15 @@ export async function boot(): Promise<void> {
   buildings.tick(game.now());
   await scene.farm.build();
   buildings.updateGauges();
+  await player.init(scene);
   scene.onTick((now) => { buildings.tick(now); scene.farm.tick(now); updateBubbles(now); });
 
   saves.startAutosave();
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
-  if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away), 600);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction });
+  if (!game.state.player.created) setTimeout(() => openCharacter(true), 400);
+  else if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away), 600);
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
 }

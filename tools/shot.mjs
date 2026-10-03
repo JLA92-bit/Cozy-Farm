@@ -21,8 +21,9 @@ for (const s of sizes) {
   const page = await ctx.newPage();
   const errors = [];
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[${m.type()}] ${m.text()}`); else if (process.env.VERBOSE) console.log(m.text()); });
+  page.on('response', (r) => { if (r.status() >= 400) errors.push(`[http ${r.status()}] ${r.url()}`); });
   page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}\n${e.stack}`));
-  if (clear) { await page.goto(url); await page.evaluate(() => localStorage.clear()); }
+  if (clear) { await page.goto(new URL('favicon.svg', url).href); await page.evaluate(() => localStorage.clear()); }
   await page.goto(url);
   await page.waitForTimeout(wait);
   if (evalJs) { const r = await page.evaluate(evalJs); if (r !== undefined) console.log('eval:', JSON.stringify(r)); await page.waitForTimeout(1200); }

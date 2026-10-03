@@ -3,3 +3,4 @@ import './ShopPanel';
 import './InventoryPanel';
 import './ProductionPanel';
 import './AnimalPanel';
+import './CharacterPanel';
