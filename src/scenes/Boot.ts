@@ -126,10 +126,15 @@ export async function boot(): Promise<void> {
   syncCosmeticDiscovery(cosmeticUnlocked);
   wireProgression();
   game.bus.on('levelup', () => orders.refresh());
-  new Villagers(scene);
+  const villagers = new Villagers(scene);
+  villagers.greeter = player;
   const visitors = new Visitors(scene, merchantSpot);
+  visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
-  ui.extraPick = (ray) => (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present ? () => ui.open('merchant') : null);
+  ui.extraPick = (ray) => {
+    if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
+    return villagers.pick(ray) ?? player.pick(ray);
+  };
   scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();
@@ -144,7 +149,7 @@ export async function boot(): Promise<void> {
   } else if (!game.state.tutorial.done) setTimeout(() => tutorial.start(), 800);
   if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
   else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 
