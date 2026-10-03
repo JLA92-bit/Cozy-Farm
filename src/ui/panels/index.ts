@@ -1,0 +1,3 @@
+// Side-effect imports: each panel registers itself with the UI manager.
+import './ShopPanel';
+import './InventoryPanel';

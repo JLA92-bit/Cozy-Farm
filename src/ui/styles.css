@@ -303,7 +303,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 /* ---------- World popups (anchored to 3D positions) ---------- */
 .world-layer { position: absolute; inset: 0; pointer-events: none !important; z-index: 30; overflow: hidden; }
 .world-layer > * { pointer-events: auto; }
-.world-pop { position: absolute; transform: translate(-50%, -100%); }
+.world-pop { position: absolute; left: 0; top: 0; will-change: transform; }
 .bubble {
   display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%;
   background: #fff; border: 3px solid var(--outline); box-shadow: 0 3px 0 var(--outline);
@@ -438,3 +438,9 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 @media (min-width: 900px) and (min-height: 600px) {
   :root { --hud-btn: 64px; }
 }
+
+/* hide the bottom menu while a tray or placement bar owns the bottom of the screen */
+#ui-root.mode-place .hud-bottom, #ui-root.mode-tray .hud-bottom { opacity: 0; pointer-events: none !important; transform: translateY(30px); }
+#ui-root.mode-place .hud-bottom *, #ui-root.mode-tray .hud-bottom * { pointer-events: none !important; }
+.hud-bottom { transition: opacity .2s, transform .2s; }
+.goal-card:empty { display: none; }

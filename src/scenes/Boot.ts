@@ -1,10 +1,17 @@
 import { assets } from '../core/Assets';
-import { Renderer, detectQuality, type Quality } from '../core/Renderer';
+import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
 import { game } from '../systems/Game';
-import { createNewGame } from '../systems/NewGame';
+import { saves } from '../systems/Save';
+import { settings } from '../systems/Settings';
+import { audio, haptics } from '../systems/Audio';
+import { buildings } from '../systems/Buildings';
 import { PROC_DEPENDENCIES } from '../world/ProcModels';
+import { thumbs } from '../world/Thumbs';
 import { FarmScene } from './FarmScene';
+import { Interaction } from './Interaction';
+import { ui } from '../ui/UI';
+import '../ui/panels';
 
 function setProgress(f: number, text?: string): void {
   const fill = document.querySelector<HTMLElement>('.boot-fill');
@@ -23,46 +30,51 @@ function coreModels(): string[] {
     if (c.ready.produce && !c.ready.produce.startsWith('proc/')) ids.add(c.ready.produce);
   }
   for (const t of TREES) { ids.add(t.model); ids.add(t.fruit); }
-  for (const a of ANIMALS) ids.add(a.model);
   ids.add('nat/cloud_big'); ids.add('nat/cloud_small');
   ids.add('bld/stage_a'); ids.add('bld/stage_b');
   return [...ids].filter((id) => assets.has(id));
 }
 
 export let scene: FarmScene;
+export let interaction: Interaction;
+/** Hooks other modules add to run once the farm is on screen. */
+export const afterBoot: (() => void)[] = [];
 
 export async function boot(): Promise<void> {
   setProgress(0.05, 'Loading the farm...');
   await assets.loadManifest();
   await assets.loadAtlases();
   setProgress(0.15, 'Planting seeds...');
-  const ids = coreModels();
-  await assets.preload(ids, (f) => setProgress(0.15 + f * 0.7));
-  // pets are animated models: prepare their static (pooled) form too
+  await assets.preload(coreModels(), (f) => setProgress(0.15 + f * 0.65));
   await Promise.all(ANIMALS.map((a) => assets.static(a.model)));
 
-  const raw = localStorage.getItem('cozy-acres-save');
-  game.load(raw ? JSON.parse(raw) : createNewGame());
+  const { data, fresh } = saves.load();
+  game.load(data);
+  (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
-  const quality = (localStorage.getItem('cozy-acres-quality') as Quality) || detectQuality();
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  const renderer = new Renderer(canvas, quality);
+  const renderer = new Renderer(canvas, settings.quality);
+  thumbs.attach(renderer.renderer);
   scene = new FarmScene(canvas, renderer);
   scene.now = () => game.now();
-  setProgress(0.9, 'Waking the animals...');
+  interaction = new Interaction(scene);
+  scene.handler = interaction;
+  ui.init(document.getElementById('ui-root')!, scene, interaction);
+  audio.init({ music: settings.music, sfx: settings.sfx });
+  haptics.enabled = settings.haptics;
+
+  setProgress(0.88, 'Waking the animals...');
   await scene.env.populate();
+  // complete anything that finished while the game was closed
+  buildings.tick(game.now());
   await scene.farm.build();
-  scene.onTick((now) => scene.farm.tick(now));
-  scene.handler = {
-    tap: (p) => { const t = scene.tileAt(p); console.log('tap tile', t); },
-    longPress: () => {},
-    dragStart: () => 'pan',
-    toolDrag: () => {},
-    toolDragEnd: () => {},
-    pointerDown: () => {},
-  };
+  buildings.updateGauges();
+  scene.onTick((now) => { buildings.tick(now); scene.farm.tick(now); });
+
+  saves.startAutosave();
   scene.loop.start();
   setProgress(1, 'Welcome!');
-  (window as unknown as { __scene: FarmScene }).__scene = scene;
+  for (const fn of afterBoot) fn();
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
 }

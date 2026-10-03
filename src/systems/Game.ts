@@ -243,7 +243,7 @@ export class Game {
 
   /** Coin price of the next copy of a building. */
   priceOf(def: BuildingDef): number {
-    if (def.costStep) return def.cost + def.costStep * this.ownedCount(def.id);
+    if (def.costStep) return def.cost + def.costStep * Math.max(0, this.ownedCount(def.id) - (def.freeCount ?? 0));
     return def.cost;
   }
 

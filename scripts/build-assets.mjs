@@ -332,7 +332,9 @@ function buildTextures(atlases) {
   ensureDir(pdir);
   const psrc = path.join(KM, 'particlePack_1.1/PNG (Transparent)');
   for (const name of ['star_06', 'star_04', 'spark_05', 'smoke_04', 'circle_05', 'magic_04', 'twirl_02', 'light_01', 'dirt_02']) {
-    sh('ffmpeg', ['-y', '-v', 'error', '-i', path.join(psrc, `${name}.png`), '-vf', 'scale=128:128', path.join(pdir, `${name}.png`)]);
+    // sources are light shapes on black: turn luminance into alpha over pure white so sprites tint cleanly
+    sh('ffmpeg', ['-y', '-v', 'error', '-i', path.join(psrc, `${name}.png`), '-f', 'lavfi', '-i', 'color=white:s=128x128',
+      '-filter_complex', '[0]scale=128:128,format=gray[g];[1]format=rgb24[w];[w][g]alphamerge,format=rgba', '-frames:v', '1', path.join(pdir, `${name}.png`)]);
   }
   return out;
 }

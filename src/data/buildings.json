@@ -34,7 +34,7 @@
     { "id": "roadside_stall", "name": "Roadside Stall", "cat": "special", "size": [2, 2], "level": 3, "cost": 150, "buildSec": 20, "model": "bld/market", "fit": 1.0, "charm": 3, "max": 1, "icon": "store", "desc": "Sell your goods to passers-by at your own price." },
     { "id": "truck_depot", "name": "Truck Depot", "cat": "special", "size": [3, 3], "level": 8, "cost": 600, "buildSec": 120, "model": "proc:depot", "fit": 0.95, "charm": 2, "max": 1, "icon": "truck", "desc": "Big multi-crate delivery orders for big rewards." },
 
-    { "id": "plot", "name": "Field", "cat": "farm", "size": [2, 2], "level": 1, "cost": 5, "costStep": 6, "model": "proc:plot", "fit": 1.0, "charm": 0, "cap": "plot", "icon": "seedling", "desc": "Plant crops here." },
+    { "id": "plot", "name": "Field", "cat": "farm", "size": [2, 2], "level": 1, "cost": 10, "costStep": 8, "freeCount": 6, "model": "proc:plot", "fit": 1.0, "charm": 0, "cap": "plot", "icon": "seedling", "desc": "Plant crops here." },
     { "id": "apple_tree", "name": "Apple Tree", "cat": "farm", "size": [2, 2], "level": 6, "cost": 150, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "apple_tree", "icon": "apple" },
     { "id": "cherry_tree", "name": "Cherry Tree", "cat": "farm", "size": [2, 2], "level": 11, "cost": 300, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "cherry_tree", "icon": "cherry" },
     { "id": "grape_vine", "name": "Grape Vine", "cat": "farm", "size": [2, 2], "level": 13, "cost": 380, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "grape_vine", "icon": "grapes" },

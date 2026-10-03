@@ -101,12 +101,12 @@ export class Environment {
     else if (p < 0.88) { night = 1; dusk = 0; }
     else { const k = (p - 0.88) / 0.12; night = 1 - k; dusk = Math.sin(k * Math.PI) * 0.6; }
     this.night = night;
-    this.light = 1 - night * 0.38;
-    this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.85).lerp(this.skyDusk, dusk * 0.6);
+    this.light = 1 - night * 0.25;
+    this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.7).lerp(this.skyDusk, dusk * 0.6);
     (this.scene.fog as THREE.Fog).color.copy(this.sky);
-    this.hemi.intensity = 1.35 - night * 0.55;
+    this.hemi.intensity = 1.35 - night * 0.35;
     this.hemi.color.set('#fffaf0').lerp(new THREE.Color('#9fb4ff'), night * 0.7);
-    this.sun.intensity = 2.1 - night * 1.45;
+    this.sun.intensity = 2.1 - night * 1.15;
     this.sun.color.set('#fff3d6').lerp(new THREE.Color('#ffb877'), dusk * 0.8).lerp(new THREE.Color('#a8bdff'), night * 0.7);
     // sun direction swings slowly across the sky; shadow camera follows the camera focus
     const ang = -0.6 + p * 1.2;

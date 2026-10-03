@@ -56,6 +56,7 @@ export class FarmView {
   private saleSigns: { chunk: string; pool: InstancePool; handle: number }[] = [];
   private glowTex: THREE.Texture;
   private pending = new Set<number>();
+  private hidden = new Set<number>();
 
   constructor(scene: THREE.Scene) {
     this.terrain = new Terrain(assets.vertexMaterial);
@@ -90,15 +91,23 @@ export class FarmView {
     }
   }
 
+  private painted = new Map<number, [number, number][]>();
+  /** Paint (or restore) terrain tiles for 'paint:' buildings such as dirt paths. */
   private paintFor(b: PlacedBuilding, on: boolean): void {
     const def = BUILDING[b.type];
     if (!def.model.startsWith('paint:')) return;
+    for (const [x, z] of this.painted.get(b.uid) ?? []) this.terrain.paintTile(x, z, null);
+    this.painted.delete(b.uid);
+    if (!on) return;
     const [w, d] = rotatedSize(def.size, b.rot);
     const color = new THREE.Color(def.model.slice(6));
+    const tiles: [number, number][] = [];
     for (let z = b.z; z < b.z + d; z++) for (let x = b.x; x < b.x + w; x++) {
       const c = color.clone().offsetHSL(0, 0, ((x * 7 + z * 13) % 5) * 0.008);
-      this.terrain.paintTile(x, z, on ? c : null);
+      this.terrain.paintTile(x, z, c);
+      tiles.push([x, z]);
     }
+    this.painted.set(b.uid, tiles);
   }
 
   // ------------------------------------------------------------------ obstacles
@@ -165,6 +174,11 @@ export class FarmView {
     view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
     view.box.set(new THREE.Vector3(b.x - HALF, 0, b.z - HALF), new THREE.Vector3(b.x - HALF + w, Math.max(0.4, view.height), b.z - HALF + d));
     if (!visual) return;
+    if (this.hidden.has(b.uid)) {
+      this.detachVisual(view);
+      if (view.construction) { this.root.remove(view.construction); view.construction = null; }
+      return;
+    }
     const underConstruction = !!b.buildEnd && b.buildEnd > game.now();
     if (underConstruction) {
       this.detachVisual(view);
@@ -246,6 +260,18 @@ export class FarmView {
       .to(obj.scale, { x: 1, y: 1, z: 1, duration: 0.3, ease: 'elastic.out(1.4, 0.4)' });
   }
 
+  /** Hide a building while it is being moved (its ghost is shown instead). */
+  setHidden(uid: number, hidden: boolean): void {
+    const view = this.views.get(uid);
+    if (hidden) this.hidden.add(uid); else this.hidden.delete(uid);
+    if (!view) return;
+    this.paintFor(view.b, !hidden);
+    this.clearPlants(view);
+    this.clearAnimals(view);
+    this.place(view);
+    if (!hidden) this.updateDynamic(view, game.now(), true);
+  }
+
   removeBuilding(uid: number): void {
     const view = this.views.get(uid);
     if (!view) return;
@@ -257,9 +283,10 @@ export class FarmView {
     this.views.delete(uid);
   }
 
-  refreshBuilding(b: PlacedBuilding): void {
+  refreshBuilding(b: PlacedBuilding, moved = false): void {
     const view = this.views.get(b.uid);
     if (!view) { void this.addBuilding(b); return; }
+    if (moved) { this.paintFor(view.b, false); this.clearAnimals(view); this.clearPlants(view); }
     view.b = b;
     this.paintFor(b, true);
     this.place(view);
@@ -437,6 +464,7 @@ export class FarmView {
       this.squash(view);
     }
     if (force) view.plantKey = view.plantKey + '*';
+    if (this.hidden.has(b.uid)) return;
     if (view.def.id === 'plot') this.updatePlot(view, now);
     else if (view.def.tree) this.updateTree(view, now);
     else if (view.def.animal) void this.syncAnimals(view, now);

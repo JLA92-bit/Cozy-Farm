@@ -115,7 +115,7 @@ export function objectFor(v: Visual): THREE.Group {
 export function ghostMaterial(src: THREE.Material): THREE.Material {
   const m = (src as THREE.MeshLambertMaterial).clone();
   m.transparent = true;
-  m.opacity = 0.75;
+  m.opacity = 0.85;
   m.depthWrite = false;
   return m;
 }

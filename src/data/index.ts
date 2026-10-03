@@ -32,7 +32,7 @@ export interface RecipeDef {
 }
 export interface BuildingDef {
   id: string; name: string; cat: 'special' | 'farm' | 'animal' | 'production' | 'decor';
-  size: [number, number]; level: number; cost: number; costStep?: number; eventCost?: number; event?: string;
+  size: [number, number]; level: number; cost: number; costStep?: number; freeCount?: number; eventCost?: number; event?: string;
   buildSec?: number; model: string; parts?: string[]; fit: number; charm: number; cap?: string; max?: number;
   tree?: string; animal?: string; upgradeMult?: number; icon?: string; desc?: string; path?: boolean; glow?: number;
 }
