@@ -460,8 +460,10 @@ class UIManager {
     if (game.coins >= n) return true;
     this.feedback.toast('Not enough coins', `You need ${fmt(n - game.coins)} more`, 'coin');
     audio.play('error');
-    haptics.play('error');
-    this.feedback.bump(this.hud.coinsEl);
+    const c = this.hud.coinsEl;
+    c.classList.remove('nope');
+    void c.offsetWidth;
+    c.classList.add('nope');
     return false;
   }
 }

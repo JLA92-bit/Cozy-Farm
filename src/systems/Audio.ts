@@ -105,6 +105,8 @@ class AudioSystem {
   }
 
   play(name: string, opts: PlayOpts = {}): void {
+    // every "nope" also gets a soft double pulse, even with sound turned off
+    if (name === 'error') haptics.play('error');
     const s = this.sfx.get(name);
     if (!s || this.settings.sfx <= 0) return;
     const mix = MIX[name] ?? DEFAULT_MIX;

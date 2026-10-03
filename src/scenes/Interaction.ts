@@ -405,7 +405,7 @@ export class Interaction implements WorldHandler {
   confirmPlacement(): void {
     const m = this.placing;
     if (!m) return;
-    if (!m.valid) { audio.play('error'); haptics.play('error'); ui.feedback.toast("Can't place here", 'Find a free green spot', 'cross'); return; }
+    if (!m.valid) { audio.play('error'); ui.feedback.toast("Can't place here", 'Find a free green spot', 'cross'); return; }
     if (m.uid) {
       if (!buildings.move(m.uid, m.x, m.z, m.rot)) { audio.play('error'); return; }
       this.endPlacement();
