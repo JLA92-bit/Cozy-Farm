@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete my online data - Cozy Acres</title>
+<meta name="description" content="Delete the online data linked to your Cozy Acres friend code.">
+<link rel="canonical" href="https://cozyacres.joshmakesgames92.com/delete-my-data/">
+<meta name="theme-color" content="#8fd3f4">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cozy Acres">
+<meta property="og:title" content="Delete my online data - Cozy Acres">
+<meta property="og:description" content="Delete the online data linked to your Cozy Acres friend code.">
+<meta property="og:url" content="https://cozyacres.joshmakesgames92.com/delete-my-data/">
+<meta property="og:image" content="https://cozyacres.joshmakesgames92.com/assets/img/og-image-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Cozy Acres logo over a little farm island at golden hour, with a Play free button">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="/assets/css/cozy.css">
+
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Component: site header -->
+<header class="site-header">
+  <div class="wrap site-header__bar">
+    <a class="site-header__logo" href="/" aria-label="Cozy Acres home">
+      <img src="/assets/img/cozy-acres-logo-full-colour.svg" alt="Cozy Acres" width="150" height="46">
+    </a>
+    <nav class="site-nav site-header__desktop" aria-label="Main">
+      <ul>
+  <li><a href="/#features">Features</a></li>
+  <li><a href="/#whats-new">What's new</a></li>
+  <li><a href="/support/">Support</a></li>
+  <li><a class="btn btn--sm" href="/play/">Play now</a></li>
+</ul>
+
+    </nav>
+    <details class="menu">
+      <summary aria-label="Open menu"><span></span></summary>
+      <nav class="site-nav" aria-label="Main (mobile)">
+        <ul>
+  <li><a href="/#features">Features</a></li>
+  <li><a href="/#whats-new">What's new</a></li>
+  <li><a href="/support/">Support</a></li>
+  <li><a class="btn btn--sm" href="/play/">Play now</a></li>
+</ul>
+
+      </nav>
+    </details>
+  </div>
+</header>
+
+<main id="main">
+  <header class="page-head">
+    <div class="wrap">
+      <h1 class="outlined">Delete my online data</h1>
+      <p>Remove your farm from friends lists, the Shared Market and leaderboards.</p>
+    </div>
+  </header>
+  <div class="section">
+    <div class="wrap prose">
+      <div class="panel">
+        <h2 style="margin-top:0">What gets deleted</h2>
+        <ul>
+          <li>Your friend code, farm name and level on our server</li>
+          <li>Your friends list and any gifts waiting to be opened</li>
+          <li>Your Shared Market listings and leaderboard scores</li>
+        </ul>
+        <p style="margin-bottom:0">Your farm on your own device is not touched. To remove that too, uninstall the app or clear site data for cozyacres.joshmakesgames92.com. This cannot be undone.</p>
+      </div>
+
+      <form class="panel" id="delete-form" data-endpoint="/api/delete-data" novalidate>
+        <div class="field">
+          <label for="friend-code">Your friend code</label>
+          <p class="field__hint" id="code-hint">Find it in the game under Friends, then "My code".</p>
+          <input class="input" id="friend-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                 inputmode="text" placeholder="Your code" aria-describedby="code-hint code-error" required pattern="[A-Za-z0-9-]{4,16}">
+          <p class="field__hint" id="code-error" hidden style="color:#9c2f2c;font-weight:600">Please check your code. It uses letters and numbers.</p>
+        </div>
+        <label class="check"><input type="checkbox" name="confirm" required> I understand my online data will be deleted and this cannot be undone.</label>
+        <div style="margin-top:16px"><button class="btn btn--red" type="submit">Delete my data</button></div>
+
+        <div class="status status--ok" role="status" data-state="ok" hidden>
+          <img src="/assets/icons/check_mark_button.svg" alt="" width="36" height="36">
+          <div><h3>All done</h3><p>Your online data has been deleted. Thanks for farming with us.</p></div>
+        </div>
+        <div class="status status--err" role="alert" data-state="error" hidden>
+          <img src="/assets/icons/warning.svg" alt="" width="36" height="36">
+          <div><h3>Something went wrong</h3><p data-msg>We could not find that friend code. Check it and try again, or email <a href="mailto:support@joshmakesgames92.com">support@joshmakesgames92.com</a>.</p></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+<!-- Component: site footer -->
+<footer class="site-footer">
+  <div class="wrap site-footer__grid">
+    <a href="/" aria-label="Cozy Acres home"><img class="site-footer__logo" src="/assets/img/cozy-acres-logo-on-dark.svg" alt="Cozy Acres" width="220" height="78" ></a>
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href="/play/">Play</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="/delete-my-data/">Delete my data</a></li>
+        <li><a href="/support/">Support</a></li>
+        <li><a href="/credits/">Credits</a></li>
+      </ul>
+    </nav>
+    <p class="site-footer__love">Made with love <img src="/assets/icons/red_heart.svg" alt="" width="22" height="22"> by <a href="https://joshmakesgames92.com/">Josh Makes Games</a></p>
+    <small>&copy; <span data-year>2026</span> Josh Makes Games. Free to play. No ads. No in-app purchases.</small>
+  </div>
+</footer>
+<script src="/assets/js/site.js" defer></script>
+</body>
+</html>
+

@@ -1,0 +1,11 @@
+{
+  "sample": true,
+  "week": "SAMPLE DATA - replace with your live leaderboard feed",
+  "farmers": [
+    { "name": "Maple Hollow", "level": 42, "avatar": "cow_face" },
+    { "name": "Clover Patch", "level": 39, "avatar": "pig_face" },
+    { "name": "Bramble Bay", "level": 37, "avatar": "rabbit_face" },
+    { "name": "Poppy Fields", "level": 33, "avatar": "fox" },
+    { "name": "Juniper Dell", "level": 31, "avatar": "frog" }
+  ]
+}

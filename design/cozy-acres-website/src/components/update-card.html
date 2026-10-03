@@ -1,0 +1,10 @@
+<!-- Component: update card. Mirrors <template id="update-card-tpl"> used by site.js -->
+<article class="panel update-card {{modifier}}">
+  <div class="update-card__top">
+    <span class="chip">v{{version}}</span>
+    <time datetime="{{date}}">{{date_label}}</time>
+  </div>
+  <h3>{{name}}</h3>
+  {{note_html}}
+  <ul>{{items_html}}</ul>
+</article>
