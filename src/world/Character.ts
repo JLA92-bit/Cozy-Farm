@@ -204,6 +204,9 @@ export class Character {
       for (const clip of clips) this.actions.set(clip.name, this.mixer.clipAction(clip));
       this.current = '';
       this.play('idle');
+      this.root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(root);
+      if (!box.isEmpty()) this.height = box.max.y - this.root.getWorldPosition(new THREE.Vector3()).y;
     }
     const maps = analyse(look.body, this.skinned);
     this.skinned.forEach((m, i) => applyLook(m, maps[i], look));
@@ -230,28 +233,68 @@ export class Character {
         this.extras.push(mesh);
       }
     }
+    // speech bubbles float just above the head (and hat)
+    this.root.userData.speechHeight = this.height + (hat ? 0.45 : 0.2);
     await this.setPet(look.pet);
   }
   scale = 1;
 
   private petId = 'none';
+  private petActions = new Map<string, THREE.AnimationAction>();
+  private petCurrent = '';
+  private petBusy = 0;
+  private petOffset = new THREE.Vector3(-0.55, 0, 0.45);
+  private petRoamIn = 3;
+  private ownerIdle = 0;
+  private lastOwnerPos = new THREE.Vector3();
   private async setPet(pet: string): Promise<void> {
     if (pet === this.petId) return;
     this.petId = pet;
     if (this.pet) { this.pet.parent?.remove(this.pet); this.pet = null; this.petMixer = null; }
+    this.petActions.clear();
+    this.petCurrent = '';
     const def = COSMETICS.pets.find((p) => p.id === pet);
     if (!def?.model) return;
     const { root, clips } = await assets.animated(def.model);
+    if (this.petId !== pet) return; // changed again while loading
     root.scale.setScalar(0.32 * this.scale);
     this.pet = root;
     this.petMixer = new THREE.AnimationMixer(root);
-    const idle = clips.find((c) => c.name === 'walk') ?? clips[0];
-    if (idle) this.petMixer.clipAction(idle).play();
-    this.petPos.copy(this.root.position).add(new THREE.Vector3(0.6, 0, 0.6));
+    for (const c of clips) this.petActions.set(c.name, this.petMixer.clipAction(c));
+    this.petPlay('idle');
+    this.petPos.copy(this.root.position).add(TMP_A.set(0.6, 0, 0.6));
     this.root.parent?.add(this.pet);
   }
 
+  private petPlay(name: string, once = false): void {
+    if (!this.petMixer || (name === this.petCurrent && !once)) return;
+    const next = this.petActions.get(name) ?? this.petActions.get('walk');
+    if (!next) return;
+    const prev = this.petActions.get(this.petCurrent);
+    next.reset();
+    if (once) { next.setLoop(THREE.LoopOnce, 1); next.clampWhenFinished = true; this.petBusy = next.getClip().duration; }
+    else next.setLoop(THREE.LoopRepeat, Infinity);
+    next.fadeIn(0.15).play();
+    if (prev && prev !== next) prev.fadeOut(0.15);
+    this.petCurrent = name;
+  }
+
+  /** Make the pet do a happy little trick (dance or nod). */
+  petCheer(): void {
+    if (!this.pet) return;
+    this.petPlay(Math.random() < 0.5 ? 'dance' : 'gesture-positive', true);
+  }
+
   attachPetTo(parent: THREE.Object3D): void { if (this.pet) parent.add(this.pet); }
+
+  /** Free per-character GPU data (cloned skinned geometries, hats). Call after removing from the scene. */
+  dispose(): void {
+    for (const m of this.skinned) m.geometry.dispose();
+    for (const e of this.extras) (e as THREE.Mesh).geometry?.dispose();
+    this.mixer?.stopAllAction();
+    this.petMixer?.stopAllAction();
+    this.pet?.parent?.remove(this.pet);
+  }
 
   play(name: string, fade = 0.2, once = false): void {
     if (name === this.current && !once) return;
@@ -271,6 +314,7 @@ export class Character {
     const a = this.actions.get(name);
     if (!a) return Promise.resolve();
     this.play(name, 0.15, true);
+    if (name === 'emote-yes' || name === 'jump') this.petCheer();
     return new Promise((res) => {
       const dur = a.getClip().duration * 1000;
       setTimeout(() => { if (this.current === name) this.play(after); res(); }, Math.max(300, dur - 150));
@@ -280,17 +324,40 @@ export class Character {
   update(dt: number): void {
     this.mixer?.update(dt);
     if (this.pet) {
+      const rp = this.root.position;
+      if (rp.distanceToSquared(this.lastOwnerPos) > 1e-6) { this.ownerIdle = 0; this.lastOwnerPos.copy(rp); this.petOffset.set(-0.55, 0, 0.45); }
+      else {
+        this.ownerIdle += dt;
+        // once the owner stands still for a bit, the pet potters about nearby
+        if (this.ownerIdle > 3 && (this.petRoamIn -= dt) <= 0) {
+          this.petRoamIn = 2.5 + Math.random() * 4;
+          const a = Math.random() * Math.PI * 2, r = 0.6 + Math.random() * 0.7;
+          this.petOffset.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+          if (Math.random() < 0.3) this.petRoamIn += 1.5;
+        }
+      }
       // pet trots after its owner
-      const target = this.root.position.clone().add(new THREE.Vector3(-0.55, 0, 0.45).applyQuaternion(this.root.quaternion));
+      const target = TMP_A.copy(this.petOffset).applyQuaternion(this.root.quaternion).add(rp);
       const d = target.sub(this.petPos);
+      d.y = 0;
       const dist = d.length();
+      if (this.petBusy > 0) this.petBusy -= dt;
       if (dist > 0.05) {
         this.petPos.addScaledVector(d.normalize(), Math.min(dist, dt * (dist > 1.5 ? 4 : 2.2)));
         this.pet.rotation.y = Math.atan2(d.x, d.z);
       }
+      const moving = dist > 0.1;
+      if (moving) { this.petBusy = 0; this.petPlay('walk'); }
+      else if (this.petBusy <= 0) {
+        // settle down; now and then sniff the grass
+        if (this.ownerIdle > 3 && Math.random() < dt * 0.12) this.petPlay('eat', true);
+        else this.petPlay('idle');
+      }
       this.pet.position.copy(this.petPos);
-      this.pet.position.y = dist > 0.1 ? Math.abs(Math.sin(performance.now() / 90)) * 0.05 : 0;
-      this.petMixer?.update(dist > 0.1 ? dt : dt * 0.3);
+      this.pet.position.y = moving ? Math.abs(Math.sin(performance.now() / 90)) * 0.05 : 0;
+      this.petMixer?.update(dt);
     }
   }
 }
+
+const TMP_A = new THREE.Vector3();

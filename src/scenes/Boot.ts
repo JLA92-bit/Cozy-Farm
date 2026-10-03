@@ -96,10 +96,15 @@ export async function boot(): Promise<void> {
   syncCosmeticDiscovery(cosmeticUnlocked);
   wireProgression();
   game.bus.on('levelup', () => orders.refresh());
-  new Villagers(scene);
+  const villagers = new Villagers(scene);
+  villagers.greeter = player;
   const visitors = new Visitors(scene, merchantSpot);
+  visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
-  ui.extraPick = (ray) => (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present ? () => ui.open('merchant') : null);
+  ui.extraPick = (ray) => {
+    if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
+    return villagers.pick(ray) ?? player.pick(ray);
+  };
   scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();

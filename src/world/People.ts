@@ -3,7 +3,7 @@ import { BUILDING } from '../data';
 import { game } from '../systems/Game';
 import type { PlacedBuilding } from '../systems/State';
 import { Character } from './Character';
-import { HALF, MAP, chunkOf, inMap, rotatedSize, tileToWorld } from './Grid';
+import { HALF, MAP, chunkOf, footprintCenter, inMap, rotatedSize, tileToWorld } from './Grid';
 import { findPath } from './Path';
 
 /** Tiles people can walk on: unlocked, no obstacle, and either empty or a path/field. */
@@ -31,6 +31,14 @@ export function besideBuilding(b: PlacedBuilding, from: [number, number]): [numb
   return best;
 }
 
+/** World-space centre of a building's footprint (x, z). */
+export function buildingCenter(b: PlacedBuilding): [number, number] {
+  const [w, d] = rotatedSize(BUILDING[b.type].size, b.rot);
+  return [footprintCenter(b.x, w), footprintCenter(b.z, d)];
+}
+
+const TMP = new THREE.Vector3();
+
 /** A character that follows tile paths. */
 export class Walker {
   readonly char: Character;
@@ -38,6 +46,8 @@ export class Walker {
   speed = 2.4;
   onArrive: (() => void) | null = null;
   idleTime = 0;
+  /** yaw to turn towards smoothly while standing */
+  private yawTarget: number | null = null;
 
   constructor(char: Character, public scene: THREE.Object3D) {
     this.char = char;
@@ -71,7 +81,7 @@ export class Walker {
     const root = this.char.root;
     if (this.path.length) {
       const target = this.path[0];
-      const d = target.clone().sub(root.position);
+      const d = TMP.copy(target).sub(root.position);
       d.y = 0;
       const dist = d.length();
       const run = this.path.length > 6;
@@ -95,12 +105,32 @@ export class Walker {
         this.char.play(run ? 'sprint' : 'walk', 0.15);
       }
       this.idleTime = 0;
-    } else this.idleTime += dt;
+      this.yawTarget = null;
+    } else {
+      this.idleTime += dt;
+      if (this.yawTarget !== null) {
+        let diff = this.yawTarget - root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        if (Math.abs(diff) < 0.01) { root.rotation.y = this.yawTarget; this.yawTarget = null; }
+        else root.rotation.y += diff * Math.min(1, dt * 10);
+      }
+    }
     this.char.update(dt);
   }
 
+  /** Turn (smoothly) to look at a world position. */
   face(x: number, z: number): void {
     const p = this.char.root.position;
-    this.char.root.rotation.y = Math.atan2(x - p.x, z - p.z);
+    if (Math.abs(x - p.x) + Math.abs(z - p.z) < 1e-3) return;
+    this.yawTarget = Math.atan2(x - p.x, z - p.z);
+  }
+
+  /** Stop where you are (drops the current path without firing its arrival callback). */
+  halt(): void {
+    if (!this.path.length) return;
+    this.path.length = 0;
+    this.onArrive = null;
+    this.char.play('idle');
   }
 }
