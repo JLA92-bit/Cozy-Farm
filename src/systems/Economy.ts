@@ -15,11 +15,40 @@ export function obtainableItems(): string[] {
   for (const c of CROPS) if (c.level <= lv) out.add(c.id);
   for (const t of TREES) if (game.buildingsOf(t.id).length) out.add(t.item);
   for (const a of ANIMALS) if (game.buildingsOf(a.house).some((b) => (b.animals?.length ?? 0) > 0)) out.add(a.product);
-  for (const r of RECIPES) if (r.level <= lv && game.buildingsOf(r.building).some((b) => isBuilt(b, game.now()))) {
-    // only if the ingredients are obtainable too
-    if (Object.keys(r.in).every((i) => out.has(i) || ITEM_LEVEL[i] <= lv)) out.add(r.item);
+  // recipes need a finished building and ingredients the player can really get; repeat until stable so
+  // chains (wheat -> feed -> eggs -> corn bread) resolve whatever order the recipe list is in
+  const makeable = RECIPES.filter((r) => r.level <= lv && game.buildingsOf(r.building).some((b) => isBuilt(b, game.now())));
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const r of makeable) {
+      if (out.has(r.item)) continue;
+      if (Object.keys(r.in).every((i) => out.has(i))) { out.add(r.item); changed = true; }
+    }
   }
   return [...out].filter((i) => ITEMS[i] && ITEMS[i].cat !== 'feed' && ITEMS[i].cat !== 'event');
+}
+
+/**
+ * Items the player still needs for ready orders and unfilled truck crates (needed minus owned).
+ * Used to flag recipes, warn before selling, and point at what to make next.
+ */
+export function wantedItems(now = game.now()): Map<string, number> {
+  const need = new Map<string, number>();
+  for (const o of game.state.orders.list) if (o.readyAt <= now) for (const l of o.lines) need.set(l.item, (need.get(l.item) ?? 0) + l.qty);
+  for (const c of game.state.truck?.crates ?? []) if (!c.filled) need.set(c.item, (need.get(c.item) ?? 0) + c.qty);
+  for (const [item, n] of need) {
+    const short = n - game.count(item);
+    if (short > 0) need.set(item, short); else need.delete(item);
+  }
+  return need;
+}
+
+/** How many of an item ready orders and the truck ask for in total (owned or not). */
+export function requestedCount(item: string, now = game.now()): number {
+  let n = 0;
+  for (const o of game.state.orders.list) if (o.readyAt <= now) for (const l of o.lines) if (l.item === item) n += l.qty;
+  for (const c of game.state.truck?.crates ?? []) if (!c.filled && c.item === item) n += c.qty;
+  return n;
 }
 
 function maxQty(): number {
@@ -62,10 +91,12 @@ export class OrderSystem {
       };
       const nLines = Math.min(ECONOMY.orders.maxLines, game.level < 3 ? 1 : game.level < 8 ? 1 + Math.floor(r() * 2) : 1 + Math.floor(r() * 3));
       const used = new Set<string>();
+      // prefer goods the other orders on the board do not already ask for, so the board feels varied
+      const others = new Set(o.list.flatMap((x) => x.lines.map((l) => l.item)));
       lines = [];
       for (let k = 0; k < nLines; k++) {
         let item = pick();
-        for (let t = 0; t < 6 && used.has(item); t++) item = pick();
+        for (let t = 0; t < 8 && (used.has(item) || (t < 5 && others.has(item))); t++) item = pick();
         if (used.has(item)) continue;
         used.add(item);
         const value = ITEMS[item].sell;
@@ -135,8 +166,10 @@ export class TruckSystem {
     const [lo, hi] = ECONOMY.truck.crates;
     const n = Math.min(hi, lo + Math.floor(game.level / 8));
     const crates = [];
+    // different goods in every crate while the pool allows it
+    const left = [...pool];
     for (let i = 0; i < n; i++) {
-      const item = pool[Math.floor(r() * pool.length)];
+      const item = left.length ? left.splice(Math.floor(r() * left.length), 1)[0] : pool[Math.floor(r() * pool.length)];
       const value = ITEMS[item].sell;
       const qty = Math.max(2, Math.round((value > 150 ? 2 : value > 60 ? 4 : 7) * ECONOMY.truck.qtyMult * (0.7 + r() * 0.6)));
       crates.push({ item, qty, coins: Math.round(value * qty * ECONOMY.truck.coinMult), xp: itemXp(item) * qty, filled: false });
@@ -244,9 +277,9 @@ export class StallSystem {
 
 // ======================================================================== travelling merchant
 export type MerchantOffer =
-  | { key: string; kind: 'decor'; id: string; price: number }
+  | { key: string; kind: 'decor'; id: string; price: number; was: number }
   | { key: string; kind: 'cosmetic'; id: string; name: string; price: number }
-  | { key: string; kind: 'items'; id: string; qty: number; price: number }
+  | { key: string; kind: 'items'; id: string; qty: number; price: number; was: number }
   | { key: string; kind: 'gems'; qty: number; price: number };
 
 export class MerchantSystem {
@@ -265,7 +298,7 @@ export class MerchantSystem {
     const decor = BUILDINGS.filter((b) => b.cat === 'decor' && !b.event && !b.path && b.level <= game.level + 8 && b.level > 2);
     if (decor.length) {
       const d = decor[Math.floor(r() * decor.length)];
-      offers.push({ key: `d:${d.id}`, kind: 'decor', id: d.id, price: Math.round(d.cost * ECONOMY.merchant.discount) });
+      offers.push({ key: `d:${d.id}`, kind: 'decor', id: d.id, price: Math.round(d.cost * ECONOMY.merchant.discount), was: d.cost });
     }
     // a crate-only cosmetic
     const cos = [...COSMETICS.hats, ...COSMETICS.accessories].filter((c) => c.unlock.crate && !game.state.cosmetics.includes(c.id));
@@ -273,12 +306,13 @@ export class MerchantSystem {
       const c = cos[Math.floor(r() * cos.length)];
       offers.push({ key: `c:${c.id}`, kind: 'cosmetic', id: c.id, name: c.name, price: 1500 + game.level * 60 });
     }
-    // bulk goods at a discount
+    // bulk goods, ready right now
     const pool = obtainableItems();
     for (let k = 0; k < 1 && pool.length; k++) {
       const item = pool[Math.floor(r() * pool.length)];
       const qty = 5 + Math.floor(r() * 6);
-      offers.push({ key: `i:${item}`, kind: 'items', id: item, qty, price: Math.round(ITEMS[item].sell * qty * ECONOMY.merchant.discount) });
+      // priced a little over barn value so they cannot be flipped for profit; they save time on orders
+      offers.push({ key: `i:${item}`, kind: 'items', id: item, qty, price: Math.round(ITEMS[item].sell * qty * ECONOMY.merchant.bulkPriceMult), was: 0 });
     }
     offers.push({ key: 'g', kind: 'gems', qty: 3, price: ECONOMY.merchant.gemPriceCoins * 3 });
     return offers.slice(0, ECONOMY.merchant.stockSize);

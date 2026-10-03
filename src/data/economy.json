@@ -74,6 +74,7 @@
   "level": 6,
   "stockSize": 4,
   "discount": 0.7,
+  "bulkPriceMult": 1.1,
   "gemPriceCoins": 160
  },
  "barn": {
