@@ -30,7 +30,8 @@ export class InstancePool {
     m.castShadow = this.opts.castShadow ?? true;
     m.receiveShadow = this.opts.receiveShadow ?? true;
     m.name = this.opts.name ?? 'pool';
-    m.frustumCulled = false; // instances span the map; bounding sphere would need recomputing every change
+    // culled against the bounding sphere of all instances (recomputed when instances change)
+    m.frustumCulled = true;
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     return m;
   }
@@ -53,6 +54,17 @@ export class InstancePool {
 
   get count(): number { return this.mesh.count; }
 
+  private boundsDirty = false;
+  /** Recompute culling bounds lazily, at most once per frame. */
+  private dirty(): void {
+    if (this.boundsDirty) return;
+    this.boundsDirty = true;
+    requestAnimationFrame(() => {
+      this.boundsDirty = false;
+      if (this.mesh.count > 0) this.mesh.computeBoundingSphere();
+    });
+  }
+
   add(matrix: THREE.Matrix4, color?: THREE.Color): number {
     if (this.mesh.count >= this.capacity) this.grow();
     const slot = this.mesh.count++;
@@ -69,6 +81,7 @@ export class InstancePool {
       this.mesh.instanceColor!.needsUpdate = true;
     }
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.dirty();
     return h;
   }
 
@@ -77,6 +90,7 @@ export class InstancePool {
     if (slot === undefined) return;
     this.mesh.setMatrixAt(slot, matrix);
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.dirty();
   }
 
   setColor(handle: number, color: THREE.Color): void {
@@ -117,6 +131,7 @@ export class InstancePool {
     this.slotOf.delete(handle);
     this.mesh.count--;
     this.mesh.instanceMatrix.needsUpdate = true;
+    this.dirty();
   }
 }
 

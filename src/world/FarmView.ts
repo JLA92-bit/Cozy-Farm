@@ -53,7 +53,7 @@ export class FarmView {
   readonly terrain: Terrain;
   readonly pools: PoolSet;
   readonly views = new Map<number, BuildingView>();
-  private obstacleHandles = new Map<number, { pool: InstancePool; handle: number; height: number }>();
+  private obstacleHandles = new Map<number, { pool: InstancePool; handle: number; height: number; locked: boolean }>();
   private saleSigns: { chunk: string; pool: InstancePool; handle: number }[] = [];
   private glowTex: THREE.Texture;
   private pending = new Set<number>();
@@ -76,6 +76,15 @@ export class FarmView {
   }
 
   refreshLand(): void {
+    // swap background stand-ins for full models on newly bought land
+    for (const o of game.state.obstacles) {
+      const h = this.obstacleHandles.get(o.id);
+      if (h?.locked && game.isUnlocked(chunkOf(o.x, o.z))) {
+        h.pool.remove(h.handle);
+        this.obstacleHandles.delete(o.id);
+        void this.addObstacle(o);
+      }
+    }
     const purch = purchasableChunks();
     this.terrain.setLand(game.unlockedChunks, new Set(purch));
     // paint dirt paths + soil
@@ -114,14 +123,17 @@ export class FarmView {
   // ------------------------------------------------------------------ obstacles
   async addObstacle(o: Obstacle): Promise<void> {
     const t = LAND.obstacles.types[o.type as keyof typeof LAND.obstacles.types];
-    const id = t.models[o.model % t.models.length];
+    // background LOD: wilderness on land you don't own yet uses cheaper stand-ins
+    const locked = !game.isUnlocked(chunkOf(o.x, o.z));
+    const lod: Record<string, string> = { tree_big: 'nat/tree_b', tree_small: 'nat/tree_a', bush: 'nat/bush', stump: 'nat/stump_round' };
+    const id = locked && lod[o.type] ? lod[o.type] : t.models[o.model % t.models.length];
     const sm = await assets.static(id);
-    const pool = this.pools.pool(`obs/${id}`, () => ({ geometry: sm.geometry, material: sm.material }));
+    const pool = this.pools.pool(`obs/${id}`, () => ({ geometry: sm.geometry, material: sm.material, castShadow: false }));
     const r = rng(o.id * 7919 + 13);
     const big = o.type === 'tree_big' || o.type === 'big_rock';
     const s = Math.min(1.6, (big ? 1.05 : 0.85) / Math.max(sm.size.x, sm.size.z)) * (0.9 + r() * 0.2);
     tmpM.compose(tmpV.set(tileToWorld(o.x) + (r() - 0.5) * 0.15, 0, tileToWorld(o.z) + (r() - 0.5) * 0.15), tmpQ.setFromAxisAngle(UP, r() * Math.PI * 2), tmpS.set(s, s, s));
-    this.obstacleHandles.set(o.id, { pool, handle: pool.add(tmpM), height: sm.size.y * s });
+    this.obstacleHandles.set(o.id, { pool, handle: pool.add(tmpM), height: sm.size.y * s, locked });
   }
 
   /** Remove with a little shrink/fly animation. */

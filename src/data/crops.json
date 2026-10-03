@@ -2,7 +2,7 @@
   "_comment": "Field crops. growSec = real seconds to grow. yield = items per harvest. seedCost in coins. stages: models for sprout/young/growing, ready: final look. Optional 'produce' = Food Kit model shown on the plant when ready.",
   "crops": [
     { "id": "wheat", "name": "Wheat", "level": 1, "seedCost": 1, "growSec": 30, "yield": 2, "xp": 1,
-      "stages": ["crop/wheat_a", "crop/wheat_a", "crop/wheat_b"], "ready": { "model": "crop/wheat_b", "tint": "#ffd25a" } },
+      "stages": ["crop/leafs_a", "crop/wheat_b", "crop/wheat_b"], "ready": { "model": "crop/wheat_b", "tint": "#ffd25a" } },
     { "id": "corn", "name": "Corn", "level": 2, "seedCost": 2, "growSec": 90, "yield": 2, "xp": 2,
       "stages": ["crop/corn_a", "crop/corn_b", "crop/corn_c"], "ready": { "model": "crop/corn_d" } },
     { "id": "carrot", "name": "Carrot", "level": 3, "seedCost": 3, "growSec": 180, "yield": 2, "xp": 2,
