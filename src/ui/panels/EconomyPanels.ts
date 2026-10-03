@@ -11,6 +11,7 @@ import { sourceText } from './InventoryPanel';
 import { cosmeticUnlocked } from './CharacterPanel';
 import { goToSource } from './ProductionPanel';
 import type { PlacedBuilding } from '../../systems/State';
+import { marketLink } from './MarketPanel';
 import './economy.css';
 
 const NPC_ICONS = ['farmer', 'woman_farmer', 'man_farmer', 'chick', 'dog', 'cat', 'rabbit', 'farmer', 'woman_farmer', 'man_farmer', 'bee', 'smile'];
@@ -193,6 +194,8 @@ export function openStall(): void {
     const sold = stall.soldCount();
     p.body.append(h('div', { class: 'econ-intro' }, icon(sold ? 'coin' : 'store', 'icon'),
       h('span', null, sold ? `${sold} sold! Tap to collect your coins.` : 'Set your own price. Passers-by buy cheaper things sooner.')));
+    const mkt = marketLink(() => p.close());
+    if (mkt) p.body.append(mkt);
     const grid = h('div', { class: 'grid tight', style: 'grid-template-columns:repeat(auto-fill,minmax(110px,1fr))' });
     const now = game.now();
     slots.forEach((s, i) => {

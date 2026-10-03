@@ -707,6 +707,32 @@
    "desc": "Collect {n} goods at night",
    "icon": "zzz",
    "hidden": true
+  },
+  {
+   "id": "market_trader",
+   "name": "Market Trader",
+   "category": "economy",
+   "stat": "market_sales",
+   "tiers": [
+    5,
+    50,
+    300
+   ],
+   "desc": "Sell {n} listings on the shared market",
+   "icon": "bags"
+  },
+  {
+   "id": "good_neighbour",
+   "name": "Good Neighbour",
+   "category": "economy",
+   "stat": "market_buys",
+   "tiers": [
+    3,
+    30,
+    150
+   ],
+   "desc": "Buy {n} listings from neighbours at the market",
+   "icon": "basket"
   }
  ]
 }

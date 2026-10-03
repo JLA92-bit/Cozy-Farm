@@ -97,5 +97,18 @@
   "gemsPerMinute": 0.2,
   "minGems": 1
  },
- "eventTokenChance": 0.12
+ "eventTokenChance": 0.12,
+ "market": {
+  "_comment": "Shared market between players. Prices are totals for the stack, clamped to minPriceMult..maxPriceMult x (item sell value x qty). slotsByLevel = [level, open listings]. practiceBuy = how the demo neighbours of practice mode buy your goods.",
+  "level": 6,
+  "minPriceMult": 0.5,
+  "maxPriceMult": 2.5,
+  "defaultPriceMult": 1.2,
+  "quickPriceMult": 0.9,
+  "maxQty": 50,
+  "listingFee": 0,
+  "slotsByLevel": [[6, 3], [10, 4], [15, 5], [22, 6], [30, 8]],
+  "pollSec": 30,
+  "practiceBuy": { "maxPriceMult": 1.6, "minSec": 90, "maxSec": 420 }
+ }
 }

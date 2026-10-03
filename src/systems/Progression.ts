@@ -9,8 +9,12 @@ import { rng, hashString } from '../world/Procedural';
 // ======================================================================== unlocks
 export interface UnlockEntry { kind: string; id: string; name: string; icon: string; level: number }
 
+/** Extra unlock entries from features outside this file (e.g. the shared market). */
+export const extraUnlocks: ((level: number) => UnlockEntry[])[] = [];
+
 export function unlocksAt(level: number): UnlockEntry[] {
   const out: UnlockEntry[] = [];
+  for (const fn of extraUnlocks) out.push(...fn(level));
   for (const c of CROPS) if (c.level === level) out.push({ kind: 'Crop', id: c.id, name: c.name, icon: ITEMS[c.id].icon, level });
   for (const t of TREES) if (t.level === level) out.push({ kind: 'Tree', id: t.id, name: t.name, icon: ITEMS[t.item].icon, level });
   for (const a of ANIMALS) if (a.level === level) out.push({ kind: 'Animal', id: a.id, name: a.name, icon: `model:${a.model}`, level });
