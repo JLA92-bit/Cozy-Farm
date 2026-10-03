@@ -44,13 +44,13 @@
   "_comment": "Truck depot: crates of items. Each crate pays out on fill; finishing all crates grants a bonus and a mystery crate.",
   "crates": [
    3,
-   6
+   5
   ],
   "crateLines": 1,
-  "qtyMult": 1.6,
-  "coinMult": 1.8,
+  "qtyMult": 1.0,
+  "coinMult": 2.0,
   "bonusMult": 0.5,
-  "durationSec": 21600,
+  "durationSec": 57600,
   "cooldownSec": 1800,
   "rewardCrate": "rare"
  },
@@ -59,11 +59,11 @@
   "maxSlots": 8,
   "slotCostGems": 3,
   "minPriceMult": 0.5,
-  "maxPriceMult": 1.6,
-  "defaultPriceMult": 1.2,
+  "maxPriceMult": 1.35,
+  "defaultPriceMult": 1.1,
   "buyDelaySec": [
-   20,
-   240
+   30,
+   480
   ],
   "adCooldownSec": 300
  },

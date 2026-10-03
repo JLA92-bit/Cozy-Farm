@@ -8,9 +8,9 @@
       { "level": 3, "playerLevel": 10, "cost": 2500, "sec": 900 },
       { "level": 4, "playerLevel": 16, "cost": 7000, "sec": 2700 },
       { "level": 5, "playerLevel": 22, "cost": 16000, "sec": 5400 },
-      { "level": 6, "playerLevel": 29, "cost": 32000, "sec": 10800 },
-      { "level": 7, "playerLevel": 36, "cost": 55000, "sec": 18000 },
-      { "level": 8, "playerLevel": 44, "cost": 90000, "sec": 28800 }
+      { "level": 6, "playerLevel": 29, "cost": 40000, "sec": 10800 },
+      { "level": 7, "playerLevel": 36, "cost": 85000, "sec": 18000 },
+      { "level": 8, "playerLevel": 44, "cost": 150000, "sec": 28800 }
     ],
     "caps": {
       "plot": [10, 16, 22, 28, 34, 40, 48, 56],
@@ -91,13 +91,13 @@
     { "id": "statue_obelisk", "name": "Obelisk", "cat": "decor", "size": [1, 1], "level": 24, "cost": 900, "model": "nat/statue_obelisk", "fit": 0.7, "charm": 28, "cap": "decor" },
     { "id": "pond", "name": "Lily Pond", "cat": "decor", "size": [2, 2], "level": 26, "cost": 700, "model": "proc:pond", "fit": 1.0, "charm": 20, "cap": "decor" },
     { "id": "tent", "name": "Picnic Tent", "cat": "decor", "size": [2, 2], "level": 27, "cost": 800, "model": "prop/tent", "fit": 0.9, "charm": 20, "cap": "decor" },
-    { "id": "statue_ring", "name": "Stone Ring", "cat": "decor", "size": [2, 2], "level": 29, "cost": 1200, "model": "nat/statue_ring", "fit": 0.9, "charm": 36, "cap": "decor" },
-    { "id": "fountain_grand", "name": "Grand Fountain", "cat": "decor", "size": [2, 2], "level": 33, "cost": 1500, "model": "prop/fountain_square", "fit": 0.98, "charm": 45, "cap": "decor" },
-    { "id": "gazebo", "name": "Garden Gazebo", "cat": "decor", "size": [2, 2], "level": 35, "cost": 2200, "model": "proc:gazebo", "fit": 1.0, "charm": 55, "cap": "decor" },
-    { "id": "tower", "name": "Lookout Tower", "cat": "decor", "size": [2, 2], "level": 40, "cost": 4000, "model": "bld/tower", "fit": 1.0, "charm": 80, "cap": "decor" },
-    { "id": "windmill_deco", "name": "Golden Windmill", "cat": "decor", "size": [2, 2], "level": 42, "cost": 5000, "model": "bld/windmill", "parts": ["building_windmill_top_fan_yellow"], "fit": 1.0, "charm": 95, "cap": "decor" },
-    { "id": "chapel", "name": "Village Chapel", "cat": "decor", "size": [3, 3], "level": 45, "cost": 8000, "model": "bld/church", "fit": 1.0, "charm": 140, "cap": "decor" },
-    { "id": "manor", "name": "Grand Manor", "cat": "decor", "size": [3, 3], "level": 48, "cost": 12000, "model": "bld/home_yellow", "fit": 1.0, "charm": 180, "cap": "decor" },
+    { "id": "statue_ring", "name": "Stone Ring", "cat": "decor", "size": [2, 2], "level": 29, "cost": 2500, "model": "nat/statue_ring", "fit": 0.9, "charm": 36, "cap": "decor" },
+    { "id": "fountain_grand", "name": "Grand Fountain", "cat": "decor", "size": [2, 2], "level": 33, "cost": 4000, "model": "prop/fountain_square", "fit": 0.98, "charm": 45, "cap": "decor" },
+    { "id": "gazebo", "name": "Garden Gazebo", "cat": "decor", "size": [2, 2], "level": 35, "cost": 6000, "model": "proc:gazebo", "fit": 1.0, "charm": 55, "cap": "decor" },
+    { "id": "tower", "name": "Lookout Tower", "cat": "decor", "size": [2, 2], "level": 40, "cost": 12000, "model": "bld/tower", "fit": 1.0, "charm": 80, "cap": "decor" },
+    { "id": "windmill_deco", "name": "Golden Windmill", "cat": "decor", "size": [2, 2], "level": 42, "cost": 20000, "model": "bld/windmill", "parts": ["building_windmill_top_fan_yellow"], "fit": 1.0, "charm": 95, "cap": "decor" },
+    { "id": "chapel", "name": "Village Chapel", "cat": "decor", "size": [3, 3], "level": 45, "cost": 35000, "model": "bld/church", "fit": 1.0, "charm": 140, "cap": "decor" },
+    { "id": "manor", "name": "Grand Manor", "cat": "decor", "size": [3, 3], "level": 48, "cost": 50000, "model": "bld/home_yellow", "fit": 1.0, "charm": 180, "cap": "decor" },
 
     { "id": "pumpkin_pile", "name": "Pumpkin Pile", "cat": "decor", "size": [1, 1], "level": 1, "cost": 0, "eventCost": 15, "event": "harvest_festival", "model": "proc:pumpkin_pile", "fit": 0.9, "charm": 8, "cap": "decor" },
     { "id": "autumn_tree", "name": "Autumn Maple", "cat": "decor", "size": [1, 1], "level": 1, "cost": 0, "eventCost": 20, "event": "harvest_festival", "model": "nat/tree_oak_fall", "fit": 0.85, "charm": 10, "cap": "decor" },
