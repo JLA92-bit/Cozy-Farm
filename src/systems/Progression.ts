@@ -304,6 +304,36 @@ export function collectionEntries(): CollectionEntry[] {
   return out;
 }
 
+/** Collection Book pages: finishing every entry on a page pays a one-off reward. */
+export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles'] as const;
+type PageReward = { gems?: number; crate?: string };
+let bookCache: CollectionEntry[] | null = null;
+export const book = {
+  entries(): CollectionEntry[] { return (bookCache ??= collectionEntries()); },
+  reward(page: string): PageReward { return (REWARDS.collection.pages as Record<string, PageReward>)[page] ?? {}; },
+  progress(page: string): { found: number; total: number } {
+    let found = 0, total = 0;
+    for (const e of this.entries()) if (e.group === page) { total++; if (game.state.collection[e.key]) found++; }
+    return { found, total };
+  },
+  claimed(page: string): boolean { return game.state.seen.bookPages.includes(page); },
+  claimable(page: string): boolean {
+    if (this.claimed(page)) return false;
+    const { found, total } = this.progress(page);
+    return total > 0 && found >= total;
+  },
+  claimableCount(): number { let n = 0; for (const p of BOOK_PAGES) if (this.claimable(p)) n++; return n; },
+  claim(page: string): PageReward | null {
+    if (!this.claimable(page)) return null;
+    const r = this.reward(page);
+    game.state.seen.bookPages.push(page);
+    if (r.gems) game.addGems(r.gems);
+    if (r.crate) { game.state.crates.push(r.crate); game.bus.emit('crate:granted', { rarity: r.crate }); }
+    game.bus.emit('sfx', { name: 'reward' });
+    return r;
+  },
+};
+
 /** Mark cosmetics that are now unlocked as discovered. */
 export function syncCosmeticDiscovery(isUnlocked: (id: string, unlock: { level?: number; achievement?: string; default?: boolean }) => boolean): void {
   for (const c of [...COSMETICS.hats, ...COSMETICS.accessories, ...COSMETICS.pets]) {

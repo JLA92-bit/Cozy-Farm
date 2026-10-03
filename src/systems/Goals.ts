@@ -3,7 +3,7 @@ import { game } from './Game';
 import { buildings } from './Buildings';
 import { orders } from './Economy';
 import { production } from './Production';
-import { daily, events, quests, unlocksAt, type UnlockEntry } from './Progression';
+import { book, BOOK_PAGES, daily, events, quests, unlocksAt, type UnlockEntry } from './Progression';
 import { land } from './Land';
 import { animals } from './Animals';
 import { isBuilt, plotReady, treeReady } from './Timers';
@@ -91,6 +91,8 @@ export function nextGoal(): Goal {
   if (claim) return { title: 'Quest complete', text: 'Claim your quest reward!', icon: 'scroll', action: { panel: 'quests' } };
   if (s.crates.length) return { title: 'Mystery crate', text: `You have ${s.crates.length} crate${s.crates.length > 1 ? 's' : ''} to open`, icon: 'gift', action: { panel: 'crates' } };
   if (game.state.tutorial.done && daily.check(now)) return { title: 'Daily gift', text: `Day ${daily.dayIndex + 1} reward is waiting!`, icon: 'calendar', action: { panel: 'daily' } };
+  const page = BOOK_PAGES.find((g) => book.claimable(g));
+  if (page) return { title: 'Book page complete', text: `Claim your ${page} page reward!`, icon: 'books', action: { panel: 'collection', arg: page } };
   const eventClaim = events.claimable();
   if (eventClaim) return { title: 'Festival reward', text: 'Claim your festival quest reward!', icon: events.current?.icon ?? 'party', action: { panel: 'event' } };
   // hungry animals with feed
@@ -116,6 +118,17 @@ export function nextGoal(): Goal {
   if (q) {
     const act = actionForStat(q.x.stat);
     if (act) return { title: s.quests.daily.includes(q.x) ? 'Daily quest' : 'Weekly quest', text: `${q.x.text} (${quests.progress(q.x)}/${q.x.target})`, icon: q.x.icon, progress: q.f, action: act };
+  }
+  // tidy up wild spots on land you own (cheap XP and a little treasure)
+  const wild = land.easiestObstacle();
+  if (wild && game.coins >= land.obstacleDef(wild).clearCost * 3) {
+    const t = land.obstacleDef(wild);
+    return { title: 'Tidy the farm', text: `Clear a ${t.name.toLowerCase()} for +${t.xp} XP`, icon: t.icon, action: { obstacle: wild.id } };
+  }
+  // saving up for more land
+  const next = land.nextExpansion();
+  if (!build && game.level >= next.level && land.purchasableChunks().length) {
+    return { title: 'Save for land', text: `${next.cost} coins buys new land`, icon: 'map', progress: Math.min(1, game.coins / Math.max(1, next.cost)), action: { chunk: land.purchasableChunks()[0] } };
   }
   if (build) return { title: 'Save up', text: `${game.priceOf(build)} coins for a ${build.name}`, icon: build.icon ?? 'construction', progress: Math.min(1, game.coins / Math.max(1, game.priceOf(build))), action: { panel: 'shop', arg: build.cat === 'special' ? 'special' : build.cat } };
   // otherwise: progress to the next level unlock

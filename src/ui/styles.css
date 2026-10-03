@@ -382,6 +382,11 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .quest-pips i.ready { background: var(--btn-yellow); animation: pulse 1.2s ease-in-out infinite; }
 .quest-pips i.on { background: var(--btn-green); }
 .quest-row.ready { background: #e8f8dc; }
+.quest-bonus.book-reward.ready { border-style: solid; border-color: var(--btn-yellow); background: #fff3c4; }
+.quest-bonus.book-reward.ready .btn.yellow { animation: pulse 1.2s ease-in-out infinite; }
+.quest-bonus.book-reward .pill { font-size: 12px; padding: 1px 7px; }
+.toast.tappable { pointer-events: auto; cursor: pointer; }
+.toast.tappable::after { content: "›"; margin-left: auto; font-family: var(--font-display); font-size: 24px; color: var(--ink-soft); }
 .quest-row.ready .btn.yellow { animation: pulse 1.2s ease-in-out infinite; }
 .quest-row.claimed { opacity: .6; }
 .crate-card .card-icon { animation: wiggle 2.4s ease-in-out infinite; }

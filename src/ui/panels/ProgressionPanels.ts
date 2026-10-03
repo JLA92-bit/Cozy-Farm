@@ -4,13 +4,15 @@ import { h, icon, button, clear, fmt, itemIcon } from '../dom';
 import { ui } from '../UI';
 import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, MAX_LEVEL, REWARDS, ITEMS, COSMETICS, BUILDINGS, type EventDef } from '../../data';
 import { game } from '../../systems/Game';
-import { achievements, collectionEntries, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
+import { achievements, book, BOOK_PAGES, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
 import { actionForStat, actionForUnlock } from '../../systems/Goals';
 import { audio, haptics } from '../../systems/Audio';
 import { eventTokenItem } from '../../systems/Farming';
 import { cosmeticUnlocked, unlockText } from './CharacterPanel';
 import { formatTime } from '../../systems/Timers';
 import { runGoalAction } from '../GoalActions';
+import { land } from '../../systems/Land';
+import { CHUNK } from '../../world/Grid';
 
 // ======================================================================== shared juice
 const plural = (n: number, one: string, many = `${one}s`) => `${fmt(n)} ${n === 1 ? one : many}`;
@@ -70,6 +72,12 @@ function tabBadge(p: Panel, id: string, n: number): void {
   t.querySelector('.badge-dot')?.remove();
   t.style.position = 'relative';
   if (n > 0) t.append(h('span', { class: 'badge-dot outlined' }, n > 1 ? String(n) : ''));
+}
+
+/** Scroll a panel's tab strip so the active tab is visible. */
+function showActiveTab(p: Panel): void {
+  const t = p.tabsEl?.querySelector<HTMLElement>('.tab.active');
+  if (t && p.tabsEl) p.tabsEl.scrollLeft = Math.max(0, t.offsetLeft - (p.tabsEl.clientWidth - t.offsetWidth) / 2);
 }
 
 const unlockCard = (u: UnlockEntry, locked: boolean, onTry?: () => void) => {
@@ -182,10 +190,11 @@ function achievementProgress(a: typeof ACHIEVEMENTS[number]): { tier: number; pc
   return { tier, pct, v, target };
 }
 
-export function openAchievements(): void {
+export function openAchievements(cat?: string): void {
   const p = new Panel({ title: 'Awards', icon: 'trophy', color: 'orange', tabs: CATS.map((c) => ({ id: c, label: c[0].toUpperCase() + c.slice(1), icon: CAT_ICON[c] })) });
   // tabs with an award that is nearly done get a dot, so there is always something to chase
   for (const c of CATS) tabBadge(p, c, ACHIEVEMENTS.filter((a) => a.category === c && !(a.hidden && achievements.tier(a.id) === 0) && (() => { const s = achievementProgress(a); return s.tier < 3 && s.pct >= 75; })()).length);
+  if (cat && CATS.includes(cat)) p.tab = cat;
   p.onTab = (cat) => {
     clear(p.body);
     const counts = [0, 0, 0];
@@ -213,6 +222,7 @@ export function openAchievements(): void {
     p.body.append(list);
   };
   p.open();
+  showActiveTab(p);
 }
 
 // ======================================================================== quests
@@ -471,7 +481,7 @@ function rewardCard(rw: CrateReward, rarity: string): HTMLElement {
 
 // ======================================================================== collection
 let bookKeys: Set<string> | null = null;
-const inBook = (key: string) => (bookKeys ??= new Set(collectionEntries().map((e) => e.key))).has(key);
+const inBook = (key: string) => (bookKeys ??= new Set(book.entries().map((e) => e.key))).has(key);
 
 /** How many book entries were found since the book was last opened. */
 export function newDiscoveries(): number {
@@ -481,21 +491,44 @@ export function newDiscoveries(): number {
   return n;
 }
 
-export function openCollection(): void {
-  const groups = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles'];
+export function openCollection(tab?: string): void {
+  const groups = [...BOOK_PAGES];
   const p = new Panel({ title: 'Collection Book', icon: 'books', color: 'purple', tabs: groups.map((g) => ({ id: g, label: g })) });
-  const all = collectionEntries();
+  const all = book.entries();
   const since = game.state.seen.collectionSeenAt ?? 0;
   const isNew = (key: string) => (game.state.collection[key] ?? 0) > since;
-  for (const g of groups) tabBadge(p, g, all.filter((e) => e.group === g && isNew(e.key)).length);
+  const badges = () => { for (const g of groups) tabBadge(p, g, all.filter((e) => e.group === g && isNew(e.key)).length + (book.claimable(g) ? 1 : 0)); };
+  badges();
   const totalFound = all.filter((e) => game.state.collection[e.key]).length;
-  p.onTab = (g) => {
+  const render = (g: string) => {
     clear(p.body);
     const list = all.filter((e) => e.group === g);
-    const found = list.filter((e) => game.state.collection[e.key]).length;
+    const { found, total } = book.progress(g);
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px;gap:8px' },
       h('div', { class: 'muted' }, `Book: ${totalFound}/${all.length}`),
-      h('div', { class: 'progress', style: 'flex:1 1 50%' }, h('div', { class: 'fill', style: `width:${(found / Math.max(1, list.length)) * 100}%` }), h('div', { class: 'label' }, found >= list.length ? 'Complete!' : `${found}/${list.length} found`))));
+      h('div', { class: 'progress', style: 'flex:1 1 50%' }, h('div', { class: 'fill', style: `width:${(found / Math.max(1, total)) * 100}%` }), h('div', { class: 'label' }, found >= total ? 'Complete!' : `${found}/${total} found`))));
+    // page reward: always visible, so there is a reason to fill the page
+    const r = book.reward(g);
+    const claimed = book.claimed(g), ready = book.claimable(g);
+    const pills = h('div', { class: 'row', style: 'gap:4px;flex-wrap:wrap' },
+      r.gems ? h('span', { class: 'pill', dataset: { kind: 'gems' } }, icon('gem'), String(r.gems)) : null,
+      r.crate ? h('span', { class: 'pill' }, icon('gift'), `${cap(r.crate)} crate`) : null);
+    const banner = h('div', { class: `quest-bonus book-reward ${claimed ? 'done' : ready ? 'ready' : ''}` },
+      icon(claimed ? 'check' : 'gift', 'icon'),
+      h('div', { class: 'grow' },
+        h('div', { class: 'title' }, claimed ? 'Page complete - reward collected!' : ready ? 'Page complete!' : `Fill this page for a reward (${total - found} to go)`),
+        claimed ? null : pills),
+      ready ? button('Claim', () => {
+        const got = book.claim(g);
+        if (!got) return;
+        flyPills(pills, { gems: got.gems });
+        confetti(40);
+        haptics.buzz([15, 30, 15]);
+        badges();
+        ui.hud.setBadge('collection', collectionBadge());
+        gsap.to(banner, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 1, onComplete: () => render(g) });
+      }, 'small yellow') : null);
+    p.body.append(banner);
     const grid = h('div', { class: 'grid tight' });
     for (const e of list) {
       const seen = !!game.state.collection[e.key];
@@ -508,51 +541,97 @@ export function openCollection(): void {
     const tags = grid.querySelectorAll('.new-tag');
     if (tags.length) gsap.fromTo(tags, { scale: 0 }, { scale: 1, duration: 0.4, ease: 'back.out(3)', stagger: 0.05, delay: 0.2 });
   };
+  p.onTab = render;
+  // open on the page with a reward waiting, else the one with something new
+  const start = tab && groups.includes(tab as typeof groups[number]) ? tab
+    : groups.find((g) => book.claimable(g)) ?? groups.find((g) => all.some((e) => e.group === g && isNew(e.key)));
+  if (start) p.tab = start;
   // everything is "seen" once the book has been opened
-  p.onClose = () => { game.state.seen.collectionSeenAt = game.now(); ui.hud.setBadge('collection', 0); };
+  p.onClose = () => { game.state.seen.collectionSeenAt = game.now(); ui.hud.setBadge('collection', collectionBadge()); };
   p.open();
+  showActiveTab(p);
 }
 
+/** HUD badge for the book: fresh discoveries plus pages with a reward to claim. */
+export function collectionBadge(): number { return newDiscoveries() + book.claimableCount(); }
+
 // ======================================================================== hooks
-ui.register('achievements', () => openAchievements());
+ui.register('achievements', (t) => openAchievements(t as string | undefined));
 ui.register('quests', (t) => openQuests(t as string | undefined));
 ui.register('daily', () => openDaily());
 ui.register('crates', () => openCrates());
-ui.register('collection', () => openCollection());
+ui.register('collection', (t) => openCollection(t as string | undefined));
 ui.register('unlocks', () => openUnlockTree());
 ui.register('event', () => openQuests('event'));
+
+/** Make the toast that was just shown tappable (opens the matching panel). */
+function tapLastToast(fn: () => void): void {
+  const el = ui.feedback.toastStack.lastElementChild as HTMLElement | null;
+  if (!el) return;
+  el.classList.add('tappable');
+  el.addEventListener('click', fn, { once: true });
+}
 
 game.bus.on('achievement', ({ id, tier }) => {
   const a = ACHIEVEMENT[id];
   const r = ACHIEVEMENT_REWARDS[tier - 1];
   ui.feedback.toast(`${TIER_NAME[tier - 1]} medal: ${a.name}`, `+${plural(r.coins, 'coin')}, +${plural(r.gems, 'gem')}, +${r.xp} XP`, TIER_ICON[tier - 1], ['bronze', 'silver', 'gold'][tier - 1]);
+  tapLastToast(() => openAchievements(a.category));
   ui.feedback.bump(ui.hud.buttons.achievements);
   if (tier === 3) confetti(40, ['#ffc93c', '#ffe066', '#fff3c4']);
   audio.play('achievement', { volume: 0.8 });
   haptics.buzz([20, 40, 20]);
 });
 game.bus.on('quest:completed', ({ text }) => {
-  ui.feedback.toast('Quest complete!', `${text} - claim your reward`, 'scroll', 'gold');
+  ui.feedback.toast('Quest complete!', `${text} - tap to claim`, 'scroll', 'gold');
+  tapLastToast(() => ui.open('quests'));
   ui.feedback.bump(ui.hud.buttons.quests);
   audio.play('quest');
 });
-game.bus.on('crate:granted', ({ rarity }) => ui.feedback.toast(`${cap(rarity)} crate!`, 'Open it from the Crates button', 'gift'));
+game.bus.on('crate:granted', ({ rarity }) => {
+  ui.feedback.toast(`${cap(rarity)} crate!`, 'Tap to open it', RARITY_ICON[rarity] ?? 'gift');
+  // don't stack a second crate panel on top of the one that is open
+  tapLastToast(() => { if (!document.querySelector('.crate-stage, .crate-card')) ui.open('crates'); });
+});
 
 /** Collection "new entry" notes; wired once the farm is on screen so boot-time syncing stays quiet. */
 export function wireProgressionNotes(): void {
-  let pending: { name: string; icon: string }[] = [];
+  // new land: a little party, then point at the wild spots waiting there
+  game.bus.on('land:expanded', ({ chunk }) => {
+    confetti(44, ['#7cd65a', '#b4f28a', '#ffc93c', '#fff3c4', '#8fd3ff']);
+    const [cx, cz] = chunk.split(',').map(Number);
+    const wild = game.state.obstacles.filter((o) => Math.floor(o.x / CHUNK) === cx && Math.floor(o.z / CHUNK) === cz);
+    setTimeout(() => {
+      const next = land.nextExpansion();
+      if (wild.length) {
+        const easiest = wild.reduce((a, b) => (land.obstacleDef(b).clearCost < land.obstacleDef(a).clearCost ? b : a));
+        ui.feedback.toast(`${wild.length} wild spots to clear`, 'Each one hides a little treasure. Tap to start!', land.obstacleDef(easiest).icon);
+        tapLastToast(() => runGoalAction({ obstacle: easiest.id }, true));
+      }
+      if (land.purchasableChunks().length) ui.feedback.toast('More land later', game.level >= next.level ? `Next plot: ${fmt(next.cost)} coins` : `Next plot opens at level ${next.level}`, 'map');
+    }, 1800);
+  });
+
+  let pending: { name: string; icon: string; group: string }[] = [];
   let timer = 0;
   game.bus.on('collection:new', ({ id, kind }) => {
     if (!inBook(`${kind}:${id}`) || !game.state.tutorial.done) return;
-    const e = collectionEntries().find((x) => x.key === `${kind}:${id}`);
+    const e = book.entries().find((x) => x.key === `${kind}:${id}`);
     if (!e) return;
-    pending.push({ name: e.name, icon: e.icon });
+    pending.push({ name: e.name, icon: e.icon, group: e.group });
     clearTimeout(timer);
     timer = window.setTimeout(() => {
       const list = pending;
       pending = [];
       if (list.length === 1) ui.feedback.toast('New in your Book!', list[0].name, list[0].icon);
       else ui.feedback.toast(`${list.length} new Book entries!`, list.map((x) => x.name).slice(0, 3).join(', ') + (list.length > 3 ? '...' : ''), 'books');
+      tapLastToast(() => ui.open('collection'));
+      for (const page of new Set(list.map((x) => x.group))) {
+        if (!book.claimable(page)) continue;
+        ui.feedback.toast(`${page} page complete!`, 'Tap to claim your Book reward', 'books', 'gold');
+        tapLastToast(() => ui.open('collection', page));
+        confetti(30);
+      }
       ui.feedback.bump(ui.hud.buttons.collection);
       audio.play('sparkle', { volume: 0.6 });
     }, 700);

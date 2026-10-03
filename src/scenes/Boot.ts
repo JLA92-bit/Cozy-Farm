@@ -22,7 +22,7 @@ import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
 import { achievements, quests, daily, events, syncCosmeticDiscovery } from '../systems/Progression';
 import { nextGoal, type Goal } from '../systems/Goals';
-import { showLevelUp, openDaily, openUnlockTree, newDiscoveries, wireProgressionNotes } from '../ui/panels/ProgressionPanels';
+import { showLevelUp, openDaily, openUnlockTree, collectionBadge, wireProgressionNotes } from '../ui/panels/ProgressionPanels';
 import { runGoalAction } from '../ui/GoalActions';
 import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
@@ -133,7 +133,7 @@ function wireProgression(): void {
     goal = nextGoal();
     ui.hud.setGoal(goal.title, goal.text, goal.icon, goal.progress);
     ui.hud.setBadge('quests', quests.claimable() + events.claimable());
-    ui.hud.setBadge('collection', newDiscoveries());
+    ui.hud.setBadge('collection', collectionBadge());
   };
   scene.onTick(() => refreshGoal());
   refreshGoal();
