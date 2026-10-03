@@ -16,6 +16,10 @@ import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
 import { updateBubbles } from '../ui/Bubbles';
 import { player } from './Player';
+import { orders, truck, merchant } from '../systems/Economy';
+import { Visitors } from '../world/Visitors';
+import { merchantSpot } from '../ui/panels/EconomyPanels';
+import { updateSideBar } from '../ui/SideBar';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 
 function setProgress(f: number, text?: string): void {
@@ -76,7 +80,12 @@ export async function boot(): Promise<void> {
   await scene.farm.build();
   buildings.updateGauges();
   await player.init(scene);
-  scene.onTick((now) => { buildings.tick(now); scene.farm.tick(now); updateBubbles(now); });
+  orders.refresh();
+  game.bus.on('levelup', () => orders.refresh());
+  const visitors = new Visitors(scene, merchantSpot);
+  void visitors.sync();
+  ui.extraPick = (ray) => (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present ? () => ui.open('merchant') : null);
+  scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();
   scene.loop.start();

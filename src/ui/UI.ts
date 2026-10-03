@@ -31,6 +31,8 @@ class UIManager {
   effects!: Effects;
   scene!: FarmScene;
   interaction!: Interaction;
+  /** Extra tappable world things (e.g. the merchant) checked before buildings. */
+  extraPick: ((ray: THREE.Ray) => (() => void) | null) | null = null;
   private panels = new Map<string, PanelOpener>();
   private tapHandlers: BuildingTapHandler[] = [];
   private tray: HTMLElement | null = null;

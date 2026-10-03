@@ -62,6 +62,8 @@ export class Interaction implements WorldHandler {
       return;
     }
     if (ui.world.hidePopup()) return;
+    const extra = ui.extraPick?.(this.scene.ray(p));
+    if (extra && m.kind === 'idle') { extra(); return; }
     const b = this.pickBuilding(p);
     if (m.kind === 'edit') {
       if (b && !BUILDING[b.type].path) this.startMove(b.uid, true);
