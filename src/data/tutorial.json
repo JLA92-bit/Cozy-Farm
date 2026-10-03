@@ -1,15 +1,14 @@
 {
-  "_comment": "First-session tutorial. target: where the pointing hand goes. wait: event that completes the step.",
+  "_comment": "First-session tutorial. target: where the pointing hand goes. wait: event that completes the step. skip: comma-separated conditions that auto-skip the step - stat:<name> grew or more:<building> owned since the tutorial started, or none:<empty_plot|deliverable|plot_buyable> when it cannot be done right now. button: label for 'tap' steps.",
   "steps": [
-    { "id": "welcome", "text": "Welcome to Cozy Acres, {name}! This little farm is all yours. Let's grow something!", "target": "none", "wait": "tap" },
-    { "id": "tap_plot", "text": "Tap an empty field to plant.", "target": "plot", "wait": "tray_open" },
-    { "id": "pick_wheat", "text": "Pick Wheat. Then tap or swipe across fields to plant them all!", "target": "tray_wheat", "wait": "planted:3" },
-    { "id": "orders", "text": "Wheat takes 30 seconds. Meanwhile, tap the Order Board to see what villagers want.", "target": "order_board", "wait": "panel:orders" },
-    { "id": "orders_info", "text": "Orders pay coins and XP. Let's grow the wheat for this one!", "target": "none", "wait": "panel_closed" },
-    { "id": "harvest", "text": "When the wheat turns golden, swipe across the fields to harvest it.", "target": "ready_plot", "wait": "harvested" },
-    { "id": "deliver", "text": "Now open the Order Board and deliver an order.", "target": "order_board", "wait": "order_completed" },
-    { "id": "shop", "text": "Great! Open the Shop to build more fields.", "target": "ui:shop", "wait": "panel:shop" },
-    { "id": "place", "text": "Pick a Field, drag it where you like and tap the tick.", "target": "none", "wait": "placed:plot" },
-    { "id": "done", "text": "You're a natural! Follow the goal card at the top left whenever you're unsure what to do next. Have fun!", "target": "ui:goal", "wait": "tap" }
+    { "id": "welcome", "text": "Hi {name}, welcome to Cozy Acres! This little farm is all yours. Let's grow something!", "target": "none", "wait": "tap", "button": "Let's go!" },
+    { "id": "tap_plot", "text": "Tap an empty field to start planting.", "target": "plot", "wait": "tray_open", "skip": "stat:plants_planted,none:empty_plot" },
+    { "id": "plant", "text": "Wheat is picked for you. Tap or swipe across the empty fields to plant 3!", "target": "plot", "wait": "planted:3", "skip": "none:empty_plot" },
+    { "id": "harvest", "text": "Golden wheat is ready to pick! Swipe across the golden fields to harvest.", "target": "ready_plot", "wait": "harvested", "skip": "stat:crops_harvested" },
+    { "id": "orders", "text": "Villagers pin orders on the Order Board. Tap it to take a look!", "target": "order_board", "wait": "panel:orders", "skip": "stat:orders_completed" },
+    { "id": "deliver", "text": "You have everything this order needs. Tap Deliver for coins and XP!", "target": "deliver", "wait": "order_completed", "skip": "stat:orders_completed,none:deliverable" },
+    { "id": "shop", "text": "Lovely! More fields means more crops. Open the Shop.", "target": "ui:shop", "wait": "panel:shop", "skip": "more:plot,none:plot_buyable" },
+    { "id": "place", "text": "Pick a Field, drag it to a free spot and tap the tick to build it.", "target": "place_plot", "wait": "placed:plot", "skip": "more:plot,none:plot_buyable" },
+    { "id": "done", "text": "You're a natural, {name}! The goal card always shows a good next step. Happy farming!", "target": "ui:goal", "wait": "tap", "button": "Have fun!" }
   ]
 }
