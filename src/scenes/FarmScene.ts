@@ -72,7 +72,7 @@ export class FarmScene implements InputHandler {
     const start = performance.now();
     this.rig.update(dt);
     this.env.update(dt, t, this.now(), this.rig.target);
-    this.farm.terrain.update(t, this.env.light);
+    this.farm.terrain.update(t, this.env.light, this.env.sky, this.env.night, this.rig.target, dt);
     this.farm.frame(dt, t, this.env.night);
     for (const fn of this.frameHooks) fn(dt, t);
     this.renderer.renderer.render(this.scene, this.rig.camera);

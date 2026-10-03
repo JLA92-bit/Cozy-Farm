@@ -9,7 +9,7 @@ import type { PlacedBuilding } from '../systems/State';
 import { isBuilt, plotReady, treeReady } from '../systems/Timers';
 import { audio, haptics } from '../systems/Audio';
 import { HALF, MAP, chunkOf, footprintCenter, inMap, rotatedSize, worldToTile } from '../world/Grid';
-import { ghostMaterial, objectFor, visualFor, footprintMesh } from '../world/Visuals';
+import { ghostMaterial, objectFor, visualFor, footprintMesh, tintGhost } from '../world/Visuals';
 import type { FarmScene, WorldHandler } from './FarmScene';
 import { ui } from '../ui/UI';
 
@@ -401,7 +401,7 @@ export class Interaction implements WorldHandler {
       this.endPlacement();
       this.scene.farm.setHidden(m.uid, false);
       const v = this.scene.farm.views.get(m.uid);
-      if (v) this.scene.farm.squash(v);
+      if (v) { this.scene.farm.squash(v); ui.effects.landing(v.center.clone().setY(0.1), Math.max(...rotatedSize(v.def.size, m.rot))); }
       audio.play('build');
       this.scene.rig.shake(0.08, 0.15);
     } else {
@@ -413,7 +413,8 @@ export class Interaction implements WorldHandler {
       const keep = def.cat === 'decor' || def.id === 'plot';
       const type = m.type, fromStorage = m.fromStorage;
       this.endPlacement();
-      ui.effects.dust(new THREE.Vector3(footprintCenter(b.x, def.size[0]), 0.1, footprintCenter(b.z, def.size[1])), 12, def.size[0] * 0.8);
+      const [fw, fd] = rotatedSize(def.size, b.rot);
+      ui.effects.landing(new THREE.Vector3(footprintCenter(b.x, fw), 0.1, footprintCenter(b.z, fd)), Math.max(fw, fd));
       this.scene.rig.shake(0.1, 0.18);
       haptics.buzz(20);
       game.bus.emit('tutorial', { signal: `placed:${type}` });
@@ -463,6 +464,7 @@ export class Interaction implements WorldHandler {
     if (m) {
       // gentle hover bob on the ghost
       m.ghost.position.y = 0.12 + Math.sin(performance.now() / 260) * 0.04;
+      tintGhost(m.ghost, m.valid, performance.now());
       this.scene.loop.wake(0.2);
     }
   }

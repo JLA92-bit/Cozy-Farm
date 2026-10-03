@@ -13,7 +13,12 @@ export class Environment {
   /** Overall light multiplier (water shader etc.). */
   light = 1;
   cycleMinutes = 24;
-  private clouds: { obj: THREE.Object3D; speed: number }[] = [];
+  private clouds: { obj: THREE.Object3D; speed: number; a: number; r: number; y: number }[] = [];
+  /** Pollen motes by day, blinking fireflies by night: one Points draw call. */
+  private motes?: THREE.Points;
+  private moteMat?: THREE.PointsMaterial;
+  private moteData: { x: number; z: number; y: number; phase: number; speed: number; r: number }[] = [];
+  private moteNight = -1;
   private birds?: THREE.InstancedMesh;
   private birdData: { x: number; z: number; y: number; vx: number; vz: number; phase: number }[] = [];
   private butterflies?: THREE.InstancedMesh;
@@ -21,7 +26,20 @@ export class Environment {
   private dummy = new THREE.Object3D();
   private skyDay = new THREE.Color('#8fd3f4');
   private skyDusk = new THREE.Color('#f7b27a');
-  private skyNight = new THREE.Color('#2e3f78');
+  private skyDawn = new THREE.Color('#f9c6c9');
+  private skyNight = new THREE.Color('#2a3a74');
+  // light grading targets (allocated once, reused every frame)
+  private hemiDay = new THREE.Color('#fffaf0');
+  private hemiNight = new THREE.Color('#7d98ff');
+  private hemiDusk = new THREE.Color('#ffd2a8');
+  private groundDay = new THREE.Color('#7da35a');
+  private groundNight = new THREE.Color('#2c3f66');
+  private sunDay = new THREE.Color('#fff3d6');
+  private sunDusk = new THREE.Color('#ff9f5a');
+  private sunDawn = new THREE.Color('#ffc2a0');
+  private moon = new THREE.Color('#a9c0ff');
+  private fireflyCol = new THREE.Color('#e9ff8a');
+  private pollenCol = new THREE.Color('#fffbe6');
   readonly sky = new THREE.Color();
   timeOffset = 0;
 
@@ -55,11 +73,13 @@ export class Environment {
     for (let i = 0; i < n; i++) {
       const m = await assets.mesh(cloudIds[i % 2]);
       m.traverse((o) => { (o as THREE.Mesh).castShadow = false; (o as THREE.Mesh).receiveShadow = false; });
-      const sc = 4 + r() * 4;
+      const sc = 3.5 + r() * 3.5;
       m.scale.setScalar(sc);
-      m.position.set((r() - 0.5) * 130, 14 + r() * 8, (r() - 0.5) * 130);
+      // clouds circle slowly out over the sea, framing the island instead of covering the farm
+      const c = { obj: m, speed: (0.006 + r() * 0.006) * (i % 3 === 0 ? -1 : 1), a: (i / n) * Math.PI * 2 + r() * 0.5, r: HALF + 12 + r() * 22, y: 6 + r() * 6 };
+      m.position.set(Math.cos(c.a) * c.r, c.y, Math.sin(c.a) * c.r);
       this.group.add(m);
-      this.clouds.push({ obj: m, speed: 0.4 + r() * 0.5 });
+      this.clouds.push(c);
     }
     // birds: tiny V shapes, instanced
     const bird = geo().box(0.5, 0.05, 0.16, PAL.white, [-0.22, 0, 0], [0, 0, 0.35]).box(0.5, 0.05, 0.16, PAL.white, [0.22, 0, 0], [0, 0, -0.35]).box(0.16, 0.1, 0.3, PAL.white).build();
@@ -84,6 +104,19 @@ export class Environment {
       this.butterflies.setColorAt(i, new THREE.Color(tints[i % tints.length]));
     }
     this.group.add(this.butterflies);
+    // pollen / fireflies
+    const nm = Math.max(8, Math.round(70 * this.density));
+    const mp = new Float32Array(nm * 3);
+    for (let i = 0; i < nm; i++) {
+      this.moteData.push({ x: (r() - 0.5) * (MAP - 4), z: (r() - 0.5) * (MAP - 4), y: 0.4 + r() * 1.6, phase: r() * 10, speed: 0.3 + r() * 0.5, r: 0.4 + r() * 1.2 });
+    }
+    const mg = new THREE.BufferGeometry();
+    mg.setAttribute('position', new THREE.BufferAttribute(mp, 3));
+    mg.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 1, 0), MAP);
+    this.moteMat = new THREE.PointsMaterial({ map: glowDot(), size: 0.22, sizeAttenuation: true, transparent: true, depthWrite: false, color: this.pollenCol, opacity: 0.5 });
+    this.motes = new THREE.Points(mg, this.moteMat);
+    this.motes.renderOrder = 4;
+    this.group.add(this.motes);
   }
 
   /** Day phase 0..1 from the wall clock, so the cycle continues between sessions. */
@@ -101,23 +134,32 @@ export class Environment {
     else if (p < 0.88) { night = 1; dusk = 0; }
     else { const k = (p - 0.88) / 0.12; night = 1 - k; dusk = Math.sin(k * Math.PI) * 0.6; }
     this.night = night;
-    this.light = 1 - night * 0.25;
-    this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.7).lerp(this.skyDusk, dusk * 0.6);
-    (this.scene.fog as THREE.Fog).color.copy(this.sky);
-    this.hemi.intensity = 1.35 - night * 0.35;
-    this.hemi.color.set('#fffaf0').lerp(new THREE.Color('#9fb4ff'), night * 0.7);
-    this.sun.intensity = 2.1 - night * 1.15;
-    this.sun.color.set('#fff3d6').lerp(new THREE.Color('#ffb877'), dusk * 0.8).lerp(new THREE.Color('#a8bdff'), night * 0.7);
-    // sun direction swings slowly across the sky; shadow camera follows the camera focus
+    this.light = 1 - night * 0.3;
+    const dawn = p >= 0.88 ? dusk : 0;
+    const eve = p < 0.88 ? dusk : 0;
+    this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.8).lerp(this.skyDusk, eve * 0.6).lerp(this.skyDawn, dawn * 0.7);
+    const fog = this.scene.fog as THREE.Fog;
+    fog.color.copy(this.sky);
+    // evening haze: the distance melts into warm peach at dusk and soft blue at night
+    fog.near = 70 - night * 32 - dusk * 18;
+    fog.far = 160 - night * 50 - dusk * 30;
+    // soft moonlit blue at night (still readable), warm peach at golden hour
+    this.hemi.intensity = 1.35 - night * 0.45;
+    this.hemi.color.copy(this.hemiDay).lerp(this.hemiNight, night * 0.9).lerp(this.hemiDusk, dusk * 0.75);
+    this.hemi.groundColor.copy(this.groundDay).lerp(this.groundNight, night * 0.85);
+    this.sun.intensity = 2.1 - night * 1.35 + eve * 0.35;
+    this.sun.color.copy(this.sunDay).lerp(this.sunDusk, eve * 0.9).lerp(this.sunDawn, dawn * 0.7).lerp(this.moon, night * 0.85);
+    // sun swings across the sky and sinks low at golden hour (long cosy shadows); the moon rides high at night
     const ang = -0.6 + p * 1.2;
-    this.sun.position.set(focus.x + Math.cos(ang) * 18 - 6, 30, focus.z + Math.sin(ang) * 10 + 14);
+    this.sun.position.set(focus.x + Math.cos(ang) * 18 - 6, 30 - dusk * 14, focus.z + Math.sin(ang) * 10 + 14);
     this.sun.target.position.set(focus.x, 0, focus.z);
 
     // ---- clouds drift and wrap
     for (const c of this.clouds) {
-      c.obj.position.x += c.speed * dt;
-      if (c.obj.position.x > 75) c.obj.position.x = -75;
+      c.a += c.speed * dt;
+      c.obj.position.set(Math.cos(c.a) * c.r, c.y + Math.sin(t * 0.2 + c.r) * 0.3, Math.sin(c.a) * c.r);
     }
+    this.updateMotes(t, night);
     // ---- birds: flap and glide, wrapping around the island
     if (this.birds) {
       for (let i = 0; i < this.birdData.length; i++) {
@@ -150,4 +192,46 @@ export class Environment {
       this.butterflies.visible = night < 0.5;
     }
   }
+
+  private updateMotes(t: number, night: number): void {
+    if (!this.motes || !this.moteMat) return;
+    const isNight = night > 0.45 ? 1 : 0;
+    if (isNight !== this.moteNight) {
+      // swap look only when crossing the threshold (no per-frame material churn)
+      this.moteNight = isNight;
+      this.moteMat.color.copy(isNight ? this.fireflyCol : this.pollenCol);
+      this.moteMat.blending = isNight ? THREE.AdditiveBlending : THREE.NormalBlending;
+      this.moteMat.size = isNight ? 0.8 : 0.32;
+      this.moteMat.needsUpdate = true;
+    }
+    this.moteMat.opacity = isNight ? Math.min(1, (night - 0.45) * 3) : 0.55 * (1 - night * 2);
+    const arr = (this.motes.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;
+    for (let i = 0; i < this.moteData.length; i++) {
+      const m = this.moteData[i];
+      const a = t * m.speed + m.phase;
+      let y = m.y + Math.sin(a * 1.7) * 0.25;
+      // fireflies blink: park the unlit ones underground for that moment
+      if (isNight && Math.sin(t * (1.3 + m.speed) + m.phase * 3) < -0.35) y = -5;
+      arr[i * 3] = m.x + Math.cos(a) * m.r;
+      arr[i * 3 + 1] = y;
+      arr[i * 3 + 2] = m.z + Math.sin(a * 0.8) * m.r;
+    }
+    this.motes.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+/** Small soft round dot used by the motes (canvas texture, made once). */
+function glowDot(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const g = c.getContext('2d')!;
+  const grd = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.35, 'rgba(255,255,255,0.7)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 32, 32);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }

@@ -111,21 +111,63 @@ export function objectFor(v: Visual): THREE.Group {
   return g;
 }
 
-/** Translucent copy for build-mode ghosts. */
+/**
+ * Copy of a material for build-mode ghosts: nearly solid (so the model reads clearly instead of showing its
+ * insides) with an emissive channel that `tintGhost` pulses green or red.
+ */
 export function ghostMaterial(src: THREE.Material): THREE.Material {
   const m = (src as THREE.MeshLambertMaterial).clone();
   m.transparent = true;
-  m.opacity = 0.85;
-  m.depthWrite = false;
+  m.opacity = 0.9;
+  m.depthWrite = true;
   return m;
+}
+
+const GHOST_OK = new THREE.Color('#3dff6a');
+const GHOST_BAD = new THREE.Color('#ff3a3a');
+/** Pulse the ghost's glow: soft green when it fits, a stronger red blink when it doesn't. Call every frame. */
+export function tintGhost(ghost: THREE.Object3D, valid: boolean, timeMs: number): void {
+  const pulse = 0.5 + 0.5 * Math.sin(timeMs / (valid ? 320 : 140));
+  const k = valid ? 0.05 + 0.07 * pulse : 0.35 + 0.25 * pulse;
+  ghost.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const mat = mesh.material as THREE.MeshLambertMaterial;
+    if (!mat.emissive) return;
+    mat.emissive.copy(valid ? GHOST_OK : GHOST_BAD).multiplyScalar(k);
+    mat.opacity = valid ? 0.9 : 0.75;
+  });
+}
+
+let footGeo: THREE.PlaneGeometry | null = null;
+let footTex: THREE.Texture | null = null;
+/** Rounded tile with a bright rim, white so the material colour tints it. */
+function footTexture(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const rr = (x: number, y: number, w: number, h: number, r: number): void => {
+    g.beginPath();
+    g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  };
+  rr(3, 3, 58, 58, 12);
+  g.fillStyle = 'rgba(255,255,255,0.55)';
+  g.fill();
+  g.lineWidth = 5;
+  g.strokeStyle = 'rgba(255,255,255,1)';
+  g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
 
 /** Ground highlight squares under a footprint. */
 export function footprintMesh(): THREE.Mesh {
-  const g = new THREE.PlaneGeometry(1, 1);
-  g.rotateX(-Math.PI / 2);
-  const mat = new THREE.MeshBasicMaterial({ color: '#4cff6a', transparent: true, opacity: 0.45, depthWrite: false });
-  const mesh = new THREE.Mesh(g, mat);
+  if (!footGeo) { footGeo = new THREE.PlaneGeometry(1, 1); footGeo.rotateX(-Math.PI / 2); }
+  footTex ??= footTexture();
+  const mat = new THREE.MeshBasicMaterial({ color: '#4cff6a', map: footTex, transparent: true, opacity: 0.85, depthWrite: false });
+  const mesh = new THREE.Mesh(footGeo, mat);
   mesh.renderOrder = 2;
   return mesh;
 }

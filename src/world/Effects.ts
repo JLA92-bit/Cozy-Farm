@@ -15,7 +15,10 @@ export class Effects {
   private textures = new Map<string, THREE.Texture>();
   private materials = new Map<string, THREE.SpriteMaterial>();
   private loader = new THREE.TextureLoader();
-  private free: THREE.Sprite[] = [];
+  /** Dead particles keep their sprite + private material for reuse (disposing them made the sprite shader recompile after quiet spells). */
+  private free: Particle[] = [];
+  private rings: THREE.Mesh[] = [];
+  private ringGeo?: THREE.RingGeometry;
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
@@ -39,16 +42,48 @@ export class Effects {
   private spawn(pos: THREE.Vector3, tex: string, color: string, opts: { count: number; speed: number; up: number; size: number; life: number; additive?: boolean; gravity?: number; spread?: number; grow?: number }): void {
     const mat = this.material(tex, color, opts.additive ?? true);
     for (let i = 0; i < opts.count; i++) {
-      const s = this.free.pop() ?? new THREE.Sprite();
-      s.material = mat.clone();
-      s.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * (opts.spread ?? 0.3), Math.random() * 0.2, (Math.random() - 0.5) * (opts.spread ?? 0.3)));
+      let p = this.free.pop();
+      if (p) (p.sprite.material as THREE.SpriteMaterial).copy(mat);
+      else p = { sprite: new THREE.Sprite(mat.clone()), vel: new THREE.Vector3(), life: 0, max: 1, spin: 0, grow: 0, gravity: 0 };
+      const s = p.sprite;
+      const spread = opts.spread ?? 0.3;
+      s.position.set(pos.x + (Math.random() - 0.5) * spread, pos.y + Math.random() * 0.2, pos.z + (Math.random() - 0.5) * spread);
       const a = Math.random() * Math.PI * 2;
       const sp = opts.speed * (0.5 + Math.random() * 0.8);
       s.scale.setScalar(opts.size * (0.7 + Math.random() * 0.6));
       s.renderOrder = 5;
+      (s.material as THREE.SpriteMaterial).opacity = 0;
       this.group.add(s);
-      this.particles.push({ sprite: s, vel: new THREE.Vector3(Math.cos(a) * sp, opts.up * (0.6 + Math.random() * 0.8), Math.sin(a) * sp), life: 0, max: opts.life * (0.7 + Math.random() * 0.6), spin: (Math.random() - 0.5) * 4, grow: opts.grow ?? 0, gravity: opts.gravity ?? 6 });
+      p.vel.set(Math.cos(a) * sp, opts.up * (0.6 + Math.random() * 0.8), Math.sin(a) * sp);
+      p.life = 0; p.max = opts.life * (0.7 + Math.random() * 0.6); p.spin = (Math.random() - 0.5) * 4; p.grow = opts.grow ?? 0; p.gravity = opts.gravity ?? 6;
+      this.particles.push(p);
     }
+  }
+
+  /** Soft shockwave ring that ripples out across the ground (building lands, land bought). */
+  ring(pos: THREE.Vector3, size = 2, color = '#fffbe0'): void {
+    if (!this.ringGeo) { this.ringGeo = new THREE.RingGeometry(0.78, 1, 40); this.ringGeo.rotateX(-Math.PI / 2); }
+    let m = this.rings.pop();
+    if (!m) {
+      m = new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }));
+      m.renderOrder = 3;
+    }
+    const mesh = m;
+    const mat = mesh.material as THREE.MeshBasicMaterial;
+    mat.color.set(color);
+    mat.opacity = 0.85;
+    mesh.position.set(pos.x, 0.04, pos.z);
+    mesh.scale.setScalar(size * 0.35);
+    this.group.add(mesh);
+    gsap.to(mesh.scale, { x: size, y: size, z: size, duration: 0.55, ease: 'power2.out' });
+    gsap.to(mat, { opacity: 0, duration: 0.55, ease: 'power1.in', onComplete: () => { this.group.remove(mesh); this.rings.push(mesh); } });
+  }
+
+  /** Building lands: dust puff, ground ring and a few leaves kicked up. */
+  landing(pos: THREE.Vector3, size = 1): void {
+    this.dust(pos, 10 + Math.round(size * 2), size * 0.8);
+    this.ring(pos, 0.9 + size * 0.75);
+    this.leaves(pos, '#8fd860', 4 + Math.round(size));
   }
 
   sparkle(pos: THREE.Vector3, color = '#fff6a0', count = 10): void {
@@ -105,8 +140,7 @@ export class Effects {
       const k = p.life / p.max;
       if (k >= 1) {
         this.group.remove(p.sprite);
-        (p.sprite.material as THREE.SpriteMaterial).dispose();
-        this.free.push(p.sprite);
+        this.free.push(p);
         this.particles.splice(i, 1);
         continue;
       }
