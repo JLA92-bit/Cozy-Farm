@@ -38,6 +38,10 @@ export class FarmScene implements InputHandler {
   private fpsAcc = 0;
   private fpsFrames = 0;
   now: () => number = () => Date.now();
+  /** Canvas rect cached on resize: reading it every frame forces a layout per projected bubble. */
+  private rect = { left: 0, top: 0, width: 1, height: 1 };
+  private projTmp = new THREE.Vector3();
+  private resizeTimer = 0;
 
   constructor(readonly canvas: HTMLCanvasElement, readonly renderer: Renderer) {
     this.rig = new CameraRig(window.innerWidth / window.innerHeight);
@@ -50,15 +54,30 @@ export class FarmScene implements InputHandler {
     this.loop.maxFps = renderer.profile.maxFps >= 60 ? 0 : renderer.profile.maxFps;
     window.addEventListener('resize', () => this.resize());
     window.visualViewport?.addEventListener('resize', () => this.resize());
+    // some mobile browsers report the old size during orientationchange; settle again shortly after
+    const settle = () => { clearTimeout(this.resizeTimer); this.resize(); this.resizeTimer = window.setTimeout(() => this.resize(), 350); };
+    window.addEventListener('orientationchange', settle);
+    screen.orientation?.addEventListener?.('change', settle);
     this.resize();
+  }
+
+  private lastW = 0;
+  private lastH = 0;
+  private updateRect(): void {
+    const r = this.canvas.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) this.rect = { left: r.left, top: r.top, width: r.width, height: r.height };
+    else this.rect = { left: 0, top: 0, width: Math.max(1, window.innerWidth), height: Math.max(1, window.innerHeight) };
   }
 
   onFrame(fn: (dt: number, t: number) => void): void { this.frameHooks.push(fn); }
   onTick(fn: (now: number) => void): void { this.tickHooks.push(fn); }
 
   resize(): void {
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    if (w === this.lastW && h === this.lastH && this.rect.width > 1) { this.updateRect(); return; }
+    this.lastW = w; this.lastH = h;
     this.renderer.resize(w, h);
+    this.updateRect();
     this.rig.setAspect(w / h);
     this.loop.wake(0.5);
   }
@@ -87,7 +106,7 @@ export class FarmScene implements InputHandler {
 
   // ------------------------------------------------------------ picking helpers
   ray(p: Pointer): THREE.Ray {
-    const r = this.canvas.getBoundingClientRect();
+    const r = this.rect;
     this.ndc.set((p.x / r.width) * 2 - 1, -(p.y / r.height) * 2 + 1);
     this.raycaster.setFromCamera(this.ndc, this.rig.camera);
     return this.raycaster.ray;
@@ -101,8 +120,8 @@ export class FarmScene implements InputHandler {
   }
   /** World position -> CSS pixel position. */
   project(v: THREE.Vector3, out = new THREE.Vector2()): THREE.Vector2 {
-    const p = v.clone().project(this.rig.camera);
-    const r = this.canvas.getBoundingClientRect();
+    const p = this.projTmp.copy(v).project(this.rig.camera);
+    const r = this.rect;
     return out.set((p.x + 1) / 2 * r.width, (1 - p.y) / 2 * r.height);
   }
 
