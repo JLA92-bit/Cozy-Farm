@@ -209,7 +209,7 @@ export class Interaction implements WorldHandler {
     const pan = audio.panFor(this.lastPointer.x);
     audio.playCombo(combo % 2 ? 'harvest2' : 'harvest', combo, pan);
     haptics.play('light');
-    if (combo >= 1) ui.feedback.combo(this.lastPointer.x, this.lastPointer.y, combo + 1);
+    if (combo >= 2) ui.feedback.combo(this.lastPointer.x, this.lastPointer.y, combo + 1);
     // every 5 in a chain earns a little sparkle chime
     if (combo >= 4 && (combo + 1) % 5 === 0) {
       audio.play('sparkle', { rate: 1 + Math.min(0.3, combo * 0.015), pan });

@@ -67,6 +67,13 @@ class UIManager {
       if (this.effects.active) scene.loop.wake(0.2);
     });
     scene.onTick((now) => { for (const fn of this.tickHooks) fn(now); });
+    // evening playlist after dusk, day playlist after dawn (with hysteresis so it never flip-flops)
+    let evening = false;
+    scene.onTick(() => {
+      const n = scene.env.night;
+      if (!evening && n > 0.6) audio.setEvening(evening = true);
+      else if (evening && n < 0.3) audio.setEvening(evening = false);
+    });
     this.wirePressFeel(root);
     this.wireJuice();
     this.open = this.open.bind(this);

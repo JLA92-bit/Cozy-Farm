@@ -52,7 +52,12 @@ export class CameraRig {
 
   /** Inertial pan velocity in world units/s, set on drag release. */
   fling(vx: number, vz: number): void { this.velocity.set(vx, vz); }
-  stop(): void { this.velocity.set(0, 0); }
+  /** Finger down: stop inertia and any camera glide so the farm never fights the player. */
+  stop(): void {
+    this.velocity.set(0, 0);
+    gsap.killTweensOf(this.target);
+    gsap.killTweensOf(this, 'distance');
+  }
 
   /**
    * Pinch/wheel zoom. Past the limits the zoom gets stiff (rubber band) and springs back in
@@ -66,8 +71,8 @@ export class CameraRig {
   }
 
   focus(x: number, z: number, distance?: number, duration = 0.6): void {
-    gsap.to(this.target, { x, z, duration, ease: 'power2.out', onUpdate: () => this.clamp() });
-    if (distance !== undefined) gsap.to(this, { distance: THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance), duration, ease: 'power2.out' });
+    gsap.to(this.target, { x, z, duration, ease: 'power2.inOut', overwrite: 'auto', onUpdate: () => this.clamp() });
+    if (distance !== undefined) gsap.to(this, { distance: THREE.MathUtils.clamp(distance, this.minDistance, this.maxDistance), duration, ease: 'power2.inOut', overwrite: 'auto' });
   }
 
   /** Smooth, decaying wobble. A stronger shake is never cut short by a weaker one. */
