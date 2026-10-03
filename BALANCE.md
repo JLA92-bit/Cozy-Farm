@@ -62,15 +62,19 @@ Every level also adds land expansions every ~1.4 levels, order-board slots (3 to
 
 - **Crops** sell for about 3 x seed cost, yield 2 per field. Longer crops are worth more per harvest but slightly
   less per minute, so short crops reward active play and long crops reward check-ins.
-- **Processed goods** sell for about 1.5 x their ingredients, so production chains are the main money maker
-  mid-game.
+- **Processed goods** sell for about 1.4-1.5 x their ingredients, so production chains are the main money maker
+  mid-game. Bread (3 wheat -> 28 coins) is a deliberately generous first recipe to hook players on the Bakery.
+  Feed sells for less (1.25-1.8 x) because it is mostly eaten, not sold.
 - **Orders** pay 1.8 x item value (+ up to 25% from Charm) and are generated only from items you can currently
-  make. The first order is always 2 wheat (tutorial).
-- **Truck:** 3-6 crates, 1.8 x value per crate, plus a 50% bonus and a rare crate for filling all of them.
+  make (the whole chain: a finished building and ingredients you can get). New orders prefer goods the board does
+  not already ask for. The first order is always 2 wheat (tutorial).
+- **Truck:** 3-6 crates (different goods in each while possible), 1.8 x value per crate, plus a 50% bonus and a rare crate for filling all of them.
   6 h window, 30 min cooldown.
 - **Stall:** you set the price (0.5x-1.6x value). Cheaper listings sell sooner (20 s - 4 min).
-- **Merchant:** visits 2 h out of every 4 h from level 6 with discounted decor, crate-only cosmetics, bulk goods
-  and gems for coins.
+- **Merchant:** visits 2 h out of every 4 h from level 6 with decor at 30% off, crate-only cosmetics, bulk goods
+  and gems for coins. Bulk goods cost 1.1 x value (`bulkPriceMult`) so they cannot be flipped at the barn; they
+  save time on orders, which pay 1.8 x.
+- **Production queue:** a job that has not started yet can be cancelled for a full ingredient refund.
 - **Fields** cost 10 coins + 8 per field beyond the 6 you start with. Animals get 25% pricier per animal owned.
 - **Gems** are only earned (levels, awards, daily calendar, rocks, some orders, crates, merchant). Finishing a
   timer costs 0.2 gems per minute left (minimum 1).
