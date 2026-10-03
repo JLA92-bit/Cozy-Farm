@@ -1,8 +1,9 @@
 # Cozy Acres - brand pack and websites
 
 Made in Claude Design, reviewed and saved here. Status:
-- Done: domains updated to cozyacres.joshmakesgames92.com (game site) and joshmakesgames92.com (studio);
-  the game's own PWA icons and favicon now use these designs (public/icons, public/favicon.svg).
+- Done: the game's own PWA icons and favicon now use these designs (public/icons, public/favicon.svg).
+  Contact email everywhere: joshmakesgames92@gmail.com. No domain is owned yet: site addresses are the
+  placeholders [game-site-url] and [studio-site-url] (build.py SITE settings for the game site).
 - Open: studio wordmark reads "Josh Makes Games" (no 92); placeholders below (screenshots, official Play
   badge, Play package id, privacy policy brackets, support FAQ answers, changelog date); the delete-data
   form needs a real endpoint (Supabase); top-farmers strip still uses sample data; privacy policy must
@@ -19,7 +20,7 @@ Made in Claude Design, reviewed and saved here. Status:
 - illustrations/features/ - 6 feature spots (512 transparent PNG + SVG)
 - illustrations/404-lost-chicken (800 transparent PNG + SVG)
 
-## cozy-acres-website (cozyacres.joshmakesgames92.com)
+## cozy-acres-website
 - public/ is ready to upload as static files. Your game itself lives at /play/ (not included).
 - To change shared parts, edit src/ and run `python3 build.py` (no dependencies). Components:
   src/partials/header.html, footer.html, nav-links.html and src/components/button, feature-card, update-card, leaderboard-row.
@@ -29,16 +30,16 @@ Made in Claude Design, reviewed and saved here. Status:
 - Delete my data: the form POSTs {"code":"..."} to /api/delete-data. Reply 200 for success, 404 for unknown code, 429 for too many tries.
 
 ### Fill these in before going live
-- SITE settings at the top of build.py: support email, Google Play URL (package id), delete endpoint, studio URL.
+- SITE settings at the top of build.py: site URL, Google Play URL (package id), delete endpoint, studio URL.
 - assets/img/google-play-badge.png is a placeholder. Download the official badge from Google's badge page and drop it in with the same name.
 - assets/img/screenshots/screenshot-1..5.png are placeholders (1080x1920 portrait) and their alt text is in index.html.
 - Privacy policy: replace every [bracketed] item, and check it matches what your game and server actually do. It is a starting draft, not legal advice.
 - Support FAQ: two answers are marked [Answer: ...].
 - changelog.json: the 1.2.0 date (2026-10-01) is a guess, set the real one.
 
-## studio (joshmakesgames92.com)
+## studio
 - brand/ - studio logo (full colour, on light, on dark, square, square on dark: SVG + 2000px PNG), favicons, 1200x630 OG image, coming-soon cover.
-- website/ - single static page. Replace [studio-email] and the Google Play package id.
+- website/ - single static page. Replace [game-site-url] and the Google Play package id.
 
 ## art-source
 Python + Playwright generators for every graphic (python3 build_graphics.py, then outputs land in out/).

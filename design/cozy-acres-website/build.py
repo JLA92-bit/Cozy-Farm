@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tiny static-site builder for cozyacres.joshmakesgames92.com (no dependencies).
+"""Tiny static-site builder for the Cozy Acres website (no dependencies).
 
   python3 build.py            -> writes ./public
 
@@ -18,10 +18,11 @@ SRC = os.path.join(ROOT, "src")
 OUT = os.path.join(ROOT, "public")
 
 SITE = {
-    "support_email": "support@joshmakesgames92.com",          # confirm this mailbox exists
+    "site_url": "[game-site-url]",                    # full address of this website, no trailing slash; set once you have one
+    "support_email": "joshmakesgames92@gmail.com",
     "play_url": "https://play.google.com/store/apps/details?id=YOUR.PACKAGE.ID",
     "delete_endpoint": "/api/delete-data",            # POST {"code": "..."} -> 200 / 404 / 429
-    "studio_url": "https://joshmakesgames92.com/",
+    "studio_url": "[studio-site-url]",                 # studio homepage address; set once you have one
     "head_extra": "",
 }
 
@@ -105,6 +106,12 @@ def main():
         shutil.rmtree(OUT)
     shutil.copytree(os.path.join(SRC, "assets"), os.path.join(OUT, "assets"))
     shutil.copytree(os.path.join(SRC, "static"), OUT, dirs_exist_ok=True)
+    for name in ("sitemap.xml", "robots.txt"):  # static files that mention the site address
+        path = os.path.join(OUT, name)
+        with open(path, encoding="utf-8") as f:
+            txt = f.read().replace("{{site_url}}", SITE["site_url"])
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(txt)
     for name in ("changelog.json", "leaderboard.json"):
         shutil.copy(os.path.join(SRC, "data", name), os.path.join(OUT, name))
     for fn in sorted(os.listdir(os.path.join(SRC, "pages"))):

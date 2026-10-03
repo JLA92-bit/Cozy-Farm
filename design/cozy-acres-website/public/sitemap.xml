@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://cozyacres.joshmakesgames92.com/</loc></url>
-  <url><loc>https://cozyacres.joshmakesgames92.com/play/</loc></url>
-  <url><loc>https://cozyacres.joshmakesgames92.com/support/</loc></url>
-  <url><loc>https://cozyacres.joshmakesgames92.com/privacy/</loc></url>
-  <url><loc>https://cozyacres.joshmakesgames92.com/delete-my-data/</loc></url>
-  <url><loc>https://cozyacres.joshmakesgames92.com/credits/</loc></url>
+  <url><loc>[game-site-url]/</loc></url>
+  <url><loc>[game-site-url]/play/</loc></url>
+  <url><loc>[game-site-url]/support/</loc></url>
+  <url><loc>[game-site-url]/privacy/</loc></url>
+  <url><loc>[game-site-url]/delete-my-data/</loc></url>
+  <url><loc>[game-site-url]/credits/</loc></url>
 </urlset>
