@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import { h, icon, fmt, button } from './dom';
 import { game } from '../systems/Game';
 import { MAX_LEVEL } from '../data';
+import { buildings } from '../systems/Buildings';
 
 export interface HudActions {
   open(panel: string): void;
@@ -16,6 +17,7 @@ export class HUD {
   readonly xpFill: HTMLElement;
   readonly xpText: HTMLElement;
   readonly nameEl: HTMLElement;
+  readonly charmEl: HTMLElement;
   readonly coinsEl: HTMLElement;
   readonly gemsEl: HTMLElement;
   readonly coinsVal: HTMLElement;
@@ -33,8 +35,9 @@ export class HUD {
     const badge = h('div', { class: 'level-badge', onclick: () => actions.levelBadgeTap() }, this.levelEl);
     this.xpFill = h('div', { class: 'xp-fill' });
     this.xpText = h('div', { class: 'xp-text outlined' }, '0/0');
-    this.nameEl = h('div', { class: 'player-name outlined' }, 'Farmer');
-    const xp = h('div', { class: 'xp-wrap' }, this.nameEl, h('div', { class: 'xp-bar' }, this.xpFill, this.xpText));
+    this.nameEl = h('span', null, 'Farmer');
+    this.charmEl = h('span', { class: 'charm-pill', onclick: (e: MouseEvent) => { e.stopPropagation(); actions.open('__charm'); } }, icon('sparkle_heart'), h('span', null, '0'));
+    const xp = h('div', { class: 'xp-wrap' }, h('div', { class: 'player-name outlined' }, this.nameEl, this.charmEl), h('div', { class: 'xp-bar' }, this.xpFill, this.xpText));
     this.coinsVal = h('span', { class: 'outlined' }, '0');
     this.gemsVal = h('span', { class: 'outlined' }, '0');
     this.coinsEl = h('div', { class: 'currency', onclick: () => actions.open('inventory') }, icon('coin'), this.coinsVal);
@@ -72,6 +75,7 @@ export class HUD {
     const p = game.state.player;
     this.levelEl.textContent = String(p.level);
     this.nameEl.textContent = p.name;
+    (this.charmEl.lastChild as HTMLElement).textContent = String(buildings.charm());
     const need = game.xpToNext();
     const pct = p.level >= MAX_LEVEL ? 100 : Math.min(100, (p.xp / Math.max(1, need)) * 100);
     this.xpFill.style.width = `${pct}%`;

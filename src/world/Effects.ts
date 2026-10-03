@@ -66,6 +66,10 @@ export class Effects {
   hearts(pos: THREE.Vector3): void {
     this.spawn(pos, 'light_01', '#ff7fb0', { count: 6, speed: 0.6, up: 1.6, size: 0.4, life: 1.1, gravity: -0.3 });
   }
+  /** Slowly drifting seasonal particles (leaves, snow, petals). */
+  drift(pos: THREE.Vector3, color: string, tex = 'circle_05', count = 3): void {
+    this.spawn(pos, tex, color, { count, speed: 0.6, up: -0.4, size: 0.28, life: 5, additive: false, gravity: 0.05, spread: 18 });
+  }
   levelUp(pos: THREE.Vector3): void {
     this.spawn(pos, 'star_04', '#ffe066', { count: 30, speed: 4, up: 5, size: 0.7, life: 1.3, gravity: 5 });
     this.spawn(pos, 'magic_04', '#aef6ff', { count: 14, speed: 2.5, up: 3, size: 0.9, life: 1.2, gravity: 2 });

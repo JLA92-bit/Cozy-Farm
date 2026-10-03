@@ -26,6 +26,8 @@ import { showLevelUp, openDaily, openUnlockTree } from '../ui/panels/Progression
 import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
 import { Panel } from '../ui/Panel';
+import { Villagers } from '../world/Villagers';
+import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 
 function setProgress(f: number, text?: string): void {
@@ -93,6 +95,7 @@ export async function boot(): Promise<void> {
   syncCosmeticDiscovery(cosmeticUnlocked);
   wireProgression();
   game.bus.on('levelup', () => orders.refresh());
+  new Villagers(scene);
   const visitors = new Visitors(scene, merchantSpot);
   void visitors.sync();
   ui.extraPick = (ray) => (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present ? () => ui.open('merchant') : null);
@@ -145,6 +148,23 @@ function wireProgression(): void {
     clearTimeout(tapTimer);
     if (taps >= 5) { taps = 0; Panel.closeAll(); openDebug(); return; }
     tapTimer = window.setTimeout(() => { if (taps === 1 && !Panel.isOpen) openUnlockTree(); taps = 0; }, 450);
+  });
+  // seasonal ambience
+  const SEASON: Record<string, string[]> = { harvest_festival: ['#e8833a', '#d9473a', '#f2b33a'], winter_wonderland: ['#ffffff'], spring_blossom: ['#ffb3cf', '#ffd6e6'] };
+  let driftT = 0;
+  scene.onFrame((dt) => {
+    const cols = events.current ? SEASON[events.current.id] : undefined;
+    if (!cols || scene.renderer.profile.ambientLife < 0.5) return;
+    driftT -= dt;
+    if (driftT > 0) return;
+    driftT = 0.9;
+    const t = scene.rig.target;
+    ui.effects.drift(t.clone().set(t.x + (Math.random() - 0.5) * 10, 9, t.z + (Math.random() - 0.5) * 10), cols[Math.floor(Math.random() * cols.length)], events.current!.id === 'winter_wonderland' ? 'light_01' : 'circle_05', 2);
+  });
+  ui.register('__charm', () => {
+    const b = buildings.bonuses();
+    const c = ECONOMY.charm;
+    ui.feedback.toast(`Charm ${buildings.charm()}`, `+${Math.round(b.growth * 100)}% crop speed, +${Math.round(b.orderCoins * 100)}% order coins, ${b.villagers} visitors. Every ${c.step} charm adds more!`, 'sparkle_heart');
   });
   sideEntries.push(() => (daily.check() ? { id: 'daily', icon: 'calendar', label: 'Daily', color: 'yellow', badge: true } : null));
   sideEntries.push(() => (game.state.crates.length ? { id: 'crates', icon: 'gift', label: `Crates`, color: 'purple', badge: true } : null));

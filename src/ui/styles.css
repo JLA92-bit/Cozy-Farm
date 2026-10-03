@@ -453,3 +453,6 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .tab { min-height: 40px; }
   .panel-footer { padding: 6px 10px 10px; }
 }
+.player-name { display: flex; align-items: center; gap: 6px; }
+.charm-pill { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px 0 2px; border-radius: 10px; background: rgba(255,143,180,.85); border: 2px solid var(--outline); font-size: 12px; pointer-events: auto; cursor: pointer; }
+.charm-pill .icon { width: 16px; height: 16px; }
