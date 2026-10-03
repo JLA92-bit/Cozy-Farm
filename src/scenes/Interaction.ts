@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import type { Pointer, DragKind } from '../core/Input';
-import { BUILDING, CROP } from '../data';
+import { BUILDING, CROP, TREE } from '../data';
 import { buildings, isStorable } from '../systems/Buildings';
 import { farming } from '../systems/Farming';
 import { game } from '../systems/Game';
@@ -19,7 +19,7 @@ type PlaceMode = {
 };
 type Mode = { kind: 'idle' } | { kind: 'edit' } | PlaceMode | { kind: 'plant'; crop: string | null };
 
-type Swipe = { kind: 'harvest' | 'plant'; crop?: string; count: number; visited: Set<number> };
+type Swipe = { kind: 'harvest' | 'plant'; crop?: string; count: number; visited: Set<number>; stopped?: boolean };
 
 export class Interaction implements WorldHandler {
   mode: Mode = { kind: 'idle' };
@@ -27,6 +27,10 @@ export class Interaction implements WorldHandler {
   private dragGhost = false;
   private edgePan = new THREE.Vector2();
   private lastPointer: Pointer = { x: 0, y: 0 };
+  /** the seed picked last time, so the tray reopens on it */
+  private lastCrop: string | null = null;
+  /** countdown to the next twinkle over a ripe field */
+  private glintT = 1;
 
   constructor(private scene: FarmScene) {
     scene.onFrame((dt) => this.frame(dt));
@@ -55,6 +59,7 @@ export class Interaction implements WorldHandler {
 
   tap(p: Pointer): void {
     const m = this.mode;
+    this.lastPointer = p;
     if (m.kind === 'place') {
       // tapping elsewhere moves the ghost there
       const t = this.scene.tileAt(p);
@@ -71,7 +76,7 @@ export class Interaction implements WorldHandler {
       return;
     }
     if (m.kind === 'plant') {
-      if (b?.type === 'plot' && !b.plot && m.crop) { this.plantOne(b, m.crop, 0); return; }
+      if (b?.type === 'plot' && !b.plot && m.crop) { if (this.plantOne(b, m.crop, 0)) this.maybeAllPlanted(); return; }
       if (b?.type === 'plot' && !b.plot) return;
       this.exitPlant();
       if (!b) return;
@@ -154,10 +159,15 @@ export class Interaction implements WorldHandler {
   beginSeedDrag(crop: string): void {
     if (this.mode.kind !== 'plant') this.enterPlant(crop);
     else this.mode.crop = crop;
+    this.lastCrop = crop;
     this.swipe = { kind: 'plant', crop, count: 0, visited: new Set() };
   }
   seedDragMove(p: Pointer): void { if (this.swipe?.kind === 'plant') this.toolDrag(p); }
-  seedDragEnd(): void { this.swipe = null; }
+  seedDragEnd(): void {
+    const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
+    this.swipe = null;
+    if (planted) this.maybeAllPlanted();
+  }
 
   toolDrag(p: Pointer): void {
     this.lastPointer = p;
@@ -179,10 +189,10 @@ export class Interaction implements WorldHandler {
         this.swipe.visited.add(b.uid);
         this.harvestOne(b, this.swipe.count++);
       }
-    } else if (this.swipe.kind === 'plant' && b.type === 'plot' && !b.plot && this.swipe.crop) {
+    } else if (this.swipe.kind === 'plant' && b.type === 'plot' && !b.plot && this.swipe.crop && !this.swipe.stopped) {
       this.swipe.visited.add(b.uid);
       if (this.plantOne(b, this.swipe.crop, this.swipe.count)) this.swipe.count++;
-      else this.swipe.visited.add(-1);
+      else this.swipe.stopped = true; // one friendly message per swipe, not one per field
     }
   }
 
@@ -191,53 +201,98 @@ export class Interaction implements WorldHandler {
     this.dragGhost = false;
     if (this.swipe?.kind === 'harvest' && this.swipe.count > 0) {
       game.setGauge('swipe_best', this.swipe.count);
-      if (this.swipe.count >= 6) this.scene.rig.shake(0.12, 0.25);
+      if (this.swipe.count >= 6) {
+        this.scene.rig.shake(0.12, 0.25);
+        const p = this.lastPointer;
+        ui.feedback.floatText(p.x, p.y - 90, this.swipe.count >= 12 ? 'Amazing harvest!' : 'Great swipe!', undefined, '#ffe066', 0.1);
+        haptics.buzz([10, 30, 14]);
+      }
     }
+    const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
     this.swipe = null;
+    if (planted) this.maybeAllPlanted();
   }
 
   // ------------------------------------------------------------------ farming actions
   private harvestOne(b: PlacedBuilding, combo: number): void {
     const at = this.anchorOf(b);
     const crop = b.plot?.crop;
+    const tree = BUILDING[b.type].tree;
     const n = b.plot ? farming.harvest(b, at) : farming.harvestTree(b, at);
     if (!n) return;
     if (this.scene.env.night > 0.6) game.incStat('night_harvests');
     audio.playCombo(combo % 2 ? 'harvest2' : 'harvest', combo);
-    haptics.buzz(10);
+    haptics.buzz(combo >= 4 ? 14 : 10);
     const fx = ui.effects;
     const ground = at.clone().setY(0.4);
     if (crop) {
       const c = CROP[crop];
       void fx.pop(ground, c.ready.produce ?? c.ready.model, 0.45);
-      fx.leaves(ground, crop === 'wheat' ? '#ffd25a' : '#8fdc5f', 6);
-    } else fx.leaves(ground, '#8fdc5f', 8);
+      fx.leaves(ground, c.ready.tint ?? '#8fdc5f', 6);
+    } else {
+      // a couple of fruits hop off the branches
+      const fruit = tree ? TREE[tree]?.fruit : undefined;
+      if (fruit) {
+        void fx.pop(at.clone().setY(at.y * 0.7), fruit, 0.3);
+        void fx.pop(at.clone().setY(at.y * 0.6).setX(at.x + 0.2), fruit, 0.3);
+      }
+      fx.leaves(ground.setY(at.y * 0.7), '#8fdc5f', 8);
+      const view = this.scene.farm.views.get(b.uid);
+      if (view && combo > 0) this.scene.farm.bounce(view);
+    }
     fx.sparkle(ground, '#fff6a0', 4);
+    // combo counter that follows the finger during a swipe
+    if (combo >= 2) {
+      const p = this.lastPointer;
+      ui.feedback.floatText(p.x + 30, p.y - 70, `x${combo + 1}`, undefined, combo >= 7 ? '#ff9f43' : '#ffe066');
+    }
     game.bus.emit('tutorial', { signal: 'harvested' });
   }
 
   private plantOne(b: PlacedBuilding, crop: string, combo: number): boolean {
     const check = farming.canPlant(b, crop);
     if (!check.ok) {
-      if (check.reason) { ui.feedback.toast(check.reason, undefined, 'cross'); audio.play('error'); }
+      if (check.reason === 'Not enough coins') { ui.feedback.toast(`Need ${CROP[crop].seedCost} coins for ${CROP[crop].name}`, 'Sell some goods to earn more', 'coin'); audio.play('error'); }
+      else if (check.reason) { ui.feedback.toast(check.reason, undefined, 'cross'); audio.play('error'); }
       return false;
     }
     farming.plant(b, crop);
+    this.lastCrop = crop;
     audio.playCombo(combo % 2 ? 'plant2' : 'plant', combo);
     haptics.buzz(6);
     ui.effects.dust(this.anchorOf(b).setY(0.2), 3, 1.2);
     return true;
   }
 
+  /** Once every field is sown, tidy the seed tray away with a little cheer. */
+  private maybeAllPlanted(): void {
+    if (this.mode.kind !== 'plant') return;
+    const now = game.now();
+    let fields = 0;
+    for (const b of game.state.buildings) {
+      if (b.type !== 'plot' || !isBuilt(b, now)) continue;
+      if (!b.plot) return;
+      fields++;
+    }
+    if (fields < 2) return;
+    const p = this.lastPointer;
+    ui.feedback.floatText(p.x, p.y - 80, 'All planted!', undefined, '#bff27a', 0.1);
+    window.setTimeout(() => this.exitPlant(), 350);
+  }
+
   enterPlant(crop: string | null): void {
     this.cancelPlacement();
-    this.mode = { kind: 'plant', crop: crop ?? (CROP.wheat ? 'wheat' : null) };
-    ui.openSeedTray(this.mode.crop, (c) => { if (this.mode.kind === 'plant') this.mode.crop = c; }, () => this.exitPlant());
+    // reopen on the last seed used (if it is still plantable), so replanting is one swipe
+    const last = this.lastCrop && CROP[this.lastCrop] && CROP[this.lastCrop].level <= game.level ? this.lastCrop : null;
+    this.mode = { kind: 'plant', crop: crop ?? last ?? (CROP.wheat ? 'wheat' : null) };
+    this.scene.farm.hints.visible = true;
+    ui.openSeedTray(this.mode.crop, (c) => { if (this.mode.kind === 'plant') this.mode.crop = c; this.lastCrop = c; }, () => this.exitPlant());
     game.bus.emit('tutorial', { signal: 'tray_open' });
   }
   exitPlant(): void {
     if (this.mode.kind !== 'plant') return;
     this.mode = { kind: 'idle' };
+    this.scene.farm.hints.visible = false;
     ui.closeSeedTray();
   }
 
@@ -454,7 +509,29 @@ export class Interaction implements WorldHandler {
     this.edgePan.set(0, 0);
   }
 
+  /** Now and then a ripe field or fruit tree twinkles, so ready crops catch the eye. */
+  private glint(dt: number): void {
+    this.glintT -= dt;
+    if (this.glintT > 0) return;
+    this.glintT = 0.6 + Math.random() * 0.7;
+    if (this.mode.kind === 'place') return;
+    const now = game.now();
+    let pick: PlacedBuilding | null = null, seen = 0;
+    for (const b of game.state.buildings) {
+      if (!((b.plot && plotReady(b, now)) || (BUILDING[b.type].tree && treeReady(b, now)))) continue;
+      if (Math.random() * ++seen < 1) pick = b; // reservoir pick: uniform without an array
+    }
+    if (!pick) return;
+    const at = this.anchorOf(pick);
+    const tree = !pick.plot;
+    at.x += (Math.random() - 0.5) * 0.9;
+    at.z += (Math.random() - 0.5) * 0.9;
+    at.y = tree ? at.y * (0.55 + Math.random() * 0.3) : 0.35 + Math.random() * 0.25;
+    ui.effects.twinkle(at);
+  }
+
   private frame(dt: number): void {
+    this.glint(dt);
     const m = this.placing;
     if (m && this.edgePan.lengthSq() > 0) {
       this.scene.rig.panPixels(-this.edgePan.x * 320 * dt, -this.edgePan.y * 320 * dt, window.innerHeight);

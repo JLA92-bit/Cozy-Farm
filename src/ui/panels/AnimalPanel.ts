@@ -9,6 +9,7 @@ import { audio, haptics } from '../../systems/Audio';
 import { animalReadyAt, animalState, formatTime, isBuilt } from '../../systems/Timers';
 import type { PlacedBuilding } from '../../systems/State';
 import { sourceText } from './InventoryPanel';
+import { productModel } from '../../world/FarmView';
 
 export function openAnimalHome(b: PlacedBuilding): void {
   const def = BUILDING[b.type];
@@ -24,11 +25,21 @@ export function openAnimalHome(b: PlacedBuilding): void {
       h('div', null, h('b', null, `${list.length}/${cap} ${a.name}s`), h('div', { class: 'muted' }, `Eat ${ITEMS[a.feed].name}, give ${ITEMS[a.product].name} every ${formatTime(a.produceSec * 1000)}`)),
       h('span', { class: 'pill' }, itemIcon(a.feed), `${game.count(a.feed)}`)));
     const grid = h('div', { class: 'grid tight' });
+    const hasFeed = game.count(a.feed) > 0;
     list.forEach((_, i) => {
       const st = animalState(b, i, now);
-      const label = st === 'hungry' ? 'Hungry' : st === 'ready' ? 'Ready!' : formatTime(animalReadyAt(b, i) - now);
-      grid.append(h('div', { class: `card ${st === 'ready' ? 'done' : ''}` }, icon(`model:${a.model}`, 'card-icon'), h('div', { class: 'card-sub live' }, label),
-        st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null));
+      // tapping a card does the obvious thing for that animal's home
+      const onclick = st === 'ready' ? () => { collect(b); render(); } : st === 'hungry' && hasFeed ? () => { feed(b); render(); } : undefined;
+      let status: HTMLElement;
+      if (st === 'producing') {
+        const left = animalReadyAt(b, i) - now;
+        const pct = Math.round(100 * (1 - left / (a.produceSec * 1000)));
+        status = h('div', { class: 'progress animal-progress' }, h('div', { class: 'fill', style: `width:${Math.max(4, Math.min(100, pct))}%` }), h('div', { class: 'label' }, formatTime(left)));
+      } else status = h('div', { class: `card-sub ${st === 'hungry' ? 'animal-hungry' : 'animal-ready'}` }, st === 'hungry' ? 'Hungry' : 'Ready!');
+      const badge = st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null;
+      if (badge) badge.classList.add('animal-badge');
+      if (badge && st === 'hungry' && !hasFeed) badge.classList.add('dim');
+      grid.append(h('div', { class: `card animal-card ${st === 'ready' ? 'done' : ''} ${onclick ? 'clickable' : ''}`, onclick }, icon(`model:${a.model}`, 'card-icon'), status, badge));
     });
     for (let i = list.length; i < cap; i++) {
       grid.append(h('div', { class: 'card clickable', style: 'opacity:.8', onclick: () => buy() }, h('div', { class: 'card-title', style: 'font-size:30px;margin:8px' }, '+'), h('div', { class: 'card-sub' }, 'Buy'), h('div', { class: 'pill' }, priceTag(animals.price(a.id)))));
@@ -61,6 +72,14 @@ function feed(b: PlacedBuilding): number {
     ui.effects.hearts(at);
     ui.effects.leaves(at.clone().setY(0.4), '#f0c75a', 8);
     haptics.buzz(8);
+    // show what the meal cost, right over the home
+    const a = ANIMAL[BUILDING[b.type].animal!];
+    const s = ui.screen(at);
+    ui.feedback.floatText(s.x + 36, s.y - 6, `-${n}`, undefined, '#ffd9a0');
+    (ui.feedback.floatLayer.lastElementChild as HTMLElement | null)?.prepend(itemIcon(a.feed));
+    if (animals.counts(b).hungry && game.count(a.feed) === 0) {
+      ui.feedback.toast(`Out of ${ITEMS[a.feed].name}`, `${animals.counts(b).hungry} still hungry. ${sourceText(a.feed)}`, 'cross');
+    }
   } else {
     const a = ANIMAL[BUILDING[b.type].animal!];
     ui.feedback.toast(`No ${ITEMS[a.feed].name}`, sourceText(a.feed), 'cross');
@@ -74,17 +93,11 @@ function collect(b: PlacedBuilding): number {
   const n = animals.collectAll(b, { x: at.x, y: at.y, z: at.z });
   if (n) {
     ui.effects.sparkle(at, '#fff6a0', 10);
-    void ui.effects.pop(at.clone().setY(0.6), modelFor(ANIMAL[BUILDING[b.type].animal!].product), 0.4);
+    void ui.effects.pop(at.clone().setY(0.6), productModel(ANIMAL[BUILDING[b.type].animal!].product), 0.4);
     haptics.buzz(12);
     if (ui.scene.env.night > 0.6) game.incStat('night_collects', n);
   }
   return n;
-}
-
-function modelFor(item: string): string {
-  const icon = ITEMS[item].icon;
-  if (icon.startsWith('model:')) return icon.slice(6);
-  return ({ egg: 'food/egg', milk: 'food/carton', truffle: 'food/mushroom' } as Record<string, string>)[item] ?? 'food/bag';
 }
 
 ui.onBuildingTap((b) => {
@@ -93,7 +106,11 @@ ui.onBuildingTap((b) => {
   if (!isBuilt(b, game.now())) { ui.buildingPopup(b); return true; }
   if (!(b.animals ?? []).length) { openAnimalHome(b); return true; }
   const c = animals.counts(b);
-  if (c.ready && collect(b)) return true;
+  if (c.ready && collect(b)) {
+    // collecting and re-feeding in one tap keeps the loop quick
+    if (game.count(ANIMAL[def.animal!].feed) > 0) window.setTimeout(() => { if (animals.counts(b).hungry) feed(b); }, 420);
+    return true;
+  }
   if (c.hungry && game.count(ANIMAL[def.animal!].feed) > 0 && feed(b)) return true;
   // nothing to do: give them a pat and show the home
   animals.pet(b);

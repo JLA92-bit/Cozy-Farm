@@ -36,6 +36,7 @@ class UIManager {
   private panels = new Map<string, PanelOpener>();
   private tapHandlers: BuildingTapHandler[] = [];
   private tray: HTMLElement | null = null;
+  private trayUnsub: (() => void)[] = [];
   private placementBar: HTMLElement | null = null;
   private confirmBtn: HTMLButtonElement | null = null;
   private banner: HTMLElement | null = null;
@@ -174,9 +175,12 @@ class UIManager {
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
-        const item = h('div', { class: `tray-item ${sel === c.id ? 'selected' : ''} ${locked ? 'locked' : ''}`, dataset: { crop: c.id } },
+        const poor = !locked && game.coins < c.seedCost;
+        const have = locked ? 0 : game.count(c.id);
+        const item = h('div', { class: `tray-item ${sel === c.id ? 'selected' : ''} ${locked ? 'locked' : ''} ${poor ? 'poor' : ''}`, dataset: { crop: c.id } },
           itemIcon(c.id), h('div', null, locked ? `Lv ${c.level}` : formatTime(c.growSec * 1000)),
           locked ? null : h('div', { class: 'tcount outlined' }, c.seedCost ? `${c.seedCost}` : 'Free'),
+          have ? h('div', { class: 'thave outlined', title: 'In your barn' }, `${have}`) : null,
         );
         if (!locked) {
           const coin = icon('coin');
@@ -199,6 +203,26 @@ class UIManager {
     render(selected);
     this.root.append(tray);
     this.tray = tray;
+    // keep prices / barn counts honest while planting and harvesting, without rebuilding (keeps scroll)
+    let queued = false;
+    const live = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked)').forEach((el) => {
+          const c = CROP[el.dataset.crop ?? ''];
+          if (!c) return;
+          el.classList.toggle('poor', game.coins < c.seedCost);
+          const have = game.count(c.id);
+          let tag = el.querySelector<HTMLElement>('.thave');
+          if (!have) { tag?.remove(); return; }
+          if (!tag) { tag = h('div', { class: 'thave outlined' }); el.append(tag); }
+          tag.textContent = `${have}`;
+        });
+      });
+    };
+    this.trayUnsub = [game.bus.on('coins', live), game.bus.on('item', live)];
     this.root.classList.add('mode-tray');
     gsap.fromTo(tray, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'back.out(1.6)' });
     this.setModeBanner('Tap or swipe empty fields to plant', onClose);
@@ -239,6 +263,8 @@ class UIManager {
     if (!this.tray) return;
     const t = this.tray;
     this.tray = null;
+    for (const off of this.trayUnsub) off();
+    this.trayUnsub = [];
     this.root.classList.remove('mode-tray');
     gsap.to(t, { y: 80, opacity: 0, duration: 0.2, onComplete: () => t.remove() });
     this.setModeBanner(null);
@@ -327,6 +353,8 @@ class UIManager {
     let timerEnd = 0;
     let speedFn: (() => boolean) | null = null;
     let speedCost = 0;
+    /** total duration of a growing crop / fruit, for the little growth bar */
+    let growTotal = 0;
     if (!isBuilt(b, now)) {
       timerEnd = b.buildEnd!;
       rows.push(h('div', { class: 'card-sub' }, 'Under construction'));
@@ -339,22 +367,29 @@ class UIManager {
       speedFn = () => buildings.speedup(b);
     } else if (b.plot && !plotReady(b, now)) {
       timerEnd = now + plotRemaining(b, now);
+      growTotal = b.plot.growSec * 1000;
       rows.push(h('div', { class: 'row' }, itemIcon(b.plot.crop), h('div', { class: 'card-sub' }, `${CROP[b.plot.crop].name} growing`)));
       speedCost = farming.speedupCost(b);
       speedFn = () => farming.speedup(b);
     } else if (def.tree && b.tree && !treeReady(b, now)) {
       timerEnd = b.tree.readyAt;
+      growTotal = TREE[def.tree].growSec * 1000;
       rows.push(h('div', { class: 'row' }, itemIcon(TREE[def.tree].item), h('div', { class: 'card-sub' }, 'Fruit growing')));
       speedCost = farming.speedupCost(b);
       speedFn = () => farming.speedup(b);
     }
     if (timerEnd) {
       const timer = h('div', { class: 'timer-tag outlined' }, formatTime(timerEnd - now));
+      // crops and fruit get a small growth bar so "how long until ripe" reads at a glance
+      const fill = growTotal ? h('div', { class: 'fill' }) : null;
+      const pct = () => `${Math.round(100 * Math.min(1, Math.max(0.03, 1 - (timerEnd - game.now()) / growTotal)))}%`;
+      if (fill) { fill.style.width = pct(); rows.push(h('div', { class: 'progress grow-progress' }, fill)); }
       rows.push(timer);
       const iv = setInterval(() => {
         if (!timer.isConnected) { clearInterval(iv); return; }
         const left = timerEnd - game.now();
         timer.textContent = left > 0 ? formatTime(left) : 'Done!';
+        if (fill) fill.style.width = pct();
       }, 500);
     }
     if (def.charm && def.cat === 'decor') rows.push(h('div', { class: 'card-sub' }, `+${def.charm} charm`));
