@@ -84,6 +84,16 @@ const missing = [];
 for (let lv = 2; lv <= levels.maxLevel; lv++) if (!unlockLevels.has(lv)) missing.push(lv);
 if (missing.length) err(`levels with nothing to unlock: ${missing.join(', ')}`);
 
+// friends and gifts (economy.social)
+{
+  const so = read('economy.json').social;
+  if (!so) err('economy.social missing');
+  else {
+    for (const k of ['giftsPerDay', 'maxCoinsPerGift', 'maxCoinsPerDay', 'maxItemsPerGift', 'maxStacksPerGift', 'messageMax', 'maxFriends', 'pollSec']) if (!(so[k] > 0)) err(`economy.social.${k} must be > 0`);
+    for (const i of so.botGift?.items ?? []) if (!items[i]) err(`economy.social.botGift: unknown item ${i}`);
+  }
+}
+
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

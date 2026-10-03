@@ -82,6 +82,21 @@ export interface SaveData {
   debugTimeOffset: number;
   /** XP earned in the current online week (week = Monday 00:00 UTC, as YYYY-MM-DD), for the weekly leaderboard. */
   weeklyXp: { week: string; xp: number };
+  /** Friends and gifts (Update 2). */
+  social: SocialState;
+}
+
+export interface FriendEntry { id: string; name: string; code: string; addedAt: number }
+export interface SocialState {
+  friends: FriendEntry[];
+  /** gifts sent today (gifts and gift codes both count) */
+  sent: { day: string; gifts: number; coins: number };
+  /** nonces of gift codes this farm already claimed (each code works once per farm) */
+  claimedCodes: string[];
+  /** nonces of gift codes this farm made (you cannot claim your own) */
+  madeCodes: string[];
+  /** practice mode: day a demo neighbour last sent a thank-you gift */
+  botGiftDay: string;
 }
 
 export const SAVE_VERSION = 1;

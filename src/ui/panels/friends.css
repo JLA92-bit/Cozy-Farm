@@ -1,0 +1,62 @@
+/* Friends, mailbox and gift codes (Update 2). Kept in its own file so it stays local. */
+.social-note {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 6px 10px;
+  background: #fff8e1; border: 2px dashed #e6c98a; border-radius: 12px; font-size: 13px; color: var(--ink-soft); line-height: 1.25;
+}
+.social-note .icon { flex: 0 0 auto; width: 24px; height: 24px; }
+.social-note b { color: var(--ink); }
+.social-card {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff;
+  border: 3px solid var(--outline); border-radius: 14px; box-shadow: 0 3px 0 var(--outline); margin-bottom: 10px;
+}
+.social-card .grow { flex: 1 1 auto; min-width: 0; }
+.social-card .title { font-family: var(--font-display); font-size: 16px; }
+.social-card .icon.big { width: 44px; height: 44px; flex: 0 0 44px; }
+.my-code { background: linear-gradient(#fff6fa, #ffe1ec); }
+.friend-code { font-size: 28px; letter-spacing: 2px; color: #fff; line-height: 1.1; user-select: text; -webkit-user-select: text; }
+.add-row { margin-bottom: 8px; }
+.add-row .btn { min-height: 48px; min-width: 64px; }
+.social-input { font-size: 17px; }
+.social-input.code-input { text-transform: uppercase; letter-spacing: 1px; }
+.social-input.code-input::placeholder { text-transform: none; letter-spacing: 0; }
+.limits-row { justify-content: flex-start; margin: 4px 0 2px; }
+.friend-portrait {
+  position: relative; flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; border: 3px solid var(--outline);
+  overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 -6px 0 rgba(0,0,0,.12);
+}
+.friend-portrait .friend-portrait-img { width: 120%; height: 120%; margin-top: 10%; }
+.friend-portrait span { font-size: 24px; color: #fff; }
+.friend-item .btn.small, .gift-item .btn.small { min-height: 44px; flex: 0 0 auto; }
+.friend-item .remove-btn { min-width: 44px; padding: 4px 8px; }
+.friend-item .remove-btn .icon { width: 20px; height: 20px; }
+.friend-item .title, .gift-item .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-tag {
+  display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; background: var(--btn-grey); color: #fff;
+  font-size: 11px; vertical-align: 2px; border: 2px solid var(--outline);
+}
+.gift-msg { font-size: 13px; color: var(--ink-soft); font-style: italic; line-height: 1.2; margin: 1px 0 3px; overflow-wrap: anywhere; }
+.gift-contents { display: flex; flex-wrap: wrap; gap: 4px; }
+.gift-chip {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px 1px 3px; border-radius: 10px; background: #fff4d6;
+  border: 2px solid var(--outline); font-size: 13px; font-family: var(--font-display); color: var(--ink); white-space: nowrap;
+}
+.gift-chip .icon { width: 22px; height: 22px; }
+.gift-chip.clickable { min-height: 44px; padding: 2px 10px 2px 4px; font-size: 15px; cursor: pointer; }
+.gift-chip.clickable .icon { width: 30px; height: 30px; }
+.gift-chip.clickable:active { transform: scale(.94); }
+.gift-chip .chip-x { margin-left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--btn-red); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1; }
+.compose-head .section-title { margin: 0; }
+.compose-chosen { display: flex; flex-wrap: wrap; gap: 6px; min-height: 48px; align-items: center; padding: 6px; margin: 6px 0 8px; border: 2px dashed #e6c98a; border-radius: 12px; background: #fffaf0; }
+.compose-coins { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-family: var(--font-display); font-size: 16px; }
+.compose-coins > .icon { width: 30px; height: 30px; }
+.compose-coins .grow { flex: 1 1 auto; }
+.compose-coins .qty-btn { min-width: 44px; min-height: 44px; }
+.compose-coins .qty-val { min-width: 56px; text-align: center; font-size: 20px; }
+.compose-left { align-self: center; }
+.code-preview { margin-bottom: 6px; }
+.code-preview > .muted { padding: 0 4px 6px; }
+.code-box {
+  width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: 12px; padding: 8px; resize: none; word-break: break-all;
+  border: 3px solid var(--outline); border-radius: 12px; background: #fff; color: var(--ink); user-select: text; -webkit-user-select: text;
+}
+.icon.code-gift { width: 64px; height: 64px; }
