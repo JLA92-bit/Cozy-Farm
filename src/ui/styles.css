@@ -803,3 +803,26 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .online-pill.offline { background: #f6e0d6; color: #b5532f; }
 .online-note { padding: 2px 4px 8px; }
 .friend-code { font-family: var(--font-display); font-size: 18px; letter-spacing: 1px; user-select: all; -webkit-user-select: all; }
+
+/* ---- fields & farmhouse (Update 2) ---- */
+.shop-card .card-sub.more-room { color: #2f7d32; font-weight: 700; }
+.pill.get-more { background: var(--btn-yellow); }
+.pill.get-more .icon { width: 18px; height: 18px; }
+.toast.tappable { cursor: pointer; }
+.fh-intro { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+.fh-level { font-family: var(--font-display); font-size: 22px; color: #fff; }
+.fh-caps { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.fh-cap { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; background: var(--cream-2); border: 2px solid var(--outline); border-radius: 14px; text-align: center; }
+.fh-cap.hot { background: linear-gradient(#f2ffd9, #d8f5a8); }
+.fh-cap .icon { width: 32px; height: 32px; }
+.fh-cap-name { font-size: 12px; color: var(--ink-soft); }
+.fh-cap-val { font-family: var(--font-display); font-size: 16px; color: #fff; }
+.fh-need, .fh-save { margin-top: 8px; }
+.fh-need .icon { width: 20px; height: 20px; vertical-align: -4px; }
+.fh-timer { display: inline-block; margin-top: 8px; position: static; }
+.fh-time { font-size: 13px; opacity: .8; }
+.fh-levels .list-item { padding-top: 6px; padding-bottom: 6px; min-height: 44px; }
+.fh-row.done { opacity: .6; }
+.fh-row.next { box-shadow: 0 0 0 3px var(--btn-yellow); }
+.fh-row-lv { font-family: var(--font-display); font-size: 20px; color: #fff; width: 34px; flex: 0 0 34px; text-align: center; }
+.fh-row .icon { width: 24px; height: 24px; flex: 0 0 24px; }

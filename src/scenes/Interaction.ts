@@ -12,6 +12,8 @@ import { HALF, MAP, chunkOf, footprintCenter, inMap, rotatedSize, worldToTile } 
 import { ghostMaterial, objectFor, visualFor, footprintMesh, tintGhost } from '../world/Visuals';
 import type { FarmScene, WorldHandler } from './FarmScene';
 import { ui } from '../ui/UI';
+import { fieldsHint } from '../ui/FieldHelp';
+import { atFarmhouseCap } from '../systems/Caps';
 
 type PlaceMode = {
   kind: 'place'; type: string; fromStorage: boolean; uid?: number; x: number; z: number; rot: number;
@@ -286,7 +288,7 @@ export class Interaction implements WorldHandler {
     if (fields < 2) return;
     const p = this.lastPointer;
     ui.feedback.floatText(p.x, p.y - 80, 'All planted!', undefined, '#bff27a', 0.1);
-    window.setTimeout(() => this.exitPlant(), 350);
+    window.setTimeout(() => { this.exitPlant(); fieldsHint(); }, 350);
   }
 
   enterPlant(crop: string | null): void {
@@ -486,6 +488,8 @@ export class Interaction implements WorldHandler {
       // keep placing more of the same small things (fences, paths, fields) for convenience
       const more = fromStorage ? (game.state.storage[type] ?? 0) > 0 : keep && buildings.canBuy(type).ok;
       if (more) { void this.startPlacement(type, fromStorage); return; }
+      // just used up the last field the Farmhouse allows: say how to get more
+      if (type === 'plot' && !fromStorage && atFarmhouseCap(def)) fieldsHint(true);
     }
     if (m.returnToEdit) this.enterEdit();
   }

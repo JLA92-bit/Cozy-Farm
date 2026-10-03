@@ -8,6 +8,7 @@ import { audio } from '../../systems/Audio';
 import { animals } from '../../systems/Animals';
 import { eventTokenItem } from '../../systems/Farming';
 import { ITEMS } from '../../data';
+import { capCardHint, moreRoomHint, nextCapRaise, type CapKey } from '../../systems/Caps';
 
 const TABS = [
   { id: 'farm', label: 'Farm', icon: 'seedling' },
@@ -72,9 +73,11 @@ function card(p: Panel, def: BuildingDef): HTMLElement {
     : priceTag(game.priceOf(def));
   const full = !locked && cap !== Infinity && used >= cap;
   const broke = !locked && !full && !check.ok && !stored;
+  // full, but a bigger Farmhouse makes room: point the way instead of a dead end
+  const growable = full && !def.max && !!def.cap && !!nextCapRaise(def.cap as CapKey);
   const sub: (HTMLElement | string)[] = [];
   if (locked) sub.push(`Level ${def.level}`);
-  else if (cap !== Infinity) sub.push(`${used}/${cap}`);
+  else if (cap !== Infinity) sub.push(`${used} / ${cap}`);
   if (def.charm && def.cat === 'decor') sub.push(`+${def.charm} charm`);
   const el = h('div', { class: `card clickable shop-card ${locked ? 'locked' : ''} ${full && !stored ? 'maxed' : ''}` },
     locked ? h('div', { class: 'lock-tag' }, icon('lock'), `Lv ${def.level}`) : null,
@@ -82,12 +85,22 @@ function card(p: Panel, def: BuildingDef): HTMLElement {
     thumb,
     h('div', { class: 'card-title' }, def.name),
     h('div', { class: 'card-sub' }, sub.join(' · ')),
+    growable && !stored ? h('div', { class: 'card-sub more-room' }, capCardHint(def)) : null,
     stored
       ? h('div', { class: 'pill stored' }, icon('package'), `${stored} stored`)
-      : full ? h('div', { class: 'pill maxed' }, 'Max') : h('div', { class: `pill ${broke ? 'cant' : ''}` }, price),
+      : growable ? h('div', { class: 'pill get-more' }, icon('house'), 'Get more')
+        : full ? h('div', { class: 'pill maxed' }, 'Max') : h('div', { class: `pill ${broke ? 'cant' : ''}` }, price),
   );
   el.addEventListener('click', () => {
     if (stored > 0) { p.close(); void ui.interaction.startPlacement(def.id, true); return; }
+    if (growable) {
+      const hint = moreRoomHint(def);
+      ui.feedback.toast(hint.title, hint.sub, 'house');
+      audio.play('select');
+      p.close();
+      setTimeout(() => ui.open('farmhouse'), 220);
+      return;
+    }
     if (!check.ok) { ui.feedback.toast(check.reason, def.name, locked ? 'lock' : 'cross'); audio.play('error'); return; }
     audio.play('select');
     p.close();

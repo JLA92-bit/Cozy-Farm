@@ -8,3 +8,4 @@ import './EconomyPanels';
 import './ProgressionPanels';
 import './SettingsPanel';
 import './WhatsNewPanel';
+import './FarmhousePanel';

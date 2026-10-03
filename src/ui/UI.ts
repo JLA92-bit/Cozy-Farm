@@ -462,6 +462,8 @@ class UIManager {
     if (up && isBuilt(b, now) && !isUpgrading(b, now)) {
       const check = buildings.canUpgrade(b);
       btns.append(button(['Upgrade', priceTag(up.cost)], () => {
+        // the farmhouse opens its overview first, so players see what the next level adds
+        if (b.type === 'farmhouse') { this.world.hidePopup(); this.open('farmhouse'); return; }
         if (!buildings.upgrade(b)) { this.feedback.toast(buildings.canUpgrade(b).ok ? 'Cannot upgrade' : (buildings.canUpgrade(b) as { reason: string }).reason, undefined, 'lock'); audio.play('error'); return; }
         this.world.hidePopup();
       }, `small ${check.ok ? 'yellow' : 'disabled'}`));

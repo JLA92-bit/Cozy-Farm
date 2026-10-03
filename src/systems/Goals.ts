@@ -6,7 +6,8 @@ import { production } from './Production';
 import { book, BOOK_PAGES, daily, events, quests, unlocksAt, type UnlockEntry } from './Progression';
 import { land } from './Land';
 import { animals } from './Animals';
-import { isBuilt, plotReady, treeReady } from './Timers';
+import { isBuilt, isUpgrading, plotReady, treeReady } from './Timers';
+import { farmhouseBuilding, fieldStatus, nextCapRaise } from './Caps';
 
 export interface GoalAction {
   panel?: string; arg?: unknown; focusUid?: number;
@@ -63,7 +64,7 @@ export function actionForUnlock(u: UnlockEntry): GoalAction | undefined {
     case 'Building': { const d = BUILDING[u.id]; return { panel: 'shop', arg: d?.cat === 'special' ? 'special' : d?.cat ?? 'production' }; }
     case 'Recipe': return actionForStat('items_produced');
     case 'Style': return { panel: 'character' };
-    case 'Upgrade': { const fh = game.buildingsOf('farmhouse')[0]; return fh ? { focusUid: fh.uid } : undefined; }
+    case 'Upgrade': return { panel: 'farmhouse' };
     case 'Orders': return { panel: 'orders' };
     case 'Land': { const c = land.purchasableChunks()[0]; return c ? { chunk: c } : undefined; }
   }
@@ -107,6 +108,9 @@ export function nextGoal(): Goal {
     const chunk = land.purchasableChunks()[0];
     if (chunk) return { title: 'New land for sale', text: `Grow your farm for ${land.nextExpansion().cost} coins`, icon: 'map', action: { chunk } };
   }
+  // more fields (or a bigger farmhouse once the fields are full)
+  const fieldGoal = fieldsGoal(false);
+  if (fieldGoal) return fieldGoal;
   const homeless = s.buildings.find((b) => BUILDING[b.type].animal && (b.animals?.length ?? 0) < buildings.capacity(b));
   if (homeless) {
     const a = ANIMAL[BUILDING[homeless.type].animal!];
@@ -125,6 +129,8 @@ export function nextGoal(): Goal {
     const t = land.obstacleDef(wild);
     return { title: 'Tidy the farm', text: `Clear a ${t.name.toLowerCase()} for +${t.xp} XP`, icon: t.icon, action: { obstacle: wild.id } };
   }
+  const fieldSave = fieldsGoal(true);
+  if (fieldSave) return fieldSave;
   // saving up for more land
   const next = land.nextExpansion();
   if (!build && game.level >= next.level && land.purchasableChunks().length) {
@@ -140,4 +146,27 @@ export function nextGoal(): Goal {
     return { title: `Level ${game.level + 1}`, text: un.length ? `Unlocks ${un[0].name}${un.length > 1 ? ` and ${un.length - 1} more` : ''}` : 'Keep growing!', icon: un[0]?.icon ?? 'glowing_star', progress: game.state.player.xp / Math.max(1, need), action: { panel: '__levelbadge' } };
   }
   return { title: 'Master farmer', text: 'Decorate and fill trucks for fun!', icon: 'crown' };
+}
+
+/**
+ * Fields are the heart of the farm: suggest buying one while there is room and it is comfortably affordable,
+ * and the Farmhouse upgrade once every allowed field is built. `saving` = the lower-priority "save up" version.
+ */
+export function fieldsGoal(saving: boolean): Goal | null {
+  if (!game.state.tutorial.done) return null;
+  const f = fieldStatus();
+  if (f.free) {
+    if (saving || game.coins < f.price * 1.5) return null;
+    return { title: 'More fields', text: `${f.owned} / ${f.cap} fields. Add one for ${f.price} coins`, icon: 'seedling', progress: f.owned / Math.max(1, f.cap), action: { panel: 'shop', arg: 'farm' } };
+  }
+  const fh = farmhouseBuilding();
+  const up = fh ? buildings.upgradeInfo(fh) : null;
+  const raise = nextCapRaise('plot');
+  if (!fh || !up || !raise || game.level < up.needLevel || isUpgrading(fh, game.now()) || !isBuilt(fh, game.now())) return null;
+  if (game.coins >= up.cost) {
+    if (saving) return null;
+    return { title: 'Bigger farmhouse', text: `Fields are full. Upgrade for +${raise.add} fields!`, icon: 'house', action: { panel: 'farmhouse' } };
+  }
+  if (!saving) return null;
+  return { title: 'Save for the farmhouse', text: `${up.cost} coins for +${raise.add} fields`, icon: 'house', progress: Math.min(1, game.coins / Math.max(1, up.cost)), action: { panel: 'farmhouse' } };
 }

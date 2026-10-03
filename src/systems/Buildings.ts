@@ -2,6 +2,7 @@ import { ANIMAL, BUILDING, ECONOMY, FARMHOUSE, TREE, UPGRADES, type BuildingDef 
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, isUpgrading, settleProduction } from './Timers';
+import { farmhouseGainsText, nextCapRaise, type CapKey } from './Caps';
 
 export type BuyCheck = { ok: true } | { ok: false; reason: string };
 
@@ -27,7 +28,9 @@ export class BuildingSystem {
       if (game.state.event.tokens < eventCostOf(def)) return { ok: false, reason: 'Not enough tokens' };
     } else if (game.level < def.level) return { ok: false, reason: `Unlocks at level ${def.level}` };
     if (game.capUsage(def) >= game.capFor(def)) {
-      return { ok: false, reason: def.max ? 'Already built' : 'Upgrade the Farmhouse for more' };
+      if (def.max) return { ok: false, reason: 'Already built' };
+      const raise = nextCapRaise(def.cap as CapKey);
+      return { ok: false, reason: raise ? `Upgrade the Farmhouse to level ${raise.level} for more` : 'No room for more' };
     }
     if (!def.event && game.coins < game.priceOf(def)) return { ok: false, reason: 'Not enough coins' };
     return { ok: true };
@@ -124,7 +127,7 @@ export class BuildingSystem {
     if (b.type === 'farmhouse') {
       const lv = FARMHOUSE.levels[b.level];
       if (!lv) return null;
-      return { next: b.level + 1, cost: lv.cost, sec: lv.sec, needLevel: lv.playerLevel, label: 'Raises building limits' };
+      return { next: b.level + 1, cost: lv.cost, sec: lv.sec, needLevel: lv.playerLevel, label: farmhouseGainsText(b.level) };
     }
     const kind = def.cat === 'production' ? UPGRADES.production : def.cat === 'animal' ? UPGRADES.animal : null;
     if (!kind) return null;
