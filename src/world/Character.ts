@@ -186,7 +186,7 @@ export class Character {
     const prevBody = this.look?.body;
     this.look = { ...look };
     if (prevBody !== look.body || !this.model) {
-      if (this.model) this.root.remove(this.model);
+      if (this.model) { this.root.remove(this.model); for (const m of this.skinned) m.geometry.dispose(); }
       const id = `char/${look.body}`;
       const { root, clips } = await assets.animated(id);
       this.model = root;
@@ -211,7 +211,7 @@ export class Character {
     const maps = analyse(look.body, this.skinned);
     this.skinned.forEach((m, i) => applyLook(m, maps[i], look));
     // hats/accessories follow bones
-    for (const e of this.extras) e.parent?.remove(e);
+    for (const e of this.extras) { e.parent?.remove(e); (e as THREE.Mesh).geometry?.dispose(); }
     this.extras = [];
     const head = this.model.getObjectByName('head');
     const hat = hatGeometry(look.hat);

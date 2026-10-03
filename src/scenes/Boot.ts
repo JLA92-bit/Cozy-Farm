@@ -119,7 +119,7 @@ export async function boot(): Promise<void> {
   } else if (!game.state.tutorial.done) setTimeout(() => tutorial.start(), 800);
   if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
   else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
 }
 

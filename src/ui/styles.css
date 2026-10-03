@@ -315,7 +315,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .speech {
   position: relative; display: flex; align-items: center; gap: 4px; margin-bottom: 10px; padding: 3px 10px 3px 5px;
   background: #fff; border: 3px solid var(--outline); border-radius: 16px; box-shadow: 0 3px 0 rgba(45,30,16,.45);
-  font-family: var(--font-display); font-size: 14px; line-height: 1.1; color: var(--ink); white-space: nowrap; transform-origin: 50% 120%;
+  font-family: var(--font-display); font-size: 14px; line-height: 1.1; color: var(--ink); transform-origin: 50% 120%; width: max-content;
 }
 .speech::after {
   content: ''; position: absolute; left: 50%; bottom: -8px; width: 10px; height: 10px; margin-left: -6px; background: #fff;
@@ -324,7 +324,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .speech .icon { width: 22px; height: 22px; flex: 0 0 auto; }
 .speech.speech-emote { padding: 3px; border-radius: 50%; }
 .speech.speech-emote .icon { width: 26px; height: 26px; }
-.speech-text { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+.speech-text { max-width: 140px; text-align: center; overflow-wrap: break-word; }
 .world-layer.speech-hidden .speech { display: none; }
 
 .tray {

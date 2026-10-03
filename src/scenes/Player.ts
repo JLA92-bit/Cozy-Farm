@@ -114,7 +114,7 @@ export class Player {
   /** Tap test: the farmer (or their pet) under the ray. */
   pick(ray: THREE.Ray): (() => void) | null {
     // busy farmers (walking to a field) don't steal taps meant for the field behind them
-    if (this.walker.walking) return null;
+    if (this.walker.walking || !game.state.tutorial.done) return null;
     const p = this.position;
     SPHERE.center.set(p.x, 0.75, p.z);
     SPHERE.radius = 0.6;

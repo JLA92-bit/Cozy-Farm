@@ -19,7 +19,11 @@ interface Villager {
   w: Walker; name: string; plan: Stop[]; leaving: boolean; wait: number; greeted: boolean;
   /** building we are standing next to (to react once we arrive) */
   at: Stop | null; chatCooldown: number; gone: boolean;
+  /** standing tile to hop back to after sitting on a bench */
+  seat: THREE.Vector3 | null;
 }
+
+const SEATS = new Set(['bench']);
 
 /** Someone the villagers can say hi to (the player's farmer). */
 export interface Greeter { position: THREE.Vector3; greetBack(from: THREE.Vector3): void }
@@ -80,7 +84,7 @@ export class Villagers {
       const look = {
         body: pick(BODIES), skin: pick(COSMETICS.skinTones), hair: pick(COSMETICS.hairColors),
         top: pick(COSMETICS.outfitColors).color, bottom: pick(COSMETICS.outfitColors).color,
-        hat: pick(['none', 'none', 'straw', 'cap', 'beanie', 'bucket', 'flower_crown']), accessory: pick(['none', 'none', 'none', 'backpack', 'scarf', 'glasses', 'flower']), pet: Math.random() < 0.18 ? pick(['dog', 'cat', 'dog', 'bunny']) : 'none',
+        hat: pick(['none', 'none', 'straw', 'cap', 'beanie', 'bucket', 'flower_crown']), accessory: Math.random() < 0.25 ? pick(['backpack', 'scarf', 'glasses', 'flower']) : 'none', pet: Math.random() < 0.18 ? pick(['dog', 'cat', 'dog', 'bunny']) : 'none',
       };
       const c = await Character.create(look, 1.4);
       const w = new Walker(c, this.scene.scene);
@@ -89,7 +93,7 @@ export class Villagers {
       w.placeAt(gx, gz);
       const used = new Set(this.list.map((v) => v.name));
       const name = pick(VILLAGER_NAMES.filter((n) => !used.has(n)));
-      const v: Villager = { w, name, plan: [], leaving: false, wait: 0.5, greeted: false, at: null, chatCooldown: 6, gone: false };
+      const v: Villager = { w, name, plan: [], leaving: false, wait: 0.5, greeted: false, at: null, chatCooldown: 6, gone: false, seat: null };
       const charmBonus = buildings.charm() >= 200 ? 1 : 0;
       const pool = this.destinations();
       // mostly the favourites, with a little randomness so walks differ
@@ -152,6 +156,7 @@ export class Villagers {
     const [cx, cz] = buildingCenter(b);
     v.w.face(cx, cz);
     const c = v.w.char;
+    if (SEATS.has(b.type) && !this.seatTaken(b)) { this.sitOn(v, b); return; }
     const shop = b.type === 'order_board' || b.type === 'roadside_stall';
     v.wait = 2.5 + Math.random() * 2.5 + (def.cat === 'decor' ? Math.min(4, def.charm / 10) : 0);
     setTimeout(() => {
@@ -163,6 +168,37 @@ export class Villagers {
     }, 250);
   }
 
+  private seatTaken(b: PlacedBuilding): boolean {
+    const [cx, cz] = buildingCenter(b);
+    return this.list.some((o) => o.seat && Math.abs(o.w.char.root.position.x - cx) < 0.3 && Math.abs(o.w.char.root.position.z - cz) < 0.3);
+  }
+
+  /** Hop onto a bench and rest a while, enjoying the view. */
+  private sitOn(v: Villager, b: PlacedBuilding): void {
+    const [cx, cz] = buildingCenter(b);
+    const root = v.w.char.root;
+    v.seat = root.position.clone();
+    // sit across the plank, on the side that faces the camera
+    const cam = this.scene.rig.camera.position;
+    let yaw = -b.rot * Math.PI / 2 + Math.PI / 2;
+    if (Math.sin(yaw) * (cam.x - cx) + Math.cos(yaw) * (cam.z - cz) < 0) yaw += Math.PI;
+    v.wait = 7 + Math.random() * 6;
+    gsap.timeline({ onUpdate: () => this.scene.loop.wake(0.2) })
+      .to(root.position, { x: cx, z: cz, duration: 0.4, ease: 'power1.inOut' })
+      .to(root.position, { y: 0.35, duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 }, 0)
+      .add(() => { root.rotation.y = yaw; v.w.char.play('sit', 0.2); }, 0.25)
+      .add(() => { if (!v.gone && Math.random() < 0.6) speech.say(root, { icon: pick(['sun', 'music', 'heart', 'smile']), text: Math.random() < 0.5 ? pick(['Ahh, so nice.', 'What a view!', 'Just resting...']) : undefined }); }, 1.2);
+  }
+
+  /** Back on your feet after a sit. */
+  private standUp(v: Villager): void {
+    const seat = v.seat!;
+    v.seat = null;
+    v.w.char.play('idle', 0.2);
+    v.wait = 0.5;
+    gsap.to(v.w.char.root.position, { x: seat.x, z: seat.z, duration: 0.35, ease: 'power1.inOut', onUpdate: () => this.scene.loop.wake(0.2) });
+  }
+
   /** A shiny new decoration: the nearest villager notices and goes to have a look. */
   private noticeNew(b: PlacedBuilding): void {
     const def = BUILDING[b.type];
@@ -170,7 +206,7 @@ export class Villagers {
     const [cx, cz] = buildingCenter(b);
     let best: Villager | null = null, bestD = 14 * 14;
     for (const v of this.list) {
-      if (v.leaving) continue;
+      if (v.leaving || v.seat) continue;
       const p = v.w.char.root.position;
       const d = (p.x - cx) ** 2 + (p.z - cz) ** 2;
       if (d < bestD) { bestD = d; best = v; }
@@ -190,6 +226,7 @@ export class Villagers {
 
   /** Tap test for the HUD: returns an action when a villager is under the ray. */
   pick(ray: THREE.Ray): (() => void) | null {
+    if (!game.state.tutorial.done) return null; // never steal tutorial taps
     let best: Villager | null = null, bestD = Infinity;
     for (const v of this.list) {
       const p = v.w.char.root.position;
@@ -203,8 +240,7 @@ export class Villagers {
     const v = best;
     return () => {
       const cam = this.scene.rig.camera.position;
-      if (!v.w.walking) v.w.face(cam.x, cam.z);
-      void v.w.char.gesture('emote-yes');
+      if (!v.w.walking && !v.seat) { v.w.face(cam.x, cam.z); void v.w.char.gesture('emote-yes'); }
       speech.say(v.w.char.root, { ...tapLine(v.name, this.night()), prio: 2 });
       audio.play('pop', { volume: 0.5, rate: 1.1 + Math.random() * 0.2 });
       if (!v.w.walking) v.wait = Math.max(v.wait, 2.5);
@@ -230,13 +266,14 @@ export class Villagers {
         if ((p.x - g.position.x) ** 2 + (p.z - g.position.z) ** 2 < 2.2 * 2.2) {
           v.greeted = true;
           if (speech.say(v.w.char.root, { ...greeting(this.night()), prio: 1 })) {
-            if (!v.w.walking) v.w.face(g.position.x, g.position.z);
+            if (!v.w.walking && !v.seat) v.w.face(g.position.x, g.position.z);
             g.greetBack(p);
           }
         }
       }
       if (v.w.walking) { this.scene.loop.wake(0.2); continue; }
       if (v.wait > 0) { v.wait -= dt; continue; }
+      if (v.seat) { this.standUp(v); continue; }
       this.next(v);
     }
     this.chatter(dt);
@@ -248,7 +285,7 @@ export class Villagers {
     if (this.chatIn > 0 || this.list.length < 2) return;
     this.chatIn = 3;
     for (const a of this.list) for (const b of this.list) {
-      if (a === b || a.w.walking || b.w.walking || a.leaving || b.leaving || a.chatCooldown > 0 || b.chatCooldown > 0) continue;
+      if (a === b || a.w.walking || b.w.walking || a.leaving || b.leaving || a.seat || b.seat || a.chatCooldown > 0 || b.chatCooldown > 0) continue;
       const pa = a.w.char.root.position, pb = b.w.char.root.position;
       if ((pa.x - pb.x) ** 2 + (pa.z - pb.z) ** 2 > 3 * 3) continue;
       a.chatCooldown = b.chatCooldown = 25;
