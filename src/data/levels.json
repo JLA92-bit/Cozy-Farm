@@ -52,247 +52,247 @@
   },
   {
    "level": 9,
-   "xpToNext": 349,
+   "xpToNext": 390,
    "coins": 225,
    "gems": 1
   },
   {
    "level": 10,
-   "xpToNext": 419,
+   "xpToNext": 515,
    "coins": 350,
    "gems": 5
   },
   {
    "level": 11,
-   "xpToNext": 493,
+   "xpToNext": 665,
    "coins": 275,
    "gems": 1
   },
   {
    "level": 12,
-   "xpToNext": 571,
+   "xpToNext": 835,
    "coins": 300,
    "gems": 1
   },
   {
    "level": 13,
-   "xpToNext": 655,
+   "xpToNext": 1030,
    "coins": 325,
    "gems": 1
   },
   {
    "level": 14,
-   "xpToNext": 742,
+   "xpToNext": 1255,
    "coins": 350,
    "gems": 1
   },
   {
    "level": 15,
-   "xpToNext": 833,
+   "xpToNext": 1505,
    "coins": 475,
    "gems": 5
   },
   {
    "level": 16,
-   "xpToNext": 929,
+   "xpToNext": 1785,
    "coins": 400,
    "gems": 1
   },
   {
    "level": 17,
-   "xpToNext": 1028,
+   "xpToNext": 2090,
    "coins": 425,
    "gems": 1
   },
   {
    "level": 18,
-   "xpToNext": 1132,
+   "xpToNext": 2435,
    "coins": 450,
    "gems": 1
   },
   {
    "level": 19,
-   "xpToNext": 1239,
+   "xpToNext": 2805,
    "coins": 475,
    "gems": 1
   },
   {
    "level": 20,
-   "xpToNext": 1349,
+   "xpToNext": 3210,
    "coins": 600,
    "gems": 5
   },
   {
    "level": 21,
-   "xpToNext": 1463,
+   "xpToNext": 3650,
    "coins": 525,
    "gems": 1
   },
   {
    "level": 22,
-   "xpToNext": 1581,
+   "xpToNext": 4125,
    "coins": 550,
    "gems": 1
   },
   {
    "level": 23,
-   "xpToNext": 1702,
+   "xpToNext": 4640,
    "coins": 575,
    "gems": 1
   },
   {
    "level": 24,
-   "xpToNext": 1826,
+   "xpToNext": 5185,
    "coins": 600,
    "gems": 1
   },
   {
    "level": 25,
-   "xpToNext": 1954,
+   "xpToNext": 5775,
    "coins": 725,
    "gems": 5
   },
   {
    "level": 26,
-   "xpToNext": 2085,
+   "xpToNext": 6400,
    "coins": 650,
    "gems": 1
   },
   {
    "level": 27,
-   "xpToNext": 2219,
+   "xpToNext": 7070,
    "coins": 675,
    "gems": 1
   },
   {
    "level": 28,
-   "xpToNext": 2356,
+   "xpToNext": 7775,
    "coins": 700,
    "gems": 1
   },
   {
    "level": 29,
-   "xpToNext": 2496,
+   "xpToNext": 8525,
    "coins": 725,
    "gems": 1
   },
   {
    "level": 30,
-   "xpToNext": 2639,
+   "xpToNext": 9315,
    "coins": 850,
    "gems": 5
   },
   {
    "level": 31,
-   "xpToNext": 2786,
+   "xpToNext": 10155,
    "coins": 775,
    "gems": 1
   },
   {
    "level": 32,
-   "xpToNext": 2935,
+   "xpToNext": 11035,
    "coins": 800,
    "gems": 1
   },
   {
    "level": 33,
-   "xpToNext": 3087,
+   "xpToNext": 11960,
    "coins": 825,
    "gems": 1
   },
   {
    "level": 34,
-   "xpToNext": 3242,
+   "xpToNext": 12935,
    "coins": 850,
    "gems": 1
   },
   {
    "level": 35,
-   "xpToNext": 3400,
+   "xpToNext": 13955,
    "coins": 975,
    "gems": 5
   },
   {
    "level": 36,
-   "xpToNext": 3561,
+   "xpToNext": 15025,
    "coins": 900,
    "gems": 1
   },
   {
    "level": 37,
-   "xpToNext": 3724,
+   "xpToNext": 16145,
    "coins": 925,
    "gems": 1
   },
   {
    "level": 38,
-   "xpToNext": 3890,
+   "xpToNext": 17310,
    "coins": 950,
    "gems": 1
   },
   {
    "level": 39,
-   "xpToNext": 4059,
+   "xpToNext": 18530,
    "coins": 975,
    "gems": 1
   },
   {
    "level": 40,
-   "xpToNext": 4231,
+   "xpToNext": 19800,
    "coins": 1100,
    "gems": 5
   },
   {
    "level": 41,
-   "xpToNext": 4405,
+   "xpToNext": 21120,
    "coins": 1025,
    "gems": 1
   },
   {
    "level": 42,
-   "xpToNext": 4582,
+   "xpToNext": 22500,
    "coins": 1050,
    "gems": 1
   },
   {
    "level": 43,
-   "xpToNext": 4762,
+   "xpToNext": 23930,
    "coins": 1075,
    "gems": 1
   },
   {
    "level": 44,
-   "xpToNext": 4944,
+   "xpToNext": 25410,
    "coins": 1100,
    "gems": 1
   },
   {
    "level": 45,
-   "xpToNext": 5128,
+   "xpToNext": 26950,
    "coins": 1225,
    "gems": 5
   },
   {
    "level": 46,
-   "xpToNext": 5316,
+   "xpToNext": 28545,
    "coins": 1150,
    "gems": 1
   },
   {
    "level": 47,
-   "xpToNext": 5505,
+   "xpToNext": 30195,
    "coins": 1175,
    "gems": 1
   },
   {
    "level": 48,
-   "xpToNext": 5697,
+   "xpToNext": 31905,
    "coins": 1200,
    "gems": 1
   },
   {
    "level": 49,
-   "xpToNext": 5892,
+   "xpToNext": 33675,
    "coins": 1225,
    "gems": 1
   },

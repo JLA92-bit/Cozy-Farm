@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "fetch-assets": "bash scripts/fetch-assets.sh",
     "assets": "node scripts/build-assets.mjs",
-    "validate-data": "node scripts/validate-data.mjs"
+    "validate-data": "node scripts/validate-data.mjs",
+    "simulate-economy": "node scripts/simulate-economy.mjs"
   },
   "license": "MIT",
   "dependencies": {
