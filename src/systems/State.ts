@@ -82,6 +82,8 @@ export interface SaveData {
   debugTimeOffset: number;
   /** XP earned in the current online week (week = Monday 00:00 UTC, as YYYY-MM-DD), for the weekly leaderboard. */
   weeklyXp: { week: string; xp: number };
+  /** Helpful hints: the player's chosen mode ('' = automatic) and one-time intros already shown. */
+  hints: { mode: '' | 'all' | 'new' | 'off'; intros: string[] };
 }
 
 export const SAVE_VERSION = 1;

@@ -6,7 +6,9 @@ import { production } from './Production';
 import { book, BOOK_PAGES, daily, events, quests, unlocksAt, type UnlockEntry } from './Progression';
 import { land } from './Land';
 import { animals } from './Animals';
+import type { PlacedBuilding } from './State';
 import { isBuilt, plotReady, treeReady } from './Timers';
+import { hints } from './Hints';
 
 export interface GoalAction {
   panel?: string; arg?: unknown; focusUid?: number;
@@ -70,12 +72,20 @@ export function actionForUnlock(u: UnlockEntry): GoalAction | undefined {
   return undefined;
 }
 
+/** Short, action-focused harvest line once swiping is second nature: "12x Wheat ready". */
+function readyText(ready: PlacedBuilding[]): string {
+  const crop = ready[0].plot?.crop;
+  if (crop && ready.every((b) => b.plot?.crop === crop)) return `${ready.length}x ${ITEMS[crop].name} ready`;
+  if (ready.every((b) => !b.plot)) return `${ready.length} tree${ready.length > 1 ? 's' : ''} ready to pick`;
+  return `${ready.length} ready to harvest`;
+}
+
 /** Always surface one clear next thing to do, from most to least urgent. */
 export function nextGoal(): Goal {
   const now = game.now();
   const s = game.state;
   const ready = s.buildings.filter((b) => (b.plot && plotReady(b, now)) || (BUILDING[b.type].tree && treeReady(b, now)));
-  if (ready.length) return { title: 'Harvest time', text: `${ready.length} ready to harvest. Swipe across them!`, icon: 'wheat', action: { focusUid: ready[0].uid } };
+  if (ready.length) return { title: 'Harvest time', text: hints.coach('swipe') ? `${ready.length} ready to harvest. Swipe across them!` : readyText(ready), icon: 'wheat', action: { focusUid: ready[0].uid } };
   const done = orders.anyCompletable();
   if (done) return { title: 'Deliver an order', text: 'You have everything for an order!', icon: 'clipboard', action: { panel: 'orders' } };
   const goods = production.readyBuildings();
@@ -85,7 +95,8 @@ export function nextGoal(): Goal {
   const empty = s.buildings.filter((b) => b.type === 'plot' && !b.plot && isBuilt(b, now));
   if (empty.length) {
     const best = [...CROPS].reverse().find((c) => c.level <= game.level && c.seedCost <= game.coins);
-    return { title: 'Plant crops', text: `${empty.length} empty field${empty.length > 1 ? 's' : ''}. Try ${best?.name ?? 'Wheat'}!`, icon: best ? ITEMS[best.id].icon : 'seedling', action: { focusUid: empty[0].uid } };
+    const fields = `${empty.length} empty field${empty.length > 1 ? 's' : ''}`;
+    return { title: 'Plant crops', text: hints.coach('plant') ? `${fields}. Try ${best?.name ?? 'Wheat'}!` : `${best?.name ?? 'Wheat'} in ${fields}`, icon: best ? ITEMS[best.id].icon : 'seedling', action: { focusUid: empty[0].uid } };
   }
   const claim = quests.claimable();
   if (claim) return { title: 'Quest complete', text: 'Claim your quest reward!', icon: 'scroll', action: { panel: 'quests' } };

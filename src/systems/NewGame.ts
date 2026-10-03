@@ -107,5 +107,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     seen: { levelUnlocks: 1, loginDays: [], collectionSeenAt: 0, bookPages: [] },
     debugTimeOffset: 0,
     weeklyXp: { week: '', xp: 0 },
+    hints: { mode: '', intros: [] },
   };
 }

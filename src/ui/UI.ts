@@ -12,6 +12,7 @@ import { buildings, speedupCost } from '../systems/Buildings';
 import { farming } from '../systems/Farming';
 import { land } from '../systems/Land';
 import { audio, haptics } from '../systems/Audio';
+import { hints } from '../systems/Hints';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { formatTime, isBuilt, isUpgrading, plotRemaining, plotReady, treeReady } from '../systems/Timers';
 import { Terrain } from '../world/Terrain';
@@ -273,7 +274,7 @@ class UIManager {
     this.trayUnsub = [game.bus.on('coins', live), game.bus.on('item', live)];
     this.root.classList.add('mode-tray');
     gsap.fromTo(tray, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'back.out(1.6)' });
-    this.setModeBanner('Tap or swipe empty fields to plant', onClose);
+    this.setModeBanner(hints.coach('plant') || hints.coach('swipe') ? 'Tap or swipe empty fields to plant' : 'Planting', onClose);
   }
 
   /** Dragging a seed from the tray onto the farm plants every empty field it passes over. */
@@ -332,7 +333,7 @@ class UIManager {
     this.placementBar = bar;
     this.root.classList.add('mode-place');
     gsap.fromTo(bar, { y: 80 }, { y: 0, duration: 0.3, ease: 'back.out(1.6)' });
-    this.setModeBanner(`${a.name}: drag to move`, null);
+    this.setModeBanner(hints.coach('build') || hints.coach('move') ? `${a.name}: drag to move` : a.name, null);
   }
   setPlacementValid(valid: boolean): void { this.confirmBtn?.classList.toggle('disabled', !valid); }
   hidePlacementBar(): void {

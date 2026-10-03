@@ -3,6 +3,7 @@ import {
 } from '../data';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
+import { hints } from './Hints';
 import type { Order, OrderLine, StallSlot } from './State';
 import { rng, hashString } from '../world/Procedural';
 import { isBuilt } from './Timers';
@@ -179,7 +180,7 @@ export class TruckSystem {
     const bonus = Math.round(crates.reduce((s, c) => s + c.coins, 0) * ECONOMY.truck.bonusMult);
     game.state.truck = { crates, arrivesAt: now, leavesAt: now + ECONOMY.truck.durationSec * 1000, bonusCoins: bonus };
     game.bus.emit('truck:changed', {});
-    game.bus.emit('toast', { title: 'The delivery truck is here!', sub: 'Fill its crates for big rewards', icon: 'truck' });
+    game.bus.emit('toast', { title: 'The delivery truck is here!', sub: hints.explain('truck_arrival', 'truck') ? 'Fill its crates for big rewards' : undefined, icon: 'truck' });
   }
 
   fill(i: number, at?: Vec): boolean {

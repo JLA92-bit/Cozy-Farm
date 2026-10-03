@@ -29,6 +29,9 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.land = { ...base.land, ...(s.land ?? {}) };
   out.weeklyXp = { ...base.weeklyXp, ...(isObj(s.weeklyXp) ? s.weeklyXp : {}) };
   if (typeof out.weeklyXp.week !== 'string' || !Number.isFinite(out.weeklyXp.xp) || out.weeklyXp.xp < 0) out.weeklyXp = { ...base.weeklyXp };
+  out.hints = { ...base.hints, ...(isObj(s.hints) ? s.hints : {}) };
+  if (!['', 'all', 'new', 'off'].includes(out.hints.mode)) out.hints.mode = '';
+  out.hints.intros = strArr(out.hints.intros);
   return sanitize(out, base);
 }
 
