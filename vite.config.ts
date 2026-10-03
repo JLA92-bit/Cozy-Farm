@@ -35,7 +35,16 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webp,glb,gltf,bin,json,mp3,ogg,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,glb,json,mp3,woff2}'],
+        // Music is large: cache it on first play instead of precaching.
+        globIgnores: ['**/assets/audio/music/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/assets/audio/music/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'music', rangeRequests: true, cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,

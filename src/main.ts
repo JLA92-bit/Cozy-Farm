@@ -1,6 +1,4 @@
-import '@fontsource/fredoka/400.css';
-import '@fontsource/fredoka/600.css';
-import '@fontsource/lilita-one/400.css';
+import './ui/fonts.css';
 import './ui/styles.css';
 import * as THREE from 'three';
 import { GameLoop } from './core/GameLoop';
