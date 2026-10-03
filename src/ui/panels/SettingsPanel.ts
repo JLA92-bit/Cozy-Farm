@@ -6,6 +6,7 @@ import { audio, haptics } from '../../systems/Audio';
 import { saves } from '../../systems/Save';
 import { game } from '../../systems/Game';
 import type { Quality } from '../../core/Renderer';
+import type { SaveData } from '../../systems/State';
 import credits from '../../../CREDITS.md?raw';
 
 function row(label: string, control: HTMLElement): HTMLElement {
@@ -54,9 +55,11 @@ export function openSettings(): void {
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files?.[0];
+    fileInput.value = ''; // so picking the same file again still fires 'change'
     if (!f) return;
-    const err = await saves.importFile(f);
-    if (err) ui.feedback.toast('Import failed', err, 'cross');
+    const r = await saves.readFile(f);
+    if ('error' in r) { ui.feedback.toast('Import failed', r.error, 'cross'); return; }
+    confirmImport(r.data);
   });
   p.body.append(fileInput, h('div', { class: 'section-title' }, 'Your farm'), h('div', { class: 'chip-row', style: 'justify-content:flex-start' },
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
@@ -64,6 +67,20 @@ export function openSettings(): void {
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
   ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave. No real-money purchases, ever.'));
+  p.open();
+}
+
+function confirmImport(data: SaveData): void {
+  const p = new Panel({ title: 'Load this farm?', size: 'small', color: 'blue', icon: 'unlock' });
+  const pl = data.player;
+  p.body.append(
+    h('div', { class: 'center', style: 'margin-bottom:8px' }, `${pl.name}'s farm - level ${pl.level}, ${pl.coins.toLocaleString()} coins, ${data.buildings.length} buildings.`),
+    h('div', { class: 'center muted' }, 'Your current farm is kept as a backup.'),
+  );
+  p.footer.append(button('Cancel', () => p.close(), 'grey'), button('Load farm', () => {
+    const err = saves.applyImport(data);
+    if (err) { p.close(); ui.feedback.toast('Import failed', err, 'cross'); }
+  }, 'blue'));
   p.open();
 }
 
