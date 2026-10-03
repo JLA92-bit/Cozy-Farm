@@ -85,3 +85,32 @@ export function priceTag(coins: number, gems = 0, tokens?: { n: number; icon: st
 
 /** Hooks the UI manager fills in (sound on press etc.). */
 export const uiHooks: { press?: () => void } = {};
+
+/** innerHTML with live values (timers, progress) blanked, to detect real content changes. */
+function structure(el: HTMLElement): string {
+  const c = el.cloneNode(true) as HTMLElement;
+  c.querySelectorAll('.timer-tag, .progress .label, .live').forEach((e) => { e.textContent = ''; });
+  c.querySelectorAll('.progress .fill').forEach((e) => { (e as HTMLElement).style.width = ''; });
+  c.querySelectorAll('img').forEach((e) => e.removeAttribute('src')); // thumbnails load asynchronously
+  return c.innerHTML;
+}
+
+/**
+ * Re-render panel containers periodically without replacing DOM under the player's finger:
+ * if only timers/progress changed, the old nodes stay and just their live values are updated.
+ */
+export function stableRefresh(containers: HTMLElement[], render: () => void): void {
+  const old = containers.map((c) => ({ c, nodes: [...c.childNodes], sig: structure(c), display: c.style.display }));
+  render();
+  const same = old.every((o) => structure(o.c) === o.sig);
+  if (!same) return;
+  for (const o of old) {
+    const fresh = o.c;
+    const timers = [...fresh.querySelectorAll('.timer-tag, .progress .label, .live')].map((e) => e.textContent);
+    const fills = [...fresh.querySelectorAll('.progress .fill')].map((e) => (e as HTMLElement).style.width);
+    fresh.replaceChildren(...o.nodes);
+    fresh.style.display = o.display;
+    fresh.querySelectorAll('.timer-tag, .progress .label, .live').forEach((e, i) => { if (timers[i] !== undefined) e.textContent = timers[i]; });
+    fresh.querySelectorAll('.progress .fill').forEach((e, i) => { if (fills[i] !== undefined) (e as HTMLElement).style.width = fills[i]; });
+  }
+}

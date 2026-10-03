@@ -1,45 +1,465 @@
 {
-  "_comment": "Production recipes. sec = real seconds. out = number of output items.",
-  "recipes": [
-    { "id": "chicken_feed", "building": "feed_mill", "level": 2, "in": { "wheat": 2, "corn": 1 }, "item": "chicken_feed", "out": 3, "sec": 60, "xp": 2 },
-    { "id": "cow_feed", "building": "feed_mill", "level": 6, "in": { "corn": 2, "carrot": 1 }, "item": "cow_feed", "out": 3, "sec": 240, "xp": 3 },
-    { "id": "sheep_feed", "building": "feed_mill", "level": 9, "in": { "wheat": 2, "turnip": 2 }, "item": "sheep_feed", "out": 3, "sec": 480, "xp": 4 },
-    { "id": "pig_feed", "building": "feed_mill", "level": 13, "in": { "carrot": 2, "sugarcane": 1 }, "item": "pig_feed", "out": 3, "sec": 720, "xp": 5 },
-    { "id": "goat_feed", "building": "feed_mill", "level": 17, "in": { "corn": 2, "cabbage": 1 }, "item": "goat_feed", "out": 3, "sec": 960, "xp": 6 },
-
-    { "id": "bread", "building": "bakery", "level": 4, "in": { "wheat": 3 }, "item": "bread", "out": 1, "sec": 240, "xp": 4 },
-    { "id": "corn_bread", "building": "bakery", "level": 8, "in": { "corn": 2, "egg": 2 }, "item": "corn_bread", "out": 1, "sec": 900, "xp": 8 },
-    { "id": "cookie", "building": "bakery", "level": 11, "in": { "wheat": 2, "egg": 1, "sugar": 1 }, "item": "cookie", "out": 1, "sec": 1200, "xp": 10 },
-    { "id": "carrot_cake", "building": "bakery", "level": 15, "in": { "carrot": 3, "egg": 2, "sugar": 1 }, "item": "carrot_cake", "out": 1, "sec": 2400, "xp": 15 },
-    { "id": "pancakes", "building": "bakery", "level": 18, "in": { "wheat": 2, "egg": 1, "milk": 1, "syrup": 1 }, "item": "pancakes", "out": 1, "sec": 3000, "xp": 20 },
-    { "id": "strawberry_cake", "building": "bakery", "level": 22, "in": { "strawberry": 3, "cream": 2, "bread": 1 }, "item": "strawberry_cake", "out": 1, "sec": 3600, "xp": 26 },
-    { "id": "pumpkin_pie", "building": "bakery", "level": 25, "in": { "pumpkin": 2, "egg": 1, "butter": 1, "sugar": 1 }, "item": "pumpkin_pie", "out": 1, "sec": 4200, "xp": 27 },
-    { "id": "apple_pie", "building": "bakery", "level": 28, "in": { "apple": 3, "butter": 1, "wheat": 2 }, "item": "apple_pie", "out": 1, "sec": 3600, "xp": 23 },
-    { "id": "cherry_pie", "building": "bakery", "level": 32, "in": { "cherry": 3, "butter": 1, "sugar": 1 }, "item": "cherry_pie", "out": 1, "sec": 4800, "xp": 31 },
-
-    { "id": "sugar", "building": "sugar_mill", "level": 5, "in": { "sugarcane": 2 }, "item": "sugar", "out": 1, "sec": 420, "xp": 4 },
-    { "id": "syrup", "building": "sugar_mill", "level": 16, "in": { "sugarcane": 3, "sugar": 1 }, "item": "syrup", "out": 1, "sec": 1500, "xp": 11 },
-    { "id": "caramel", "building": "sugar_mill", "level": 24, "in": { "sugar": 2, "milk": 2 }, "item": "caramel", "out": 1, "sec": 2700, "xp": 19 },
-
-    { "id": "cream", "building": "dairy", "level": 7, "in": { "milk": 1 }, "item": "cream", "out": 1, "sec": 600, "xp": 5 },
-    { "id": "butter", "building": "dairy", "level": 10, "in": { "milk": 2 }, "item": "butter", "out": 1, "sec": 1200, "xp": 9 },
-    { "id": "cheese", "building": "dairy", "level": 14, "in": { "milk": 3 }, "item": "cheese", "out": 1, "sec": 2400, "xp": 14 },
-    { "id": "goat_cheese", "building": "dairy", "level": 20, "in": { "goat_milk": 2 }, "item": "goat_cheese", "out": 1, "sec": 3600, "xp": 24 },
-    { "id": "ice_cream", "building": "dairy", "level": 27, "in": { "cream": 1, "sugar": 1, "strawberry": 1 }, "item": "ice_cream", "out": 1, "sec": 2400, "xp": 16 },
-
-    { "id": "yarn", "building": "loom", "level": 10, "in": { "wool": 2 }, "item": "yarn", "out": 1, "sec": 1800, "xp": 14 },
-    { "id": "cotton_fabric", "building": "loom", "level": 11, "in": { "cotton": 3 }, "item": "cotton_fabric", "out": 1, "sec": 1200, "xp": 8 },
-    { "id": "scarf", "building": "loom", "level": 19, "in": { "yarn": 1, "cotton_fabric": 1 }, "item": "scarf", "out": 1, "sec": 3600, "xp": 32 },
-    { "id": "sweater", "building": "loom", "level": 26, "in": { "yarn": 2, "cotton_fabric": 1 }, "item": "sweater", "out": 1, "sec": 5400, "xp": 52 },
-    { "id": "socks", "building": "loom", "level": 34, "in": { "yarn": 3, "cotton_fabric": 2 }, "item": "socks", "out": 1, "sec": 7200, "xp": 80 },
-
-    { "id": "strawberry_jam", "building": "jam_kitchen", "level": 12, "in": { "strawberry": 3, "sugar": 1 }, "item": "strawberry_jam", "out": 1, "sec": 1800, "xp": 14 },
-    { "id": "apple_jam", "building": "jam_kitchen", "level": 17, "in": { "apple": 3, "sugar": 1 }, "item": "apple_jam", "out": 1, "sec": 1800, "xp": 14 },
-    { "id": "tomato_sauce", "building": "jam_kitchen", "level": 21, "in": { "tomato": 4, "onion": 1, "sugar": 1 }, "item": "tomato_sauce", "out": 1, "sec": 2400, "xp": 19 },
-    { "id": "grape_jam", "building": "jam_kitchen", "level": 23, "in": { "grapes": 3, "sugar": 1 }, "item": "grape_jam", "out": 1, "sec": 2700, "xp": 22 },
-    { "id": "cherry_jam", "building": "jam_kitchen", "level": 30, "in": { "cherry": 3, "sugar": 1 }, "item": "cherry_jam", "out": 1, "sec": 2400, "xp": 19 },
-    { "id": "orange_marmalade", "building": "jam_kitchen", "level": 31, "in": { "orange": 3, "lemon": 1, "sugar": 1 }, "item": "orange_marmalade", "out": 1, "sec": 4800, "xp": 38 },
-    { "id": "pickled_beets", "building": "jam_kitchen", "level": 36, "in": { "beet": 3, "sugar": 1 }, "item": "pickled_beets", "out": 1, "sec": 3600, "xp": 26 },
-    { "id": "salsa", "building": "jam_kitchen", "level": 38, "in": { "tomato": 2, "pepper": 2, "onion": 1 }, "item": "salsa", "out": 1, "sec": 3600, "xp": 30 }
-  ]
+ "_comment": "Production recipes. sec = real seconds. out = number of output items.",
+ "recipes": [
+  {
+   "id": "chicken_feed",
+   "building": "feed_mill",
+   "level": 2,
+   "in": {
+    "wheat": 2,
+    "corn": 1
+   },
+   "item": "chicken_feed",
+   "out": 3,
+   "sec": 60,
+   "xp": 3
+  },
+  {
+   "id": "cow_feed",
+   "building": "feed_mill",
+   "level": 6,
+   "in": {
+    "corn": 2,
+    "carrot": 1
+   },
+   "item": "cow_feed",
+   "out": 3,
+   "sec": 240,
+   "xp": 4
+  },
+  {
+   "id": "sheep_feed",
+   "building": "feed_mill",
+   "level": 9,
+   "in": {
+    "wheat": 2,
+    "turnip": 2
+   },
+   "item": "sheep_feed",
+   "out": 3,
+   "sec": 480,
+   "xp": 5
+  },
+  {
+   "id": "pig_feed",
+   "building": "feed_mill",
+   "level": 13,
+   "in": {
+    "carrot": 2,
+    "sugarcane": 1
+   },
+   "item": "pig_feed",
+   "out": 3,
+   "sec": 720,
+   "xp": 6
+  },
+  {
+   "id": "goat_feed",
+   "building": "feed_mill",
+   "level": 17,
+   "in": {
+    "corn": 2,
+    "cabbage": 1
+   },
+   "item": "goat_feed",
+   "out": 3,
+   "sec": 960,
+   "xp": 8
+  },
+  {
+   "id": "bread",
+   "building": "bakery",
+   "level": 4,
+   "in": {
+    "wheat": 3
+   },
+   "item": "bread",
+   "out": 1,
+   "sec": 240,
+   "xp": 5
+  },
+  {
+   "id": "corn_bread",
+   "building": "bakery",
+   "level": 8,
+   "in": {
+    "corn": 2,
+    "egg": 2
+   },
+   "item": "corn_bread",
+   "out": 1,
+   "sec": 900,
+   "xp": 10
+  },
+  {
+   "id": "cookie",
+   "building": "bakery",
+   "level": 11,
+   "in": {
+    "wheat": 2,
+    "egg": 1,
+    "sugar": 1
+   },
+   "item": "cookie",
+   "out": 1,
+   "sec": 1200,
+   "xp": 13
+  },
+  {
+   "id": "carrot_cake",
+   "building": "bakery",
+   "level": 15,
+   "in": {
+    "carrot": 3,
+    "egg": 2,
+    "sugar": 1
+   },
+   "item": "carrot_cake",
+   "out": 1,
+   "sec": 2400,
+   "xp": 20
+  },
+  {
+   "id": "pancakes",
+   "building": "bakery",
+   "level": 18,
+   "in": {
+    "wheat": 2,
+    "egg": 1,
+    "milk": 1,
+    "syrup": 1
+   },
+   "item": "pancakes",
+   "out": 1,
+   "sec": 3000,
+   "xp": 26
+  },
+  {
+   "id": "strawberry_cake",
+   "building": "bakery",
+   "level": 22,
+   "in": {
+    "strawberry": 3,
+    "cream": 2,
+    "bread": 1
+   },
+   "item": "strawberry_cake",
+   "out": 1,
+   "sec": 3600,
+   "xp": 34
+  },
+  {
+   "id": "pumpkin_pie",
+   "building": "bakery",
+   "level": 25,
+   "in": {
+    "pumpkin": 2,
+    "egg": 1,
+    "butter": 1,
+    "sugar": 1
+   },
+   "item": "pumpkin_pie",
+   "out": 1,
+   "sec": 4200,
+   "xp": 35
+  },
+  {
+   "id": "apple_pie",
+   "building": "bakery",
+   "level": 28,
+   "in": {
+    "apple": 3,
+    "butter": 1,
+    "wheat": 2
+   },
+   "item": "apple_pie",
+   "out": 1,
+   "sec": 3600,
+   "xp": 30
+  },
+  {
+   "id": "cherry_pie",
+   "building": "bakery",
+   "level": 32,
+   "in": {
+    "cherry": 3,
+    "butter": 1,
+    "sugar": 1
+   },
+   "item": "cherry_pie",
+   "out": 1,
+   "sec": 4800,
+   "xp": 40
+  },
+  {
+   "id": "sugar",
+   "building": "sugar_mill",
+   "level": 5,
+   "in": {
+    "sugarcane": 2
+   },
+   "item": "sugar",
+   "out": 1,
+   "sec": 420,
+   "xp": 5
+  },
+  {
+   "id": "syrup",
+   "building": "sugar_mill",
+   "level": 16,
+   "in": {
+    "sugarcane": 3,
+    "sugar": 1
+   },
+   "item": "syrup",
+   "out": 1,
+   "sec": 1500,
+   "xp": 14
+  },
+  {
+   "id": "caramel",
+   "building": "sugar_mill",
+   "level": 24,
+   "in": {
+    "sugar": 2,
+    "milk": 2
+   },
+   "item": "caramel",
+   "out": 1,
+   "sec": 2700,
+   "xp": 25
+  },
+  {
+   "id": "cream",
+   "building": "dairy",
+   "level": 7,
+   "in": {
+    "milk": 1
+   },
+   "item": "cream",
+   "out": 1,
+   "sec": 600,
+   "xp": 6
+  },
+  {
+   "id": "butter",
+   "building": "dairy",
+   "level": 10,
+   "in": {
+    "milk": 2
+   },
+   "item": "butter",
+   "out": 1,
+   "sec": 1200,
+   "xp": 12
+  },
+  {
+   "id": "cheese",
+   "building": "dairy",
+   "level": 14,
+   "in": {
+    "milk": 3
+   },
+   "item": "cheese",
+   "out": 1,
+   "sec": 2400,
+   "xp": 18
+  },
+  {
+   "id": "goat_cheese",
+   "building": "dairy",
+   "level": 20,
+   "in": {
+    "goat_milk": 2
+   },
+   "item": "goat_cheese",
+   "out": 1,
+   "sec": 3600,
+   "xp": 31
+  },
+  {
+   "id": "ice_cream",
+   "building": "dairy",
+   "level": 27,
+   "in": {
+    "cream": 1,
+    "sugar": 1,
+    "strawberry": 1
+   },
+   "item": "ice_cream",
+   "out": 1,
+   "sec": 2400,
+   "xp": 21
+  },
+  {
+   "id": "yarn",
+   "building": "loom",
+   "level": 10,
+   "in": {
+    "wool": 2
+   },
+   "item": "yarn",
+   "out": 1,
+   "sec": 1800,
+   "xp": 18
+  },
+  {
+   "id": "cotton_fabric",
+   "building": "loom",
+   "level": 11,
+   "in": {
+    "cotton": 3
+   },
+   "item": "cotton_fabric",
+   "out": 1,
+   "sec": 1200,
+   "xp": 10
+  },
+  {
+   "id": "scarf",
+   "building": "loom",
+   "level": 19,
+   "in": {
+    "yarn": 1,
+    "cotton_fabric": 1
+   },
+   "item": "scarf",
+   "out": 1,
+   "sec": 3600,
+   "xp": 42
+  },
+  {
+   "id": "sweater",
+   "building": "loom",
+   "level": 26,
+   "in": {
+    "yarn": 2,
+    "cotton_fabric": 1
+   },
+   "item": "sweater",
+   "out": 1,
+   "sec": 5400,
+   "xp": 68
+  },
+  {
+   "id": "socks",
+   "building": "loom",
+   "level": 34,
+   "in": {
+    "yarn": 3,
+    "cotton_fabric": 2
+   },
+   "item": "socks",
+   "out": 1,
+   "sec": 7200,
+   "xp": 104
+  },
+  {
+   "id": "strawberry_jam",
+   "building": "jam_kitchen",
+   "level": 12,
+   "in": {
+    "strawberry": 3,
+    "sugar": 1
+   },
+   "item": "strawberry_jam",
+   "out": 1,
+   "sec": 1800,
+   "xp": 18
+  },
+  {
+   "id": "apple_jam",
+   "building": "jam_kitchen",
+   "level": 17,
+   "in": {
+    "apple": 3,
+    "sugar": 1
+   },
+   "item": "apple_jam",
+   "out": 1,
+   "sec": 1800,
+   "xp": 18
+  },
+  {
+   "id": "tomato_sauce",
+   "building": "jam_kitchen",
+   "level": 21,
+   "in": {
+    "tomato": 4,
+    "onion": 1,
+    "sugar": 1
+   },
+   "item": "tomato_sauce",
+   "out": 1,
+   "sec": 2400,
+   "xp": 25
+  },
+  {
+   "id": "grape_jam",
+   "building": "jam_kitchen",
+   "level": 23,
+   "in": {
+    "grapes": 3,
+    "sugar": 1
+   },
+   "item": "grape_jam",
+   "out": 1,
+   "sec": 2700,
+   "xp": 29
+  },
+  {
+   "id": "cherry_jam",
+   "building": "jam_kitchen",
+   "level": 30,
+   "in": {
+    "cherry": 3,
+    "sugar": 1
+   },
+   "item": "cherry_jam",
+   "out": 1,
+   "sec": 2400,
+   "xp": 25
+  },
+  {
+   "id": "orange_marmalade",
+   "building": "jam_kitchen",
+   "level": 31,
+   "in": {
+    "orange": 3,
+    "lemon": 1,
+    "sugar": 1
+   },
+   "item": "orange_marmalade",
+   "out": 1,
+   "sec": 4800,
+   "xp": 49
+  },
+  {
+   "id": "pickled_beets",
+   "building": "jam_kitchen",
+   "level": 36,
+   "in": {
+    "beet": 3,
+    "sugar": 1
+   },
+   "item": "pickled_beets",
+   "out": 1,
+   "sec": 3600,
+   "xp": 34
+  },
+  {
+   "id": "salsa",
+   "building": "jam_kitchen",
+   "level": 38,
+   "in": {
+    "tomato": 2,
+    "pepper": 2,
+    "onion": 1
+   },
+   "item": "salsa",
+   "out": 1,
+   "sec": 3600,
+   "xp": 39
+  }
+ ]
 }

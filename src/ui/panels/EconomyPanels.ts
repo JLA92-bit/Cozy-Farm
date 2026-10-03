@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, priceTag, fmt } from '../dom';
+import { h, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, ECONOMY } from '../../data';
 import { game } from '../../systems/Game';
@@ -63,7 +63,7 @@ export function openOrders(): void {
     p.body.append(grid);
   };
   render();
-  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else render(); }, 1000);
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body, p.footer], render); }, 1000);
   p.open();
 }
 
@@ -103,7 +103,7 @@ export function openTruck(): void {
     }, truck.complete ? 'yellow' : 'disabled'));
   };
   render();
-  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else render(); }, 1000);
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body, p.footer], render); }, 1000);
   p.open();
 }
 
@@ -173,7 +173,7 @@ export function openStall(): void {
     upd();
   };
   render();
-  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else if (picking === null) render(); }, 2000);
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else if (picking === null) stableRefresh([p.body, p.footer], render); }, 2000);
   p.open();
 }
 
@@ -240,13 +240,13 @@ ui.register('merchant', () => openMerchant());
 
 ui.onBuildingTap((b: PlacedBuilding) => {
   if (!isBuilt(b, game.now())) return false;
-  if (b.type === 'order_board') { openOrders(); return true; }
-  if (b.type === 'truck_depot') { openTruck(); return true; }
+  if (b.type === 'order_board') { ui.open('orders'); return true; }
+  if (b.type === 'truck_depot') { ui.open('truck'); return true; }
   if (b.type === 'roadside_stall') {
     // collect every sale in one tap, else open the stall
     let coins = 0;
     stall.ensureSlots().forEach((s, i) => { if (stall.sold(s)) coins += stall.collect(i, anchorOf('roadside_stall')); });
-    if (!coins) openStall();
+    if (!coins) ui.open('stall');
     return true;
   }
   return false;

@@ -89,4 +89,4 @@ function renderStored(p: Panel): void {
 }
 
 ui.register('inventory', (tab) => openInventory(tab as string | undefined));
-ui.onBuildingTap((b) => { if (b.type !== 'barn') return false; openInventory(); return true; });
+ui.onBuildingTap((b) => { if (b.type !== 'barn') return false; ui.open('inventory'); return true; });

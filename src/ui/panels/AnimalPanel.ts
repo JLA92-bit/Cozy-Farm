@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, priceTag } from '../dom';
+import { h, icon, itemIcon, button, clear, priceTag, stableRefresh } from '../dom';
 import { ui } from '../UI';
 import { ANIMAL, BUILDING, ITEMS } from '../../data';
 import { game } from '../../systems/Game';
@@ -27,7 +27,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
     list.forEach((_, i) => {
       const st = animalState(b, i, now);
       const label = st === 'hungry' ? 'Hungry' : st === 'ready' ? 'Ready!' : formatTime(animalReadyAt(b, i) - now);
-      grid.append(h('div', { class: `card ${st === 'ready' ? 'done' : ''}` }, icon(`model:${a.model}`, 'card-icon'), h('div', { class: 'card-sub' }, label),
+      grid.append(h('div', { class: `card ${st === 'ready' ? 'done' : ''}` }, icon(`model:${a.model}`, 'card-icon'), h('div', { class: 'card-sub live' }, label),
         st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null));
     });
     for (let i = list.length; i < cap; i++) {
@@ -50,7 +50,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
     render();
   };
   render();
-  const timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else render(); }, 1000);
+  const timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body, p.footer], render); }, 1000);
   p.open();
 }
 

@@ -30,6 +30,7 @@
     { "color": "#ff8c3a", "unlock": { "level": 21 } },
     { "color": "#1f4e9c", "unlock": { "level": 28 } },
     { "color": "#ffb820", "name": "Gold", "unlock": { "level": 41 } },
+    { "color": "#6a2fb0", "name": "Royal Purple", "unlock": { "level": 49 } },
     { "color": "#d4f2ff", "name": "Frost", "unlock": { "event": "winter_wonderland", "cost": 30 } },
     { "color": "#c0582b", "name": "Autumn Rust", "unlock": { "event": "harvest_festival", "cost": 25 } }
   ],

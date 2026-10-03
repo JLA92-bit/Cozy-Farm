@@ -1,16 +1,78 @@
 {
-  "_comment": "Animals live in their housing building. cost grows by costGrowth per animal already owned of that type. produceSec = time from feeding to product ready.",
-  "costGrowth": 0.25,
-  "animals": [
-    { "id": "chicken", "name": "Chicken", "level": 2, "house": "coop", "cost": 40, "feed": "chicken_feed", "product": "egg", "produceSec": 300, "xp": 2,
-      "model": "pet/chick", "scale": 0.42, "sound": "chicken" },
-    { "id": "cow", "name": "Cow", "level": 6, "house": "cow_pasture", "cost": 250, "feed": "cow_feed", "product": "milk", "produceSec": 1200, "xp": 4,
-      "model": "pet/cow", "scale": 0.62, "sound": "cow" },
-    { "id": "sheep", "name": "Sheep", "level": 9, "house": "sheep_pen", "cost": 500, "feed": "sheep_feed", "product": "wool", "produceSec": 2400, "xp": 6,
-      "model": "pet/polar", "scale": 0.55, "sound": "sheep", "variant": "sheep" },
-    { "id": "pig", "name": "Pig", "level": 13, "house": "pig_pen", "cost": 800, "feed": "pig_feed", "product": "truffle", "produceSec": 3600, "xp": 8,
-      "model": "pet/pig", "scale": 0.55, "sound": "pig" },
-    { "id": "goat", "name": "Goat", "level": 17, "house": "goat_pen", "cost": 1100, "feed": "goat_feed", "product": "goat_milk", "produceSec": 4800, "xp": 10,
-      "model": "pet/deer", "scale": 0.55, "sound": "goat", "variant": "goat" }
-  ]
+ "_comment": "Animals live in their housing building. cost grows by costGrowth per animal already owned of that type. produceSec = time from feeding to product ready.",
+ "costGrowth": 0.25,
+ "animals": [
+  {
+   "id": "chicken",
+   "name": "Chicken",
+   "level": 2,
+   "house": "coop",
+   "cost": 40,
+   "feed": "chicken_feed",
+   "product": "egg",
+   "produceSec": 300,
+   "xp": 3,
+   "model": "pet/chick",
+   "scale": 0.42,
+   "sound": "chicken"
+  },
+  {
+   "id": "cow",
+   "name": "Cow",
+   "level": 6,
+   "house": "cow_pasture",
+   "cost": 250,
+   "feed": "cow_feed",
+   "product": "milk",
+   "produceSec": 1200,
+   "xp": 6,
+   "model": "pet/cow",
+   "scale": 0.62,
+   "sound": "cow"
+  },
+  {
+   "id": "sheep",
+   "name": "Sheep",
+   "level": 9,
+   "house": "sheep_pen",
+   "cost": 500,
+   "feed": "sheep_feed",
+   "product": "wool",
+   "produceSec": 2400,
+   "xp": 9,
+   "model": "pet/polar",
+   "scale": 0.55,
+   "sound": "sheep",
+   "variant": "sheep"
+  },
+  {
+   "id": "pig",
+   "name": "Pig",
+   "level": 13,
+   "house": "pig_pen",
+   "cost": 800,
+   "feed": "pig_feed",
+   "product": "truffle",
+   "produceSec": 3600,
+   "xp": 12,
+   "model": "pet/pig",
+   "scale": 0.55,
+   "sound": "pig"
+  },
+  {
+   "id": "goat",
+   "name": "Goat",
+   "level": 17,
+   "house": "goat_pen",
+   "cost": 1100,
+   "feed": "goat_feed",
+   "product": "goat_milk",
+   "produceSec": 4800,
+   "xp": 15,
+   "model": "pet/deer",
+   "scale": 0.55,
+   "sound": "goat",
+   "variant": "goat"
+  }
+ ]
 }

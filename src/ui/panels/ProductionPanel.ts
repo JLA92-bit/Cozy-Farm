@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, priceTag } from '../dom';
+import { h, icon, itemIcon, button, clear, priceTag, stableRefresh } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, RECIPE } from '../../data';
 import { game } from '../../systems/Game';
@@ -90,7 +90,7 @@ export function openProduction(b: PlacedBuilding): void {
   if (!isBuilt(b, game.now())) detail.textContent = 'Still under construction.';
   renderQueue();
   renderRecipes();
-  timer = window.setInterval(() => { if (!p.overlay.isConnected) { clearInterval(timer); return; } renderQueue(); }, 1000);
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) { clearInterval(timer); return; } stableRefresh([queueEl], renderQueue); }, 1000);
   p.footer.append(
     button(['Upgrade', icon('hammer')], () => { p.close(); ui.buildingPopup(b); }, 'small yellow'),
     button('Move', () => { p.close(); void ui.interaction.startMove(b.uid, false); }, 'small blue'),
