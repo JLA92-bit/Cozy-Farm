@@ -33,9 +33,36 @@ import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 
 function setProgress(f: number, text?: string): void {
+  const pct = `${Math.round(f * 100)}%`;
   const fill = document.querySelector<HTMLElement>('.boot-fill');
-  if (fill) fill.style.width = `${Math.round(f * 100)}%`;
+  if (fill) fill.style.width = pct;
+  const runner = document.querySelector<HTMLElement>('.boot-runner');
+  if (runner) runner.style.left = pct;
   if (text) { const tip = document.querySelector('.boot-tip'); if (tip) tip.textContent = text; }
+}
+
+/** Friendly tips that rotate on the loading screen. */
+const BOOT_HINTS = [
+  'Swipe across fields to plant or harvest lots at once.',
+  'Orders on the Order Board pay the most coins.',
+  'Your farm keeps growing while you are away.',
+  'Not sure what to do? Tap the goal card at the top.',
+  'Decorations add Charm, and Charm makes crops grow faster.',
+  'Pinch to zoom and drag to look around your farm.',
+  'Press and hold a building to move it.',
+];
+
+function startHints(): () => void {
+  const el = document.querySelector<HTMLElement>('.boot-hint');
+  if (!el) return () => {};
+  let i = Math.floor(Math.random() * BOOT_HINTS.length);
+  el.textContent = BOOT_HINTS[i];
+  const id = window.setInterval(() => {
+    if (document.querySelector('.boot-retry')) { clearInterval(id); return; } // loading failed: keep the error text
+    el.classList.add('fade');
+    setTimeout(() => { i = (i + 1) % BOOT_HINTS.length; el.textContent = BOOT_HINTS[i]; el.classList.remove('fade'); }, 300);
+  }, 3200);
+  return () => clearInterval(id);
 }
 
 /** Every model needed to draw the farm immediately. Others (characters, food) load on demand. */
@@ -60,6 +87,7 @@ export let interaction: Interaction;
 export const afterBoot: (() => void)[] = [];
 
 export async function boot(): Promise<void> {
+  const stopHints = startHints();
   setProgress(0.05, 'Loading the farm...');
   await assets.loadManifest();
   await assets.loadAtlases();
@@ -116,7 +144,7 @@ export async function boot(): Promise<void> {
   if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
   else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
-  setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
+  setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 
 /** Level-ups, goal card, side shortcuts, level badge taps. */

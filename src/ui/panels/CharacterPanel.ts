@@ -98,6 +98,13 @@ class Preview {
 /** Which pre-made avatar a look is based on (by body model). */
 const avatarOf = (look: CharacterLook) => COSMETICS.avatars.find((a) => a.body === look.body) ?? COSMETICS.avatars[0];
 
+/** Cozy suggestions for the random name button. */
+const FARMER_NAMES = ['Clover', 'Maple', 'Juniper', 'Rowan', 'Hazel', 'Basil', 'Poppy', 'Willow', 'Sage', 'Bramble', 'Fern', 'Olive', 'Barley', 'Pip', 'Daisy', 'Robin', 'Marigold', 'Finn', 'Wren', 'Honey', 'Ash', 'Bean', 'Teddy', 'Mo'];
+
+function popIn(el: HTMLElement): void {
+  el.animate([{ transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+}
+
 export function openCharacter(firstTime = false): void {
   const look: CharacterLook = { ...game.state.player.look };
   let name = game.state.player.name;
@@ -159,11 +166,19 @@ export function openCharacter(firstTime = false): void {
   const render = (tab: string) => {
     clear(options);
     if (tab === 'avatar') {
-      section('Name');
-      const input = h('input', { class: 'name-input', maxlength: '16', value: name, placeholder: 'Your name' }) as HTMLInputElement;
+      const input = h('input', { class: 'name-input', maxlength: '16', value: name, placeholder: 'Your name', 'aria-label': 'Your name', enterkeyhint: 'done', autocomplete: 'off', spellcheck: 'false' }) as HTMLInputElement;
       input.addEventListener('input', () => { name = input.value; });
       input.addEventListener('pointerdown', (e) => e.stopPropagation());
-      options.append(input);
+      // the default name is a placeholder: typing replaces it instead of adding to it
+      input.addEventListener('focus', () => { if (input.value === 'Farmer') input.select(); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+      const dice = button(icon('sparkles'), () => {
+        let n = name;
+        while (n === name) n = FARMER_NAMES[Math.floor(Math.random() * FARMER_NAMES.length)];
+        name = input.value = n;
+        popIn(input);
+        audio.play('select', { volume: 0.5 });
+      }, 'small blue name-dice', { 'aria-label': 'Suggest a name' });
       const seg = h('div', { class: 'segmented gender' });
       for (const g of ['female', 'male'] as const) {
         const b = h('button', { class: gender === g ? 'active' : '' }, g === 'female' ? 'Female' : 'Male');
@@ -176,8 +191,9 @@ export function openCharacter(firstTime = false): void {
         });
         seg.append(b);
       }
-      section('Choose your farmer');
-      options.append(seg);
+      options.append(h('div', { class: 'creator-head' },
+        h('div', null, h('div', { class: 'section-title' }, 'Your name'), h('div', { class: 'name-row' }, input, dice)),
+        h('div', null, h('div', { class: 'section-title' }, 'Choose your farmer'), seg)));
       const grid = h('div', { class: 'avatar-grid' });
       for (const a of COSMETICS.avatars.filter((x) => x.gender === gender)) {
         const card = h('button', { class: `avatar-card ${look.body === a.body ? 'selected' : ''}`, 'aria-label': a.name }, icon(`avatar:${a.id}`, 'avatar-img'), h('span', {}, a.name));
@@ -185,6 +201,7 @@ export function openCharacter(firstTime = false): void {
         grid.append(card);
       }
       options.append(grid);
+      if (firstTime) options.append(h('div', { class: 'muted center creator-note' }, 'You can change your look any time at your farmhouse.'));
     } else if (tab === 'colours') {
       const lockOf = (c: string) => { const o = COSMETICS.outfitColors.find((x) => x.color === c)!; return cosmeticUnlocked(`color:${c}`, o.unlock) ? null : unlockText(o.unlock); };
       section('Skin');

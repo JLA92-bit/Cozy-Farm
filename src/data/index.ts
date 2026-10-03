@@ -48,7 +48,7 @@ export interface EventDef {
   id: string; name: string; start: string; end: string; token: string; icon: string; color: string; blurb: string;
   quests: { text: string; stat: string; n: number; reward: { tokens?: number; coins?: number; gems?: number; crate?: string } }[];
 }
-export interface TutorialStep { id: string; text: string; target: string; wait: string }
+export interface TutorialStep { id: string; text: string; target: string; wait: string; skip?: string; button?: string }
 
 export const CROPS: CropDef[] = cropsJson.crops as CropDef[];
 export const TREES: TreeDef[] = cropsJson.trees as TreeDef[];
