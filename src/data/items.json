@@ -244,7 +244,7 @@
   "pancakes": {
    "name": "Pancakes",
    "cat": "goods",
-   "sell": 240,
+   "sell": 300,
    "icon": "pancakes"
   },
   "strawberry_cake": {
@@ -256,19 +256,19 @@
   "pumpkin_pie": {
    "name": "Pumpkin Pie",
    "cat": "goods",
-   "sell": 350,
+   "sell": 385,
    "icon": "pie"
   },
   "apple_pie": {
    "name": "Apple Pie",
    "cat": "goods",
-   "sell": 290,
+   "sell": 315,
    "icon": "model:food/pie"
   },
   "cherry_pie": {
    "name": "Cherry Tart",
    "cat": "goods",
-   "sell": 400,
+   "sell": 440,
    "icon": "model:food/muffin"
   },
   "sugar": {

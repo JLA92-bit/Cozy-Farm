@@ -132,7 +132,7 @@
    "item": "pancakes",
    "out": 1,
    "sec": 3000,
-   "xp": 26
+   "xp": 30
   },
   {
    "id": "strawberry_cake",
@@ -161,7 +161,7 @@
    "item": "pumpkin_pie",
    "out": 1,
    "sec": 4200,
-   "xp": 35
+   "xp": 38
   },
   {
    "id": "apple_pie",
@@ -175,7 +175,7 @@
    "item": "apple_pie",
    "out": 1,
    "sec": 3600,
-   "xp": 30
+   "xp": 31
   },
   {
    "id": "cherry_pie",
@@ -189,7 +189,7 @@
    "item": "cherry_pie",
    "out": 1,
    "sec": 4800,
-   "xp": 40
+   "xp": 44
   },
   {
    "id": "sugar",

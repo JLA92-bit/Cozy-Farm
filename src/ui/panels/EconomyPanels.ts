@@ -1,17 +1,20 @@
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh } from '../dom';
+import { h, append, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, ECONOMY } from '../../data';
 import { game } from '../../systems/Game';
-import { orders, truck, stall, merchant, type MerchantOffer } from '../../systems/Economy';
+import { orders, truck, stall, merchant, requestedCount, type MerchantOffer } from '../../systems/Economy';
 import { audio, haptics } from '../../systems/Audio';
 import { formatTime, isBuilt } from '../../systems/Timers';
 import { addBubbleProvider } from '../Bubbles';
 import { sourceText } from './InventoryPanel';
 import { cosmeticUnlocked } from './CharacterPanel';
+import { goToSource } from './ProductionPanel';
 import type { PlacedBuilding } from '../../systems/State';
+import './economy.css';
 
 const NPC_ICONS = ['farmer', 'woman_farmer', 'man_farmer', 'chick', 'dog', 'cat', 'rabbit', 'farmer', 'woman_farmer', 'man_farmer', 'bee', 'smile'];
+const NPC_NAMES = ['Farmer Joe', 'Aunt May', 'Uncle Bo', 'Little Pip', 'Rusty', 'Miss Whiskers', 'Clover', 'Old Tom', 'Rosie', 'Hank', 'Buzzy', 'Sunny'];
 
 function anchorOf(type: string) {
   const b = game.buildingsOf(type)[0];
@@ -20,50 +23,98 @@ function anchorOf(type: string) {
   return { x: a.x, y: a.y, z: a.z };
 }
 
+/** Floating "+N" numbers and icons that arc from a panel element into the HUD counters. */
+function flyFrom(el: Element, r: { coins?: number; xp?: number; gems?: number }): void {
+  const b = el.getBoundingClientRect();
+  const x = b.left + b.width / 2, y = b.top + b.height / 2;
+  if (r.coins) { ui.feedback.reward(x, y - 10, 'coins', r.coins); ui.feedback.fly(x, y, 'coin', 'coins', Math.ceil(r.coins / 15)); }
+  if (r.xp) { ui.feedback.reward(x + 26, y - 40, 'xp', r.xp, undefined, 0.08); ui.feedback.fly(x, y, 'xp', 'xp', 1); }
+  if (r.gems) { ui.feedback.reward(x - 26, y - 40, 'gems', r.gems, undefined, 0.15); ui.feedback.fly(x, y, 'gem', 'gems', r.gems); }
+}
+
+/** A "have/need" pill; when short it becomes a tap target that shows where to get the item. */
+function needPill(item: string, have: number, need: number): HTMLElement {
+  const ok = have >= need;
+  return h('span', {
+    class: `pill ${ok ? 'enough' : 'short clickable'}`,
+    title: ok ? undefined : sourceText(item),
+    onclick: ok ? undefined : (e: MouseEvent) => { e.stopPropagation(); goToSource(item); },
+  }, `${Math.min(have, need)}/${need}`, ok ? null : icon('magnifier', 'icon tiny'));
+}
+
 // ======================================================================== orders
 export function openOrders(): void {
   orders.refresh();
   const p = new Panel({ title: 'Order Board', icon: 'clipboard', color: 'orange' });
   let timer = 0;
+  let confirmSkip = -1;
+  let skipTimer = 0;
   const render = () => {
     clear(p.body);
     const now = game.now();
-    const grid = h('div', { class: 'grid', style: 'grid-template-columns:repeat(auto-fill,minmax(150px,1fr))' });
-    for (const o of game.state.orders.list) {
+    const list = game.state.orders.list;
+    const readyN = list.filter((o) => orders.canComplete(o)).length;
+    p.body.append(h('div', { class: 'econ-intro' }, icon(readyN ? 'check' : 'info', 'icon'),
+      h('span', null, readyN ? `${readyN} order${readyN > 1 ? 's' : ''} ready to deliver!` : 'Orders pay much more than selling at the barn. Tap a red number to see where to get it.')));
+    const grid = h('div', { class: 'grid order-grid' });
+    for (const o of list) {
       if (o.readyAt > now) {
-        grid.append(h('div', { class: 'card', style: 'opacity:.7;justify-content:center' }, icon('hourglass', 'card-icon'), h('div', { class: 'card-sub' }, 'New order in'), h('div', { class: 'timer-tag outlined' }, formatTime(o.readyAt - now))));
+        grid.append(h('div', { class: 'card order-card waiting' }, icon('hourglass', 'card-icon'), h('div', { class: 'card-sub' }, 'New order in'), h('div', { class: 'timer-tag outlined' }, formatTime(o.readyAt - now))));
         continue;
       }
       const ok = orders.canComplete(o);
-      const lines = h('div', { class: 'col', style: 'gap:4px;width:100%' });
+      const lines = h('div', { class: 'col order-lines' });
       for (const l of o.lines) {
         const have = game.count(l.item);
-        lines.append(h('div', { class: 'row', style: 'justify-content:space-between;width:100%' }, h('span', { class: 'row', style: 'gap:4px' }, itemIcon(l.item), h('span', { class: 'card-sub', style: 'text-align:left' }, ITEMS[l.item].name)),
-          h('span', { class: 'pill', style: have >= l.qty ? 'background:#d9f7c0' : 'background:#ffd6d0' }, `${Math.min(have, l.qty)}/${l.qty}`)));
+        lines.append(h('div', { class: 'row between order-line' },
+          h('span', { class: 'row', style: 'gap:4px;min-width:0' }, itemIcon(l.item), h('span', { class: 'card-sub order-item-name' }, ITEMS[l.item].name)),
+          needPill(l.item, have, l.qty)));
       }
-      const card = h('div', { class: `card ${ok ? 'done' : ''}` },
-        h('div', { class: 'row', style: 'width:100%;justify-content:space-between' }, icon(NPC_ICONS[o.npc % NPC_ICONS.length], 'icon'),
-          h('button', { class: 'opt-btn', style: 'min-width:40px;min-height:36px;padding:2px', title: 'Discard', onclick: () => { orders.discard(o.id); audio.play('close'); render(); } }, icon('cross'))),
-        lines,
-        h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(o.coins)), h('span', { class: 'pill' }, icon('xp'), `${o.xp}`), o.gems ? h('span', { class: 'pill' }, icon('gem'), `${o.gems}`) : null),
-        button(ok ? 'Deliver' : 'Need items', () => {
-          if (!orders.complete(o.id, anchorOf('order_board'))) {
-            const miss = o.lines.filter((l) => game.count(l.item) < l.qty).map((l) => `${ITEMS[l.item].name}: ${sourceText(l.item)}`);
-            ui.feedback.toast('Missing items', miss[0], 'cross');
-            audio.play('error');
+      const skipping = confirmSkip === o.id;
+      const skipBtn = h('button', {
+        class: `opt-btn order-skip ${skipping ? 'confirm' : ''}`, title: 'Skip this order',
+        onclick: (e: MouseEvent) => {
+          e.stopPropagation();
+          if (!skipping) {
+            confirmSkip = o.id;
+            clearTimeout(skipTimer);
+            skipTimer = window.setTimeout(() => { confirmSkip = -1; if (p.overlay.isConnected) render(); }, 3000);
+            render();
             return;
           }
-          haptics.buzz([10, 30, 10]);
-          ui.effects.sparkle(ui.scene.farm.anchor(game.buildingsOf('order_board')[0].uid), '#ffe066', 14);
+          confirmSkip = -1;
+          orders.discard(o.id);
+          audio.play('close');
           render();
-        }, `small ${ok ? '' : 'disabled'}`),
+        },
+      }, skipping ? 'Skip?' : icon('cross'));
+      const card = h('div', { class: `card order-card ${ok ? 'done' : ''}` },
+        h('div', { class: 'row between', style: 'width:100%' },
+          h('span', { class: 'row order-npc' }, icon(NPC_ICONS[o.npc % NPC_ICONS.length], 'icon'), h('span', { class: 'card-sub' }, NPC_NAMES[o.npc % NPC_NAMES.length])),
+          skipBtn),
+        lines,
+        h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(o.coins)), h('span', { class: 'pill' }, icon('xp'), `${o.xp}`), o.gems ? h('span', { class: 'pill' }, icon('gem'), `${o.gems}`) : null),
       );
+      card.append(button(ok ? 'Deliver' : 'Need items', () => {
+        if (!orders.complete(o.id)) {
+          const miss = o.lines.find((l) => game.count(l.item) < l.qty);
+          if (miss) goToSource(miss.item);
+          audio.play('error');
+          return;
+        }
+        flyFrom(card, { coins: o.coins, xp: o.xp, gems: o.gems });
+        haptics.buzz([10, 30, 10]);
+        const board = game.buildingsOf('order_board')[0];
+        if (board) ui.effects.sparkle(ui.scene.farm.anchor(board.uid), '#ffe066', 14);
+        render();
+      }, `small ${ok ? '' : 'disabled'}`));
       grid.append(card);
     }
     p.body.append(grid);
   };
   render();
   timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body, p.footer], render); }, 1000);
+  p.onClose = () => { clearInterval(timer); clearTimeout(skipTimer); };
   p.open();
 }
 
@@ -77,30 +128,43 @@ export function openTruck(): void {
     const t = game.state.truck;
     if (!t) {
       const wait = Math.max(0, game.state.truckNextAt - game.now());
-      p.body.append(h('div', { class: 'center', style: 'padding:24px' }, icon('truck', 'card-icon'), h('div', { class: 'card-title' }, 'The truck is on the road'), h('div', { class: 'muted' }, wait ? `Back in ${formatTime(wait)}` : 'Arriving any moment...')));
+      p.body.append(h('div', { class: 'center', style: 'padding:24px' }, icon('truck', 'card-icon'), h('div', { class: 'card-title' }, 'The truck is on the road'),
+        h('div', { class: 'muted' }, 'It brings big crate orders for coins, XP and a mystery crate.'),
+        h('div', { class: 'timer-tag outlined', style: 'display:inline-block;margin-top:10px' }, wait ? `Back in ${formatTime(wait)}` : 'Arriving any moment...')));
       return;
     }
-    p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Fill each crate for coins. Fill them all for a bonus and a mystery crate!'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(t.leavesAt - game.now())}`)));
+    const loaded = t.crates.filter((c) => c.filled).length;
+    p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Load each crate for coins. Load them all for a bonus and a rare mystery crate!'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(t.leavesAt - game.now())}`)));
+    p.body.append(h('div', { class: 'truck-progress' },
+      h('div', { class: 'progress', style: 'flex:1 1 auto;height:22px' }, h('div', { class: 'fill', style: `width:${(loaded / t.crates.length) * 100}%` }), h('div', { class: 'label' }, `${loaded}/${t.crates.length} crates loaded`)),
+      h('span', { class: 'pill' }, icon('coin'), `+${fmt(t.bonusCoins)}`), h('span', { class: 'pill' }, icon('gift'), 'Rare')));
     const grid = h('div', { class: 'grid tight', style: 'grid-template-columns:repeat(auto-fill,minmax(110px,1fr))' });
     t.crates.forEach((c, i) => {
       const have = game.count(c.item);
-      grid.append(h('div', { class: `card ${c.filled ? 'done' : ''}` }, icon(c.filled ? 'check' : 'package', 'icon'), itemIcon(c.item, 'card-icon'),
-        h('div', { class: 'card-sub' }, `${ITEMS[c.item].name}`), h('span', { class: 'pill' }, c.filled ? 'Loaded' : `${Math.min(have, c.qty)}/${c.qty}`),
-        c.filled ? null : h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(c.coins))),
-        c.filled ? null : button('Load', () => {
-          if (!truck.fill(i, anchorOf('truck_depot'))) { ui.feedback.toast(`Need ${c.qty - have} more ${ITEMS[c.item].name}`, sourceText(c.item), 'cross'); audio.play('error'); return; }
+      const card = h('div', { class: `card truck-crate ${c.filled ? 'done' : ''}` });
+      append(card, [icon(c.filled ? 'check' : 'package', 'icon'),
+        h('div', { class: c.filled ? '' : 'clickable', onclick: c.filled ? undefined : () => goToSource(c.item) }, itemIcon(c.item, 'card-icon')),
+        h('div', { class: 'card-sub' }, `${ITEMS[c.item].name}`),
+        c.filled ? h('span', { class: 'pill enough' }, 'Loaded') : needPill(c.item, have, c.qty),
+        c.filled ? null : h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(c.coins)), h('span', { class: 'pill' }, icon('xp'), fmt(c.xp))),
+        c.filled ? null : button(have >= c.qty ? 'Load' : `Need ${c.qty - have}`, () => {
+          if (!truck.fill(i)) { goToSource(c.item); audio.play('error'); return; }
+          flyFrom(card, { coins: c.coins, xp: c.xp });
           haptics.buzz(12);
           render();
-        }, `small ${have >= c.qty ? '' : 'disabled'}`)));
+        }, `small ${have >= c.qty ? '' : 'disabled'}`)]);
+      grid.append(card);
     });
     p.body.append(grid);
-    p.footer.append(button(['Send truck', priceTag(t.bonusCoins), icon('gift')], () => {
-      if (!truck.send(anchorOf('truck_depot'))) { ui.feedback.toast('Load every crate first', undefined, 'package'); audio.play('error'); return; }
+    const sendBtn = button(['Send truck', priceTag(t.bonusCoins), icon('gift')], () => {
+      if (!truck.send()) { ui.feedback.toast('Load every crate first', `${t.crates.length - loaded} to go`, 'package'); audio.play('error'); return; }
+      flyFrom(sendBtn, { coins: t.bonusCoins });
       ui.feedback.toast('Truck sent!', 'You earned a rare mystery crate', 'gift', 'gold');
       ui.scene.rig.shake(0.15, 0.3);
       p.close();
       ui.open('crates');
-    }, truck.complete ? 'yellow' : 'disabled'));
+    }, truck.complete ? 'yellow' : 'disabled');
+    p.footer.append(sendBtn);
   };
   render();
   timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body, p.footer], render); }, 1000);
@@ -108,6 +172,14 @@ export function openTruck(): void {
 }
 
 // ======================================================================== stall
+/** Rough time until a listing at this price finds a buyer (the middle of the random range). */
+function stallWait(item: string, qty: number, price: number): number {
+  const [min, max] = stall.priceRange(item, qty);
+  const [lo, hi] = ECONOMY.stall.buyDelaySec;
+  const t = (price - min) / Math.max(1, max - min);
+  return (lo + (hi - lo) * (0.2 + t * 0.8)) * 1000;
+}
+
 export function openStall(): void {
   const p = new Panel({ title: 'Roadside Stall', icon: 'store', color: 'pink' });
   let timer = 0;
@@ -118,19 +190,37 @@ export function openStall(): void {
     p.footer.style.display = 'none';
     const slots = stall.ensureSlots();
     if (picking !== null) { renderPicker(picking); return; }
-    p.body.append(h('div', { class: 'muted', style: 'margin-bottom:8px' }, 'Set your own price. Passers-by buy cheaper things sooner.'));
+    const sold = stall.soldCount();
+    p.body.append(h('div', { class: 'econ-intro' }, icon(sold ? 'coin' : 'store', 'icon'),
+      h('span', null, sold ? `${sold} sold! Tap to collect your coins.` : 'Set your own price. Passers-by buy cheaper things sooner.')));
     const grid = h('div', { class: 'grid tight', style: 'grid-template-columns:repeat(auto-fill,minmax(110px,1fr))' });
+    const now = game.now();
     slots.forEach((s, i) => {
       if (!s.item) {
-        grid.append(h('div', { class: 'card clickable', style: 'justify-content:center;min-height:130px', onclick: () => { picking = i; render(); } }, h('div', { class: 'card-title', style: 'font-size:34px' }, '+'), h('div', { class: 'card-sub' }, 'Sell something')));
+        grid.append(h('div', { class: 'card clickable stall-empty', onclick: () => { picking = i; render(); } }, h('div', { class: 'card-title', style: 'font-size:34px' }, '+'), h('div', { class: 'card-sub' }, 'Sell something')));
         return;
       }
-      const sold = stall.sold(s);
-      grid.append(h('div', { class: `card ${sold ? 'done clickable' : ''}`, style: 'min-height:130px', onclick: sold ? () => { stall.collect(i, anchorOf('roadside_stall')); haptics.buzz(10); render(); } : undefined },
-        itemIcon(s.item, 'card-icon'), h('div', { class: 'card-sub' }, `${s.qty} x ${ITEMS[s.item].name}`), h('span', { class: 'pill' }, icon('coin'), fmt(s.price)),
-        sold ? h('div', { class: 'card-title', style: 'color:#3f8f22' }, 'Sold! Tap') : h('div', { class: 'row' }, h('span', { class: 'timer-tag outlined' }, 'Waiting...'), h('button', { class: 'opt-btn', style: 'min-width:36px;min-height:36px;padding:0', title: 'Take back', onclick: () => { stall.cancel(i); render(); } }, icon('cross')))));
+      const isSold = stall.sold(s);
+      const card = h('div', { class: `card stall-slot ${isSold ? 'done clickable' : ''}` });
+      if (isSold) {
+        card.addEventListener('click', () => {
+          const coins = stall.collect(i);
+          if (!coins) return;
+          flyFrom(card, { coins });
+          audio.play('coins');
+          haptics.buzz(10);
+          render();
+        });
+      }
+      const pct = s.buyDelay ? Math.min(100, ((now - s.listedAt) / s.buyDelay) * 100) : 0;
+      card.append(itemIcon(s.item, 'card-icon'), h('div', { class: 'card-sub' }, `${s.qty} x ${ITEMS[s.item].name}`), h('span', { class: 'pill' }, icon('coin'), fmt(s.price)),
+        isSold ? h('div', { class: 'card-title', style: 'color:#3f8f22' }, 'Sold! Tap')
+          : h('div', { class: 'row', style: 'width:100%' },
+            h('div', { class: 'progress', style: 'flex:1 1 auto' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, 'On sale')),
+            h('button', { class: 'opt-btn', style: 'min-width:36px;min-height:36px;padding:0', title: 'Take back', onclick: (e: MouseEvent) => { e.stopPropagation(); stall.cancel(i); render(); } }, icon('cross'))));
+      grid.append(card);
     });
-    if (slots.length < ECONOMY.stall.maxSlots) grid.append(h('div', { class: 'card clickable', style: 'justify-content:center;opacity:.8', onclick: () => { if (!stall.buySlot()) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } render(); } }, icon('plus', 'icon'), h('div', { class: 'card-sub' }, 'Extra slot'), h('span', { class: 'pill' }, priceTag(0, ECONOMY.stall.slotCostGems))));
+    if (slots.length < ECONOMY.stall.maxSlots) grid.append(h('div', { class: 'card clickable stall-empty', style: 'opacity:.8', onclick: () => { if (!stall.buySlot()) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } render(); } }, icon('plus', 'icon'), h('div', { class: 'card-sub' }, 'Extra slot'), h('span', { class: 'pill' }, priceTag(0, ECONOMY.stall.slotCostGems))));
     p.body.append(grid);
   };
   const renderPicker = (slot: number) => {
@@ -139,7 +229,10 @@ export function openStall(): void {
     if (!items.length) p.body.append(h('div', { class: 'muted center' }, 'Your barn is empty.'));
     const grid = h('div', { class: 'grid tight' });
     for (const [id, n] of items) {
-      grid.append(h('div', { class: 'card clickable', onclick: () => renderPrice(slot, id) }, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name), h('div', { class: 'count-tag outlined' }, `x${n}`)));
+      const asked = requestedCount(id) > 0;
+      grid.append(h('div', { class: 'card clickable', onclick: () => renderPrice(slot, id) }, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name),
+        asked ? h('span', { class: 'mini-tag wanted corner', title: 'An order or the truck wants this' }, icon('clipboard', 'icon tiny')) : null,
+        h('div', { class: 'count-tag outlined' }, `x${n}`)));
     }
     p.body.append(grid);
   };
@@ -150,59 +243,104 @@ export function openStall(): void {
     const qtyEl = h('span', { class: 'outlined', style: 'font-size:24px;min-width:40px;text-align:center' });
     const priceEl = h('span', { class: 'outlined', style: 'font-size:24px;min-width:70px;text-align:center' });
     const hint = h('div', { class: 'muted center' });
+    const compare = h('div', { class: 'muted center' });
+    const presets = h('div', { class: 'segmented stall-presets' });
+    const asked = requestedCount(item);
+    const warn = h('div', { class: 'mini-tag wanted', style: 'display:none' });
     const upd = () => {
       const [min, max] = stall.priceRange(item, qty);
       price = Math.max(min, Math.min(max, price));
       qtyEl.textContent = String(qty);
       priceEl.replaceChildren(icon('coin'), fmt(price));
       const t = (price - min) / Math.max(1, max - min);
-      hint.textContent = t < 0.35 ? 'Bargain! Sells quickly.' : t < 0.7 ? 'Fair price.' : 'Pricey: may take a while.';
+      hint.textContent = `${t < 0.35 ? 'Bargain! ' : t < 0.7 ? 'Fair price. ' : 'Pricey. '}Usually sells in about ${formatTime(stallWait(item, qty, price))}.`;
+      compare.textContent = `The barn would pay ${fmt(Math.round(ITEMS[item].sell * qty * ECONOMY.barn.sellMult))}.`;
+      // only warn when this sale would leave too few for orders and the truck
+      const left = game.count(item) - qty;
+      warn.style.display = asked > 0 && left < asked ? '' : 'none';
+      warn.replaceChildren(icon('clipboard', 'icon tiny'), `Careful - your orders need ${asked}`);
+      presets.querySelectorAll('button').forEach((b) => b.classList.toggle('selected', Number(b.dataset.price) === price));
     };
+    const setPreset = (k: number) => { const [min, max, def] = stall.priceRange(item, qty); price = k < 0 ? min : k > 0 ? max : def; upd(); };
+    const buildPresets = () => {
+      const [min, max, def] = stall.priceRange(item, qty);
+      presets.replaceChildren(
+        h('button', { class: 'opt-btn', dataset: { price: String(min) }, onclick: () => setPreset(-1) }, 'Quick sale'),
+        h('button', { class: 'opt-btn', dataset: { price: String(def) }, onclick: () => setPreset(0) }, 'Fair'),
+        h('button', { class: 'opt-btn', dataset: { price: String(max) }, onclick: () => setPreset(1) }, 'Top price'));
+    };
+    const setQty = (n: number) => { qty = Math.max(1, Math.min(game.count(item), n)); price = stall.priceRange(item, qty)[2]; buildPresets(); upd(); };
     const step = () => Math.max(1, Math.round(ITEMS[item].sell * qty * 0.05));
     p.body.append(h('div', { class: 'col', style: 'align-items:center;gap:12px;padding:10px' },
       itemIcon(item, 'card-icon'), h('div', { class: 'card-title' }, ITEMS[item].name),
-      h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Amount'), button('−', () => { qty = Math.max(1, qty - 1); price = stall.priceRange(item, qty)[2]; upd(); }, 'small grey'), qtyEl, button('+', () => { qty = Math.min(game.count(item), qty + 1); price = stall.priceRange(item, qty)[2]; upd(); }, 'small grey')),
-      h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Price'), button('−', () => { price -= step(); upd(); }, 'small grey'), priceEl, button('+', () => { price += step(); upd(); }, 'small grey')),
-      hint,
+      warn,
+      h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Amount'), button('-', () => setQty(qty - 1), 'small grey'), qtyEl, button('+', () => setQty(qty + 1), 'small grey'), button('All', () => setQty(game.count(item)), 'small blue')),
+      h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Price'), button('-', () => { price -= step(); upd(); }, 'small grey'), priceEl, button('+', () => { price += step(); upd(); }, 'small grey')),
+      presets,
+      hint, compare,
       h('div', { class: 'row' }, button('Back', () => { picking = null; render(); }, 'grey'), button('Put on sale', () => {
         if (!stall.list(slot, item, qty, price)) { audio.play('error'); return; }
         audio.play('purchase');
         picking = null;
         render();
       }, 'yellow'))));
+    buildPresets();
     upd();
   };
   render();
-  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else if (picking === null) stableRefresh([p.body, p.footer], render); }, 2000);
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else if (picking === null) stableRefresh([p.body, p.footer], render); }, 1000);
   p.open();
 }
 
 // ======================================================================== merchant
 export function openMerchant(): void {
-  const v = merchant.visit();
   const p = new Panel({ title: 'Travelling Merchant', icon: 'cart', color: 'purple', size: 'medium' });
+  let timer = 0;
+  let selected = '';
   const render = () => {
     clear(p.body);
-    if (!merchant.visit().present) {
-      p.body.append(h('div', { class: 'center', style: 'padding:20px' }, icon('cart', 'card-icon'), h('div', { class: 'card-title' }, 'The merchant is travelling'), h('div', { class: 'muted' }, `Next visit in ${formatTime(v.nextAt - game.now())}`)));
+    const v = merchant.visit();
+    if (!v.present) {
+      p.body.append(h('div', { class: 'center', style: 'padding:20px' }, icon('cart', 'card-icon'), h('div', { class: 'card-title' }, 'The merchant is travelling'),
+        h('div', { class: 'timer-tag outlined', style: 'display:inline-block;margin-top:8px' }, `Next visit in ${formatTime(v.nextAt - game.now())}`)));
       return;
     }
-    p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Rare goods from far away!'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(v.leavesAt - game.now())}`)));
+    p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Rare goods from far away! Tap to look, tap again to buy.'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(v.leavesAt - game.now())}`)));
     const grid = h('div', { class: 'grid' });
     for (const o of merchant.stock()) {
       const bought = merchant.bought(o) || (o.kind === 'cosmetic' && game.state.cosmetics.includes(o.id));
-      grid.append(h('div', { class: `card ${bought ? 'done' : 'clickable'}`, onclick: bought ? undefined : () => buy(o) },
+      const afford = game.coins >= o.price;
+      const sel = selected === o.key && !bought;
+      const was = 'was' in o ? o.was : 0;
+      const card = h('div', { class: `card merchant-offer ${bought ? 'done' : 'clickable'} ${sel ? 'selected' : ''}` });
+      card.addEventListener('click', () => {
+        if (bought) return;
+        if (!sel) { selected = o.key; audio.play('select'); render(); return; }
+        buy(o, card);
+      });
+      append(card, [
+        was > o.price ? h('span', { class: 'deal-tag outlined' }, `-${Math.round((1 - ECONOMY.merchant.discount) * 100)}%`) : null,
         offerIcon(o), h('div', { class: 'card-title' }, offerName(o)), h('div', { class: 'card-sub' }, offerSub(o)),
-        bought ? h('div', { class: 'pill' }, 'Bought') : h('div', { class: 'pill' }, priceTag(o.price))));
+        bought ? h('div', { class: 'pill enough' }, 'Bought')
+          : h('div', { class: 'row', style: 'gap:4px;flex-wrap:wrap;justify-content:center' },
+            was > o.price ? h('span', { class: 'was-price' }, fmt(was)) : null,
+            h('div', { class: `pill ${afford ? '' : 'short'}` }, priceTag(o.price))),
+        sel ? h('div', { class: `btn small ${afford ? 'yellow' : 'disabled'}`, style: 'pointer-events:none' }, afford ? 'Buy' : 'Need more coins') : null]);
+      grid.append(card);
     }
     p.body.append(grid);
   };
-  const buy = (o: MerchantOffer) => {
-    if (!merchant.buy(o, anchorOfMerchant())) { ui.feedback.toast(game.coins < o.price ? 'Not enough coins' : 'Sold out', undefined, 'cross'); audio.play('error'); return; }
-    ui.feedback.toast('Thank you kindly!', offerName(o), 'cart');
+  const buy = (o: MerchantOffer, card: HTMLElement) => {
+    if (!merchant.buy(o)) { ui.feedback.toast(game.coins < o.price ? 'Not enough coins' : 'Sold out', game.coins < o.price ? `You need ${fmt(o.price - game.coins)} more` : undefined, 'cross'); audio.play('error'); return; }
+    if (o.kind === 'gems') flyFrom(card, { gems: o.qty });
+    ui.feedback.toast('Thank you kindly!', o.kind === 'decor' ? `${offerName(o)} is in your storage` : o.kind === 'items' ? `${offerName(o)} went to your barn` : offerName(o), 'cart');
+    haptics.buzz(12);
+    selected = '';
     render();
   };
   render();
+  timer = window.setInterval(() => { if (!p.overlay.isConnected) clearInterval(timer); else stableRefresh([p.body], render); }, 1000);
+  p.onClose = () => clearInterval(timer);
   p.open();
 }
 function offerIcon(o: MerchantOffer): HTMLElement {
@@ -220,7 +358,7 @@ function offerName(o: MerchantOffer): string {
 function offerSub(o: MerchantOffer): string {
   if (o.kind === 'decor') return `Decoration · +${BUILDING[o.id].charm} charm`;
   if (o.kind === 'cosmetic') return cosmeticUnlocked(o.id, { crate: 'rare' }) ? 'Already yours' : 'Rare cosmetic';
-  if (o.kind === 'items') return 'Bulk bargain';
+  if (o.kind === 'items') return requestedCount(o.id) ? 'Your orders want these!' : 'Ready right now';
   return 'Shiny!';
 }
 export function anchorOfMerchant() { const p = merchantSpot(); return { x: p[0] - 24 + 0.5, y: 1.4, z: p[1] - 24 + 0.5 }; }

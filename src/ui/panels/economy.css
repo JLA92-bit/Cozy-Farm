@@ -1,0 +1,68 @@
+/* Production and economy panels (orders, truck, stall, merchant). Kept in its own file so it stays local. */
+
+/* rewards that fly out of a panel should be seen above it (toasts stay on top) */
+.float-layer { z-index: 60; }
+
+.icon.tiny { width: 14px; height: 14px; }
+.pill.short { background: #ffd6d0; }
+.pill.enough { background: #d9f7c0; }
+.pill.clickable { cursor: pointer; }
+.pill.clickable:active { transform: scale(.94); }
+
+.mini-tag {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 9px;
+  background: #fff4d6; border: 2px solid var(--outline); font-size: 12px; font-family: var(--font-display); white-space: nowrap;
+}
+.mini-tag.wanted { background: #ffe08a; }
+.mini-tag.corner { position: absolute; top: 4px; left: 4px; padding: 1px 3px; }
+
+.econ-intro {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 6px 10px;
+  background: #fff8e1; border: 2px dashed #e6c98a; border-radius: 12px; font-size: 13px; color: var(--ink-soft); line-height: 1.25;
+}
+.econ-intro .icon { flex: 0 0 auto; width: 24px; height: 24px; }
+
+/* production */
+.prod-queue { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; align-items: stretch; }
+.prod-slot { width: 76px; min-height: 76px; justify-content: center; }
+.prod-slot.empty { opacity: .55; border-style: dashed; box-shadow: none; }
+.prod-slot.running { background: #fffbe8; }
+.prod-slot .icon { width: 34px; height: 34px; }
+.prod-slot .count-tag { top: 4px; bottom: auto; font-size: 14px; }
+.prod-slot.done { animation: prod-ready 1.4s ease-in-out infinite; }
+@keyframes prod-ready { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.prod-actions { justify-content: center; gap: 6px; }
+.prod-detail { min-height: 18px; margin: 4px 0; }
+.prod-tags { gap: 4px; flex-wrap: wrap; margin: 2px 0; }
+.prod-ings { flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.list-item.prod-locked { opacity: .6; }
+.list-item.prod-wanted { background: #fffbe6; border-color: #b8860b; }
+.section-title.row { margin-right: 2px; }
+.section-title .timer-tag { font-size: 12px; color: #fff; }
+
+/* orders */
+.order-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.order-card.waiting { opacity: .7; justify-content: center; }
+.order-lines { gap: 4px; width: 100%; }
+.order-line { width: 100%; gap: 4px; }
+.order-item-name { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-npc { gap: 4px; min-width: 0; }
+.order-npc .card-sub { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.order-skip { min-width: 40px; min-height: 36px; padding: 2px 6px; flex: 0 0 auto; }
+.order-skip.confirm { background: #ffd6d0; font-size: 13px; }
+
+/* truck */
+.truck-progress { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.truck-crate .clickable { cursor: pointer; }
+
+/* stall */
+.stall-empty { justify-content: center; min-height: 130px; }
+.stall-slot { min-height: 130px; }
+.stall-presets { width: min(100%, 340px); }
+.stall-presets .opt-btn { flex: 1 1 0; border: 0; border-radius: 0; min-width: 0; font-size: 13px; }
+.stall-presets .opt-btn + .opt-btn { border-left: 3px solid var(--outline); }
+
+/* merchant */
+.merchant-offer { padding-top: 12px; }
+.deal-tag { position: absolute; top: -10px; right: -6px; background: #ff6b6b; color: #fff; border: 2px solid var(--outline); border-radius: 10px; padding: 1px 6px; font-size: 13px; transform: rotate(8deg); }
+.was-price { font-size: 12px; color: var(--ink-soft); text-decoration: line-through; }
