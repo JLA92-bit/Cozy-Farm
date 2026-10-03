@@ -6,3 +6,4 @@ import './AnimalPanel';
 import './CharacterPanel';
 import './EconomyPanels';
 import './ProgressionPanels';
+import './SettingsPanel';

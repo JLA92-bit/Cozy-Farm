@@ -27,6 +27,7 @@ import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
 import { Panel } from '../ui/Panel';
 import { Villagers } from '../world/Villagers';
+import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 
@@ -107,9 +108,12 @@ export async function boot(): Promise<void> {
   for (const fn of afterBoot) fn();
   ui.setFps(settings.showFps);
   const dailyReady = daily.check();
-  if (!game.state.player.created) setTimeout(() => openCharacter(true), 400);
-  else if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
-  else if (dailyReady) setTimeout(() => openDaily(), 600);
+  if (!game.state.player.created) {
+    const off = game.bus.on('tutorial', ({ signal }) => { if (signal === 'character_done') { off(); setTimeout(() => tutorial.start(), 500); } });
+    setTimeout(() => openCharacter(true), 400);
+  } else if (!game.state.tutorial.done) setTimeout(() => tutorial.start(), 800);
+  if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
+  else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
 }
