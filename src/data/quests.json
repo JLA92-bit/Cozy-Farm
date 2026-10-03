@@ -17,7 +17,8 @@
       { "id": "stall", "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": [2, 6], "level": 3, "icon": "store" },
       { "id": "fruit", "text": "Pick {n} fruit", "stat": "fruit_harvested", "n": [6, 12], "level": 6, "icon": "apple" },
       { "id": "decor", "text": "Place {n} decorations", "stat": "decorations_placed", "n": [1, 3], "level": 3, "icon": "sparkles" },
-      { "id": "pets", "text": "Pet your animals {n} times", "stat": "animal_pets", "n": [3, 6], "level": 2, "icon": "heart" }
+      { "id": "pets", "text": "Pet your animals {n} times", "stat": "animal_pets", "n": [3, 6], "level": 2, "icon": "heart" },
+      { "id": "market_buy", "text": "Buy {n} listings at the market", "stat": "market_buys", "n": [1, 2], "level": 6, "icon": "bags" }
     ]
   },
   "weekly": {
@@ -35,7 +36,8 @@
       { "id": "w_clear", "text": "Clear {n} obstacles", "stat": "obstacles_cleared", "n": [8, 15], "level": 1, "icon": "pick" },
       { "id": "w_truck", "text": "Fill {n} truck crates", "stat": "truck_crates", "n": [6, 12], "level": 8, "icon": "truck" },
       { "id": "w_stall", "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": [15, 30], "level": 3, "icon": "store" },
-      { "id": "w_crates", "text": "Open {n} mystery crates", "stat": "crates_opened", "n": [3, 5], "level": 1, "icon": "gift" }
+      { "id": "w_crates", "text": "Open {n} mystery crates", "stat": "crates_opened", "n": [3, 5], "level": 1, "icon": "gift" },
+      { "id": "w_market", "text": "Sell {n} listings on the market", "stat": "market_sales", "n": [3, 6], "level": 6, "icon": "bags" }
     ]
   }
 }

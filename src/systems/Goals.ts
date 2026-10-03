@@ -52,6 +52,7 @@ export function actionForStat(stat: string): GoalAction | undefined {
   if (stat === 'decorations_placed') return { panel: 'shop', arg: 'decor' };
   if (stat === 'truck_crates') return game.state.truck ? { panel: 'truck' } : undefined;
   if (stat === 'daily_quests_completed') return { panel: 'quests', arg: 'daily' };
+  if (stat.startsWith('market_')) return { panel: 'market' };
   if (stat === 'crates_opened') return game.state.crates.length ? { panel: 'crates' } : { panel: 'quests', arg: 'daily' };
   return undefined;
 }
@@ -69,6 +70,7 @@ export function actionForUnlock(u: UnlockEntry): GoalAction | undefined {
     case 'Upgrade': return { panel: 'farmhouse' };
     case 'Orders': return { panel: 'orders' };
     case 'Land': { const c = land.purchasableChunks()[0]; return c ? { chunk: c } : undefined; }
+    case 'Feature': return { panel: u.id };
   }
   return undefined;
 }

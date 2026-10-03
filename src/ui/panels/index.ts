@@ -10,3 +10,4 @@ import './SettingsPanel';
 import './WhatsNewPanel';
 import './FarmhousePanel';
 import './FriendsPanel';
+import './MarketPanel';
