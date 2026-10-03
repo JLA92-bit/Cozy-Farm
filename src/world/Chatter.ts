@@ -51,7 +51,7 @@ export function reactionTo(b: PlacedBuilding): SayOpts {
     return it ? { icon: it, text: `I need some ${lower(ITEMS[it]?.name ?? it)}!` } : { icon: 'clipboard', text: pick(['Any orders today?', 'Let me see...']) };
   }
   if (b.type === 'roadside_stall') {
-    const has = game.state.stall.slots.some((s) => s.item && s.soldAt === null);
+    const has = game.state.stall.slots.some((s) => s.item && s.soldAt && s.soldAt > now);
     return has ? { icon: 'bags', text: pick(['Ooh, fresh goods!', 'What a bargain!', 'I will take one!']) } : { icon: 'store', text: pick(['Nothing yet...', 'I will come back!']) };
   }
   if (def.cat === 'animal') {

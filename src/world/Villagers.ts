@@ -40,6 +40,8 @@ export class Villagers {
   private spawnIn = 4;
   private loading = false;
   private chatIn = 8;
+  private salesIn = 1;
+  private salesSeen = 0;
   greeter: Greeter | null = null;
 
   constructor(private scene: FarmScene) {
@@ -257,7 +259,9 @@ export class Villagers {
       void this.spawn();
     }
     const g = this.greeter;
+    this.watchSales(dt);
     for (const v of this.list) {
+      if (v.gone) continue;
       v.w.update(dt);
       v.chatCooldown -= dt;
       // say hi when passing the farmer
@@ -277,6 +281,35 @@ export class Villagers {
       this.next(v);
     }
     this.chatter(dt);
+  }
+
+  /** When something sells at the roadside stall, a villager strolls over to buy it. */
+  private watchSales(dt: number): void {
+    if ((this.salesIn -= dt) > 0) return;
+    this.salesIn = 1;
+    const now = game.now();
+    const from = this.salesSeen || now;
+    this.salesSeen = now;
+    const sale = game.state.stall.slots.find((s) => s.item && s.soldAt && s.soldAt > from && s.soldAt <= now);
+    const stall = sale && game.buildingsOf('roadside_stall')[0];
+    if (!sale?.item || !stall) return;
+    const v = this.list.find((x) => !x.leaving && !x.seat && !x.gone);
+    if (!v) return;
+    const spot = besideBuilding(stall, v.w.tile);
+    if (!spot) return;
+    const item = sale.item;
+    v.w.halt();
+    if (v.at) v.plan.unshift(v.at);
+    v.at = null;
+    v.wait = 0;
+    if (!v.w.walkTo(spot[0], spot[1], () => {
+      const [cx, cz] = buildingCenter(stall);
+      v.w.face(cx, cz);
+      void v.w.char.gesture('interact-right');
+      speech.say(v.w.char.root, { icon: item, text: pick(["I'll take it!", 'Just what I needed!', 'Yes, please!']), prio: 1 });
+      v.wait = 2.5;
+      this.scene.loop.wake(1);
+    })) v.wait = 0.1;
   }
 
   /** Two villagers standing close by have a little chat. */
