@@ -74,6 +74,7 @@ export function openSettings(): void {
   p.body.append(fileInput, h('div', { class: 'section-title' }, 'Your farm'), h('div', { class: 'chip-row', style: 'justify-content:flex-start' },
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
     button([icon('unlock'), 'Import save'], () => fileInput.click(), 'small blue'),
+    saves.replacedFarm() ? button([icon('house'), 'Previous farm'], () => { p.close(); openReplacedFarm(); }, 'small blue') : null,
     whatsNewButton(),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
@@ -123,6 +124,24 @@ function confirmImport(data: SaveData): void {
   p.footer.append(button('Cancel', () => p.close(), 'grey'), button('Load farm', () => {
     const err = saves.applyImport(data);
     if (err) { p.close(); ui.feedback.toast('Import failed', err, 'cross'); }
+  }, 'blue'));
+  p.open();
+}
+
+/** The farm last replaced by an import or a cloud farm: look at it and switch back if wanted. */
+function openReplacedFarm(): void {
+  const kept = saves.replacedFarm();
+  if (!kept) return;
+  const pl = kept.data.player;
+  const p = new Panel({ title: 'Previous farm', size: 'small', color: 'blue', icon: 'house' });
+  p.body.append(
+    h('div', { class: 'center', style: 'margin-bottom:8px' }, `${pl.name}'s farm - level ${pl.level}, ${pl.coins.toLocaleString()} coins, ${kept.data.buildings.length} buildings.`),
+    h('div', { class: 'center muted', style: 'margin-bottom:8px' }, `${kept.why || 'Kept aside'}${kept.at ? ` on ${new Date(kept.at).toLocaleDateString()}` : ''}.`),
+    h('div', { class: 'center muted' }, 'Switching swaps the two farms: the one you play now is kept here instead.'),
+  );
+  p.footer.append(button('Cancel', () => p.close(), 'grey'), button('Switch farms', () => {
+    const err = saves.restoreReplaced();
+    if (err) { p.close(); ui.feedback.toast('Could not switch', err, 'cross'); }
   }, 'blue'));
   p.open();
 }

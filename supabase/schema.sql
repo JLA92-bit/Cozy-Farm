@@ -12,6 +12,10 @@
 --   * friend codes are made here and are unique
 -- Every write goes through the security definer functions below, which check who is calling
 -- (auth.uid()) and validate and limit what they send. Clients can read, but never write tables directly.
+--
+-- Accounts: players start with an anonymous sign-in. "Sign in with Google" links Google to that same
+-- account (same id), which can then keep a cloud save (cloud_saves). delete_my_account() removes
+-- everything belonging to the caller.
 
 -- ------------------------------------------------------------------------------------------ tables
 
@@ -423,6 +427,123 @@ grant execute on function public.list_item(text, integer, integer) to authentica
 grant execute on function public.buy_listing(uuid) to authenticated;
 grant execute on function public.cancel_listing(uuid) to authenticated;
 grant execute on function public.collect_listing(uuid) to authenticated;
+
+-- ------------------------------------------------------------------------------- cloud saves
+-- Players who sign in with Google (Update 3) keep a copy of their whole farm here, so it comes back
+-- on another device or in the app. One row per account; only that account can read it. Writes go
+-- through save_cloud() below, which refuses anonymous accounts and saves over 512 KB.
+
+create table if not exists public.cloud_saves (
+  user_id      uuid primary key references auth.users (id) on delete cascade,
+  data         jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 524288),
+  save_version integer not null default 1 check (save_version >= 0),
+  level        integer not null default 1 check (level between 1 and 999),
+  coins        bigint not null default 0 check (coins >= 0),
+  updated_at   timestamptz not null default now(),
+  device       text check (device is null or char_length(device) <= 60)
+);
+
+alter table public.cloud_saves enable row level security;
+revoke all on public.cloud_saves from anon, authenticated, public;
+grant select on public.cloud_saves to authenticated;
+
+drop policy if exists "players read only their own cloud save" on public.cloud_saves;
+create policy "players read only their own cloud save" on public.cloud_saves
+  for select to authenticated using (user_id = auth.uid());
+
+-- Defence in depth (clients have no write grants; save_cloud() does the writing).
+drop policy if exists "players insert only their own cloud save" on public.cloud_saves;
+create policy "players insert only their own cloud save" on public.cloud_saves
+  for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "players update only their own cloud save" on public.cloud_saves;
+create policy "players update only their own cloud save" on public.cloud_saves
+  for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Save the caller's farm to the cloud. p_base is the updated_at the device last saw: unless p_force,
+-- the save is refused with 'conflict' when the cloud copy changed since (another device saved), so
+-- the game can ask the player instead of overwriting. Returns the new updated_at.
+create or replace function public.save_cloud(
+  p_data jsonb,
+  p_save_version integer,
+  p_level integer,
+  p_coins bigint,
+  p_device text,
+  p_base timestamptz,
+  p_force boolean
+)
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_anon boolean;
+  v_cur timestamptz;
+  v_at timestamptz;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  select coalesce(u.is_anonymous, false) into v_anon from auth.users u where u.id = uid;
+  if not found then raise exception 'not signed in'; end if;
+  if v_anon then raise exception 'sign in with google first'; end if;
+  if p_data is null or jsonb_typeof(p_data) <> 'object' then raise exception 'bad save'; end if;
+  if octet_length(p_data::text) > 524288 then raise exception 'save too big'; end if;
+
+  select c.updated_at into v_cur from public.cloud_saves c where c.user_id = uid for update;
+  if found and not coalesce(p_force, false) and (p_base is null or v_cur <> p_base) then
+    raise exception 'conflict';
+  end if;
+  -- always move forward, so a device's p_base never matches a later save by chance
+  v_at := greatest(clock_timestamp(), coalesce(v_cur, '-infinity'::timestamptz) + interval '1 millisecond');
+
+  insert into public.cloud_saves as c (user_id, data, save_version, level, coins, updated_at, device)
+  values (
+    uid,
+    p_data,
+    least(greatest(coalesce(p_save_version, 1), 0), 1000000),
+    least(greatest(coalesce(p_level, 1), 1), 999),
+    least(greatest(coalesce(p_coins, 0), 0), 1000000000000000),
+    v_at,
+    nullif(public.clean_text(p_device, 60, ''), ''))
+  on conflict (user_id) do update set
+    data         = excluded.data,
+    save_version = excluded.save_version,
+    level        = excluded.level,
+    coins        = excluded.coins,
+    updated_at   = excluded.updated_at,
+    device       = excluded.device;
+  return v_at;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------- account deletion
+-- "Delete my online account" in Settings (Google Play requires in-app account deletion).
+-- Deleting the auth user cascades: profiles -> gifts sent or received (both directions) and the
+-- player's own listings; cloud_saves. Listings this player bought from others stay for the seller
+-- (buyer_id becomes null) with the buyer's name replaced, so no personal data is left behind.
+create or replace function public.delete_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  update public.listings l set buyer_name = 'A farmer' where l.buyer_id = uid;
+  delete from public.gifts g where g.from_id = uid or g.to_id = uid;
+  delete from public.listings l where l.seller_id = uid;
+  delete from public.cloud_saves c where c.user_id = uid;
+  delete from public.profiles p where p.id = uid;
+  delete from auth.users u where u.id = uid;
+end;
+$$;
+
+revoke all on function public.save_cloud(jsonb, integer, integer, bigint, text, timestamptz, boolean) from public, anon;
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.save_cloud(jsonb, integer, integer, bigint, text, timestamptz, boolean) to authenticated;
+grant execute on function public.delete_my_account() to authenticated;
 
 -- -------------------------------------------------------------------------------------- realtime
 

@@ -32,7 +32,7 @@ Players do not need an account or e-mail: the game signs them in anonymously in 
    paste it into the editor.
 3. Click **Run**. You should see "Success. No rows returned".
 
-This creates the `profiles`, `gifts` and `listings` tables, the security rules (each player can only
+This creates the `profiles`, `gifts`, `listings` and `cloud_saves` tables, the security rules (each player can only
 change their own things), the server functions that make trades safe (a listing can only be bought once,
 a gift claimed once) and turns on live updates. It is safe to run again after a game update.
 
@@ -57,6 +57,81 @@ a gift claimed once) and turns on live updates. It is safe to run again after a 
 2. When it is green, open the game. In **Settings > Online play** the status should say **Online** and show
    your friend code. Players who already had the game open get the new version after a reload.
 
+## 6. Sign in with Google and cloud saves (optional, recommended)
+
+With this, players can tap **Sign in with Google** in Settings > Online play. Their farm is then backed up
+to the cloud and comes back on any other device (or in the Android app) when they sign in with the same
+Google account. Their friend code, friends, market listings and gifts stay the same: Google is *linked* to
+the anonymous account they already have. Until you do this step the button shows an error message when
+tapped, and everything else keeps working.
+
+**A. Google Cloud console (makes the Google login screen)**
+
+1. Go to <https://console.cloud.google.com>, sign in, and create a project (for example `Cozy Acres`).
+2. Open **APIs & Services > OAuth consent screen** (on newer consoles: **Google Auth Platform > Branding**).
+   Choose **External**, enter the app name `Cozy Acres`, your support email `joshmakesgames92@gmail.com`,
+   and the developer contact email. Scopes: the default `email`, `profile` and `openid` are all that is
+   needed. Add your privacy policy link. Then **Publish** the app (Audience > Publish app) so any Google
+   account can sign in, not only test users.
+3. Open **APIs & Services > Credentials** (or **Clients**) > **Create credentials > OAuth client ID**.
+   - Application type: **Web application**.
+   - Authorised JavaScript origins: `https://cozyacres.joshmakesgames.app`, `https://jla92-bit.github.io`
+     and `http://localhost:5173`.
+   - Authorised redirect URIs: **`https://<your-project>.supabase.co/auth/v1/callback`** (your Supabase
+     Project URL from step 4 followed by `/auth/v1/callback`; Supabase also shows it in the Google
+     provider settings below). This is the only redirect URI Google needs.
+4. Click **Create** and copy the **Client ID** and **Client secret**.
+
+**B. Supabase**
+
+1. **Authentication > Sign In / Providers > Google**: switch it on, paste the Client ID and Client secret,
+   and **Save**.
+2. **Authentication > Sign In / Providers** (or **Settings**): switch on **Allow manual linking**
+   ("Manual linking"). This is what lets the game link Google to a player's existing anonymous account.
+   Without it the game falls back to a plain Google sign-in, and the player gets a new friend code.
+   Keep **Allow anonymous sign-ins** on.
+3. **Authentication > URL Configuration**:
+   - **Site URL**: `https://cozyacres.joshmakesgames.app/play/`
+   - **Redirect URLs** (add each one): `https://cozyacres.joshmakesgames.app/play/`,
+     `https://jla92-bit.github.io/Cozy-Farm/` (while the game is still served from GitHub Pages) and
+     `http://localhost:5173/` (for development). If the game ever moves to another address, add that
+     address here too. The game sends players back to the exact page they signed in from (without
+     `?` or `#`), so each address must be listed exactly, with the trailing `/`.
+4. Run the latest [`supabase/schema.sql`](supabase/schema.sql) again (step 3). It adds the `cloud_saves`
+   table and the `save_cloud` and `delete_my_account` functions. Nothing else changes for players.
+
+No new GitHub variables are needed. **Android app (Trusted Web Activity):** the app is the website running
+in Chrome, so Google sign-in works there exactly as on the web (the sign-in page opens in the same Chrome
+window and comes back to the game). Players who signed in on the website just sign in again in the app and
+their farm appears.
+
+**How cloud saves behave**
+
+- Only for players signed in with Google. Anonymous players keep saving on their device only.
+- The farm is uploaded at most every 2 minutes while it changes, when the game is put in the background,
+  right after signing in, and with **Save now** in Settings. Never while nothing changed.
+- On sign-in (and every start while signed in) the cloud farm is compared with the one on the device. If the
+  device just continues its own cloud farm, or the device farm has not been started yet, it happens
+  automatically. Otherwise the player sees **We found a farm in the cloud** with both farms side by side and
+  picks one. The farm that is not picked is kept on the device (Settings > Your farm > Previous farm).
+- Cloud farms are checked like an imported save before they are used. Limit: 512 KB per farm.
+- **Sign out** keeps the farm on the device; the next time the game goes online it gets a fresh anonymous
+  account (new friend code). Signing in with Google again brings the account and cloud farm back.
+
+## Deleting accounts and data
+
+- In the game: **Settings > Online play > Delete my online account** (two confirmations). It calls
+  `delete_my_account()`, which deletes the player's sign-in (`auth.users`), public profile and friend code,
+  cloud save, their own market listings and every gift they sent or received. Listings they bought from
+  other players stay for the seller, with the buyer's name replaced by "A farmer". The farm on the device is
+  not touched. This is the in-app account deletion Google Play asks for.
+- By email: players can also ask at `joshmakesgames92@gmail.com`. Find them by friend code in **Table
+  Editor > profiles** (or by Google email in **Authentication > Users**) and delete the user in
+  **Authentication > Users**; the cascades remove the rest.
+- The website's "Delete my data" form posts to `/api/delete-data`, which does **not** exist (the site is
+  static). Until a small server function is added for it, point players to the in-game button or the email
+  address above.
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in
@@ -72,6 +147,11 @@ a gift claimed once) and turns on live updates. It is safe to run again after a 
 | Settings says **Offline** | The device has no internet, or the URL/key is wrong, or anonymous sign-ins are off (step 2). The game keeps working and retries on its own. |
 | "Anonymous sign-ins are disabled" in the browser console | Do step 2. |
 | Errors like `function public.buy_listing does not exist` | Run `supabase/schema.sql` again (step 3). |
+| Tapping **Sign in with Google** shows "Could not reach Google sign-in" | The device is offline, or the Supabase URL is wrong. |
+| Google says `redirect_uri_mismatch` | The redirect URI in the Google OAuth client must be exactly `https://<project>.supabase.co/auth/v1/callback` (step 6A). |
+| After Google the game opens a different address (or the home page) | Add the game's exact address to Supabase **Redirect URLs** (step 6B). |
+| Signing in gives the player a new friend code | Switch on **Manual linking** (step 6B). |
+| "Cloud save: could not save" in Settings | Run `schema.sql` again (step 3) so `save_cloud` exists. The game retries on its own. |
 | Free project paused after a week without players | Open the Supabase dashboard and click **Restore project**. |
 
 ## Good to know
@@ -82,8 +162,10 @@ a gift claimed once) and turns on live updates. It is safe to run again after a 
 - **Trust model:** coins and items live in each player's own save (as before), so this is a friendly co-op
   setup, not a cheat-proof competitive one. The server makes sure the shared parts are fair: a listing sells
   once, a gift is claimed once, and players can only change their own profile and listings.
-- **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP. Nothing
-  else from your save is uploaded.
+- **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP. Players
+  who sign in with Google also store their Google email address and account id (in Supabase Auth) and a
+  copy of their farm (`cloud_saves`, readable only by themselves). Nothing from the save is uploaded for
+  players who do not sign in.
 - **Housekeeping (optional):** run `select public.cleanup_old_rows();` in the SQL editor now and then to
   delete claimed gifts and finished listings older than 30 days.
 - **Local development:** create a file `.env.local` next to `package.json` with

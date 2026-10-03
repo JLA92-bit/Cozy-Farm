@@ -1,0 +1,36 @@
+/* ---- Sign in with Google + cloud saves (Update 3) ---- */
+.google-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; padding: 0 16px; border-radius: 22px;
+  background: #fff; color: #1f1f1f; border: 1px solid #747775;
+  font-family: Roboto, 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 500; letter-spacing: .25px;
+  cursor: pointer; touch-action: manipulation; white-space: nowrap;
+}
+.google-btn:hover:not(:disabled) { background: #f8faff; box-shadow: 0 1px 3px rgba(60, 64, 67, .3); }
+.google-btn:active:not(:disabled) { background: #eef3fd; }
+.google-btn:disabled { cursor: default; opacity: .6; }
+.google-btn .g-logo { display: inline-flex; width: 20px; height: 20px; }
+.account-box { margin: 4px 0 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .55); border: 2px solid rgba(59, 42, 26, .12); }
+.account-box .account-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.account-box .account-row + .account-row { margin-top: 8px; }
+.account-box .account-who { font-weight: 700; overflow-wrap: anywhere; }
+.account-box .account-note { margin-top: 6px; font-size: 14px; }
+.account-box .cloud-line { display: inline-flex; align-items: center; gap: 6px; }
+.account-box .cloud-line .icon { width: 22px; height: 22px; }
+.account-box .cloud-line.error { color: #b5532f; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.farm-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .farm-choices { grid-template-columns: 1fr; } }
+.farm-choice { padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .7); border: 3px solid rgba(59, 42, 26, .15); }
+.farm-choice.best { border-color: #6cc644; background: #f2fbe9; }
+.farm-choice .fc-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+.farm-choice .fc-title { font-family: var(--font-display); font-size: 17px; }
+.farm-choice .fc-badge { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #6cc644; color: #fff; }
+.farm-choice .fc-name { font-weight: 700; margin-bottom: 4px; overflow-wrap: anywhere; }
+.farm-choice .fc-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 4px; }
+.farm-choice .fc-stats span { display: inline-flex; align-items: center; gap: 4px; }
+.farm-choice .fc-stats .icon { width: 20px; height: 20px; }
+.farm-choice .fc-meta { font-size: 13px; }
+.online-settings .friend-code { color: var(--ink); font-size: 18px; letter-spacing: 1px; }
+.fc-intro { font-family: var(--font-display); font-size: 20px; margin-bottom: 4px; }

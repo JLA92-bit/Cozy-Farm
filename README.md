@@ -6,7 +6,8 @@ Charm, and customise your farmer. Built with Three.js + TypeScript + Vite, insta
 
 - Chunky low-poly look from **KayKit** and **Kenney** CC0 packs (see [CREDITS.md](CREDITS.md)), shared palette
   atlases and instancing so a big farm stays at roughly 130 draw calls.
-- No real-money purchases. Saves live in `localStorage` with export/import.
+- No real-money purchases. Saves live in `localStorage` with export/import, and players who **sign in with
+  Google** also get a cloud save that follows them to other devices and the Android app (see [ONLINE.md](ONLINE.md)).
 - Online play (friends, gifts, shared market, leaderboards) works in a local **Practice mode** out of the box,
   and with real players once you connect a free Supabase project: see [ONLINE.md](ONLINE.md).
 
@@ -57,7 +58,8 @@ src/systems   Game state + event bus, Buildings, Land, Farming, Animals, Product
               stall, merchant), Progression (unlocks, achievements, quests, daily, crates, events), Goals,
               Save, Offline, Audio, Settings
 src/scenes    boot sequence, FarmScene (3D side), Interaction (tap/swipe/build modes), Player
-src/online    online play: backend contract, local practice backend, Supabase backend, profile sync
+src/online    online play: backend contract, local practice backend, Supabase backend, profile sync,
+              Google sign-in and cloud saves (CloudSave.ts)
 src/ui        HUD, panels, world popups/bubbles, tutorial, feedback (toasts, floating numbers, flying coins)
 src/data      every balance number, as JSON
 ```

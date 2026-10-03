@@ -27,3 +27,6 @@ export function ensureOnline(): Promise<PlayerProfile> {
   ready ??= online.init().then(() => online.upsertProfile(profileStats())).catch((e) => { ready = null; throw e; });
   return ready;
 }
+
+/** Forget the connection (after signing out or deleting the account): the next call connects afresh. */
+export function resetOnlineProfile(): void { ready = null; }

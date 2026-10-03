@@ -101,3 +101,57 @@ export interface OnlineBackend {
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }
+
+// ---------------------------------------------------------------------------- accounts and cloud saves
+
+/** Who is signed in to the online server. Anonymous = the automatic background account (no Google). */
+export interface AccountInfo {
+  id: string;
+  anonymous: boolean;
+  email: string;
+  name: string;
+}
+
+/** One cloud save row (the player's whole farm, as exported). `updatedAt` is the server's exact timestamp text. */
+export interface CloudRow {
+  data: unknown;
+  saveVersion: number;
+  level: number;
+  coins: number;
+  updatedAt: string;
+  device: string;
+}
+
+export interface CloudMeta { saveVersion: number; level: number; coins: number; device: string }
+
+/** What happened when the page came back from a Google sign-in redirect. */
+export type AuthResult =
+  | { kind: 'linked' | 'signedIn'; switched: boolean }
+  | { kind: 'cancelled' }
+  | { kind: 'error'; message: string };
+
+/**
+ * Optional account features of a backend (Supabase only; practice mode has none).
+ * Every call may reject when offline; callers catch.
+ */
+export interface AccountBackend {
+  /** The signed-in account, or null before connecting. */
+  account(): AccountInfo | null;
+  /** Start "Sign in with Google" (leaves the page; the result is reported by takeAuthResult after the return). */
+  signInWithGoogle(): Promise<void>;
+  /** Sign out on this device. The next connect makes a fresh anonymous account. */
+  signOut(): Promise<void>;
+  /** Permanently delete the online account (profile, friend code, cloud save, listings, gifts), then sign out. */
+  deleteAccount(): Promise<void>;
+  /** The cloud save of the signed-in (Google) account, or null when there is none. */
+  loadCloud(): Promise<CloudRow | null>;
+  /**
+   * Upload the farm. `base` is the cloud `updatedAt` this device last saw (null = none); unless `force`,
+   * the server refuses with Error('conflict') when the cloud copy changed since. Returns the new `updatedAt`.
+   */
+  saveCloud(data: object, meta: CloudMeta, base: string | null, force: boolean): Promise<string>;
+  /** The result of a Google sign-in redirect that brought the page back (once), or null. */
+  takeAuthResult(): AuthResult | null;
+  /** Listen for sign in / sign out; returns an unsubscribe function. */
+  onAccount(cb: (a: AccountInfo | null) => void): () => void;
+}

@@ -39,10 +39,17 @@ let started = false;
 let busy = false;
 let failures = 0;
 let nextAt = 0;
+let held = false;
+
+/**
+ * Pause profile publishing (while the player chooses between this farm and a cloud farm, so the
+ * account's public profile is not overwritten with the farm they may be about to replace).
+ */
+export function holdProfile(on: boolean): void { held = on; }
 
 /** Publish this player's profile now (if they have made their farmer). Never throws. */
 export async function publishProfile(force = false): Promise<void> {
-  if (busy || !game.state?.player.created) return;
+  if (busy || held || !game.state?.player.created) return;
   if (!force && Date.now() < nextAt) return;
   busy = true;
   try {

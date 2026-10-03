@@ -6,6 +6,15 @@ import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data
 
 const KEY = 'cozy-acres-save';
 const BACKUP_KEY = 'cozy-acres-save-backup';
+/**
+ * The farm that was last replaced on purpose (by an import, a cloud farm, or the cloud copy the player
+ * chose not to keep). Unlike the rolling backup above it is not overwritten by autosaves, so it can
+ * be brought back from Settings.
+ */
+const REPLACED_KEY = 'cozy-acres-save-replaced';
+
+/** A farm kept aside in the replaced-farm slot. */
+export interface ReplacedFarm { data: SaveData; at: number; why: string }
 
 /** Migrations from version N to N+1. Add one function per bump of SAVE_VERSION. */
 const MIGRATIONS: Record<number, (s: Record<string, unknown>) => void> = {
@@ -275,13 +284,59 @@ class SaveSystem {
     }
   }
 
-  /** Replace the farm with `data` (the current farm becomes the backup) and reload. */
-  applyImport(data: SaveData): string | null {
-    // keep the current farm as the backup so an unwanted import can be undone
+  /** The current farm as save-file JSON (saves first), or null when it cannot be serialised. */
+  serialize(): string | null {
+    this.save();
+    try { return JSON.stringify(game.state); } catch { return null; }
+  }
+
+  /** Read untrusted save JSON (a file, the cloud) through the same checks and migrations as an import. */
+  parse(raw: unknown): { data: SaveData } | { error: string } {
+    try {
+      if (typeof raw === 'string') {
+        if (raw.length > 5e6) return { error: 'too big' };
+        raw = JSON.parse(raw);
+      }
+      if (!validate(raw)) return { error: 'not a save' };
+      // work on a copy: migrate() edits its input
+      return { data: migrate(JSON.parse(JSON.stringify(raw)) as Record<string, unknown>) };
+    } catch (e) {
+      return { error: (e as Error).message || 'unreadable' };
+    }
+  }
+
+  /** Keep a farm aside in the replaced-farm slot (see REPLACED_KEY). */
+  keepReplaced(json: string, why: string): boolean {
+    return store.set(REPLACED_KEY, JSON.stringify({ at: Date.now(), why, save: json }));
+  }
+
+  /** The farm in the replaced-farm slot, checked like an import, or null. */
+  replacedFarm(): ReplacedFarm | null {
+    const txt = store.get(REPLACED_KEY);
+    if (!txt) return null;
+    try {
+      const r = JSON.parse(txt) as { at?: number; why?: string; save?: string };
+      const parsed = this.parse(r.save ?? '');
+      return 'data' in parsed ? { data: parsed.data, at: finite(r.at, 0), why: typeof r.why === 'string' ? r.why : '' } : null;
+    } catch { return null; }
+  }
+
+  /** Swap the current farm with the replaced one (the current farm takes its place) and reload. */
+  restoreReplaced(): string | null {
+    const kept = this.replacedFarm();
+    if (!kept) return 'There is no other farm to bring back.';
+    return this.applyImport(kept.data, 'Swapped back from Settings');
+  }
+
+  /**
+   * Replace the farm with `data` and reload. The current farm becomes the backup and is also kept in
+   * the replaced-farm slot, so an unwanted import (or cloud load) can be undone from Settings.
+   */
+  applyImport(data: SaveData, why = 'Replaced by an imported save', keep = true): string | null {
     this.save();
     this.locked = true;
     const prev = store.get(KEY);
-    if (prev) store.set(BACKUP_KEY, prev);
+    if (prev) { store.set(BACKUP_KEY, prev); if (keep) this.keepReplaced(prev, why); }
     if (!store.set(KEY, JSON.stringify(data))) { this.locked = false; return 'Could not store the save. Your browser storage may be full.'; }
     location.reload();
     return null;

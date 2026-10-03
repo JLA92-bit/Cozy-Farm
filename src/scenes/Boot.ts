@@ -34,6 +34,8 @@ import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
+import { startCloud } from '../online/CloudSave';
+import { wireAccountNudge } from '../ui/panels/AccountPanels';
 import { wireHintIntros } from '../systems/Hints';
 
 function setProgress(f: number, text?: string): void {
@@ -159,7 +161,9 @@ export async function boot(): Promise<void> {
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
+  startCloud();
   startOnlineSync();
+  wireAccountNudge();
   ui.setFps(settings.showFps);
   const dailyReady = daily.check();
   if (!game.state.player.created) {
