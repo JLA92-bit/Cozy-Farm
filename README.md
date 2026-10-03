@@ -28,6 +28,7 @@ The built assets in `public/assets` are committed, so you do not need to run the
 | Interact | Tap | Click |
 | Plant | Tap an empty field, pick a seed, then tap or **swipe across** fields (or drag a seed from the tray) | same |
 | Harvest | Tap a ripe field or **swipe across** ripe fields | same |
+| Animals | Tap a home: collects what is ready and re-feeds from the barn in one tap; tap again to open it | same |
 | Move a building | **Long-press** it, drag, then tick | Hold and drag |
 | Build mode | Hammer button: tap any building to move, rotate or store it | same |
 | Place from the shop | Drag the ghost (green = OK, red = blocked), rotate, tick | same |

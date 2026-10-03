@@ -59,6 +59,7 @@ export class Interaction implements WorldHandler {
 
   tap(p: Pointer): void {
     const m = this.mode;
+    this.lastPointer = p;
     if (m.kind === 'place') {
       // tapping elsewhere moves the ghost there
       const t = this.scene.tileAt(p);
@@ -75,7 +76,7 @@ export class Interaction implements WorldHandler {
       return;
     }
     if (m.kind === 'plant') {
-      if (b?.type === 'plot' && !b.plot && m.crop) { this.plantOne(b, m.crop, 0); return; }
+      if (b?.type === 'plot' && !b.plot && m.crop) { if (this.plantOne(b, m.crop, 0)) this.maybeAllPlanted(); return; }
       if (b?.type === 'plot' && !b.plot) return;
       this.exitPlant();
       if (!b) return;
@@ -162,7 +163,11 @@ export class Interaction implements WorldHandler {
     this.swipe = { kind: 'plant', crop, count: 0, visited: new Set() };
   }
   seedDragMove(p: Pointer): void { if (this.swipe?.kind === 'plant') this.toolDrag(p); }
-  seedDragEnd(): void { this.swipe = null; }
+  seedDragEnd(): void {
+    const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
+    this.swipe = null;
+    if (planted) this.maybeAllPlanted();
+  }
 
   toolDrag(p: Pointer): void {
     this.lastPointer = p;
@@ -203,7 +208,9 @@ export class Interaction implements WorldHandler {
         haptics.buzz([10, 30, 14]);
       }
     }
+    const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
     this.swipe = null;
+    if (planted) this.maybeAllPlanted();
   }
 
   // ------------------------------------------------------------------ farming actions
@@ -257,17 +264,35 @@ export class Interaction implements WorldHandler {
     return true;
   }
 
+  /** Once every field is sown, tidy the seed tray away with a little cheer. */
+  private maybeAllPlanted(): void {
+    if (this.mode.kind !== 'plant') return;
+    const now = game.now();
+    let fields = 0;
+    for (const b of game.state.buildings) {
+      if (b.type !== 'plot' || !isBuilt(b, now)) continue;
+      if (!b.plot) return;
+      fields++;
+    }
+    if (fields < 2) return;
+    const p = this.lastPointer;
+    ui.feedback.floatText(p.x, p.y - 80, 'All planted!', undefined, '#bff27a', 0.1);
+    window.setTimeout(() => this.exitPlant(), 350);
+  }
+
   enterPlant(crop: string | null): void {
     this.cancelPlacement();
     // reopen on the last seed used (if it is still plantable), so replanting is one swipe
     const last = this.lastCrop && CROP[this.lastCrop] && CROP[this.lastCrop].level <= game.level ? this.lastCrop : null;
     this.mode = { kind: 'plant', crop: crop ?? last ?? (CROP.wheat ? 'wheat' : null) };
+    this.scene.farm.hints.visible = true;
     ui.openSeedTray(this.mode.crop, (c) => { if (this.mode.kind === 'plant') this.mode.crop = c; this.lastCrop = c; }, () => this.exitPlant());
     game.bus.emit('tutorial', { signal: 'tray_open' });
   }
   exitPlant(): void {
     if (this.mode.kind !== 'plant') return;
     this.mode = { kind: 'idle' };
+    this.scene.farm.hints.visible = false;
     ui.closeSeedTray();
   }
 

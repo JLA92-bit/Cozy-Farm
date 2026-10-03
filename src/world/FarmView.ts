@@ -8,6 +8,7 @@ import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } 
 import { PoolSet, type InstancePool } from './InstancePool';
 import { procGeometry } from './ProcModels';
 import { Terrain } from './Terrain';
+import { PlantHints } from './PlantHints';
 import { constructionVisual, objectFor, tintGeometry, visualFor, type Visual } from './Visuals';
 import { hashString, rng } from './Procedural';
 import { cropStage, plotReady, treeReady, animalState, productionState } from '../systems/Timers';
@@ -94,6 +95,8 @@ export class FarmView {
   private glowTex: THREE.Texture;
   private pending = new Set<number>();
   private hidden = new Set<number>();
+  /** dashed frames over empty fields while planting */
+  readonly hints: PlantHints;
 
   /** set once the initial farm is built: later crop changes animate */
   private live = false;
@@ -104,6 +107,7 @@ export class FarmView {
     this.pools = new PoolSet(this.root);
     scene.add(this.root);
     this.glowTex = makeGlowTexture();
+    this.hints = new PlantHints(this.root);
     // happy little jumps when animals are fed or give their product
     game.bus.on('animal:fed', ({ b, index }) => this.animalJump(b.uid, index, 0.45));
     game.bus.on('animal:collected', ({ b, index }) => this.animalJump(b.uid, index, 0.55));
@@ -652,6 +656,7 @@ export class FarmView {
   }
 
   frame(dt: number, t: number, night: number): void {
+    this.hints.update(dt, this.views, game.now());
     for (const v of this.views.values()) {
       if (v.animals.length) this.animateAnimals(v, dt, t);
       if (v.plants.length && (v.swaying || v.plantAge < 1)) {

@@ -72,6 +72,14 @@ function feed(b: PlacedBuilding): number {
     ui.effects.hearts(at);
     ui.effects.leaves(at.clone().setY(0.4), '#f0c75a', 8);
     haptics.buzz(8);
+    // show what the meal cost, right over the home
+    const a = ANIMAL[BUILDING[b.type].animal!];
+    const s = ui.screen(at);
+    ui.feedback.floatText(s.x + 36, s.y - 6, `-${n}`, undefined, '#ffd9a0');
+    (ui.feedback.floatLayer.lastElementChild as HTMLElement | null)?.prepend(itemIcon(a.feed));
+    if (animals.counts(b).hungry && game.count(a.feed) === 0) {
+      ui.feedback.toast(`Out of ${ITEMS[a.feed].name}`, `${animals.counts(b).hungry} still hungry. ${sourceText(a.feed)}`, 'cross');
+    }
   } else {
     const a = ANIMAL[BUILDING[b.type].animal!];
     ui.feedback.toast(`No ${ITEMS[a.feed].name}`, sourceText(a.feed), 'cross');

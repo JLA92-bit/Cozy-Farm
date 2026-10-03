@@ -36,6 +36,7 @@ class UIManager {
   private panels = new Map<string, PanelOpener>();
   private tapHandlers: BuildingTapHandler[] = [];
   private tray: HTMLElement | null = null;
+  private trayUnsub: (() => void)[] = [];
   private placementBar: HTMLElement | null = null;
   private confirmBtn: HTMLButtonElement | null = null;
   private banner: HTMLElement | null = null;
@@ -201,6 +202,26 @@ class UIManager {
     render(selected);
     this.root.append(tray);
     this.tray = tray;
+    // keep prices / barn counts honest while planting and harvesting, without rebuilding (keeps scroll)
+    let queued = false;
+    const live = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked)').forEach((el) => {
+          const c = CROP[el.dataset.crop ?? ''];
+          if (!c) return;
+          el.classList.toggle('poor', game.coins < c.seedCost);
+          const have = game.count(c.id);
+          let tag = el.querySelector<HTMLElement>('.thave');
+          if (!have) { tag?.remove(); return; }
+          if (!tag) { tag = h('div', { class: 'thave outlined' }); el.append(tag); }
+          tag.textContent = `${have}`;
+        });
+      });
+    };
+    this.trayUnsub = [game.bus.on('coins', live), game.bus.on('item', live)];
     this.root.classList.add('mode-tray');
     gsap.fromTo(tray, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'back.out(1.6)' });
     this.setModeBanner('Tap or swipe empty fields to plant', onClose);
@@ -241,6 +262,8 @@ class UIManager {
     if (!this.tray) return;
     const t = this.tray;
     this.tray = null;
+    for (const off of this.trayUnsub) off();
+    this.trayUnsub = [];
     this.root.classList.remove('mode-tray');
     gsap.to(t, { y: 80, opacity: 0, duration: 0.2, onComplete: () => t.remove() });
     this.setModeBanner(null);

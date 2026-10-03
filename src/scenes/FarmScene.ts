@@ -77,7 +77,7 @@ export class FarmScene implements InputHandler {
     for (const fn of this.frameHooks) fn(dt, t);
     this.renderer.renderer.render(this.scene, this.rig.camera);
     // keep animating while things move; otherwise the loop idles at low fps
-    if (this.rig.moving || this.input.active) this.loop.wake(0.3);
+    if (this.rig.moving || this.input.active || this.farm.hints.visible) this.loop.wake(0.3);
     this.lastFrameMs = performance.now() - start;
     this.fpsAcc += dt; this.fpsFrames++;
     if (this.fpsAcc >= 1) { this.fps = this.fpsFrames / this.fpsAcc; this.fpsAcc = 0; this.fpsFrames = 0; }
