@@ -14,6 +14,7 @@ import { ui } from '../ui/UI';
 import '../ui/panels';
 import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
+import { updateBubbles } from '../ui/Bubbles';
 
 function setProgress(f: number, text?: string): void {
   const fill = document.querySelector<HTMLElement>('.boot-fill');
@@ -72,7 +73,7 @@ export async function boot(): Promise<void> {
   buildings.tick(game.now());
   await scene.farm.build();
   buildings.updateGauges();
-  scene.onTick((now) => { buildings.tick(now); scene.farm.tick(now); });
+  scene.onTick((now) => { buildings.tick(now); scene.farm.tick(now); updateBubbles(now); });
 
   saves.startAutosave();
   scene.loop.start();

@@ -52,18 +52,19 @@ export class WorldUI {
   get popupOpen(): boolean { return !!this.popup; }
 
   /** Create/update/remove keyed bubbles; `build` returns the element for a new key. */
-  setBubble(key: string, pos: THREE.Vector3 | null, build: () => HTMLElement, version = ''): void {
+  setBubble(key: string, pos: THREE.Vector3 | null, build: () => HTMLElement, version = ''): HTMLElement | null {
     const cur = this.bubbles.get(key);
     if (!pos) {
       if (cur) { this.remove(cur); this.bubbles.delete(key); }
-      return;
+      return null;
     }
-    if (cur && cur.el.dataset.v === version) { cur.pos.copy(pos); return; }
+    if (cur && cur.el.dataset.v === version) { cur.pos.copy(pos); return cur.el; }
     if (cur) this.remove(cur);
     const a = this.add(build(), pos);
     a.el.dataset.v = version;
     this.bubbles.set(key, a);
     gsap.fromTo(a.el.firstElementChild, { scale: 0 }, { scale: 1, duration: 0.35, ease: 'back.out(2.5)' });
+    return a.el;
   }
 
   clearBubbles(prefix = ''): void {

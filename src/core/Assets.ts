@@ -134,7 +134,8 @@ export class Assets {
    * Nodes listed in `partNames` stay separate so they can be animated (e.g. windmill blades).
    */
   prepareStatic(id: string, gltf: GLTF, partNames: string[] = []): StaticModel {
-    const cached = this.statics.get(id);
+    const key = partNames.length ? `${id}|${partNames.join(',')}` : id;
+    const cached = this.statics.get(key);
     if (cached) return cached;
     const info = this.info(id);
     const atlas = info.atlas;
@@ -194,7 +195,7 @@ export class Assets {
     }
     const material = atlas ? this.materials.get(atlas)! : this.vertexMaterial;
     const model: StaticModel = { geometry, material, parts, size };
-    this.statics.set(id, model);
+    this.statics.set(key, model);
     return model;
   }
 

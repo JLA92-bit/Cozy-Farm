@@ -40,6 +40,7 @@ export interface BuildingView {
   plantKey: string;
   animals: AnimalSprite[];
   fan?: THREE.Object3D;
+  fanAxis?: 'x' | 'y' | 'z';
   glow?: THREE.Sprite;
   busy: boolean;
 }
@@ -205,6 +206,13 @@ export class FarmView {
       if (!view.obj) {
         view.obj = objectFor(visual);
         view.fan = view.obj.getObjectByName(def.parts?.[0] ?? '__none') ?? undefined;
+        if (view.fan) {
+          // spin around the axis where the blade assembly is thinnest
+          const g = (view.fan as THREE.Mesh).geometry;
+          g.computeBoundingBox();
+          const sz = g.boundingBox!.getSize(new THREE.Vector3());
+          view.fanAxis = sz.x < sz.y && sz.x < sz.z ? 'x' : sz.z < sz.y ? 'z' : 'y';
+        }
         this.root.add(view.obj);
         if (def.glow) {
           view.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTex, color: '#ffd27a', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
@@ -479,7 +487,7 @@ export class FarmView {
       if (v.animals.length) this.animateAnimals(v, dt, t);
       if (v.fan) {
         const busy = productionState(v.b, game.now()).running;
-        v.fan.rotation.z += dt * (busy ? 2.4 : 0.35);
+        v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
       }
       if (v.glow) (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9;
     }
