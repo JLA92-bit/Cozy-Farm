@@ -110,6 +110,10 @@ export class FarmView {
   private freePuffs: Puff[] = [];
   private smokeTex: THREE.Texture | null = null;
   private smokeTint = new THREE.Color();
+  /** Soft round contact shadows, used when real shadows are off (low quality) so things don't float. */
+  blobShadows = false;
+  private blobs: THREE.InstancedMesh | null = null;
+  private blobDirty = true;
 
   constructor(scene: THREE.Scene) {
     this.terrain = new Terrain(assets.vertexMaterial);
@@ -187,6 +191,7 @@ export class FarmView {
     const s = Math.min(1.6, (big ? 1.05 : 0.85) / Math.max(sm.size.x, sm.size.z)) * (0.9 + r() * 0.2);
     tmpM.compose(tmpV.set(tileToWorld(o.x) + (r() - 0.5) * 0.15, 0, tileToWorld(o.z) + (r() - 0.5) * 0.15), tmpQ.setFromAxisAngle(UP, r() * Math.PI * 2), tmpS.set(s, s, s));
     this.obstacleHandles.set(o.id, { pool, handle: pool.add(tmpM), height: sm.size.y * s, locked });
+    this.blobDirty = true;
   }
 
   /** Remove with a little shrink/fly animation. */
@@ -196,6 +201,7 @@ export class FarmView {
     const m = h.pool.get(h.handle, new THREE.Matrix4());
     h.pool.remove(h.handle);
     this.obstacleHandles.delete(o.id);
+    this.blobDirty = true;
     const mesh = new THREE.Mesh(h.pool.mesh.geometry, h.pool.mesh.material as THREE.Material);
     m.decompose(mesh.position, mesh.quaternion, mesh.scale);
     this.root.add(mesh);
@@ -239,6 +245,7 @@ export class FarmView {
     const [w, d] = rotatedSize(def.size, b.rot);
     view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
     view.box.set(new THREE.Vector3(b.x - HALF, 0, b.z - HALF), new THREE.Vector3(b.x - HALF + w, Math.max(0.4, view.height), b.z - HALF + d));
+    this.blobDirty = true;
     if (!visual) return;
     if (this.hidden.has(b.uid)) {
       this.detachVisual(view);
@@ -361,6 +368,7 @@ export class FarmView {
     this.clearPlants(view);
     this.clearAnimals(view);
     this.views.delete(uid);
+    this.blobDirty = true;
   }
 
   refreshBuilding(b: PlacedBuilding, moved = false): void {
@@ -572,8 +580,52 @@ export class FarmView {
         }
       }
       if (v.smokeAt && v.obj && !v.busy) this.emitSmoke(v, dt);
+      // busy workshops hum: a tiny rhythmic squash while something is being made
+      if (v.def.cat === 'production' && v.obj && !v.busy && !gsap.isTweening(v.obj.scale)) {
+        const k = productionState(v.b, game.now()).running ? Math.sin(t * 5.5 + v.b.uid) * 0.012 : 0;
+        v.obj.scale.set(1 - k * 0.5, 1 + k, 1 - k * 0.5);
+      }
     }
     this.updatePuffs(dt, night);
+    this.updateBlobs();
+  }
+
+  // ------------------------------------------------------------------ blob shadows (no-shadow quality)
+  private updateBlobs(): void {
+    if (!this.blobShadows) { if (this.blobs) this.blobs.visible = false; return; }
+    if (!this.blobs) {
+      const g = new THREE.PlaneGeometry(1, 1);
+      g.rotateX(-Math.PI / 2);
+      const m = new THREE.MeshBasicMaterial({ map: makeBlobTexture(), color: '#12280a', transparent: true, opacity: 0.5, depthWrite: false });
+      this.blobs = new THREE.InstancedMesh(g, m, 1024);
+      this.blobs.count = 0;
+      this.blobs.renderOrder = 1;
+      this.blobs.frustumCulled = false;
+      this.root.add(this.blobs);
+      this.blobDirty = true;
+    }
+    this.blobs.visible = true;
+    if (!this.blobDirty) return;
+    this.blobDirty = false;
+    const im = this.blobs;
+    let n = 0;
+    const put = (x: number, z: number, r: number): void => {
+      if (n >= im.instanceMatrix.count) return;
+      tmpM.compose(tmpV.set(x + 0.06, 0.015, z - 0.12), tmpQ.identity(), tmpS.set(r * 2, 1, r * 2));
+      im.setMatrixAt(n++, tmpM);
+    };
+    for (const h of this.obstacleHandles.values()) {
+      h.pool.get(h.handle, tmpM);
+      tmpV.setFromMatrixPosition(tmpM);
+      put(tmpV.x, tmpV.z, h.height > 0.8 ? 0.7 : 0.5);
+    }
+    for (const v of this.views.values()) {
+      if (this.hidden.has(v.b.uid) || v.def.model.startsWith('paint:') || v.def.path || v.def.id === 'plot' || v.height < 0.15) continue;
+      const [w, d] = rotatedSize(v.def.size, v.b.rot);
+      put(v.center.x, v.center.z, Math.max(w, d) * (v.def.tree ? 0.38 : 0.5));
+    }
+    im.count = n;
+    im.instanceMatrix.needsUpdate = true;
   }
 
   // ------------------------------------------------------------------ chimney smoke
@@ -687,6 +739,19 @@ function chimneyPoint(g: THREE.BufferGeometry): THREE.Vector3 {
   let top = 0;
   for (let i = 1; i < pos.count; i++) if (pos.getY(i) > pos.getY(top)) top = i;
   return new THREE.Vector3(pos.getX(top), pos.getY(top) + 0.05, pos.getZ(top));
+}
+
+function makeBlobTexture(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d')!;
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.55, 'rgba(255,255,255,0.75)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
 }
 
 let poolGeo: THREE.PlaneGeometry | null = null;

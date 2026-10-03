@@ -117,6 +117,25 @@ export class Terrain {
       const z = side < 2 ? (side === 0 ? out : -out) : along;
       for (let k = 0; k < 3; k++) b.geometry(new THREE.ConeGeometry(0.05, 0.45 + rr() * 0.2, 4, 1, true), k === 1 ? '#9cc95a' : '#c6c86a', [x + (k - 1) * 0.1, -cliffH + 0.85, z + (rr() - 0.5) * 0.1], [(rr() - 0.5) * 0.5, 0, (rr() - 0.5) * 0.5]);
     }
+    // lily pads and reeds in the shallows
+    const waterY = -cliffH + 0.2;
+    for (let i = 0; i < 22; i++) {
+      const side = i % 4;
+      const along = (rr() - 0.5) * (MAP - 4);
+      const out = HALF + 3.2 + rr() * 2.5;
+      const x = side < 2 ? along : side === 2 ? out : -out;
+      const z = side < 2 ? (side === 0 ? out : -out) : along;
+      if (i % 3 === 0) {
+        for (let k = 0; k < 5; k++) b.geometry(new THREE.ConeGeometry(0.05, 0.7 + rr() * 0.4, 4, 1, true), k % 2 ? '#7fae4a' : '#9cbf58', [x + (rr() - 0.5) * 0.5, waterY + 0.3, z + (rr() - 0.5) * 0.5], [(rr() - 0.5) * 0.4, 0, (rr() - 0.5) * 0.4]);
+        b.cyl(0.05, 0.05, 0.22, '#8a5a2e', [x + 0.1, waterY + 0.55, z], 5);
+      } else {
+        for (let k = 0; k < 2; k++) {
+          const px = x + (rr() - 0.5) * 1.2, pz = z + (rr() - 0.5) * 1.2;
+          b.cyl(0.26 + rr() * 0.12, 0.26, 0.025, k ? '#5fae3c' : '#4f9e33', [px, waterY + 0.01, pz], 7);
+          if (rr() > 0.6) b.sphere(0.08, rr() > 0.5 ? '#ffb3d1' : '#fff6e8', [px + 0.06, waterY + 0.09, pz], 0, [1, 0.7, 1]);
+        }
+      }
+    }
     // a little wooden dock on the far beach
     const dx = 5, dz0 = -HALF - 1.2, deckY = -cliffH + 0.68;
     for (let k = 0; k < 6; k++) {
