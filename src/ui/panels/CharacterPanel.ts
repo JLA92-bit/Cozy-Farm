@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Panel } from '../Panel';
 import { h, icon, button, clear } from '../dom';
 import { ui } from '../UI';
-import { COSMETICS, type Unlock, ACHIEVEMENT } from '../../data';
+import { COSMETICS, type Unlock, type AvatarDef, ACHIEVEMENT } from '../../data';
 import { game } from '../../systems/Game';
 import type { CharacterLook } from '../../systems/State';
 import { Character } from '../../world/Character';
@@ -73,10 +73,11 @@ class Preview {
     if (w && hh && (this.canvas.width !== Math.round(w * this.renderer.getPixelRatio()))) {
       this.renderer.setSize(w, hh, false);
       this.camera.aspect = w / hh;
-      // frame the farmer whatever the box shape (short landscape boxes need a closer, lower camera)
-      const dist = hh / w < 0.8 ? 2.6 : 3.4;
-      this.camera.position.set(0, 0.95, dist);
-      this.camera.lookAt(0, 0.55, 0);
+      // fit the whole farmer (about 1.3 units tall, 1.4 wide with arms) whatever the box shape
+      const t = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+      const dist = Math.max(0.9 / t, 0.85 / (t * this.camera.aspect));
+      this.camera.position.set(0, 0.9, dist);
+      this.camera.lookAt(0, 0.66, 0);
       this.camera.updateProjectionMatrix();
     }
     if (this.char) {
@@ -94,17 +95,19 @@ class Preview {
   }
 }
 
+/** Which pre-made avatar a look is based on (by body model). */
+const avatarOf = (look: CharacterLook) => COSMETICS.avatars.find((a) => a.body === look.body) ?? COSMETICS.avatars[0];
+
 export function openCharacter(firstTime = false): void {
   const look: CharacterLook = { ...game.state.player.look };
   let name = game.state.player.name;
+  let gender = avatarOf(look).gender;
   const p = new Panel({
     title: firstTime ? 'Create your farmer' : 'My Farmer', color: 'blue', icon: 'farmer', closable: !firstTime,
     tabs: [
-      { id: 'body', label: 'Body', icon: 'farmer' },
-      { id: 'hair', label: 'Hair', icon: 'sparkles' },
-      { id: 'outfit', label: 'Outfit', icon: 'shirt' },
-      { id: 'hat', label: 'Hats', icon: 'hat' },
-      { id: 'extras', label: 'Extras', icon: 'dog' },
+      { id: 'avatar', label: 'Avatar', icon: 'farmer' },
+      { id: 'colours', label: 'Colours', icon: 'sparkles' },
+      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }]),
     ],
   });
   const canvas = h('canvas');
@@ -133,7 +136,7 @@ export function openCharacter(firstTime = false): void {
     }
     options.append(row);
   };
-  const choices = (list: { id: string; name: string; unlock?: Unlock }[], key: 'body' | 'hat' | 'accessory' | 'pet') => {
+  const choices = (list: { id: string; name: string; unlock?: Unlock }[], key: 'hat' | 'accessory' | 'pet') => {
     const row = h('div', { class: 'chip-row', style: 'justify-content:flex-start' });
     for (const c of list) {
       const ok = !c.unlock || cosmeticUnlocked(c.id, c.unlock);
@@ -146,38 +149,55 @@ export function openCharacter(firstTime = false): void {
     }
     options.append(row);
   };
+  /** Pick a ready-made farmer: body model plus its colours and hat. */
+  const pickAvatar = (a: AvatarDef) => {
+    Object.assign(look, { body: a.body, skin: a.skin, hair: a.hair, top: a.top, bottom: a.bottom });
+    if (firstTime || look.hat === 'none' || look.hat === 'straw') look.hat = a.hat;
+    render(p.tab); update();
+  };
 
   const render = (tab: string) => {
     clear(options);
-    if (tab === 'body') {
+    if (tab === 'avatar') {
       section('Name');
       const input = h('input', { class: 'name-input', maxlength: '16', value: name, placeholder: 'Your name' }) as HTMLInputElement;
       input.addEventListener('input', () => { name = input.value; });
       input.addEventListener('pointerdown', (e) => e.stopPropagation());
       options.append(input);
-      section('Body');
-      const isF = look.body.startsWith('female');
-      const letter = look.body.split('-')[1];
-      choices([{ id: `female-${letter}`, name: 'Body A' }, { id: `male-${letter}`, name: 'Body B' }], 'body');
-      void isF;
-      section('Skin tone');
-      swatches(COSMETICS.skinTones, 'skin');
-    } else if (tab === 'hair') {
-      section('Hair style');
-      const prefix = look.body.split('-')[0];
-      choices(['a', 'b', 'c', 'd', 'e', 'f'].map((l) => ({ id: `${prefix}-${l}`, name: `Style ${l.toUpperCase()}` })), 'body');
-      section('Hair colour');
-      swatches(COSMETICS.hairColors, 'hair');
-    } else if (tab === 'outfit') {
+      const seg = h('div', { class: 'segmented gender' });
+      for (const g of ['female', 'male'] as const) {
+        const b = h('button', { class: gender === g ? 'active' : '' }, g === 'female' ? 'Female' : 'Male');
+        b.addEventListener('click', () => {
+          if (gender === g) return;
+          gender = g;
+          // keep the same slot (A-F) when switching, so the swap feels like a counterpart
+          const idx = COSMETICS.avatars.filter((a) => a.gender !== g).findIndex((a) => a.body === look.body);
+          pickAvatar(COSMETICS.avatars.filter((a) => a.gender === g)[Math.max(0, idx)]);
+        });
+        seg.append(b);
+      }
+      section('Choose your farmer');
+      options.append(seg);
+      const grid = h('div', { class: 'avatar-grid' });
+      for (const a of COSMETICS.avatars.filter((x) => x.gender === gender)) {
+        const card = h('button', { class: `avatar-card ${look.body === a.body ? 'selected' : ''}`, 'aria-label': a.name }, icon(`avatar:${a.id}`, 'avatar-img'), h('span', {}, a.name));
+        card.addEventListener('click', () => pickAvatar(a));
+        grid.append(card);
+      }
+      options.append(grid);
+    } else if (tab === 'colours') {
       const lockOf = (c: string) => { const o = COSMETICS.outfitColors.find((x) => x.color === c)!; return cosmeticUnlocked(`color:${c}`, o.unlock) ? null : unlockText(o.unlock); };
+      section('Skin');
+      swatches(COSMETICS.skinTones, 'skin');
+      section('Hair');
+      swatches(COSMETICS.hairColors, 'hair');
       section('Top');
       swatches(COSMETICS.outfitColors.map((o) => o.color), 'top', lockOf);
       section('Bottoms');
       swatches(COSMETICS.outfitColors.map((o) => o.color), 'bottom', lockOf);
-    } else if (tab === 'hat') {
+    } else {
       section('Hat');
       choices(COSMETICS.hats, 'hat');
-    } else {
       section('Accessory');
       choices(COSMETICS.accessories, 'accessory');
       section('Companion');
@@ -187,14 +207,9 @@ export function openCharacter(firstTime = false): void {
   p.onTab = render;
   const random = button('🎲', () => {
     const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
-    look.body = pick(COSMETICS.bodies).id;
-    look.skin = pick(COSMETICS.skinTones);
-    look.hair = pick(COSMETICS.hairColors);
-    const free = COSMETICS.outfitColors.filter((o) => o.unlock.default).map((o) => o.color);
-    look.top = pick(free); look.bottom = pick(free);
-    look.hat = pick(COSMETICS.hats.filter((x) => cosmeticUnlocked(x.id, x.unlock))).id;
-    render(p.tab); update();
-  }, 'small purple', { 'aria-label': 'Random' });
+    const a = pick(COSMETICS.avatars.filter((x) => x.gender === gender));
+    pickAvatar(a);
+  }, 'small purple', { 'aria-label': 'Random farmer' });
   p.footer.append(random, button(firstTime ? "Let's farm!" : 'Save', () => {
     game.state.player.look = { ...look };
     game.state.player.name = (name.trim() || 'Farmer').slice(0, 16);

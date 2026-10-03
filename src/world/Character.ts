@@ -14,7 +14,9 @@ type Slot = 'skin' | 'hair' | 'top' | 'bottom' | 'keep';
 const WHITE_COL = 4, WHITE_ROW = 3; // white swatch in the atlas grid (8 x 4)
 const BONES = ['root', 'leg-left', 'leg-right', 'torso', 'arm-left', 'arm-right', 'head'];
 
-interface SlotMap { slots: Uint8Array; uvBase: Float32Array }
+interface SlotMap { slots: Uint8Array; uvBase: Float32Array; hidden: Uint8Array | null }
+/** Held props baked into some bodies (swords on female-a): hidden arm-bone swatches, as "col,row". */
+const HIDDEN_PROPS: Record<string, string[]> = { 'female-a': ['5,2', '3,3'] };
 const slotCache = new Map<string, SlotMap[]>();
 const SLOT_ID: Record<Slot, number> = { keep: 0, skin: 1, hair: 2, top: 3, bottom: 4 };
 
@@ -67,7 +69,10 @@ function analyse(key: string, meshes: THREE.SkinnedMesh[]): SlotMap[] {
   };
   const hair = count((v, i) => v.bone[i] === HEAD && v.swatch[i] !== skin && !isEye(v, i))[0]?.[0] ?? -1;
   const upper = new Set([BONES.indexOf('torso'), BONES.indexOf('arm-left'), BONES.indexOf('arm-right')]);
-  const top = count((v, i) => upper.has(v.bone[i]) && v.swatch[i] !== skin)[0]?.[0] ?? -1;
+  const armBones = [BONES.indexOf('arm-left'), BONES.indexOf('arm-right')];
+  const props = HIDDEN_PROPS[key];
+  const isProp = (v: VInfo, i: number) => !!props && armBones.includes(v.bone[i]) && props.includes(`${v.swatch[i] % 8},${Math.floor(v.swatch[i] / 8)}`);
+  const top = count((v, i) => upper.has(v.bone[i]) && v.swatch[i] !== skin && !isProp(v, i))[0]?.[0] ?? -1;
   const legs = new Set([BONES.indexOf('leg-left'), BONES.indexOf('leg-right')]);
   const bottom = count((v, i) => legs.has(v.bone[i]) && v.swatch[i] !== skin)[0]?.[0] ?? -1;
   const maps = infos.map((v) => {
@@ -75,6 +80,7 @@ function analyse(key: string, meshes: THREE.SkinnedMesh[]): SlotMap[] {
     const n = uv.count;
     const slots = new Uint8Array(n);
     const uvBase = new Float32Array(n * 2);
+    const hidden = props ? new Uint8Array(n) : null;
     for (let i = 0; i < n; i++) {
       let s: Slot = 'keep';
       if (v.swatch[i] === skin) s = 'skin';
@@ -82,19 +88,30 @@ function analyse(key: string, meshes: THREE.SkinnedMesh[]): SlotMap[] {
       else if (upper.has(v.bone[i]) && v.swatch[i] === top) s = 'top';
       else if (legs.has(v.bone[i]) && v.swatch[i] === bottom) s = 'bottom';
       slots[i] = SLOT_ID[s];
+      if (hidden && isProp(v, i)) hidden[i] = 1;
       // same position inside the white swatch keeps the atlas' soft vertical gradient
       const fu = uv.getX(i) * 8 - Math.floor(uv.getX(i) * 8), fv = uv.getY(i) * 4 - Math.floor(uv.getY(i) * 4);
       uvBase[i * 2] = (WHITE_COL + 0.1 + fu * 0.35) / 8;
       uvBase[i * 2 + 1] = (WHITE_ROW + 0.15 + fv * 0.7) / 4;
     }
-    return { slots, uvBase };
+    return { slots, uvBase, hidden };
   });
   slotCache.set(key, maps);
   return maps;
 }
 
+/** geometry clones already stripped of props (userData is shared between clones, so track here) */
+const propsHidden = new WeakSet<THREE.BufferGeometry>();
+
 function applyLook(mesh: THREE.SkinnedMesh, map: SlotMap, look: CharacterLook): void {
   const g = mesh.geometry;
+  if (map.hidden && !propsHidden.has(g) && g.index) {
+    // drop every triangle touching a hidden prop vertex
+    const src = g.index.array, keep: number[] = [];
+    for (let t = 0; t < src.length; t += 3) if (!map.hidden[src[t]] && !map.hidden[src[t + 1]] && !map.hidden[src[t + 2]]) keep.push(src[t], src[t + 1], src[t + 2]);
+    g.setIndex(keep);
+    propsHidden.add(g);
+  }
   const uv = g.attributes.uv as THREE.BufferAttribute;
   const orig = (g.userData.origUv ??= (uv.array as Float32Array).slice()) as Float32Array;
   const colors = new Float32Array(uv.count * 3).fill(1);

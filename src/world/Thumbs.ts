@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { assets } from '../core/Assets';
-import { BUILDING } from '../data';
+import { BUILDING, COSMETICS } from '../data';
+import { Character } from './Character';
 import { procGeometry } from './ProcModels';
 import { objectFor, visualFor } from './Visuals';
 
@@ -57,6 +58,14 @@ class Thumbs {
   }
 
   private async objectFor(key: string): Promise<THREE.Object3D | null> {
+    if (key.startsWith('avatar:')) {
+      // pre-made farmer portrait: posed in its idle animation
+      const a = COSMETICS.avatars.find((x) => x.id === key.slice(7));
+      if (!a) return null;
+      const c = await Character.create({ body: a.body, skin: a.skin, hair: a.hair, top: a.top, bottom: a.bottom, hat: a.hat, accessory: 'none', pet: 'none' });
+      c.mixer.update(0.4);
+      return c.root;
+    }
     if (key.startsWith('building:')) {
       const type = key.slice(9);
       const def = BUILDING[type];
@@ -81,8 +90,10 @@ class Thumbs {
     obj.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(obj);
     const sphere = box.getBoundingSphere(new THREE.Sphere());
-    const dir = new THREE.Vector3(1, 0.85, 1.15).normalize();
-    const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(this.camera.fov / 2)) * 1.02;
+    const portrait = key.startsWith('avatar:');
+    if (portrait) { sphere.center.y += sphere.radius * 0.2; sphere.radius *= 0.8; }
+    const dir = portrait ? new THREE.Vector3(0.25, 0.3, 1).normalize() : new THREE.Vector3(1, 0.85, 1.15).normalize();
+    const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(this.camera.fov / 2)) * (portrait ? 0.9 : 1.02);
     this.camera.position.copy(sphere.center).addScaledVector(dir, dist);
     this.camera.lookAt(sphere.center);
     this.camera.near = dist / 20; this.camera.far = dist * 4;

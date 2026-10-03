@@ -38,6 +38,7 @@ export interface BuildingDef {
 }
 export interface LevelDef { level: number; xpToNext: number; coins: number; gems: number }
 export interface Unlock { level?: number; achievement?: string; event?: string; cost?: number; crate?: string; default?: boolean }
+export interface AvatarDef { id: string; name: string; gender: 'female' | 'male'; body: string; skin: string; hair: string; top: string; bottom: string; hat: string }
 export interface CosmeticDef { id: string; name: string; unlock: Unlock; model?: string; body?: string }
 export interface AchievementDef {
   id: string; name: string; category: string; stat: string; tiers: number[]; desc: string; icon: string; hidden?: boolean; gauge?: boolean;
@@ -64,7 +65,7 @@ export const LEVELS: LevelDef[] = levelsJson.levels;
 export const LEVEL_DATA = levelsJson;
 export const MAX_LEVEL = levelsJson.maxLevel;
 export const COSMETICS = cosmeticsJson as unknown as {
-  bodies: CosmeticDef[]; skinTones: string[]; hairColors: string[];
+  avatars: AvatarDef[]; bodies: CosmeticDef[]; skinTones: string[]; hairColors: string[];
   outfitColors: { color: string; name?: string; unlock: Unlock }[];
   hats: CosmeticDef[]; accessories: CosmeticDef[]; pets: CosmeticDef[];
 };

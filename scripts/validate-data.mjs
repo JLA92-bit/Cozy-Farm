@@ -57,6 +57,12 @@ for (const [id, it] of Object.entries(items)) {
   if (it.icon.startsWith('model:') && !it.icon.startsWith('model:proc/')) model(it.icon.slice(6), `item ${id} icon`);
 }
 for (const t of Object.values(land.obstacles.types)) t.models.forEach((m) => model(m, 'obstacle'));
+const bodyIds = new Set(cosmetics.bodies.map((b) => b.id));
+for (const a of cosmetics.avatars) {
+  if (!bodyIds.has(a.body)) err(`avatar ${a.id}: unknown body ${a.body}`);
+  if (!cosmetics.hats.some((h) => h.id === a.hat && h.unlock.default)) err(`avatar ${a.id}: hat ${a.hat} must be a starter hat`);
+}
+for (const g of ['female', 'male']) if (!cosmetics.avatars.some((a) => a.gender === g)) err(`no ${g} avatars`);
 for (const a of achievements) if (a.tiers.length !== 3) err(`achievement ${a.id}: needs 3 tiers`);
 if (achievements.length < 40) err(`need at least 40 achievements, have ${achievements.length}`);
 if (crops.length < 15) err(`need at least 15 crops, have ${crops.length}`);

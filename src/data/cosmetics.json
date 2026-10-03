@@ -1,5 +1,19 @@
 {
   "_comment": "Character customisation. unlock: {level:N} | {achievement:id} | {event:id, cost:N tokens} | {crate:rarity} | {default:true}",
+  "avatars": [
+    { "id": "daisy", "name": "Daisy", "gender": "female", "body": "female-a", "skin": "#ffe0c2", "hair": "#e8c06a", "top": "#ffc93c", "bottom": "#3fa9f5", "hat": "none" },
+    { "id": "rosie", "name": "Rosie", "gender": "female", "body": "female-b", "skin": "#f6c9a0", "hair": "#8a5a33", "top": "#e2533c", "bottom": "#8a5528", "hat": "straw" },
+    { "id": "maya", "name": "Maya", "gender": "female", "body": "female-c", "skin": "#a26a43", "hair": "#2b2622", "top": "#6cc644", "bottom": "#3b3b45", "hat": "none" },
+    { "id": "ivy", "name": "Ivy", "gender": "female", "body": "female-d", "skin": "#e8b38a", "hair": "#d9473a", "top": "#3fa9f5", "bottom": "#f7f1e3", "hat": "none" },
+    { "id": "hazel", "name": "Hazel", "gender": "female", "body": "female-e", "skin": "#7a4b2c", "hair": "#5a3a22", "top": "#f7f1e3", "bottom": "#6cc644", "hat": "none" },
+    { "id": "luna", "name": "Luna", "gender": "female", "body": "female-f", "skin": "#c98a5e", "hair": "#2b2622", "top": "#3b3b45", "bottom": "#e2533c", "hat": "none" },
+    { "id": "sam", "name": "Sam", "gender": "male", "body": "male-a", "skin": "#f6c9a0", "hair": "#c98a4b", "top": "#e2533c", "bottom": "#3fa9f5", "hat": "none" },
+    { "id": "leo", "name": "Leo", "gender": "male", "body": "male-b", "skin": "#a26a43", "hair": "#2b2622", "top": "#ffc93c", "bottom": "#3b3b45", "hat": "straw" },
+    { "id": "theo", "name": "Theo", "gender": "male", "body": "male-c", "skin": "#ffe0c2", "hair": "#e8c06a", "top": "#6cc644", "bottom": "#8a5528", "hat": "none" },
+    { "id": "max", "name": "Max", "gender": "male", "body": "male-d", "skin": "#5a3720", "hair": "#2b2622", "top": "#3fa9f5", "bottom": "#f7f1e3", "hat": "none" },
+    { "id": "kai", "name": "Kai", "gender": "male", "body": "male-e", "skin": "#c98a5e", "hair": "#5a3a22", "top": "#f7f1e3", "bottom": "#3fa9f5", "hat": "none" },
+    { "id": "finn", "name": "Finn", "gender": "male", "body": "male-f", "skin": "#e8b38a", "hair": "#d9473a", "top": "#3b3b45", "bottom": "#6cc644", "hat": "none" }
+  ],
   "bodies": [
     { "id": "female-a", "name": "Style A", "body": "female" },
     { "id": "female-b", "name": "Style B", "body": "female" },
