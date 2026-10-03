@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#7cc85a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cozy Acres" />
+    <meta name="description" content="Cozy Acres - a cozy 3D farming and village builder for your phone." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <title>Cozy Acres</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas"></canvas>
+      <div id="ui-root"></div>
+    </div>
+    <div id="boot-screen">
+      <div class="boot-logo">Cozy Acres</div>
+      <div class="boot-bar"><div class="boot-fill"></div></div>
+      <div class="boot-tip">Loading the farm...</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
