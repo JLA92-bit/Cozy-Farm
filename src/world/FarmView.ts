@@ -23,7 +23,7 @@ const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
 /** Seconds a freshly grown / planted crop takes to spring up. */
 const SPRING_SEC = 0.5;
 /** Growing stages that reuse a tinted ripe model are drawn in this fresh green. */
-const GROWING_TINT = '#8fd45a';
+const GROWING_TINT = '#74d843';
 
 /** Elastic overshoot 0..1 -> scale factor (starts small, pops past 1, settles). */
 function springScale(k: number): number {
