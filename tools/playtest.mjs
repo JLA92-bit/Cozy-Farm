@@ -37,7 +37,7 @@ const empties = await ev(() => window.__game.state.buildings.filter((b) => b.typ
 for (const [px, pz] of empties) { const [a, b] = await tile(px, pz); await page.mouse.click(a, b); await wait(150); }
 await wait(800);
 log('planted, step', (await state()).step);
-await page.click('.tray .tray-close');
+await ev(() => document.querySelector('.tray .tray-close')?.click());
 await wait(500);
 // tap order board
 const ob = await ev(() => { const b = window.__game.buildingsOf('order_board')[0]; const a = window.__scene.farm.anchor(b.uid); const p = window.__scene.project(a); return [p.x, p.y + 20]; });
