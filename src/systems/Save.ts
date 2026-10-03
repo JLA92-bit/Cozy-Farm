@@ -277,8 +277,6 @@ class SaveSystem {
   }
 
   reset(): void {
-    this.locked = true;
-    this.locked = false;
     this.save();
     this.locked = true;
     const prev = store.get(KEY);

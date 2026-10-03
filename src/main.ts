@@ -42,9 +42,9 @@ if (import.meta.env.PROD) {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
+      if (pill) return;
       const apply = () => { saves.save(); saves.locked = true; void updateSW(true); };
       document.addEventListener('visibilitychange', () => { if (document.hidden) apply(); });
-      if (pill) return;
       pill = document.createElement('button');
       pill.className = 'update-pill';
       pill.textContent = 'A fresh update is ready - tap to refresh';
