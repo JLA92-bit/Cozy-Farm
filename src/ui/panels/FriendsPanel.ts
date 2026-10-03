@@ -1,3 +1,4 @@
+import { playerCardHooks } from '../../online/Leaderboard';
 import gsap from 'gsap';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, fmt, clear } from '../dom';
@@ -506,3 +507,16 @@ ui.onTick((now) => {
   }
 });
 Object.assign(window as unknown as Record<string, unknown>, { __social: social });
+
+// Leaderboard player cards: "Add friend" and the friend heart use the real friends list.
+playerCardHooks.isFriend = (id) => social.isFriend(id);
+playerCardHooks.addFriend = (p) => {
+  try {
+    social.addProfile(p);
+    ui.feedback.toast(`${p.name} is now your friend`, undefined, 'heart');
+    return true;
+  } catch (e) {
+    ui.feedback.toast((e as Error).message, undefined, 'heart');
+    return false;
+  }
+};

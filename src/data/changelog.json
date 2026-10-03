@@ -1,103 +1,378 @@
 {
-  "releases": [
+ "releases": [
+  {
+   "version": "1.2.0",
+   "date": "2026-10-03",
+   "title": "Neighbours",
+   "icon": "world",
+   "color": "pink",
+   "dedication": {
+    "icon": "heart",
+    "text": "Updates requested by the beautiful Kacie"
+   },
+   "highlights": [
     {
-      "version": "1.2.0",
-      "date": "2026-10-03",
-      "title": "Neighbours",
-      "icon": "world",
-      "color": "pink",
-      "dedication": { "icon": "heart", "text": "Updates requested by the beautiful Kacie" },
-      "highlights": [
-        { "icon": "hug", "text": "Play with friends: add neighbours with a friend code" },
-        { "icon": "gift", "text": "Send gifts to friends, or share a gift code" },
-        { "icon": "store", "text": "Shared Market: list your goods and buy from other players" },
-        { "icon": "trophy", "text": "Leaderboards for level, farm value, charm and this week" },
-        { "icon": "coin", "text": "Economy rebalance: fairer prices and rewards" },
-        { "icon": "light_bulb", "text": "Fewer hints for things you already know, with a hints setting" },
-        { "icon": "seedling", "text": "More fields, and clearer ways to get them" },
-        { "icon": "sparkles", "text": "This What's new page, so you never miss an update" }
-      ]
+     "icon": "hug",
+     "text": "Play with friends: add neighbours with a friend code"
     },
     {
-      "version": "1.1.0",
-      "date": "2026-10-03",
-      "title": "Cozy Polish",
-      "icon": "sparkle_heart",
-      "color": "green",
-      "highlights": [
-        { "icon": "farmer", "text": "New farmer creator: Female/Male toggle with 12 ready-made avatars and colour choices" }
-      ],
-      "sections": [
-        {
-          "title": "A lovelier world",
-          "icon": "sunrise",
-          "items": [
-            { "icon": "tulip", "text": "Lusher world with wildflowers" },
-            { "icon": "wave", "text": "A living sea with a dock, a boat and islands" },
-            { "icon": "moon", "text": "Golden dusk and moonlit nights with fireflies" },
-            { "icon": "candle", "text": "Lamp glow, chimney smoke and crops swaying in the wind" }
-          ]
-        },
-        {
-          "title": "Easier to play",
-          "icon": "hand",
-          "items": [
-            { "icon": "thumbs", "text": "One-row thumb dock and exact numbers everywhere" },
-            { "icon": "coin", "text": "Live coin balance in the Shop and Barn" },
-            { "icon": "wheat", "text": "Crops spring up and twinkle when ripe, plus swipe combos" },
-            { "icon": "seed", "text": "Seed tray closes when everything is planted" },
-            { "icon": "chicken", "text": "One-tap animal care" }
-          ]
-        },
-        {
-          "title": "Busier village",
-          "icon": "truck",
-          "items": [
-            { "icon": "clipboard", "text": "Clearer production, orders, truck, stall and merchant screens" },
-            { "icon": "receipt", "text": "More varied orders, and cancel waiting jobs" },
-            { "icon": "cart", "text": "The merchant calls out and waves goodbye" },
-            { "icon": "truck", "text": "The truck rolls in with a honk, and villagers are livelier" }
-          ]
-        },
-        {
-          "title": "Goals and rewards",
-          "icon": "trophy",
-          "items": [
-            { "icon": "scroll", "text": "The goal card always shows a next step" },
-            { "icon": "confetti", "text": "Level-up confetti and flying rewards" },
-            { "icon": "rocket", "text": "Quest Go buttons take you straight there" },
-            { "icon": "books", "text": "Collection Book page rewards" },
-            { "icon": "gift", "text": "Better crate opening" }
-          ]
-        },
-        {
-          "title": "Getting started",
-          "icon": "seedling",
-          "items": [
-            { "icon": "hourglass", "text": "New loading screen and tutorial progress dots" },
-            { "icon": "calendar", "text": "Daily reward after the tutorial" }
-          ]
-        },
-        {
-          "title": "Sound and feel",
-          "icon": "music",
-          "items": [
-            { "icon": "speaker", "text": "Better sound mix and combo chimes" },
-            { "icon": "bell", "text": "Vibration and smoother camera shake" }
-          ]
-        },
-        {
-          "title": "Safe and sound",
-          "icon": "key",
-          "items": [
-            { "icon": "package", "text": "Save repair, a recovery screen and import preview" },
-            { "icon": "rocket", "text": "An update-ready pill when a new version is out" },
-            { "icon": "moon", "text": "Midnight rollover for daily quests" },
-            { "icon": "sunrise", "text": "Welcome back summary after a break" },
-            { "icon": "lock", "text": "Safe second tab: only one window plays at a time" }
-          ]
-        }
-      ]
+     "icon": "gift",
+     "text": "Send gifts to friends, or share a gift code"
+    },
+    {
+     "icon": "store",
+     "text": "Shared Market: list your goods and buy from other players"
+    },
+    {
+     "icon": "trophy",
+     "text": "Leaderboards for level, farm value, charm and this week"
+    },
+    {
+     "icon": "coin",
+     "text": "Economy rebalance: fairer prices and rewards"
+    },
+    {
+     "icon": "light_bulb",
+     "text": "Fewer hints for things you already know, with a hints setting"
+    },
+    {
+     "icon": "seedling",
+     "text": "More fields, and clearer ways to get them"
+    },
+    {
+     "icon": "sparkles",
+     "text": "This What's new page, so you never miss an update"
     }
-  ]
+   ],
+   "sections": [
+    {
+     "title": "Friends and gifts",
+     "icon": "hug",
+     "items": [
+      {
+       "icon": "hug",
+       "text": "New Friends button: add farmers with their friend code"
+      },
+      {
+       "icon": "key",
+       "text": "Your own friend code, ready to share or copy"
+      },
+      {
+       "icon": "gift",
+       "text": "Send items and coins with a short note - 5 gifts a day"
+      },
+      {
+       "icon": "mailbox",
+       "text": "Mailbox: gifts arrive with a jingle, open them one by one or all at once"
+      },
+      {
+       "icon": "sparkle_heart",
+       "text": "Gift codes and links work between any two farms, no account needed"
+      }
+     ]
+    },
+    {
+     "title": "Shared Market",
+     "icon": "store",
+     "items": [
+      {
+       "icon": "store",
+       "text": "Shared Market unlocks at level 6: sell your goods to other farmers"
+      },
+      {
+       "icon": "coin",
+       "text": "Pick your price from 0.5x to 2.5x the value, with Quick sale, Fair and Top price"
+      },
+      {
+       "icon": "star",
+       "text": "Browse by category or search, with Deal tags and goods your orders need"
+      },
+      {
+       "icon": "chart",
+       "text": "More listing slots as you level up, and a toast when something sells"
+      },
+      {
+       "icon": "medal",
+       "text": "New awards and quests: Market Trader and Good Neighbour"
+      }
+     ]
+    },
+    {
+     "title": "Leaderboards",
+     "icon": "trophy",
+     "items": [
+      {
+       "icon": "trophy",
+       "text": "New Leaders button: rankings for Level, Farm value, Charm and This week"
+      },
+      {
+       "icon": "medal1",
+       "text": "Gold, silver and bronze for the top 3, with farmer portraits"
+      },
+      {
+       "icon": "chart",
+       "text": "Tracker: see how much more you need to pass the next farmer"
+      },
+      {
+       "icon": "farmer",
+       "text": "Tap any farmer to see their card and add them as a friend"
+      }
+     ]
+    },
+    {
+     "title": "Online play",
+     "icon": "world",
+     "items": [
+      {
+       "icon": "world",
+       "text": "Real online play with other farmers when the game is connected"
+      },
+      {
+       "icon": "house",
+       "text": "Practice mode with demo neighbours, clearly labelled, until then"
+      },
+      {
+       "icon": "key",
+       "text": "Settings has a new Online play section with your name and friend code"
+      }
+     ]
+    },
+    {
+     "title": "More fields",
+     "icon": "seedling",
+     "items": [
+      {
+       "icon": "seedling",
+       "text": "New farms start with 8 fields, and your first 8 fields are free"
+      },
+      {
+       "icon": "house",
+       "text": "Every Farmhouse level allows more fields (14 at level 1, up to 70)"
+      },
+      {
+       "icon": "farmer",
+       "text": "New Farmhouse panel shows what each upgrade adds before you pay"
+      },
+      {
+       "icon": "light_bulb",
+       "text": "When your fields are full, the Shop and goal card show how to get more"
+      }
+     ]
+    },
+    {
+     "title": "Fewer repeat tips",
+     "icon": "light_bulb",
+     "items": [
+      {
+       "icon": "light_bulb",
+       "text": "Tips stop for things you already know how to do"
+      },
+      {
+       "icon": "star",
+       "text": "New things still get one short intro the first time"
+      },
+      {
+       "icon": "sparkles",
+       "text": "New Helpful hints setting: All, New things only or Off"
+      },
+      {
+       "icon": "calendar",
+       "text": "Shorter goal card once you know the basics"
+      }
+     ]
+    },
+    {
+     "title": "Economy and growth",
+     "icon": "coin",
+     "items": [
+      {
+       "icon": "chart",
+       "text": "Levels 9-50 are paced for the long run - level 50 is a real goal"
+      },
+      {
+       "icon": "tractor",
+       "text": "Friendlier truck: smaller crates, better pay, and it waits 16 hours"
+      },
+      {
+       "icon": "coin",
+       "text": "Roadside Stall prices up to 1.35x, buyers arrive faster"
+      },
+      {
+       "icon": "trophy",
+       "text": "Big late-game goals: grand decorations and Farmhouse levels 6-8"
+      },
+      {
+       "icon": "star",
+       "text": "Quests give more XP at higher levels"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "version": "1.1.0",
+   "date": "2026-10-03",
+   "title": "Cozy Polish",
+   "icon": "sparkle_heart",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "farmer",
+     "text": "New farmer creator: Female/Male toggle with 12 ready-made avatars and colour choices"
+    }
+   ],
+   "sections": [
+    {
+     "title": "A lovelier world",
+     "icon": "sunrise",
+     "items": [
+      {
+       "icon": "tulip",
+       "text": "Lusher world with wildflowers"
+      },
+      {
+       "icon": "wave",
+       "text": "A living sea with a dock, a boat and islands"
+      },
+      {
+       "icon": "moon",
+       "text": "Golden dusk and moonlit nights with fireflies"
+      },
+      {
+       "icon": "candle",
+       "text": "Lamp glow, chimney smoke and crops swaying in the wind"
+      }
+     ]
+    },
+    {
+     "title": "Easier to play",
+     "icon": "hand",
+     "items": [
+      {
+       "icon": "thumbs",
+       "text": "One-row thumb dock and exact numbers everywhere"
+      },
+      {
+       "icon": "coin",
+       "text": "Live coin balance in the Shop and Barn"
+      },
+      {
+       "icon": "wheat",
+       "text": "Crops spring up and twinkle when ripe, plus swipe combos"
+      },
+      {
+       "icon": "seed",
+       "text": "Seed tray closes when everything is planted"
+      },
+      {
+       "icon": "chicken",
+       "text": "One-tap animal care"
+      }
+     ]
+    },
+    {
+     "title": "Busier village",
+     "icon": "truck",
+     "items": [
+      {
+       "icon": "clipboard",
+       "text": "Clearer production, orders, truck, stall and merchant screens"
+      },
+      {
+       "icon": "receipt",
+       "text": "More varied orders, and cancel waiting jobs"
+      },
+      {
+       "icon": "cart",
+       "text": "The merchant calls out and waves goodbye"
+      },
+      {
+       "icon": "truck",
+       "text": "The truck rolls in with a honk, and villagers are livelier"
+      }
+     ]
+    },
+    {
+     "title": "Goals and rewards",
+     "icon": "trophy",
+     "items": [
+      {
+       "icon": "scroll",
+       "text": "The goal card always shows a next step"
+      },
+      {
+       "icon": "confetti",
+       "text": "Level-up confetti and flying rewards"
+      },
+      {
+       "icon": "rocket",
+       "text": "Quest Go buttons take you straight there"
+      },
+      {
+       "icon": "books",
+       "text": "Collection Book page rewards"
+      },
+      {
+       "icon": "gift",
+       "text": "Better crate opening"
+      }
+     ]
+    },
+    {
+     "title": "Getting started",
+     "icon": "seedling",
+     "items": [
+      {
+       "icon": "hourglass",
+       "text": "New loading screen and tutorial progress dots"
+      },
+      {
+       "icon": "calendar",
+       "text": "Daily reward after the tutorial"
+      }
+     ]
+    },
+    {
+     "title": "Sound and feel",
+     "icon": "music",
+     "items": [
+      {
+       "icon": "speaker",
+       "text": "Better sound mix and combo chimes"
+      },
+      {
+       "icon": "bell",
+       "text": "Vibration and smoother camera shake"
+      }
+     ]
+    },
+    {
+     "title": "Safe and sound",
+     "icon": "key",
+     "items": [
+      {
+       "icon": "package",
+       "text": "Save repair, a recovery screen and import preview"
+      },
+      {
+       "icon": "rocket",
+       "text": "An update-ready pill when a new version is out"
+      },
+      {
+       "icon": "moon",
+       "text": "Midnight rollover for daily quests"
+      },
+      {
+       "icon": "sunrise",
+       "text": "Welcome back summary after a break"
+      },
+      {
+       "icon": "lock",
+       "text": "Safe second tab: only one window plays at a time"
+      }
+     ]
+    }
+   ]
+  }
+ ]
 }
