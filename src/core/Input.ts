@@ -45,6 +45,22 @@ export class Input {
     // block iOS gesture zoom and double-tap zoom on the game
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
+    // a finger held while the app is backgrounded (or the window loses focus) may never get its
+    // pointerup/pointercancel; drop it so the next touch is not mistaken for a pinch
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.reset(); });
+  }
+
+  /** Forget every held pointer and end any gesture in progress. */
+  reset(): void {
+    clearTimeout(this.longTimer);
+    if (!this.pointers.size) return;
+    const last = [...this.pointers.values()].pop()!;
+    this.pointers.clear();
+    if (this.dragKind === 'tool' || this.longFired) this.handler.onToolDragEnd({ x: last.x, y: last.y });
+    else if (this.dragKind === 'pan') this.handler.onPanEnd(0, 0);
+    this.dragKind = null;
+    this.longFired = false;
   }
 
   private local(e: PointerEvent | WheelEvent): Pointer {
@@ -55,7 +71,9 @@ export class Input {
   private down = (e: PointerEvent): void => {
     if (!this.enabled) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    this.el.setPointerCapture?.(e.pointerId);
+    try { this.el.setPointerCapture?.(e.pointerId); } catch { /* pointer already gone */ }
+    // a primary pointer starting a new gesture means any pointers we still hold are stale
+    if (e.isPrimary && this.pointers.size && !this.pointers.has(e.pointerId)) this.reset();
     const p = this.local(e);
     this.pointers.set(e.pointerId, { ...p, startX: p.x, startY: p.y, t: performance.now() });
     this.handler.onPointerDown();
@@ -155,11 +173,14 @@ export class Input {
   };
 
   private cancel = (e: PointerEvent): void => {
+    const ptr = this.pointers.get(e.pointerId);
+    if (!ptr) return;
     this.pointers.delete(e.pointerId);
     clearTimeout(this.longTimer);
     if (this.pointers.size === 0) {
-      if (this.dragKind === 'tool') this.handler.onToolDragEnd({ x: e.clientX, y: e.clientY });
+      if (this.dragKind === 'tool' || this.longFired) this.handler.onToolDragEnd({ x: ptr.x, y: ptr.y });
       this.dragKind = null;
+      this.longFired = false;
     }
   };
 

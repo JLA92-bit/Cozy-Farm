@@ -20,13 +20,14 @@ import { orders, truck, merchant } from '../systems/Economy';
 import { Visitors } from '../world/Visitors';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
-import { achievements, quests, daily, events, syncCosmeticDiscovery } from '../systems/Progression';
+import { achievements, quests, daily, events, syncCosmeticDiscovery, localDay } from '../systems/Progression';
 import { nextGoal, type Goal } from '../systems/Goals';
 import { showLevelUp, openDaily, openUnlockTree, collectionBadge, wireProgressionNotes } from '../ui/panels/ProgressionPanels';
 import { runGoalAction } from '../ui/GoalActions';
 import { openDebug } from '../ui/panels/DebugPanel';
 import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
 import { Panel } from '../ui/Panel';
+import { h } from '../ui/dom';
 import { Villagers } from '../world/Villagers';
 import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
@@ -95,6 +96,7 @@ export async function boot(): Promise<void> {
   await assets.preload(coreModels(), (f) => setProgress(0.15 + f * 0.65));
   await Promise.all(ANIMALS.map((a) => assets.static(a.model)));
 
+  await saves.claimTab();
   const { data, fresh } = saves.load();
   game.load(data);
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
@@ -138,6 +140,18 @@ export async function boot(): Promise<void> {
   scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();
+  saves.onTakenOver = () => {
+    audio.setMusicVolume(0);
+    audio.setSfxVolume(0);
+    Panel.closeAll();
+    const btn = h('button', { class: 'btn green' }, 'Play here');
+    btn.addEventListener('click', () => location.reload());
+    document.body.append(h('div', { class: 'tab-overlay' },
+      h('div', { class: 'tab-card' }, h('div', { class: 'tab-title' }, 'Your farm is open somewhere else'), h('div', null, 'To keep your progress safe, only one window can play at a time.'), btn)));
+  };
+  // another tab may have started while we were still loading
+  if (saves.locked) saves.onTakenOver();
+  watchDayAndResume();
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
@@ -149,8 +163,45 @@ export async function boot(): Promise<void> {
   } else if (!game.state.tutorial.done) setTimeout(() => tutorial.start(), 800);
   if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
   else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
+  if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
+}
+
+/**
+ * Keeps day-based systems fresh while the game stays open (quests, login calendar, seasonal events
+ * would otherwise only roll over on a reload), and greets the player with a "Welcome back!" summary
+ * when they return to a backgrounded game after a while.
+ */
+function watchDayAndResume(): void {
+  let day = localDay(game.now());
+  scene.onTick((now) => {
+    const d = localDay(now);
+    if (d === day) return;
+    day = d;
+    quests.refresh(now);
+    events.check(now);
+    if (game.state.tutorial.done) {
+      daily.check(now);
+      ui.feedback.toast('Good morning!', 'A new day on the farm. Fresh daily quests are ready.', 'sunrise');
+    }
+  });
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { hiddenAt = game.now(); return; }
+    if (!hiddenAt) return;
+    const since = hiddenAt;
+    hiddenAt = 0;
+    const now = game.now();
+    buildings.tick(now);
+    if (now - since < 10 * 60000 || !game.state.player.created || !game.state.tutorial.done) return;
+    // let the frame settle, then only greet if nothing else is on screen
+    setTimeout(() => {
+      if (Panel.isOpen || document.hidden) return;
+      const away = offlineSummary(since);
+      if (hasNews(away)) openWelcome(away);
+    }, 400);
+  });
 }
 
 /** Level-ups, goal card, side shortcuts, level badge taps. */

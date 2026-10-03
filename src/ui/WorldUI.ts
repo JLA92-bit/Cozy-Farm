@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { h } from './dom';
 
 /** A DOM element pinned to a world position (re-projected every frame while the camera moves). */
-interface Anchor { el: HTMLElement; pos: THREE.Vector3; dy: number; visible: boolean }
+interface Anchor { el: HTMLElement; pos: THREE.Vector3; dy: number; visible: boolean; px: number; py: number }
 
 /**
  * World-anchored UI: one context popup at a time (building info, clear obstacle, buy land) and
@@ -24,7 +24,7 @@ export class WorldUI {
   private add(el: HTMLElement, pos: THREE.Vector3, dy = 0): Anchor {
     const wrap = h('div', { class: 'world-pop' }, el);
     this.layer.append(wrap);
-    const a: Anchor = { el: wrap, pos: pos.clone(), dy, visible: true };
+    const a: Anchor = { el: wrap, pos: pos.clone(), dy, visible: true, px: NaN, py: NaN };
     this.anchors.add(a);
     this.position(a);
     return a;
@@ -76,7 +76,12 @@ export class WorldUI {
     const p = this.project(a.pos, this.tmp);
     const off = p.x < -80 || p.y < -80 || p.x > window.innerWidth + 80 || p.y > window.innerHeight + 80;
     if (off !== !a.visible) { a.visible = !off; a.el.style.display = off ? 'none' : ''; }
-    if (!off) a.el.style.transform = `translate3d(${p.x.toFixed(1)}px, ${(p.y + a.dy).toFixed(1)}px, 0) translate(-50%, -100%)`;
+    if (off) return;
+    // skip the style write (and the style recalc it triggers) when the bubble has not moved
+    const x = Math.round(p.x * 10) / 10, y = Math.round((p.y + a.dy) * 10) / 10;
+    if (x === a.px && y === a.py) return;
+    a.px = x; a.py = y;
+    a.el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -100%)`;
   }
 
   update(): void {
