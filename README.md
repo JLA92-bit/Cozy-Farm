@@ -77,6 +77,7 @@ All balance lives in `src/data/*.json`; no code changes are needed to rebalance:
 | `cosmetics.json` | skin tones, hair and outfit colours, hats, accessories, pets and how they unlock |
 | `land.json` | map size, expansions, obstacles |
 | `tutorial.json` | tutorial steps |
+| `changelog.json` | release notes for the "What's new" page, newest first; the newest version is the app version (keep `package.json` in step, `validate-data` checks it) |
 
 Run `npm run validate-data` after editing. It checks references (items, buildings, models) and that every level
 from 2 to 50 unlocks something. CI runs it before every deploy. See [BALANCE.md](BALANCE.md) for the

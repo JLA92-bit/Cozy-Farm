@@ -82,6 +82,8 @@ export interface SaveData {
   debugTimeOffset: number;
   /** XP earned in the current online week (week = Monday 00:00 UTC, as YYYY-MM-DD), for the weekly leaderboard. */
   weeklyXp: { week: string; xp: number };
+  /** Newest app version whose "What's new" page the player has seen (older saves count as 1.0.0). */
+  lastSeenVersion: string;
 }
 
 export const SAVE_VERSION = 1;

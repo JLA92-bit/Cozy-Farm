@@ -1,6 +1,7 @@
 import { CHUNK, MAP, chunkOf, rotatedSize } from '../world/Grid';
 import { rng } from '../world/Procedural';
 import { BUILDING, ECONOMY, LAND } from '../data';
+import { APP_VERSION } from './Version';
 import { SAVE_VERSION, type Obstacle, type PlacedBuilding, type SaveData } from './State';
 
 /** Builds the starting farm: farmhouse, barn, order board, a few fields, a path, and obstacles everywhere else. */
@@ -107,5 +108,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     seen: { levelUnlocks: 1, loginDays: [], collectionSeenAt: 0, bookPages: [] },
     debugTimeOffset: 0,
     weeklyXp: { week: '', xp: 0 },
+    lastSeenVersion: APP_VERSION,
   };
 }

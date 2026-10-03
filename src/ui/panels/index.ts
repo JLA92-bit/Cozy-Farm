@@ -7,3 +7,4 @@ import './CharacterPanel';
 import './EconomyPanels';
 import './ProgressionPanels';
 import './SettingsPanel';
+import './WhatsNewPanel';

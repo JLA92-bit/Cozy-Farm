@@ -1,6 +1,7 @@
 import { game } from './Game';
 import { createNewGame } from './NewGame';
 import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
+import { FIRST_VERSION } from './Version';
 import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data';
 
 const KEY = 'cozy-acres-save';
@@ -28,6 +29,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.orders = { ...base.orders, ...(s.orders ?? {}) };
   out.land = { ...base.land, ...(s.land ?? {}) };
   out.weeklyXp = { ...base.weeklyXp, ...(isObj(s.weeklyXp) ? s.weeklyXp : {}) };
+  // saves from before versions were tracked have seen nothing new yet
+  if (typeof s.lastSeenVersion !== 'string' || !/^\d+(\.\d+)*$/.test(s.lastSeenVersion)) out.lastSeenVersion = FIRST_VERSION;
   if (typeof out.weeklyXp.week !== 'string' || !Number.isFinite(out.weeklyXp.xp) || out.weeklyXp.xp < 0) out.weeklyXp = { ...base.weeklyXp };
   return sanitize(out, base);
 }

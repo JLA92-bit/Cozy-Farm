@@ -14,6 +14,7 @@ import { ui } from '../ui/UI';
 import '../ui/panels';
 import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
+import { openWhatsNew, shouldShowWhatsNew, refreshWhatsNewDot } from '../ui/panels/WhatsNewPanel';
 import { updateBubbles } from '../ui/Bubbles';
 import { player } from './Player';
 import { orders, truck, merchant } from '../systems/Economy';
@@ -164,8 +165,14 @@ export async function boot(): Promise<void> {
     const off = game.bus.on('tutorial', ({ signal }) => { if (signal === 'character_done') { off(); setTimeout(() => tutorial.start(), 500); } });
     setTimeout(() => openCharacter(true), 400);
   } else if (!game.state.tutorial.done) setTimeout(() => tutorial.start(), 800);
-  if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
-  else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), 600);
+  const greet = (delay: number) => {
+    if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), delay);
+    else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), delay);
+  };
+  // after an update: the What's new page first, then the usual welcome back / daily reward
+  if (shouldShowWhatsNew()) setTimeout(() => openWhatsNew({ sinceLast: true, onClose: () => greet(250) }), 600);
+  else greet(600);
+  refreshWhatsNewDot();
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);

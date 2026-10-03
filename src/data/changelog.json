@@ -1,0 +1,103 @@
+{
+  "releases": [
+    {
+      "version": "1.2.0",
+      "date": "2026-10-03",
+      "title": "Neighbours",
+      "icon": "world",
+      "color": "pink",
+      "dedication": { "icon": "heart", "text": "Updates requested by the beautiful Kacie" },
+      "highlights": [
+        { "icon": "hug", "text": "Play with friends: add neighbours with a friend code" },
+        { "icon": "gift", "text": "Send gifts to friends, or share a gift code" },
+        { "icon": "store", "text": "Shared Market: list your goods and buy from other players" },
+        { "icon": "trophy", "text": "Leaderboards for level, farm value, charm and this week" },
+        { "icon": "coin", "text": "Economy rebalance: fairer prices and rewards" },
+        { "icon": "light_bulb", "text": "Fewer hints for things you already know, with a hints setting" },
+        { "icon": "seedling", "text": "More fields, and clearer ways to get them" },
+        { "icon": "sparkles", "text": "This What's new page, so you never miss an update" }
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-10-03",
+      "title": "Cozy Polish",
+      "icon": "sparkle_heart",
+      "color": "green",
+      "highlights": [
+        { "icon": "farmer", "text": "New farmer creator: Female/Male toggle with 12 ready-made avatars and colour choices" }
+      ],
+      "sections": [
+        {
+          "title": "A lovelier world",
+          "icon": "sunrise",
+          "items": [
+            { "icon": "tulip", "text": "Lusher world with wildflowers" },
+            { "icon": "wave", "text": "A living sea with a dock, a boat and islands" },
+            { "icon": "moon", "text": "Golden dusk and moonlit nights with fireflies" },
+            { "icon": "candle", "text": "Lamp glow, chimney smoke and crops swaying in the wind" }
+          ]
+        },
+        {
+          "title": "Easier to play",
+          "icon": "hand",
+          "items": [
+            { "icon": "thumbs", "text": "One-row thumb dock and exact numbers everywhere" },
+            { "icon": "coin", "text": "Live coin balance in the Shop and Barn" },
+            { "icon": "wheat", "text": "Crops spring up and twinkle when ripe, plus swipe combos" },
+            { "icon": "seed", "text": "Seed tray closes when everything is planted" },
+            { "icon": "chicken", "text": "One-tap animal care" }
+          ]
+        },
+        {
+          "title": "Busier village",
+          "icon": "truck",
+          "items": [
+            { "icon": "clipboard", "text": "Clearer production, orders, truck, stall and merchant screens" },
+            { "icon": "receipt", "text": "More varied orders, and cancel waiting jobs" },
+            { "icon": "cart", "text": "The merchant calls out and waves goodbye" },
+            { "icon": "truck", "text": "The truck rolls in with a honk, and villagers are livelier" }
+          ]
+        },
+        {
+          "title": "Goals and rewards",
+          "icon": "trophy",
+          "items": [
+            { "icon": "scroll", "text": "The goal card always shows a next step" },
+            { "icon": "confetti", "text": "Level-up confetti and flying rewards" },
+            { "icon": "rocket", "text": "Quest Go buttons take you straight there" },
+            { "icon": "books", "text": "Collection Book page rewards" },
+            { "icon": "gift", "text": "Better crate opening" }
+          ]
+        },
+        {
+          "title": "Getting started",
+          "icon": "seedling",
+          "items": [
+            { "icon": "hourglass", "text": "New loading screen and tutorial progress dots" },
+            { "icon": "calendar", "text": "Daily reward after the tutorial" }
+          ]
+        },
+        {
+          "title": "Sound and feel",
+          "icon": "music",
+          "items": [
+            { "icon": "speaker", "text": "Better sound mix and combo chimes" },
+            { "icon": "bell", "text": "Vibration and smoother camera shake" }
+          ]
+        },
+        {
+          "title": "Safe and sound",
+          "icon": "key",
+          "items": [
+            { "icon": "package", "text": "Save repair, a recovery screen and import preview" },
+            { "icon": "rocket", "text": "An update-ready pill when a new version is out" },
+            { "icon": "moon", "text": "Midnight rollover for daily quests" },
+            { "icon": "sunrise", "text": "Welcome back summary after a break" },
+            { "icon": "lock", "text": "Safe second tab: only one window plays at a time" }
+          ]
+        }
+      ]
+    }
+  ]
+}

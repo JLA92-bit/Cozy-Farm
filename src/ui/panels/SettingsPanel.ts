@@ -10,6 +10,7 @@ import type { SaveData } from '../../systems/State';
 import credits from '../../../CREDITS.md?raw';
 import { tutorial } from '../Tutorial';
 import { onlineSettingsSection } from './OnlineSettings';
+import { openWhatsNew, whatsNewPending } from './WhatsNewPanel';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -71,11 +72,20 @@ export function openSettings(): void {
   p.body.append(fileInput, h('div', { class: 'section-title' }, 'Your farm'), h('div', { class: 'chip-row', style: 'justify-content:flex-start' },
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
     button([icon('unlock'), 'Import save'], () => fileInput.click(), 'small blue'),
+    whatsNewButton(),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
   ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave. No real-money purchases, ever.'));
   p.open();
+}
+
+/** "What's new" with a little New dot until the latest release notes have been read. */
+function whatsNewButton(): HTMLElement {
+  const b = button([icon('sparkles'), "What's new"], () => { b.querySelector('.badge-dot')?.remove(); openWhatsNew(); }, 'small pink-btn whatsnew-btn');
+  b.style.position = 'relative';
+  if (whatsNewPending()) b.append(h('span', { class: 'badge-dot' }));
+  return b;
 }
 
 function confirmImport(data: SaveData): void {

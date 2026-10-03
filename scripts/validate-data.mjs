@@ -84,6 +84,23 @@ const missing = [];
 for (let lv = 2; lv <= levels.maxLevel; lv++) if (!unlockLevels.has(lv)) missing.push(lv);
 if (missing.length) err(`levels with nothing to unlock: ${missing.join(', ')}`);
 
+// changelog: newest first, versions match package.json, known icons, no em dashes in player text
+const { releases } = read('changelog.json');
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+const cmpVer = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0); return 0; };
+if (!releases?.length) err('changelog: no releases');
+else if (releases[0].version !== pkg.version) err(`changelog: newest release ${releases[0].version} does not match package.json version ${pkg.version}`);
+releases?.forEach((r, i) => {
+  if (!/^\d+\.\d+\.\d+$/.test(r.version)) err(`changelog: bad version ${r.version}`);
+  if (i > 0 && cmpVer(releases[i - 1].version, r.version) <= 0) err(`changelog: ${r.version} is not older than ${releases[i - 1].version} (newest first)`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date)) err(`changelog ${r.version}: bad date ${r.date}`);
+  const lines = [...(r.dedication ? [r.dedication] : []), ...r.highlights, ...(r.sections ?? []).flatMap((s) => s.items)];
+  const icon = (k) => { if (k && icons && !icons[k]) err(`changelog ${r.version}: unknown icon ${k}`); };
+  icon(r.icon); (r.sections ?? []).forEach((s) => icon(s.icon));
+  for (const l of lines) { icon(l.icon); if (!l.text) err(`changelog ${r.version}: empty line`); }
+  if (JSON.stringify(r).includes('—')) err(`changelog ${r.version}: use "-" instead of an em dash`);
+});
+
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);
