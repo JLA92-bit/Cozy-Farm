@@ -93,6 +93,17 @@ for (let cycle = 0; cycle < 40; cycle++) {
     void crops;
     return g.level;
   });
+  // claim the daily reward / close anything that popped up on its own (daily calendar, welcome back)
+  for (let k = 0; k < 3; k++) {
+    const popped = await ev(() => {
+      const claim = [...document.querySelectorAll('.panel .btn')].find((b) => /^(Claim!|Collect|OK|Great!)/.test(b.textContent?.trim() ?? ''));
+      if (claim) { claim.click(); return true; }
+      const c = document.querySelector('.close-btn'); if (c) { c.click(); return true; }
+      return false;
+    });
+    if (!popped) break;
+    await wait(600);
+  }
   // use tray: open by tapping an empty plot, choose highest unlocked crop
   const empty = await ev(() => window.__game.state.buildings.filter((b) => b.type === 'plot' && !b.plot && !b.buildEnd).map((b) => [b.x, b.z]));
   if (empty.length) {
