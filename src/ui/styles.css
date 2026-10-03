@@ -481,6 +481,13 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   background: var(--btn-green); border: 2px solid var(--outline); box-shadow: 0 2px 0 var(--outline);
 }
 
+/* spending coins gives the pill a quick warm blink */
+.currency.spend { animation: spendFlash .45s ease-out; }
+@keyframes spendFlash {
+  0% { background: rgba(242, 95, 92, .85); transform: scale(.94); }
+  100% { background: rgba(40, 25, 10, .55); transform: scale(1); }
+}
+
 /* XP bar gets a quick shine sweep whenever XP lands */
 .xp-bar.gain::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -492,7 +499,7 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 /* goal card: reads as tappable, announces a new goal */
 .goal-card { padding-right: 26px; transition: transform .1s ease; }
 .goal-card:active { transform: scale(.97); }
-.goal-card .goal-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.goal-card .goal-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .goal-card .goal-chevron {
   position: absolute; right: 9px; top: 50%; width: 10px; height: 10px; margin-top: -5px;
   border-right: 3px solid var(--ink-soft); border-top: 3px solid var(--ink-soft); border-radius: 2px; transform: rotate(45deg);
@@ -520,6 +527,7 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .hud-top .hud-settings .icon { width: 24px; height: 24px; }
   .hud-side { top: calc(var(--safe-top) + 108px); }
   .xp-wrap { flex: 1 1 auto; max-width: 190px; }
+  .goal-card { max-width: min(300px, calc(100vw - var(--safe-left) - var(--safe-right) - 92px)); }
   .hud-bottom { flex-direction: row; align-items: flex-end; gap: 0; }
   .hud-bottom > div:first-child { display: none; }
   .hud-menu {

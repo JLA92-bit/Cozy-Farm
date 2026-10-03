@@ -97,6 +97,7 @@ export class HUD {
   /** Count coins up smoothly (so flying coins look like they land). */
   setCoins(n: number, animate = true): void {
     if (!animate) { this.shownCoins = n; this.coinsVal.textContent = fmt(n); return; }
+    if (n < this.shownCoins - 0.5) this.flash(this.coinsEl, 'spend');
     this.coinTween?.kill();
     const o = { v: this.shownCoins };
     this.coinTween = gsap.to(o, { v: n, duration: 0.6, ease: 'power1.out', onUpdate: () => { this.shownCoins = o.v; this.coinsVal.textContent = fmt(o.v); } });
