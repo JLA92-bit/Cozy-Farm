@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { assets } from '../core/Assets';
+import { assets, assetUrl } from '../core/Assets';
 import { ANIMAL, BUILDING, CROP, LAND, TREE, type BuildingDef } from '../data';
 import { game } from '../systems/Game';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
@@ -42,8 +42,56 @@ export interface BuildingView {
   fan?: THREE.Object3D;
   fanAxis?: 'x' | 'y' | 'z';
   glow?: THREE.Sprite;
+  /** warm pool of light on the ground under lamps at night */
+  lightPool?: THREE.Mesh;
+  /** chimney smoke: emitter point in the inner model space, and time until the next puff */
+  smokeAt?: THREE.Vector3;
+  smokeT?: number;
   busy: boolean;
 }
+
+/** Shared clock for the wind-sway materials. */
+const swayTime = { value: 0 };
+const swayCache = new Map<string, THREE.Material>();
+/**
+ * Copy of a material whose vertices lean gently in the wind, more toward the top of the model (trees, bushes,
+ * crops). Each instance gets its own phase from its world position so a field ripples instead of moving in lockstep.
+ * `height` is the model height, `amp` the sway at the top, both in model units.
+ */
+function swayMaterial(src: THREE.Material, height: number, amp: number): THREE.Material {
+  const key = `${src.uuid}|${height.toFixed(2)}|${amp}`;
+  let m = swayCache.get(key);
+  if (!m) {
+    m = src.clone();
+    const uH = { value: Math.max(0.05, height) }, uAmp = { value: amp };
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.uSwayT = swayTime; sh.uniforms.uSwayH = uH; sh.uniforms.uSwayA = uAmp;
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uSwayT; uniform float uSwayH; uniform float uSwayA;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+          {
+            #ifdef USE_INSTANCING
+              vec4 swO = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+            #else
+              vec4 swO = modelMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+            #endif
+            float swH = clamp(transformed.y / uSwayH, 0.0, 1.3);
+            float swP = uSwayT * 1.6 + swO.x * 0.33 + swO.z * 0.21;
+            float sw = (sin(swP) * 0.7 + sin(swP * 2.3 + 1.7) * 0.3) * uSwayA * swH * swH;
+            transformed.x += sw;
+            transformed.z += sw * 0.55;
+          }`);
+    };
+    swayCache.set(key, m);
+  }
+  return m;
+}
+const SWAYS: Record<string, number> = { tree_big: 0.05, tree_small: 0.055, bush: 0.03 };
+
+/** Buildings with a chimney: 'always' puffs gently, 'busy' only while something is cooking. */
+const SMOKE: Record<string, 'always' | 'busy'> = { farmhouse: 'always', bakery: 'busy', jam_kitchen: 'busy', dairy: 'busy' };
+
+interface Puff { sprite: THREE.Sprite; life: number; max: number; vx: number; size: number }
 
 /** Instance-pool keys for crop stage models: tinted variants get their own pool. */
 function cropModelKey(model: string, tint?: string): string { return tint ? `${model}|${tint}` : model; }
@@ -58,6 +106,10 @@ export class FarmView {
   private glowTex: THREE.Texture;
   private pending = new Set<number>();
   private hidden = new Set<number>();
+  private puffs: Puff[] = [];
+  private freePuffs: Puff[] = [];
+  private smokeTex: THREE.Texture | null = null;
+  private smokeTint = new THREE.Color();
 
   constructor(scene: THREE.Scene) {
     this.terrain = new Terrain(assets.vertexMaterial);
@@ -128,7 +180,8 @@ export class FarmView {
     const lod: Record<string, string> = { tree_big: 'nat/tree_b', tree_small: 'nat/tree_a', bush: 'nat/bush', stump: 'nat/stump_round' };
     const id = locked && lod[o.type] ? lod[o.type] : t.models[o.model % t.models.length];
     const sm = await assets.static(id);
-    const pool = this.pools.pool(`obs/${id}`, () => ({ geometry: sm.geometry, material: sm.material, castShadow: false }));
+    const sway = SWAYS[o.type];
+    const pool = this.pools.pool(`obs/${id}`, () => ({ geometry: sm.geometry, material: sway ? swayMaterial(sm.material, sm.size.y, sway) : sm.material, castShadow: false }));
     const r = rng(o.id * 7919 + 13);
     const big = o.type === 'tree_big' || o.type === 'big_rock';
     const s = Math.min(1.6, (big ? 1.05 : 0.85) / Math.max(sm.size.x, sm.size.z)) * (0.9 + r() * 0.2);
@@ -231,7 +284,14 @@ export class FarmView {
           view.glow.scale.setScalar(2.2 * def.glow);
           view.glow.position.y = view.height * 0.85;
           view.obj.add(view.glow);
+          view.lightPool = new THREE.Mesh(lightPoolGeometry(), new THREE.MeshBasicMaterial({ map: this.glowTex, color: '#ffc46b', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+          view.lightPool.scale.setScalar(2.6 * def.glow);
+          view.lightPool.position.y = 0.03;
+          view.lightPool.renderOrder = 1;
+          view.lightPool.visible = false;
+          view.obj.add(view.lightPool);
         }
+        if (SMOKE[def.id]) view.smokeAt = chimneyPoint(visual.geometry);
       }
       view.obj.position.copy(view.center);
       view.obj.quaternion.copy(rotQ);
@@ -324,7 +384,7 @@ export class FarmView {
     const sm = assets.getStatic(model);
     if (!sm) { void assets.static(model); return null; }
     return this.pools.pool(`c/${cropModelKey(model, tint)}`, () => ({
-      geometry: tint ? tintGeometry(sm.geometry, tint) : sm.geometry, material: sm.material, castShadow: false,
+      geometry: tint ? tintGeometry(sm.geometry, tint) : sm.geometry, material: model.startsWith('crop/') ? swayMaterial(sm.material, sm.size.y, 0.035) : sm.material, castShadow: false,
     }));
   }
 
@@ -495,13 +555,74 @@ export class FarmView {
   }
 
   frame(dt: number, t: number, night: number): void {
+    swayTime.value = t;
     for (const v of this.views.values()) {
       if (v.animals.length) this.animateAnimals(v, dt, t);
       if (v.fan) {
         const busy = productionState(v.b, game.now()).running;
         v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
       }
-      if (v.glow) (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9;
+      if (v.glow) {
+        // campfires flicker, lamps hum steadily
+        const flick = v.def.id === 'campfire' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
+        (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9 * flick;
+        if (v.lightPool) {
+          v.lightPool.visible = night > 0.02;
+          (v.lightPool.material as THREE.MeshBasicMaterial).opacity = night * 0.38 * flick;
+        }
+      }
+      if (v.smokeAt && v.obj && !v.busy) this.emitSmoke(v, dt);
+    }
+    this.updatePuffs(dt, night);
+  }
+
+  // ------------------------------------------------------------------ chimney smoke
+  private emitSmoke(v: BuildingView, dt: number): void {
+    const mode = SMOKE[v.def.id];
+    if (mode === 'busy' && !productionState(v.b, game.now()).running) return;
+    v.smokeT = (v.smokeT ?? Math.random()) - dt;
+    if (v.smokeT > 0) return;
+    v.smokeT = mode === 'always' ? 0.8 + Math.random() * 0.5 : 0.45 + Math.random() * 0.25;
+    if (this.puffs.length >= 40) return;
+    if (!this.smokeTex) {
+      this.smokeTex = new THREE.TextureLoader().load(assetUrl('textures/particles/smoke_04.png'));
+      this.smokeTex.colorSpace = THREE.SRGBColorSpace;
+    }
+    let p = this.freePuffs.pop();
+    if (!p) {
+      p = { sprite: new THREE.Sprite(new THREE.SpriteMaterial({ map: this.smokeTex, transparent: true, depthWrite: false, opacity: 0 })), life: 0, max: 1, vx: 0, size: 1 };
+      p.sprite.renderOrder = 4;
+    }
+    const inner = v.obj!.children[0];
+    p.sprite.position.copy(v.smokeAt!);
+    inner.localToWorld(p.sprite.position);
+    p.life = 0;
+    p.max = 2.4 + Math.random() * 0.8;
+    p.vx = 0.12 + Math.random() * 0.1;
+    p.size = mode === 'always' ? 0.8 : 1.0;
+    p.sprite.scale.setScalar(p.size * 0.4);
+    (p.sprite.material as THREE.SpriteMaterial).rotation = Math.random() * Math.PI * 2;
+    this.root.add(p.sprite);
+    this.puffs.push(p);
+  }
+
+  private updatePuffs(dt: number, night: number): void {
+    if (!this.puffs.length) return;
+    // smoke is unlit: dim it with the evening so it doesn't glow at night
+    this.smokeTint.setRGB(1, 0.98, 0.95).multiplyScalar(1 - night * 0.55);
+    for (let i = this.puffs.length - 1; i >= 0; i--) {
+      const p = this.puffs[i];
+      p.life += dt;
+      const k = p.life / p.max;
+      if (k >= 1) { this.root.remove(p.sprite); this.freePuffs.push(p); this.puffs.splice(i, 1); continue; }
+      p.sprite.position.y += (0.55 - k * 0.25) * dt;
+      p.sprite.position.x += p.vx * dt;
+      p.sprite.position.z -= p.vx * 0.4 * dt;
+      p.sprite.scale.setScalar(p.size * (0.4 + k * 1.1));
+      const m = p.sprite.material as THREE.SpriteMaterial;
+      m.opacity = (k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85) * 0.8;
+      m.rotation += dt * 0.4;
+      m.color.copy(this.smokeTint);
     }
   }
 
@@ -559,6 +680,20 @@ export function purchasableChunks(): string[] {
 }
 
 export function chunkAt(tx: number, tz: number): string { return chunkOf(tx, tz); }
+
+/** Highest point of a model (its chimney, for the cottages we use), nudged up a touch. */
+function chimneyPoint(g: THREE.BufferGeometry): THREE.Vector3 {
+  const pos = g.attributes.position as THREE.BufferAttribute;
+  let top = 0;
+  for (let i = 1; i < pos.count; i++) if (pos.getY(i) > pos.getY(top)) top = i;
+  return new THREE.Vector3(pos.getX(top), pos.getY(top) + 0.05, pos.getZ(top));
+}
+
+let poolGeo: THREE.PlaneGeometry | null = null;
+function lightPoolGeometry(): THREE.PlaneGeometry {
+  if (!poolGeo) { poolGeo = new THREE.PlaneGeometry(1, 1); poolGeo.rotateX(-Math.PI / 2); }
+  return poolGeo;
+}
 
 function makeGlowTexture(): THREE.Texture {
   const c = document.createElement('canvas');
