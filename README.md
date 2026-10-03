@@ -36,7 +36,7 @@ The built assets in `public/assets` are committed, so you do not need to run the
 | Place from the shop | Drag the ghost (green = OK, red = blocked), rotate, tick | same |
 
 Other buttons: Shop, Build, Barn (inventory and storage), Quests, Awards, Book (collection), Me (character),
-Settings (gear). Tap the level badge for the unlock path. Tap the goal card for the next thing to do.
+Settings (gear), and Leaders on the side (who is leading by level, farm value, Charm and this week's XP). Tap the level badge for the unlock path. Tap the goal card for the next thing to do.
 
 **Debug panel:** tap the level badge 5 times quickly. It can add currency/XP, skip time, finish timers, grant
 crates, show FPS and reset the save.
