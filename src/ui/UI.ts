@@ -161,7 +161,7 @@ class UIManager {
       haptics.buzz([20, 40, 30]);
     });
     bus.on('charm', () => this.hud.refresh());
-    bus.on('levelup', () => this.hud.levelUpFlash());
+    bus.on('levelup', () => { this.hud.refresh(); this.hud.levelUpFlash(); });
   }
 
   // ------------------------------------------------------------------ seed tray (plant mode)
@@ -386,6 +386,23 @@ class UIManager {
   tapBuilding(b: PlacedBuilding, _p: Pointer): void {
     for (const fn of this.tapHandlers) if (fn(b)) return;
     this.buildingPopup(b);
+  }
+
+  private fpsEl: HTMLElement | null = null;
+  /** Small FPS / draw-call overlay (Settings or Debug). */
+  setFps(on: boolean): void {
+    if (!on) { this.fpsEl?.remove(); this.fpsEl = null; return; }
+    if (this.fpsEl) return;
+    const el = h('div', { class: 'outlined', style: 'position:absolute;left:calc(var(--safe-left) + 8px);bottom:calc(var(--safe-bottom) + 4px);font-size:12px;z-index:99;pointer-events:none' });
+    this.fpsEl = el;
+    this.root.append(el);
+    const tick = () => {
+      if (!this.fpsEl) return;
+      const r = this.scene.renderer.info.render;
+      el.textContent = `${this.scene.fps.toFixed(0)} fps · ${r.calls} calls · ${(r.triangles / 1000).toFixed(0)}k tris`;
+      setTimeout(tick, 500);
+    };
+    tick();
   }
 
   /** Generic "not enough" helper used across panels. */

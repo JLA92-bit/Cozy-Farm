@@ -5,3 +5,4 @@ import './ProductionPanel';
 import './AnimalPanel';
 import './CharacterPanel';
 import './EconomyPanels';
+import './ProgressionPanels';

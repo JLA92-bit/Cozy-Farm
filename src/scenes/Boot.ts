@@ -19,7 +19,13 @@ import { player } from './Player';
 import { orders, truck, merchant } from '../systems/Economy';
 import { Visitors } from '../world/Visitors';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
-import { updateSideBar } from '../ui/SideBar';
+import { updateSideBar, sideEntries } from '../ui/SideBar';
+import { achievements, quests, daily, events, syncCosmeticDiscovery } from '../systems/Progression';
+import { nextGoal, type Goal } from '../systems/Goals';
+import { showLevelUp, openDaily, openUnlockTree } from '../ui/panels/ProgressionPanels';
+import { openDebug } from '../ui/panels/DebugPanel';
+import { cosmeticUnlocked } from '../ui/panels/CharacterPanel';
+import { Panel } from '../ui/Panel';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 
 function setProgress(f: number, text?: string): void {
@@ -80,7 +86,12 @@ export async function boot(): Promise<void> {
   await scene.farm.build();
   buildings.updateGauges();
   await player.init(scene);
+  events.check();
+  achievements.init();
+  quests.init();
   orders.refresh();
+  syncCosmeticDiscovery(cosmeticUnlocked);
+  wireProgression();
   game.bus.on('levelup', () => orders.refresh());
   const visitors = new Visitors(scene, merchantSpot);
   void visitors.sync();
@@ -91,8 +102,51 @@ export async function boot(): Promise<void> {
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
+  ui.setFps(settings.showFps);
+  const dailyReady = daily.check();
   if (!game.state.player.created) setTimeout(() => openCharacter(true), 400);
-  else if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away), 600);
+  else if (away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), 600);
+  else if (dailyReady) setTimeout(() => openDaily(), 600);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player });
   setTimeout(() => document.getElementById('boot-screen')?.classList.add('hidden'), 150);
+}
+
+/** Level-ups, goal card, side shortcuts, level badge taps. */
+function wireProgression(): void {
+  game.bus.on('levelup', ({ level }) => {
+    showLevelUp(level);
+    ui.effects.levelUp(player.position.clone().setY(1));
+    scene.rig.shake(0.25, 0.5);
+    syncCosmeticDiscovery(cosmeticUnlocked);
+    quests.refresh(game.now());
+  });
+  let goal: Goal | null = null;
+  const refreshGoal = () => {
+    goal = nextGoal();
+    ui.hud.setGoal(goal.title, goal.text, goal.icon, goal.progress);
+    ui.hud.setBadge('quests', quests.claimable());
+  };
+  scene.onTick(() => refreshGoal());
+  refreshGoal();
+  ui.register('__goal', () => {
+    if (!goal?.action) return;
+    if (goal.action.panel) ui.open(goal.action.panel, goal.action.arg);
+    else if (goal.action.focusUid) {
+      const a = scene.farm.anchor(goal.action.focusUid);
+      scene.rig.focus(a.x, a.z);
+      const v = scene.farm.views.get(goal.action.focusUid);
+      if (v) scene.farm.bounce(v);
+    }
+  });
+  // level badge: tap = unlock path, 5 quick taps = debug panel
+  let taps = 0, tapTimer = 0;
+  ui.register('__levelbadge', () => {
+    taps++;
+    clearTimeout(tapTimer);
+    if (taps >= 5) { taps = 0; Panel.closeAll(); openDebug(); return; }
+    tapTimer = window.setTimeout(() => { if (taps === 1 && !Panel.isOpen) openUnlockTree(); taps = 0; }, 450);
+  });
+  sideEntries.push(() => (daily.check() ? { id: 'daily', icon: 'calendar', label: 'Daily', color: 'yellow', badge: true } : null));
+  sideEntries.push(() => (game.state.crates.length ? { id: 'crates', icon: 'gift', label: `Crates`, color: 'purple', badge: true } : null));
+  sideEntries.push(() => (events.current ? { id: 'event', icon: events.current.icon, label: 'Event', color: 'red' } : null));
 }
