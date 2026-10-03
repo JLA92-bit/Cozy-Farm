@@ -187,7 +187,7 @@ export function openMarket(tab?: string): void {
     if (!items.length) { p.body.append(h('div', { class: 'muted center market-empty' }, 'Your barn is empty. Harvest or make some goods first!')); return; }
     const grid = h('div', { class: 'grid tight' });
     for (const [id, n] of items) {
-      grid.append(h('div', { class: 'card clickable', role: 'button', 'aria-label': `Sell ${ITEMS[id].name}`, onclick: () => { selling = { item: id }; audio.play('select', { volume: 0.6 }); rerender(); } },
+      grid.append(h('div', { class: 'card clickable', role: 'button', 'aria-label': `Sell ${ITEMS[id].name}`, onclick: () => { selling = { item: id }; audio.play('select', { volume: 0.6 }); render(); p.body.scrollTop = 0; } },
         itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name),
         requestedCount(id) > 0 ? h('span', { class: 'mini-tag wanted corner', title: 'An order or the truck wants this' }, icon('clipboard', 'icon tiny')) : null,
         h('div', { class: 'count-tag outlined' }, `x${n}`)));

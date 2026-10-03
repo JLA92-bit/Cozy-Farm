@@ -21,9 +21,9 @@
 .market-row.busy { opacity: .6; pointer-events: none; }
 .market-row.sold { background: linear-gradient(#fffbe6, #fff1c2); }
 .market-row .title { font-size: 15px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; line-height: 1.15; }
-.market-row .sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.market-row .sub { white-space: normal; line-height: 1.2; }
 .market-row .pill { flex: 0 0 auto; }
-.market-hint { color: #3f7fb8; font-size: 12px; white-space: normal; }
+.market-row .sub.market-hint { color: #3f7fb8; font-size: 12px; }
 .market-deal { background: #d9f7c0; font-size: 11px; }
 .market-buy { flex: 0 0 auto; min-width: 76px; min-height: 44px; }
 .market-buy .price { display: inline-flex; align-items: center; gap: 2px; }

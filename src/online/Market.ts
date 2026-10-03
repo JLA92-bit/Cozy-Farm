@@ -125,7 +125,7 @@ class MarketService {
     try {
       await ensureOnline();
       const [list] = await Promise.all([online.browse({ limit: 80 }), this.refreshMine(true)]);
-      this.browseList = list.filter((l) => tradable(l.item) && l.seller.id !== this.myId);
+      this.browseList = list.filter((l) => tradable(l.item) && l.seller.id !== this.myId).map(practicePrice);
       this.failed = false;
     } catch {
       this.failed = true;
@@ -235,6 +235,7 @@ class MarketService {
       return errorText(e);
     }
     if (this.mine) this.mine = this.mine.filter((x) => x.id !== l.id);
+    game.addCoins(l.price);
     game.incStat('market_sales');
     game.incStat('market_items_sold', l.qty);
     this.changed();
@@ -245,6 +246,17 @@ class MarketService {
 export const market = new MarketService();
 
 // ====================================================================== practice mode only
+/**
+ * Demo neighbour goods are restocked for free, so in practice mode they never sell below the barn
+ * value (x practiceSellMinMult): otherwise they could be flipped at the barn for endless coins.
+ * The price shown is the price charged; the practice backend does not check prices on buy.
+ */
+function practicePrice(l: Listing): Listing {
+  if (online.kind !== 'local' || !l.seller.id.startsWith('bot_')) return l;
+  const min = Math.ceil(gameValue(l.item, l.qty) * MARKET.practiceSellMinMult);
+  return l.price >= min ? l : { ...l, price: min };
+}
+
 /**
  * In practice mode there are no other real players, so demo neighbours buy your fairly priced goods
  * after a few minutes (cheaper sells sooner). This writes straight into the practice backend's own

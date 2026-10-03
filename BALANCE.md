@@ -74,6 +74,10 @@ Every level also adds land expansions every ~1.4 levels, order-board slots (3 to
 - **Merchant:** visits 2 h out of every 4 h from level 6 with decor at 30% off, crate-only cosmetics, bulk goods
   and gems for coins. Bulk goods cost 1.1 x value (`bulkPriceMult`) so they cannot be flipped at the barn; they
   save time on orders, which pay 1.8 x.
+- **Shared market:** from level 6 (`market` in economy.json). Players list barn goods for 0.5x-2.5x their value
+  (up to 50 per listing, no fee). Open listing slots: 3 at level 6, then 4/5/6/8 at levels 10/15/22/30. Coins are
+  collected from My listings. In practice mode demo neighbours buy your listings priced up to 1.6x value after
+  1.5-7 min (cheaper sooner), and their own goods never cost less than 1.1x barn value so they cannot be flipped.
 - **Production queue:** a job that has not started yet can be cancelled for a full ingredient refund.
 - **Fields** cost 10 coins + 8 per field beyond the 6 you start with. Animals get 25% pricier per animal owned.
 - **Gems** are only earned (levels, awards, daily calendar, rocks, some orders, crates, merchant). Finishing a

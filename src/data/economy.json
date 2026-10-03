@@ -99,7 +99,7 @@
  },
  "eventTokenChance": 0.12,
  "market": {
-  "_comment": "Shared market between players. Prices are totals for the stack, clamped to minPriceMult..maxPriceMult x (item sell value x qty). slotsByLevel = [level, open listings]. practiceBuy = how the demo neighbours of practice mode buy your goods.",
+  "_comment": "Shared market between players. Prices are totals for the stack, clamped to minPriceMult..maxPriceMult x (item sell value x qty). slotsByLevel = [level, open listings]. practiceBuy = how the demo neighbours of practice mode buy your goods; practiceSellMinMult = demo neighbour goods never cost less than this x barn value, so they cannot be flipped for free coins.",
   "level": 6,
   "minPriceMult": 0.5,
   "maxPriceMult": 2.5,
@@ -109,6 +109,7 @@
   "listingFee": 0,
   "slotsByLevel": [[6, 3], [10, 4], [15, 5], [22, 6], [30, 8]],
   "pollSec": 30,
-  "practiceBuy": { "maxPriceMult": 1.6, "minSec": 90, "maxSec": 420 }
+  "practiceBuy": { "maxPriceMult": 1.6, "minSec": 90, "maxSec": 420 },
+  "practiceSellMinMult": 1.1
  }
 }
