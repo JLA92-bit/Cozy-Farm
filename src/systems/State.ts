@@ -80,6 +80,8 @@ export interface SaveData {
   tutorial: { step: number; done: boolean };
   seen: { levelUnlocks: number; loginDays: string[]; /** Game time the collection book was last opened (newer discoveries show as New). */ collectionSeenAt: number; /** Collection Book pages whose completion reward was claimed. */ bookPages: string[] };
   debugTimeOffset: number;
+  /** XP earned in the current online week (week = Monday 00:00 UTC, as YYYY-MM-DD), for the weekly leaderboard. */
+  weeklyXp: { week: string; xp: number };
 }
 
 export const SAVE_VERSION = 1;

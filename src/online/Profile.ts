@@ -2,6 +2,7 @@ import { BUILDING, ITEMS, LEVELS } from '../data';
 import { game } from '../systems/Game';
 import { buildings } from '../systems/Buildings';
 import { online } from './Online';
+import { weeklyXp } from './Weekly';
 import type { PlayerProfile, ProfileStats } from './types';
 
 /** Public stats for this player's profile, computed from the local save. */
@@ -15,8 +16,7 @@ export function profileStats(): ProfileStats {
   const { body, skin, hair, top, bottom, hat } = s.player.look;
   return {
     name: s.player.name, level: s.player.level, totalXp, farmValue: Math.round(value), charm: buildings.charm(),
-    // TODO(online-backend agent): track XP earned since Monday 00:00 UTC
-    weeklyXp: 0,
+    weeklyXp: weeklyXp(),
     look: { body, skin, hair, top, bottom, hat },
   };
 }

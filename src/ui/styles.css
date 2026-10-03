@@ -794,3 +794,12 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .badge-dot, .badge-dot.pop, .calendar .card.today { animation: none; }
   .goal-card.goal-new, .xp-bar.gain::after { animation: none; }
 }
+
+/* ---- Settings > Online play ---- */
+.online-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-family: var(--font-display); font-size: 15px; background: #efe3c4; color: var(--ink-soft); }
+.online-pill::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.online-pill.online { background: #dff3cf; color: #3f8a25; }
+.online-pill.practice { background: #e3eefc; color: #2f6fb8; }
+.online-pill.offline { background: #f6e0d6; color: #b5532f; }
+.online-note { padding: 2px 4px 8px; }
+.friend-code { font-family: var(--font-display); font-size: 18px; letter-spacing: 1px; user-select: all; -webkit-user-select: all; }

@@ -9,6 +9,7 @@ import type { Quality } from '../../core/Renderer';
 import type { SaveData } from '../../systems/State';
 import credits from '../../../CREDITS.md?raw';
 import { tutorial } from '../Tutorial';
+import { onlineSettingsSection } from './OnlineSettings';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -57,6 +58,7 @@ export function openSettings(): void {
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),
       button([icon('farmer'), 'Edit'], () => { p.close(); ui.open('character'); }, 'small blue'))),
   );
+  p.body.append(onlineSettingsSection(() => { p.close(); ui.open('character'); }));
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files?.[0];

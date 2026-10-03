@@ -32,6 +32,7 @@ import { Villagers } from '../world/Villagers';
 import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
+import { configureOnline, startOnlineSync } from '../online/Connect';
 
 function setProgress(f: number, text?: string): void {
   const pct = `${Math.round(f * 100)}%`;
@@ -89,6 +90,7 @@ export const afterBoot: (() => void)[] = [];
 
 export async function boot(): Promise<void> {
   const stopHints = startHints();
+  configureOnline();
   setProgress(0.05, 'Loading the farm...');
   await assets.loadManifest();
   await assets.loadAtlases();
@@ -155,6 +157,7 @@ export async function boot(): Promise<void> {
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();
+  startOnlineSync();
   ui.setFps(settings.showFps);
   const dailyReady = daily.check();
   if (!game.state.player.created) {

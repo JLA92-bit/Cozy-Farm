@@ -15,6 +15,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "gsap": "^3.15.0",
     "howler": "^2.2.4",
     "three": "^0.186.1"

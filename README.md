@@ -6,7 +6,9 @@ Charm, and customise your farmer. Built with Three.js + TypeScript + Vite, insta
 
 - Chunky low-poly look from **KayKit** and **Kenney** CC0 packs (see [CREDITS.md](CREDITS.md)), shared palette
   atlases and instancing so a big farm stays at roughly 130 draw calls.
-- No backend, no real-money purchases. Saves live in `localStorage` with export/import.
+- No real-money purchases. Saves live in `localStorage` with export/import.
+- Online play (friends, gifts, shared market, leaderboards) works in a local **Practice mode** out of the box,
+  and with real players once you connect a free Supabase project: see [ONLINE.md](ONLINE.md).
 
 ## Quick start
 
@@ -49,6 +51,7 @@ src/systems   Game state + event bus, Buildings, Land, Farming, Animals, Product
               stall, merchant), Progression (unlocks, achievements, quests, daily, crates, events), Goals,
               Save, Offline, Audio, Settings
 src/scenes    boot sequence, FarmScene (3D side), Interaction (tap/swipe/build modes), Player
+src/online    online play: backend contract, local practice backend, Supabase backend, profile sync
 src/ui        HUD, panels, world popups/bubbles, tutorial, feedback (toasts, floating numbers, flying coins)
 src/data      every balance number, as JSON
 ```
@@ -96,6 +99,8 @@ npm run assets         # rebuild public/assets: meshopt GLBs, shared atlases, MP
 1. In the repository settings, open **Pages** and set **Source** to **GitHub Actions** (one time).
 2. Push to `main`. The workflow sets `BASE_PATH=/<repo-name>/`, so asset URLs and the service worker work under
    the Pages subpath. For a custom domain, build with `BASE_PATH=/`.
+3. Optional, for real online play: add the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` repository variables
+   as described in [ONLINE.md](ONLINE.md) and re-run the deploy.
 
 ## Testing helpers
 

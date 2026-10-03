@@ -27,6 +27,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.merchant = { ...base.merchant, ...(s.merchant ?? {}) };
   out.orders = { ...base.orders, ...(s.orders ?? {}) };
   out.land = { ...base.land, ...(s.land ?? {}) };
+  out.weeklyXp = { ...base.weeklyXp, ...(isObj(s.weeklyXp) ? s.weeklyXp : {}) };
+  if (typeof out.weeklyXp.week !== 'string' || !Number.isFinite(out.weeklyXp.xp) || out.weeklyXp.xp < 0) out.weeklyXp = { ...base.weeklyXp };
   return sanitize(out, base);
 }
 

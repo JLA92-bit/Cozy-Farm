@@ -39,6 +39,11 @@ export default defineConfig({
         // Music is large: cache it on first play instead of precaching.
         globIgnores: ['**/assets/audio/music/**'],
         runtimeCaching: [
+          // Online play (Supabase): always live, never cached by the service worker.
+          {
+            urlPattern: ({ url }) => url.hostname.endsWith('.supabase.co') || url.hostname.endsWith('.supabase.in') || url.pathname.startsWith('/rest/v1/') || url.pathname.startsWith('/auth/v1/') || url.pathname.startsWith('/realtime/v1/'),
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: ({ url }) => url.pathname.includes('/assets/audio/music/'),
             handler: 'CacheFirst',
