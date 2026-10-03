@@ -11,3 +11,4 @@ import './WhatsNewPanel';
 import './FarmhousePanel';
 import './FriendsPanel';
 import './MarketPanel';
+import './LeaderboardPanel';

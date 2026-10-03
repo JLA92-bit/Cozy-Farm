@@ -58,6 +58,13 @@ class Thumbs {
   }
 
   private async objectFor(key: string): Promise<THREE.Object3D | null> {
+    if (key.startsWith('look:')) {
+      // another player's farmer, from their public look (JSON, already checked by the caller)
+      const l = JSON.parse(key.slice(5)) as { body: string; skin: string; hair: string; top: string; bottom: string; hat: string };
+      const c = await Character.create({ ...l, accessory: 'none', pet: 'none' });
+      c.mixer.update(0.4);
+      return c.root;
+    }
     if (key.startsWith('avatar:')) {
       // pre-made farmer portrait: posed in its idle animation
       const a = COSMETICS.avatars.find((x) => x.id === key.slice(7));
@@ -90,7 +97,7 @@ class Thumbs {
     obj.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(obj);
     const sphere = box.getBoundingSphere(new THREE.Sphere());
-    const portrait = key.startsWith('avatar:');
+    const portrait = key.startsWith('avatar:') || key.startsWith('look:');
     if (portrait) { sphere.center.y += sphere.radius * 0.2; sphere.radius *= 0.8; }
     const dir = portrait ? new THREE.Vector3(0.25, 0.3, 1).normalize() : new THREE.Vector3(1, 0.85, 1.15).normalize();
     const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(this.camera.fov / 2)) * (portrait ? 0.9 : 1.02);

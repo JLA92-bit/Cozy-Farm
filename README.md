@@ -36,7 +36,7 @@ The built assets in `public/assets` are committed, so you do not need to run the
 | Place from the shop | Drag the ghost (green = OK, red = blocked), rotate, tick | same |
 
 Other buttons: Shop, Build, Barn (inventory and storage), Quests, Awards, Book (collection), Me (character),
-Settings (gear). Tap the level badge for the unlock path. Tap the goal card for the next thing to do.
+Settings (gear), and Leaders on the side (who is leading by level, farm value, Charm and this week's XP). Tap the level badge for the unlock path. Tap the goal card for the next thing to do.
 
 **Helpful hints** (Settings): *All* coaches the basics (planting, swiping, orders...) until you have done each a few
 times, *New things only* (automatic from level 5) keeps just one short intro the first time you get something new
