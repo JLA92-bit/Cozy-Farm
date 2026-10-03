@@ -7,6 +7,7 @@ import { saves } from '../../systems/Save';
 import { game } from '../../systems/Game';
 import type { Quality } from '../../core/Renderer';
 import credits from '../../../CREDITS.md?raw';
+import { tutorial } from '../Tutorial';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -49,7 +50,8 @@ export function openSettings(): void {
       return seg;
     })()),
     row('Show FPS', toggle(settings.showFps, (v) => { settings.showFps = v; saveSettings(settings); ui.setFps(v); })),
-    row('Farmer name', h('span', { class: 'muted' }, game.state.player.name)),
+    row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),
+      button([icon('farmer'), 'Edit'], () => { p.close(); ui.open('character'); }, 'small blue'))),
   );
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
@@ -61,6 +63,7 @@ export function openSettings(): void {
   p.body.append(fileInput, h('div', { class: 'section-title' }, 'Your farm'), h('div', { class: 'chip-row', style: 'justify-content:flex-start' },
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
     button([icon('unlock'), 'Import save'], () => fileInput.click(), 'small blue'),
+    button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
   ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave. No real-money purchases, ever.'));
@@ -79,7 +82,8 @@ function renderMarkdown(md: string): HTMLElement {
   const root = h('div', { class: 'credits' });
   const inline = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/(https?:\/\/[^\s|)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    // links read as a short site name (kenney.nl/assets/...) instead of a long raw URL
+    .replace(/(https?:\/\/([^\s|)]+))/g, (_m, url: string, bare: string) => `<a href="${url}" target="_blank" rel="noopener">${bare.length > 34 ? `${bare.slice(0, 32)}...` : bare}</a>`);
   const lines = md.split('\n');
   let list: HTMLElement | null = null;
   for (let i = 0; i < lines.length; i++) {
@@ -105,9 +109,21 @@ function renderMarkdown(md: string): HTMLElement {
   return root;
 }
 
+/** The player-facing part of CREDITS.md: from the first section up to the build notes. */
+function playerCredits(md: string): string {
+  const start = md.indexOf('\n## ');
+  const end = md.indexOf('\n## Asset sources considered');
+  return md.slice(start < 0 ? 0 : start, end < 0 ? undefined : end);
+}
+
 export function openCredits(): void {
   const p = new Panel({ title: 'Credits', icon: 'books', color: 'purple' });
-  p.body.append(h('p', { class: 'center' }, 'Cozy Acres is made with love and these wonderful free assets:'), renderMarkdown(credits));
+  p.body.append(
+    h('div', { class: 'credits-hero center' }, icon('sparkle_heart', 'icon big'),
+      h('div', { class: 'credits-title outlined' }, 'Cozy Acres'),
+      h('div', null, 'Made with love, and with wonderful free art, sounds and fonts shared by these creators. Thank you!')),
+    renderMarkdown(playerCredits(credits)),
+    h('div', { class: 'center muted', style: 'margin:14px 0 4px' }, 'Thanks for playing!'));
   p.open();
 }
 
