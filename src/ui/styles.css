@@ -901,3 +901,68 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .lb-stat .icon { width: 22px; height: 22px; flex-basis: 22px; }
   .lb-stat-v { font-size: 16px; }
 }
+
+/* ---------- Visiting a neighbour's farm (view only) ---------- */
+/* everything of the player's own HUD is hidden; only the banner, info bubbles and toasts stay */
+#ui-root.visiting > :not(.visit-keep):not(.visit-layer):not(.toast-stack):not(.float-layer) { display: none !important; }
+#ui-root.visiting .toast-stack { top: calc(var(--safe-top) + 112px); }
+.visit-banner {
+  position: absolute; top: calc(var(--safe-top) + 8px); left: calc(var(--safe-left) + 8px); right: calc(var(--safe-right) + 8px);
+  max-width: 760px; margin: 0 auto; z-index: 40;
+  display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px;
+  background: var(--cream); color: var(--ink); border: 3px solid var(--outline); border-radius: var(--radius); box-shadow: 0 4px 0 var(--outline);
+  animation: visit-drop .45s cubic-bezier(.34, 1.6, .6, 1) both;
+}
+.visit-title { flex: 1 1 auto; min-width: 0; }
+.visit-name { font-family: var(--font-display); font-size: 18px; line-height: 1.15; overflow-wrap: anywhere; }
+.visit-sub { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 3px; font-size: 13px; color: var(--ink-soft); }
+.visit-charm { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.visit-charm .icon { width: 18px; height: 18px; }
+.btn.visit-home { flex: 0 0 auto; min-height: 52px; padding: 6px 16px; font-size: 18px; white-space: nowrap; }
+.btn.visit-home .icon { width: 28px; height: 28px; }
+.btn.visit-btn { min-height: 44px; }
+@media (max-width: 420px) {
+  .visit-name { font-size: 16px; }
+  .btn.visit-home { padding: 6px 12px; font-size: 16px; }
+}
+@keyframes visit-drop { from { transform: translateY(-140%); } to { transform: none; } }
+
+.visit-layer { position: absolute; inset: 0; pointer-events: none !important; z-index: 30; overflow: hidden; }
+.visit-bubble { position: absolute; left: 0; top: 0; will-change: transform; }
+.visit-bubble > .card {
+  position: absolute; left: 0; bottom: 8px; transform: translateX(-50%); min-width: 120px; max-width: 220px; padding: 8px 12px; gap: 2px;
+  text-align: center; animation: visit-pop .28s cubic-bezier(.34, 1.9, .6, 1) both;
+}
+.visit-bubble > .card::after {
+  content: ''; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; transform: translateX(-50%) rotate(45deg);
+  background: inherit; border-right: 3px solid var(--outline); border-bottom: 3px solid var(--outline);
+}
+@keyframes visit-pop { from { transform: translateX(-50%) scale(.4); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+/* the soft cloud wipe between farms (also the loading state) */
+.visit-wipe {
+  position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, #e6f6ff 45%, #b9e3fb 100%);
+  opacity: 0; transition: opacity .35s ease; pointer-events: auto;
+}
+.visit-wipe.on { opacity: 1; }
+.visit-wipe-text { position: relative; font-family: var(--font-display); font-size: clamp(20px, 5.5vw, 30px); color: #fff; text-align: center; }
+.visit-dots { display: inline-flex; gap: 4px; margin-left: 6px; }
+.visit-dots i { width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 2px solid var(--outline); animation: visit-dot 1s ease-in-out infinite; }
+.visit-dots i:nth-child(2) { animation-delay: .15s; }
+.visit-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes visit-dot { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.visit-cloud { position: absolute; background: #fff; border-radius: 999px; box-shadow: 0 6px 0 rgba(120, 170, 210, .25); opacity: .95; }
+.visit-cloud::before, .visit-cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+.visit-cloud::before { width: 55%; height: 160%; left: 12%; bottom: 30%; }
+.visit-cloud::after { width: 40%; height: 130%; right: 14%; bottom: 35%; }
+.visit-cloud.c1 { width: 46vmax; height: 12vmax; left: -10vmax; top: 14%; animation: visit-drift 3.2s ease-in-out infinite alternate; }
+.visit-cloud.c2 { width: 38vmax; height: 10vmax; right: -8vmax; top: 58%; animation: visit-drift 3.8s ease-in-out infinite alternate-reverse; }
+.visit-cloud.c3 { width: 28vmax; height: 8vmax; left: 30%; bottom: -3vmax; animation: visit-drift 4.4s ease-in-out infinite alternate; }
+@keyframes visit-drift { from { transform: translateX(-3vmax); } to { transform: translateX(3vmax); } }
+@media (prefers-reduced-motion: reduce) {
+  .visit-banner, .visit-bubble > .card, .visit-cloud, .visit-dots i { animation: none; }
+}
+
+/* Add to home screen steps */
+.install-steps { margin: 4px 0 10px; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; line-height: 1.3; }

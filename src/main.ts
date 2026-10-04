@@ -2,6 +2,7 @@ import './ui/fonts.css';
 import './ui/styles.css';
 import { registerSW } from 'virtual:pwa-register';
 import { boot } from './scenes/Boot';
+import { watchInstallPrompt } from './ui/Install';
 import { saves, hasBackup, restoreBackup } from './systems/Save';
 
 /** Friendly recovery screen when the farm fails to load (instead of a stuck loading bar). */
@@ -26,6 +27,9 @@ function showBootError(): void {
   if (saves.loadAttempted && hasBackup()) btn('Load backup save', 'blue', () => { saves.locked = true; if (restoreBackup()) location.reload(); });
   screen.append(row);
 }
+
+// catch the browser's install prompt early so Settings > Add to home screen can use it
+watchInstallPrompt();
 
 boot().catch((e) => {
   console.error(e);
