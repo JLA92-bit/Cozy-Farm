@@ -277,6 +277,35 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   sauce: () => jar('#d9381e', PAL.green),
   sold_sign: () => geo().block(0.08, 0.6, 0.08, PAL.woodDark, [0, 0, 0]).block(0.5, 0.3, 0.05, PAL.yellow, [0, 0.45, 0]).build(),
   for_sale_sign: () => geo().block(0.1, 1.0, 0.1, PAL.woodDark, [-0.35, 0, 0]).block(0.1, 1.0, 0.1, PAL.woodDark, [0.35, 0, 0]).block(1.0, 0.5, 0.08, '#fff6df', [0, 0.55, 0]).block(0.9, 0.12, 0.09, PAL.red, [0, 0.85, 0]).build(),
+  fish_shack: () => {
+    const b = geo();
+    // boardwalk floor, a weathered blue-grey hut with a red-striped awning, nets, a barrel and a fish sign
+    b.block(2.95, 0.1, 2.95, PAL.woodLight, [0, 0, 0]);
+    for (let i = 0; i < 6; i++) b.box(2.9, 0.012, 0.03, PAL.wood, [0, 0.105, -1.25 + i * 0.5]);
+    b.block(2.2, 1.25, 1.6, '#7f9fb2', [-0.2, 0.1, -0.55]);
+    for (let i = 0; i < 4; i++) b.box(2.22, 0.04, 1.62, '#6a889b', [-0.2, 0.32 + i * 0.28, -0.55]);
+    b.prism(2.5, 0.75, 1.95, '#4d6f86', [-0.2, 1.35, -0.55]);
+    b.box(2.26, 0.07, 1.66, PAL.white, [-0.2, 1.36, -0.55]);
+    b.block(0.55, 0.85, 0.05, PAL.woodDark, [-0.6, 0.1, 0.26]);
+    b.block(0.5, 0.36, 0.05, PAL.glass, [0.35, 0.6, 0.26]);
+    b.box(0.6, 0.06, 0.08, PAL.white, [0.35, 0.58, 0.29]);
+    // striped awning over the window
+    for (let i = 0; i < 4; i++) b.box(0.18, 0.04, 0.5, i % 2 ? PAL.white : PAL.red, [0.08 + i * 0.18, 1.08, 0.5], [0.45, 0, 0]);
+    // fish sign on a post
+    b.block(0.08, 1.35, 0.08, PAL.woodDark, [1.15, 0.1, 0.95]);
+    b.block(0.7, 0.36, 0.06, '#fff6df', [1.15, 1.05, 0.95]);
+    b.sphere(0.13, '#3fa9f5', [1.1, 1.23, 1.0], 1, [1.4, 0.75, 0.4]);
+    b.cone(0.08, 0.16, '#3fa9f5', [1.33, 1.15, 1.0], 4, [0, 0, -Math.PI / 2]);
+    // barrel, crate of fish and a hanging net
+    b.cyl(0.24, 0.22, 0.5, PAL.wood, [1.0, 0.1, -0.3], 10);
+    b.cyl(0.25, 0.25, 0.05, PAL.metal, [1.0, 0.45, -0.3], 10);
+    b.block(0.5, 0.25, 0.4, PAL.woodLight, [0.25, 0.1, 0.85]);
+    for (let i = 0; i < 3; i++) b.sphere(0.07, i % 2 ? '#c9d6de' : '#9fc0d4', [0.1 + i * 0.15, 0.37, 0.85], 0, [1.5, 0.6, 0.7]);
+    b.box(0.9, 0.7, 0.02, '#d9c79b', [-1.35, 0.75, -0.2], [0, Math.PI / 2, 0.1]);
+    for (let i = 0; i < 4; i++) b.box(0.02, 0.7, 0.025, PAL.woodDark, [-1.37, 0.75, -0.55 + i * 0.22]);
+    b.torus(0.18, 0.05, PAL.red, [-1.38, 0.95, 0.5], [0, Math.PI / 2, 0]);
+    return b.build();
+  },
 };
 
 function penBuilder(ground: string, roof: string, trough: string): THREE.BufferGeometry {

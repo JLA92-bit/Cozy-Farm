@@ -114,5 +114,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     social: { friends: [], sent: { day: '', gifts: 0, coins: 0 }, claimedCodes: [], madeCodes: [], botGiftDay: '' },
     neighbours: { day: '', rewarded: 0, consoled: 0, paid: [] },
     notify: defaultNotifyPrefs(),
+    fishing: { caught: {}, records: {}, freeDay: '', freeUsed: 0, casts: 0 },
   };
 }

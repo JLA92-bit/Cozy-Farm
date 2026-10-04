@@ -304,7 +304,7 @@ export function collectionEntries(): CollectionEntry[] {
   const out: CollectionEntry[] = [];
   for (const it of Object.values(ITEMS)) {
     if (it.cat === 'event') continue;
-    const group = it.cat === 'crop' ? 'Crops' : it.cat === 'fruit' ? 'Fruit' : it.cat === 'animal' ? 'Animal goods' : 'Goods';
+    const group = it.cat === 'crop' ? 'Crops' : it.cat === 'fruit' ? 'Fruit' : it.cat === 'animal' ? 'Animal goods' : it.cat === 'fish' ? 'Fish' : 'Goods';
     out.push({ key: `item:${it.id}`, kind: 'item', id: it.id, name: it.name, icon: it.icon, group });
   }
   for (const a of ANIMALS) out.push({ key: `animal:${a.id}`, kind: 'animal', id: a.id, name: a.name, icon: `model:${a.model}`, group: 'Animals' });
@@ -316,7 +316,7 @@ export function collectionEntries(): CollectionEntry[] {
 }
 
 /** Collection Book pages: finishing every entry on a page pays a one-off reward. */
-export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles'] as const;
+export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles', 'Fish'] as const;
 type PageReward = { gems?: number; crate?: string };
 let bookCache: CollectionEntry[] | null = null;
 export const book = {

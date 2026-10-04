@@ -49,6 +49,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.social = { ...base.social, ...(isObj(s.social) ? s.social : {}) };
   out.neighbours = { ...base.neighbours, ...(isObj(s.neighbours) ? s.neighbours : {}) };
   out.notify = sanitizeNotifyPrefs(s.notify);
+  out.fishing = { ...base.fishing, ...(isObj(s.fishing) ? s.fishing : {}) };
   return sanitize(out, base);
 }
 
@@ -140,6 +141,12 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   nb.rewarded = Math.floor(finite(nb.rewarded, 0, 0));
   nb.consoled = Math.floor(finite(nb.consoled, 0, 0));
   nb.paid = strArr(nb.paid).slice(-100);
+  const fi = out.fishing;
+  fi.caught = countMap(fi.caught, (k) => !!ITEMS[k] || k === 'bottle');
+  fi.records = isObj(fi.records) ? Object.fromEntries(Object.entries(fi.records).filter(([k, v]) => typeof v === 'number' && Number.isFinite(v) && v > 0 && (!!ITEMS[k] || k === 'bottle'))) : {};
+  if (typeof fi.freeDay !== 'string') fi.freeDay = '';
+  fi.freeUsed = Math.floor(finite(fi.freeUsed, 0, 0));
+  fi.casts = Math.floor(finite(fi.casts, 0, 0));
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;
 }

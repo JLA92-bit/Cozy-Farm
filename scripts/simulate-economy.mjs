@@ -19,7 +19,7 @@
 // The model is deliberately simple (a greedy player, averaged crate rewards, approximated achievements), so treat
 // the output as the shape of the curve, not exact minutes. Keep the policy honest: it should play like a keen
 // player, not an optimiser.
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 // ------------------------------------------------------------------ options
 const argv = process.argv.slice(2);
@@ -67,6 +67,8 @@ const LAND = read('land.json');
 const REWARDS = read('rewards.json');
 const QUESTS = read('quests.json');
 const ACH = read('achievements.json');
+// fishing at the dock (optional so older data sets in --data still run)
+const FISHING = existsSync(new URL('fish.json', dir)) ? read('fish.json') : null;
 
 const BLD = Object.fromEntries(BUILDINGS.map((b) => [b.id, b]));
 const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c]));
@@ -128,7 +130,7 @@ const S = {
   orders: [], nextOrder: 1, truck: null, truckNextAt: 0,
   land: 0, tiles: 0, decor: [], decorCharm: 0, decorCount: 0,
   stats: {}, ach: {}, crates: [], streak: 0,
-  usedRecipes: {}, requested: {}, produced: {},
+  usedRecipes: {}, requested: {}, produced: {}, fishCaught: {},
 };
 for (let i = 0; i < 6; i++) S.fields.push(i >= 4 ? { crop: 'wheat', readyAt: 0 } : { crop: null, readyAt: 0 });
 // usable tiles: 4 starting chunks, minus borders, obstacles and the starting buildings (with walking room)
@@ -266,6 +268,8 @@ function obtainable() {
   for (const c of CROPS) if (c.level <= S.level) out.add(c.id);
   for (const t of S.trees) out.add(TREE[t.type].item);
   for (const h of S.homes) if (h.animals.length) out.add(ANIMAL[BLD[h.type].animal].product);
+  // common fish that bite at any time, once caught (like the game's fishing.orderable())
+  for (const f of FISHING?.species ?? []) if (f.rarity === 'common' && f.level <= S.level && f.times.length === 4 && S.fishCaught[f.id]) out.add(f.id);
   const makeable = RECIPES.filter((r) => r.level <= S.level && S.prods.some((p) => p.type === r.building && built(p)));
   for (let changed = true; changed;) {
     changed = false;
@@ -440,6 +444,8 @@ function demand() {
   Object.assign(reserved, want);
   // feed: keep two rounds per animal
   for (const a of ANIMALS) { const n = animalsOwned(a.id); if (n) add(want, a.feed, n * 2); }
+  // a little bait for fishing once the dock opens
+  if (FISHING && S.level >= FISHING.level) add(want, FISHING.baitItem, 4);
   const pipe = pipeline();
   const short = {};
   const queue = Object.entries(want).map(([i, n]) => [i, n - count(i) - (pipe[i] ?? 0)]);
@@ -816,6 +822,46 @@ function sessionEnd(s) {
   }
 }
 
+// ------------------------------------------------------------------ fishing
+// A light model of the dock mini-game: the player uses the free casts every day and spends bait when orders, the
+// truck or a Fish Shack recipe want fish. Each cast costs ~20 s of attention; hooking and reeling succeed more often
+// for easy fish. Time of day follows the game's 24 min clock.
+const FISH_OK = [0.95, 0.9, 0.8, 0.7, 0.6];
+let fishDay = -1, fishFree = 0;
+function fishTimeOfDay() {
+  const p = ((S.t * 1000) % (24 * 60000)) / (24 * 60000);
+  for (const [t, [a, b]] of Object.entries(FISHING.times)) if (a <= b ? p >= a && p < b : p >= a || p < b) return t;
+  return 'day';
+}
+function fishWanted(dem) {
+  for (const f of FISHING.species) if ((dem.short[f.id] ?? 0) > 0) return true;
+  return RECIPES.some((r) => BLD[r.building]?.id === 'fish_shack' && r.level <= S.level && prodsOf('fish_shack').some(built) && Object.entries(r.in).some(([i, n]) => FISHING.species.some((f) => f.id === i) && count(i) < n * 2));
+}
+function fish(dem, s) {
+  if (!FISHING || S.level < FISHING.level) return;
+  if (fishDay !== s.day) { fishDay = s.day; fishFree = FISHING.freeCastsPerDay; }
+  const bait = count(FISHING.baitItem);
+  if (!(fishFree > 0 || (bait > 0 && fishWanted(dem)))) return;
+  if (!busy(20)) return;
+  if (fishFree > 0) fishFree--; else take(FISHING.baitItem, 1);
+  stat('fish_casts');
+  if (rnd() < FISHING.junkChance) {
+    const j = FISHING.junk[Math.floor(rnd() * FISHING.junk.length)];
+    if (ITEMS[j.id]) give(j.id, 1); else addCoins((j.coinsBase ?? 0) + (j.coinsPerLevel ?? 0) * S.level, 'fishing');
+    addXp(j.xp, 'fishing'); stat('junk_caught');
+    return;
+  }
+  const time = fishTimeOfDay();
+  const pool = FISHING.species.filter((f) => f.level <= S.level && f.times.includes(time));
+  const tiers = Object.keys(FISHING.rarityChance).filter((r) => pool.some((f) => f.rarity === r));
+  let x = rnd() * tiers.reduce((a, r) => a + FISHING.rarityChance[r], 0), tier = tiers[0];
+  for (const r of tiers) { x -= FISHING.rarityChance[r]; if (x <= 0) { tier = r; break; } }
+  const list = pool.filter((f) => f.rarity === tier);
+  const f = list[Math.floor(rnd() * list.length)];
+  if (!f || rnd() > FISH_OK[f.difficulty - 1]) return; // it got away
+  give(f.id, 1); addXp(f.xp, 'fishing'); stat('fish_caught'); add(S.fishCaught, f.id, 1);
+}
+
 // ------------------------------------------------------------------ run
 const snapshots = []; // per session end
 let fhDone = () => { if (S.fh.pending && S.fh.upEnd <= S.t) { S.fh.level = S.fh.pending; S.fh.pending = 0; gauge('farmhouse_level', S.fh.level); } };
@@ -847,6 +893,7 @@ for (const s of sessions) {
     if (blocked) savingFor[blocked.label] = (savingFor[blocked.label] ?? 0) + STEP;
     sellSurplus(demand(), s);
     fillOrders();
+    fish(demand(), s);
     S.active += STEP;
   }
   sessionEnd(s);
@@ -1025,7 +1072,7 @@ if (!BRIEF) {
   }
   p();
   p('XP PER HOUR OF REAL TIME BY SOURCE');
-  const xs = ['crops', 'trees', 'animals', 'production', 'orders', 'truck', 'quests', 'awards', 'land', 'clearing'];
+  const xs = ['crops', 'trees', 'animals', 'production', 'orders', 'truck', 'quests', 'awards', 'land', 'clearing', 'fishing'];
   p(`${pad('Levels', 8)}${xs.map((s) => lpad(s, 11)).join('')}`);
   for (const [lo, hi] of bands) {
     const sp = bandSpan(lo, hi); if (!sp) continue;

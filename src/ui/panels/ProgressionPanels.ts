@@ -4,6 +4,7 @@ import { h, icon, button, clear, fmt, itemIcon } from '../dom';
 import { ui } from '../UI';
 import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, MAX_LEVEL, REWARDS, ITEMS, COSMETICS, BUILDINGS, type EventDef } from '../../data';
 import { game } from '../../systems/Game';
+import { fishBookLine } from '../../systems/Fishing';
 import { achievements, book, BOOK_PAGES, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
 import { actionForStat, actionForUnlock } from '../../systems/Goals';
 import { audio, haptics } from '../../systems/Audio';
@@ -554,7 +555,8 @@ export function openCollection(tab?: string): void {
       grid.append(h('div', { class: `card ${seen ? '' : 'locked'}` },
         seen && isNew(e.key) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
         icon(e.icon, 'card-icon'), h('div', { class: 'card-sub' }, seen ? e.name : '???'),
-        seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:11px' }, `sells ${ITEMS[e.id].sell}`) : null));
+        seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:11px' }, `sells ${ITEMS[e.id].sell}`) : null,
+        e.group === 'Fish' ? h('div', { class: 'fish-book-line' }, fishBookLine(e.id, seen)) : null));
     }
     p.body.append(grid);
     const tags = grid.querySelectorAll('.new-tag');
@@ -637,6 +639,8 @@ export function wireProgressionNotes(): void {
     if (!inBook(`${kind}:${id}`) || !game.state.tutorial.done) return;
     const e = book.entries().find((x) => x.key === `${kind}:${id}`);
     if (!e) return;
+    // the fishing catch card already says "New species!"; just nudge the Book button
+    if (e.group === 'Fish' && ui.root.classList.contains('mode-fishing')) { ui.feedback.bump(ui.hud.buttons.collection); return; }
     pending.push({ name: e.name, icon: e.icon, group: e.group });
     clearTimeout(timer);
     timer = window.setTimeout(() => {

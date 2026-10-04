@@ -759,6 +759,60 @@
    ],
    "desc": "Get {n} likes on your farm from neighbours",
    "icon": "heart"
+  },
+  {
+   "id": "gone_fishing",
+   "name": "Gone Fishing",
+   "category": "farming",
+   "stat": "fish_caught",
+   "tiers": [
+    10,
+    100,
+    500
+   ],
+   "desc": "Catch {n} fish",
+   "icon": "fishing_pole"
+  },
+  {
+   "id": "fish_collector",
+   "name": "Fish Collector",
+   "category": "collection",
+   "stat": "fish_species",
+   "tiers": [
+    5,
+    9,
+    13
+   ],
+   "desc": "Catch {n} kinds of fish",
+   "icon": "tropical_fish",
+   "gauge": true
+  },
+  {
+   "id": "deep_legend",
+   "name": "Legend of the Deep",
+   "category": "collection",
+   "stat": "fish_legendary",
+   "tiers": [
+    1,
+    3,
+    10
+   ],
+   "desc": "Catch {n} legendary fish",
+   "icon": "fish_gold"
+  },
+  {
+   "id": "boot_collector",
+   "name": "One Boot, Two Boots",
+   "category": "hidden",
+   "stat": "junk_caught",
+   "tiers": [
+    1,
+    10,
+    40
+   ],
+   "desc": "Fish up {n} bits of junk",
+   "icon": "boot",
+   "hidden": true
   }
  ]
 }

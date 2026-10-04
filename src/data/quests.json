@@ -1,44 +1,316 @@
 {
-  "_comment": "Quest templates. Progress = increase of a lifetime stat since the quest started. n = [min, max] target, multiplied by (1 + level * nPerLevel). '{crop}' templates pick an unlocked crop.",
-  "nPerLevel": 0.06,
-  "daily": {
-    "count": 3,
-    "reward": { "coinsBase": 40, "coinsPerLevel": 14, "xpBase": 10, "xpPerLevel": 8 },
-    "bonusCrate": "common",
-    "templates": [
-      { "id": "harvest", "text": "Harvest {n} crops", "stat": "crops_harvested", "n": [10, 24], "level": 1, "icon": "wheat" },
-      { "id": "plant", "text": "Plant {n} seeds", "stat": "plants_planted", "n": [10, 24], "level": 1, "icon": "seedling" },
-      { "id": "harvest_crop", "text": "Harvest {n} {cropName}", "stat": "harvest_{crop}", "n": [6, 14], "level": 2, "icon": "crop" },
-      { "id": "orders", "text": "Complete {n} orders", "stat": "orders_completed", "n": [2, 4], "level": 1, "icon": "clipboard" },
-      { "id": "earn", "text": "Earn {n} coins", "stat": "coins_earned", "n": [150, 400], "level": 1, "icon": "coin" },
-      { "id": "clear", "text": "Clear {n} obstacles", "stat": "obstacles_cleared", "n": [1, 3], "level": 1, "icon": "axe" },
-      { "id": "feed", "text": "Feed animals {n} times", "stat": "animals_fed", "n": [4, 10], "level": 2, "icon": "chicken" },
-      { "id": "produce", "text": "Produce {n} goods", "stat": "items_produced", "n": [3, 8], "level": 2, "icon": "hammer_wrench" },
-      { "id": "stall", "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": [2, 6], "level": 3, "icon": "store" },
-      { "id": "fruit", "text": "Pick {n} fruit", "stat": "fruit_harvested", "n": [6, 12], "level": 6, "icon": "apple" },
-      { "id": "decor", "text": "Place {n} decorations", "stat": "decorations_placed", "n": [1, 3], "level": 3, "icon": "sparkles" },
-      { "id": "pets", "text": "Pet your animals {n} times", "stat": "animal_pets", "n": [3, 6], "level": 2, "icon": "heart" },
-      { "id": "market_buy", "text": "Buy {n} listings at the market", "stat": "market_buys", "n": [1, 2], "level": 6, "icon": "bags" },
-      { "id": "help_neighbour", "text": "Help neighbours while visiting", "stat": "neighbours_helped", "n": [0.6, 0.7], "level": 4, "icon": "hug" }
-    ]
+ "_comment": "Quest templates. Progress = increase of a lifetime stat since the quest started. n = [min, max] target, multiplied by (1 + level * nPerLevel). '{crop}' templates pick an unlocked crop.",
+ "nPerLevel": 0.06,
+ "daily": {
+  "count": 3,
+  "reward": {
+   "coinsBase": 40,
+   "coinsPerLevel": 14,
+   "xpBase": 10,
+   "xpPerLevel": 8
   },
-  "weekly": {
-    "count": 5,
-    "reward": { "coinsBase": 300, "coinsPerLevel": 60, "xpBase": 60, "xpPerLevel": 40, "gems": 3 },
-    "bonusCrate": "rare",
-    "completeAllCrate": "epic",
-    "templates": [
-      { "id": "w_harvest", "text": "Harvest {n} crops", "stat": "crops_harvested", "n": [120, 220], "level": 1, "icon": "wheat" },
-      { "id": "w_orders", "text": "Complete {n} orders", "stat": "orders_completed", "n": [15, 25], "level": 1, "icon": "clipboard" },
-      { "id": "w_produce", "text": "Produce {n} goods", "stat": "items_produced", "n": [25, 45], "level": 2, "icon": "hammer_wrench" },
-      { "id": "w_animals", "text": "Collect {n} animal products", "stat": "animal_products", "n": [25, 50], "level": 2, "icon": "egg" },
-      { "id": "w_earn", "text": "Earn {n} coins", "stat": "coins_earned", "n": [2500, 5000], "level": 1, "icon": "coin" },
-      { "id": "w_daily", "text": "Complete {n} daily quests", "stat": "daily_quests_completed", "n": [8, 12], "level": 1, "icon": "scroll" },
-      { "id": "w_clear", "text": "Clear {n} obstacles", "stat": "obstacles_cleared", "n": [8, 15], "level": 1, "icon": "pick" },
-      { "id": "w_truck", "text": "Fill {n} truck crates", "stat": "truck_crates", "n": [6, 12], "level": 8, "icon": "truck" },
-      { "id": "w_stall", "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": [15, 30], "level": 3, "icon": "store" },
-      { "id": "w_crates", "text": "Open {n} mystery crates", "stat": "crates_opened", "n": [3, 5], "level": 1, "icon": "gift" },
-      { "id": "w_market", "text": "Sell {n} listings on the market", "stat": "market_sales", "n": [3, 6], "level": 6, "icon": "bags" }
-    ]
-  }
+  "bonusCrate": "common",
+  "templates": [
+   {
+    "id": "harvest",
+    "text": "Harvest {n} crops",
+    "stat": "crops_harvested",
+    "n": [
+     10,
+     24
+    ],
+    "level": 1,
+    "icon": "wheat"
+   },
+   {
+    "id": "plant",
+    "text": "Plant {n} seeds",
+    "stat": "plants_planted",
+    "n": [
+     10,
+     24
+    ],
+    "level": 1,
+    "icon": "seedling"
+   },
+   {
+    "id": "harvest_crop",
+    "text": "Harvest {n} {cropName}",
+    "stat": "harvest_{crop}",
+    "n": [
+     6,
+     14
+    ],
+    "level": 2,
+    "icon": "crop"
+   },
+   {
+    "id": "orders",
+    "text": "Complete {n} orders",
+    "stat": "orders_completed",
+    "n": [
+     2,
+     4
+    ],
+    "level": 1,
+    "icon": "clipboard"
+   },
+   {
+    "id": "earn",
+    "text": "Earn {n} coins",
+    "stat": "coins_earned",
+    "n": [
+     150,
+     400
+    ],
+    "level": 1,
+    "icon": "coin"
+   },
+   {
+    "id": "clear",
+    "text": "Clear {n} obstacles",
+    "stat": "obstacles_cleared",
+    "n": [
+     1,
+     3
+    ],
+    "level": 1,
+    "icon": "axe"
+   },
+   {
+    "id": "feed",
+    "text": "Feed animals {n} times",
+    "stat": "animals_fed",
+    "n": [
+     4,
+     10
+    ],
+    "level": 2,
+    "icon": "chicken"
+   },
+   {
+    "id": "produce",
+    "text": "Produce {n} goods",
+    "stat": "items_produced",
+    "n": [
+     3,
+     8
+    ],
+    "level": 2,
+    "icon": "hammer_wrench"
+   },
+   {
+    "id": "stall",
+    "text": "Sell {n} items at your stall",
+    "stat": "stall_sales",
+    "n": [
+     2,
+     6
+    ],
+    "level": 3,
+    "icon": "store"
+   },
+   {
+    "id": "fruit",
+    "text": "Pick {n} fruit",
+    "stat": "fruit_harvested",
+    "n": [
+     6,
+     12
+    ],
+    "level": 6,
+    "icon": "apple"
+   },
+   {
+    "id": "decor",
+    "text": "Place {n} decorations",
+    "stat": "decorations_placed",
+    "n": [
+     1,
+     3
+    ],
+    "level": 3,
+    "icon": "sparkles"
+   },
+   {
+    "id": "pets",
+    "text": "Pet your animals {n} times",
+    "stat": "animal_pets",
+    "n": [
+     3,
+     6
+    ],
+    "level": 2,
+    "icon": "heart"
+   },
+   {
+    "id": "market_buy",
+    "text": "Buy {n} listings at the market",
+    "stat": "market_buys",
+    "n": [
+     1,
+     2
+    ],
+    "level": 6,
+    "icon": "bags"
+   },
+   {
+    "id": "help_neighbour",
+    "text": "Help neighbours while visiting",
+    "stat": "neighbours_helped",
+    "n": [
+     0.6,
+     0.7
+    ],
+    "level": 4,
+    "icon": "hug"
+   },
+   {
+    "id": "fish",
+    "text": "Catch {n} fish",
+    "stat": "fish_caught",
+    "n": [
+     2,
+     3
+    ],
+    "level": 7,
+    "icon": "fishing_pole"
+   }
+  ]
+ },
+ "weekly": {
+  "count": 5,
+  "reward": {
+   "coinsBase": 300,
+   "coinsPerLevel": 60,
+   "xpBase": 60,
+   "xpPerLevel": 40,
+   "gems": 3
+  },
+  "bonusCrate": "rare",
+  "completeAllCrate": "epic",
+  "templates": [
+   {
+    "id": "w_harvest",
+    "text": "Harvest {n} crops",
+    "stat": "crops_harvested",
+    "n": [
+     120,
+     220
+    ],
+    "level": 1,
+    "icon": "wheat"
+   },
+   {
+    "id": "w_orders",
+    "text": "Complete {n} orders",
+    "stat": "orders_completed",
+    "n": [
+     15,
+     25
+    ],
+    "level": 1,
+    "icon": "clipboard"
+   },
+   {
+    "id": "w_produce",
+    "text": "Produce {n} goods",
+    "stat": "items_produced",
+    "n": [
+     25,
+     45
+    ],
+    "level": 2,
+    "icon": "hammer_wrench"
+   },
+   {
+    "id": "w_animals",
+    "text": "Collect {n} animal products",
+    "stat": "animal_products",
+    "n": [
+     25,
+     50
+    ],
+    "level": 2,
+    "icon": "egg"
+   },
+   {
+    "id": "w_earn",
+    "text": "Earn {n} coins",
+    "stat": "coins_earned",
+    "n": [
+     2500,
+     5000
+    ],
+    "level": 1,
+    "icon": "coin"
+   },
+   {
+    "id": "w_daily",
+    "text": "Complete {n} daily quests",
+    "stat": "daily_quests_completed",
+    "n": [
+     8,
+     12
+    ],
+    "level": 1,
+    "icon": "scroll"
+   },
+   {
+    "id": "w_clear",
+    "text": "Clear {n} obstacles",
+    "stat": "obstacles_cleared",
+    "n": [
+     8,
+     15
+    ],
+    "level": 1,
+    "icon": "pick"
+   },
+   {
+    "id": "w_truck",
+    "text": "Fill {n} truck crates",
+    "stat": "truck_crates",
+    "n": [
+     6,
+     12
+    ],
+    "level": 8,
+    "icon": "truck"
+   },
+   {
+    "id": "w_stall",
+    "text": "Sell {n} items at your stall",
+    "stat": "stall_sales",
+    "n": [
+     15,
+     30
+    ],
+    "level": 3,
+    "icon": "store"
+   },
+   {
+    "id": "w_crates",
+    "text": "Open {n} mystery crates",
+    "stat": "crates_opened",
+    "n": [
+     3,
+     5
+    ],
+    "level": 1,
+    "icon": "gift"
+   },
+   {
+    "id": "w_market",
+    "text": "Sell {n} listings on the market",
+    "stat": "market_sales",
+    "n": [
+     3,
+     6
+    ],
+    "level": 6,
+    "icon": "bags"
+   }
+  ]
+ }
 }

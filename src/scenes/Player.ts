@@ -21,6 +21,8 @@ export class Player {
   private greetCooldown = 0;
   private dozeIn = 20;
   private home: [number, number] = [24, 21];
+  /** Set while the farmer is away from the farm (fishing at the dock): no wandering, walking to buildings or making room. */
+  busy = false;
 
   async init(scene: FarmScene): Promise<void> {
     this.scene = scene;
@@ -32,7 +34,7 @@ export class Player {
     this.walker.placeAt(this.home[0], this.home[1]);
     scene.onFrame((dt) => {
       this.walker.update(dt);
-      this.wander(dt);
+      if (!this.busy) this.wander(dt);
       this.greetCooldown -= dt;
       if (this.walker.walking) scene.loop.wake(0.2);
       speech.update(dt);
@@ -59,12 +61,13 @@ export class Player {
   /** Say something and do a happy gesture (if not busy walking). */
   cheer(line: SayOpts, gesture = 'emote-yes'): void {
     speech.say(this.walker.char.root, line);
-    if (!this.walker.walking) void this.walker.char.gesture(gesture);
+    if (!this.walker.walking && !this.busy) void this.walker.char.gesture(gesture);
     this.scene.loop.wake(1);
   }
 
   /** Walk next to a building, then do a little interact animation. */
   goTo(b: PlacedBuilding): void {
+    if (this.busy) return;
     if (this.lastTarget === b.uid && this.walker.walking) return;
     this.lastTarget = b.uid;
     const spot = besideBuilding(b, this.walker.tile);
@@ -82,7 +85,7 @@ export class Player {
 
   /** A villager said hi: wave back when free. */
   greetBack(from: THREE.Vector3): void {
-    if (this.greetCooldown > 0 || this.walker.walking) return;
+    if (this.busy || this.greetCooldown > 0 || this.walker.walking) return;
     this.greetCooldown = 14;
     const night = isNight(this.scene.env.night);
     setTimeout(() => {
@@ -96,6 +99,7 @@ export class Player {
 
   /** Step out of the way if standing on/near `pos` (e.g. where the merchant parks). */
   makeRoom(pos: THREE.Vector3): void {
+    if (this.busy) return;
     const p = this.position;
     if ((p.x - pos.x) ** 2 + (p.z - pos.z) ** 2 > 2.2 * 2.2) return;
     const [x, z] = this.walker.tile;

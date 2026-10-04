@@ -460,6 +460,60 @@
    "out": 1,
    "sec": 3600,
    "xp": 39
+  },
+  {
+   "id": "bait",
+   "building": "feed_mill",
+   "level": 7,
+   "in": {
+    "wheat": 1,
+    "corn": 1
+   },
+   "item": "bait",
+   "out": 4,
+   "sec": 60,
+   "xp": 2
+  },
+  {
+   "id": "fish_cake",
+   "building": "fish_shack",
+   "level": 8,
+   "in": {
+    "sardine": 3,
+    "wheat": 2
+   },
+   "item": "fish_cake",
+   "out": 1,
+   "sec": 300,
+   "xp": 5
+  },
+  {
+   "id": "fish_pie",
+   "building": "fish_shack",
+   "level": 9,
+   "in": {
+    "sardine": 2,
+    "carrot": 2,
+    "bread": 1
+   },
+   "item": "fish_pie",
+   "out": 1,
+   "sec": 900,
+   "xp": 9
+  },
+  {
+   "id": "seafood_curry",
+   "building": "fish_shack",
+   "level": 11,
+   "in": {
+    "shrimp": 2,
+    "crab": 1,
+    "tomato": 2
+   },
+   "item": "seafood_curry",
+   "out": 1,
+   "sec": 1500,
+   "xp": 11
   }
  ]
 }

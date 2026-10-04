@@ -94,7 +94,11 @@ export interface SaveData {
   neighbours: NeighbourState;
   /** Phone notifications: what to send and the quiet hours (see src/notify). */
   notify: NotifyPrefs;
+  /** Fishing at the dock: catches per species, biggest catch (cm) per species, free casts used today. */
+  fishing: FishingState;
 }
+
+export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }
 
 export interface FriendEntry { id: string; name: string; code: string; addedAt: number }
 export interface SocialState {

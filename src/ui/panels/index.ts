@@ -15,3 +15,4 @@ import './LeaderboardPanel';
 import './AccountPanels';
 import './MoveFarmPanel';
 import './NeighboursPanel';
+import './FishingPanel';

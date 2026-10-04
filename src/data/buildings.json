@@ -56,6 +56,7 @@
     { "id": "dairy", "name": "Dairy", "cat": "production", "size": [3, 3], "level": 7, "cost": 900, "buildSec": 480, "model": "bld/tavern", "fit": 1.0, "charm": 3, "cap": "production", "upgradeMult": 2.2, "icon": "cheese", "desc": "Churns milk into cream, butter and cheese." },
     { "id": "loom", "name": "Loom", "cat": "production", "size": [3, 3], "level": 10, "cost": 1400, "buildSec": 900, "model": "bld/lumbermill", "fit": 1.0, "charm": 3, "cap": "production", "upgradeMult": 2.8, "icon": "yarn", "desc": "Spins wool and cotton into cosy goods." },
     { "id": "jam_kitchen", "name": "Jam Kitchen", "cat": "production", "size": [3, 3], "level": 12, "cost": 2000, "buildSec": 1500, "model": "bld/home_green", "fit": 0.95, "charm": 3, "cap": "production", "upgradeMult": 3.4, "icon": "jar", "desc": "Cooks fruit into jams and sauces." },
+    { "id": "fish_shack", "name": "Fish Shack", "cat": "production", "size": [3, 3], "level": 8, "cost": 800, "buildSec": 240, "model": "proc:fish_shack", "fit": 1.0, "charm": 3, "cap": "production", "upgradeMult": 1.6, "icon": "fish", "desc": "Cooks your catch into tasty seafood dishes." },
 
     { "id": "sign", "name": "Wooden Sign", "cat": "decor", "size": [1, 1], "level": 2, "cost": 10, "model": "nat/sign", "fit": 0.8, "charm": 1, "cap": "decor" },
     { "id": "path_dirt", "name": "Dirt Path", "cat": "decor", "size": [1, 1], "level": 1, "cost": 2, "model": "paint:#c9955c", "fit": 1, "charm": 0, "cap": "none", "path": true, "icon": "seedling" },

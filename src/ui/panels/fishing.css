@@ -1,0 +1,125 @@
+/* Fishing at the dock: HTML overlay for the mini-game. Kept in its own file so it merges cleanly. */
+
+#ui-root.mode-fishing .hud-layer,
+#ui-root.mode-fishing .world-layer { display: none !important; }
+
+.fish-ui { position: absolute; inset: 0; z-index: 45; pointer-events: auto; touch-action: none; }
+.fish-ui * { -webkit-user-select: none; user-select: none; }
+
+.fish-top {
+  position: absolute; top: calc(var(--safe-top) + 8px); left: calc(var(--safe-left) + 8px); right: calc(var(--safe-right) + 8px);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none;
+}
+.fish-top > * { pointer-events: auto; }
+.fish-top-row { display: flex; align-items: center; gap: 6px; width: 100%; max-width: 560px; }
+.fish-chip {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 4px 10px; border-radius: 14px;
+  background: rgba(40, 25, 10, .62); border: 3px solid var(--outline); color: #fff; font-family: var(--font-display); font-size: 15px; white-space: nowrap;
+}
+.fish-chip .icon { width: 24px; height: 24px; }
+.fish-chip .fc-free { background: var(--btn-green); border: 2px solid var(--outline); border-radius: 9px; padding: 0 6px; margin-right: 2px; font-size: 13px; }
+.fish-buy { margin-left: auto; min-height: 40px; padding: 2px 8px; gap: 3px; }
+.fish-buy .icon { width: 22px; height: 22px; }
+.fish-buy .fish-buy-plus { font-size: 18px; color: #fff; margin-right: -2px; }
+.fish-close { width: 44px; height: 44px; min-width: 44px; font-size: 20px; flex: 0 0 auto; }
+
+.fish-biting {
+  display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 14px; max-width: min(560px, 100%);
+  background: rgba(20, 60, 90, .45); overflow-x: auto; scrollbar-width: none;
+}
+.fish-biting::-webkit-scrollbar { display: none; }
+.fish-biting .fb-label { color: #fff; font-family: var(--font-display); font-size: 13px; margin-right: 2px; flex: 0 0 auto; }
+.fish-biting .fb-fish { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .55); border: 2px solid rgba(45, 30, 16, .5); }
+.fish-biting .fb-fish .icon { width: 22px; height: 22px; }
+.fish-biting .fb-fish.unseen .icon { filter: brightness(0) opacity(.45); }
+.fish-biting .fb-fish.r-rare { border-color: var(--rare); }
+.fish-biting .fb-fish.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px rgba(255, 176, 32, .8); }
+
+.fish-touch { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; }
+.fish-center { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 16px; text-align: center; pointer-events: none; }
+.fish-center .btn { pointer-events: auto; }
+.fish-prompt { color: #fff; font-family: var(--font-display); font-size: 30px; line-height: 1.1; min-height: 34px; }
+.fish-prompt.urgent { color: #ffe066; font-size: 40px; animation: fishPulse .45s ease-in-out infinite alternate; }
+@keyframes fishPulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+.fish-sub { color: #fff; font-size: 15px; max-width: 420px; line-height: 1.25; }
+.fish-buyrow { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 8px; }
+
+.fish-bottom { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: calc(var(--safe-bottom) + 14px); pointer-events: none; }
+.fish-controls { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.fish-action {
+  width: 88px; height: 88px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 35%, #8fd3ff, var(--btn-blue) 60%, var(--btn-blue-dark)); border: 4px solid var(--outline);
+  box-shadow: 0 6px 0 var(--outline), 0 0 0 6px rgba(255, 255, 255, .25); transition: transform .08s ease;
+}
+.fish-action .icon { width: 56px; height: 56px; pointer-events: none; }
+.fish-action.down { transform: translateY(4px) scale(.95); box-shadow: 0 2px 0 var(--outline), 0 0 0 6px rgba(255, 255, 255, .25); }
+.fish-action.pulse { animation: fishBtn 1s ease-in-out infinite; }
+.fish-action.dim { filter: grayscale(.8); opacity: .7; }
+.fish-ui[data-step="bite"] .fish-action { background: radial-gradient(circle at 50% 35%, #fff3a0, var(--btn-yellow) 60%, var(--btn-yellow-dark)); animation-duration: .4s; }
+.fish-ui[data-step="reel"] .fish-action { background: radial-gradient(circle at 50% 35%, #c9ffb0, var(--btn-green) 60%, var(--btn-green-dark)); }
+@keyframes fishBtn { 0%, 100% { box-shadow: 0 6px 0 var(--outline), 0 0 0 6px rgba(255, 255, 255, .25); } 50% { box-shadow: 0 6px 0 var(--outline), 0 0 0 14px rgba(255, 255, 255, .1); } }
+
+.fish-reel { width: min(86vw, 440px); display: flex; flex-direction: column; gap: 6px; }
+.fr-track {
+  position: relative; height: 46px; border-radius: 14px; overflow: hidden;
+  background: linear-gradient(#2e7fb8, #1f5f8f); border: 4px solid var(--outline); box-shadow: 0 4px 0 var(--outline);
+}
+.fr-zone {
+  position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 9px; will-change: transform;
+  background: linear-gradient(rgba(140, 240, 110, .75), rgba(70, 190, 60, .75)); border: 2px solid rgba(255, 255, 255, .8);
+}
+.fish-reel.inside .fr-zone { background: linear-gradient(rgba(170, 255, 140, .9), rgba(90, 210, 70, .9)); }
+.fr-fish { position: absolute; top: 50%; left: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; will-change: transform; }
+.fr-fish .icon { width: 34px; height: 34px; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
+.fr-fish.glow .icon { filter: drop-shadow(0 0 5px #fff3a0) drop-shadow(0 0 3px #ffb020); }
+.fr-meter { height: 14px; border-radius: 8px; background: rgba(40, 25, 10, .55); border: 3px solid var(--outline); overflow: hidden; }
+.fr-fill { height: 100%; background: linear-gradient(90deg, #ffe066, #7ed957); transform-origin: left center; transform: scaleX(.3); will-change: transform; }
+
+.fish-reveal { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; padding: 22px 16px 12px; background: rgba(20, 50, 80, .35); }
+.fish-reveal-card {
+  position: relative; width: min(320px, 100%); display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 18px 16px 14px; background: var(--cream); border: 4px solid var(--outline); border-radius: 22px; box-shadow: 0 6px 0 var(--outline); text-align: center;
+}
+.fish-reveal.legendary .fish-reveal-card { background: linear-gradient(#fff8d8, #ffe9a8); box-shadow: 0 6px 0 var(--outline), 0 0 30px 6px rgba(255, 200, 60, .7); }
+.fish-reveal.r-rare .fish-reveal-card { box-shadow: 0 6px 0 var(--outline), 0 0 22px 4px rgba(63, 169, 245, .55); }
+.fish-reveal-icon { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(#ffffff, #cdeeff); border: 3px solid var(--outline); }
+.fish-reveal-icon .icon { width: 72px; height: 72px; }
+.fish-reveal-name { font-family: var(--font-display); font-size: 26px; color: #fff; line-height: 1.1; }
+.fish-ribbon {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-3deg); white-space: nowrap;
+  padding: 3px 14px; border-radius: 10px; background: var(--btn-red); border: 3px solid var(--outline); color: #fff; font-family: var(--font-display); font-size: 17px;
+}
+.fish-rarity { color: #fff; }
+.fish-rarity.r-common { background: var(--common); }
+.fish-rarity.r-uncommon { background: var(--btn-green); }
+.fish-rarity.r-rare { background: var(--rare); }
+.fish-rarity.r-legendary { background: var(--legendary); }
+.fish-note {
+  max-width: 260px; padding: 10px 12px; background: #fffdf4; border: 2px dashed #c9a46a; border-radius: 10px; transform: rotate(-1.5deg);
+  font-size: 15px; line-height: 1.3; color: var(--ink); font-style: italic;
+}
+.fish-again { min-width: 160px; }
+
+@media (max-width: 420px) {
+  .fish-chip .fc-time { display: none; }
+  .fish-top-row { gap: 5px; }
+}
+
+/* landscape phones: tuck the prompt up and shrink the button so the dock stays visible */
+@media (max-height: 460px) {
+  .fish-prompt { font-size: 24px; min-height: 28px; }
+  .fish-prompt.urgent { font-size: 32px; }
+  .fish-sub { font-size: 13px; }
+  .fish-bottom { gap: 4px; padding-bottom: calc(var(--safe-bottom) + 8px); }
+  .fish-controls { flex-direction: row; justify-content: center; align-items: center; gap: 16px; }
+  .fish-action { width: 72px; height: 72px; }
+  .fish-action .icon { width: 46px; height: 46px; }
+  .fr-track { height: 40px; }
+  .fish-reveal-icon { width: 72px; height: 72px; }
+  .fish-reveal-icon .icon { width: 54px; height: 54px; }
+  .fish-reveal-card { gap: 5px; padding: 14px 14px 10px; }
+  .fish-reveal-name { font-size: 22px; }
+}
+
+/* collection book: fish records */
+.card .fish-book-line { font-size: 11px; line-height: 1.15; color: var(--ink-soft); }

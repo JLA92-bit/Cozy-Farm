@@ -10,6 +10,7 @@ const CATS = [
   { id: 'crop', label: 'Crops', icon: 'wheat' },
   { id: 'animal', label: 'Animal', icon: 'egg' },
   { id: 'goods', label: 'Goods', icon: 'bread' },
+  { id: 'fish', label: 'Fish', icon: 'fish' },
   { id: 'stored', label: 'Stored', icon: 'hut' },
 ];
 
@@ -20,6 +21,7 @@ export function sourceText(item: string): string {
   if (s.kind === 'tree') return `Picked from ${TREE[s.id].name}s`;
   if (s.kind === 'animal') return `From ${ANIMAL[s.id].name}s`;
   if (s.kind === 'recipe') return `Made at the ${BUILDING[RECIPE[s.id].building].name}`;
+  if (s.kind === 'fish') return 'Caught at the dock';
   return 'Found during events';
 }
 
@@ -28,11 +30,12 @@ const EMPTY: Record<string, string> = {
   crop: 'No crops yet. Plant seeds in your fields!',
   animal: 'No animal goods yet. Feed your animals!',
   goods: 'No goods yet. Make some in your workshops!',
+  fish: 'No fish yet. Try fishing at the dock!',
 };
 
 const inCat = (id: string, t: string): boolean => {
   const c = ITEMS[id]?.cat;
-  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed');
+  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed') || (t === 'fish' && id === 'bait');
 };
 
 export function openInventory(tab = 'all'): void {
