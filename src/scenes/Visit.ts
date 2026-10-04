@@ -127,10 +127,14 @@ export async function visitFarm(who: { id: string; name: string }): Promise<void
   const started = performance.now();
   let snap: FarmSnapshot | null = null;
   let offline = false;
+  let serverError = '';
   try {
     snap = sanitizeSnapshot(await withTimeout(online.getFarm(who.id), 15000));
   } catch (e) {
-    offline = true;
+    const err = e as Error;
+    // a real connection problem vs the server refusing (missing table, permissions...): say which
+    if (err?.name === 'OfflineError' || !navigator.onLine || /fetch|network|timeout|abort|load failed/i.test(err?.message ?? '')) offline = true;
+    else serverError = String(err?.message ?? e).slice(0, 120) || 'unknown error';
     console.warn('[visit] could not load the farm', e);
   }
   // let the clouds cover the screen before swapping farms
@@ -139,6 +143,7 @@ export async function visitFarm(who: { id: string; name: string }): Promise<void
     await hideWipe(wipe);
     busy = false;
     if (offline) ui.feedback.toast("Couldn't reach the village", 'Check your connection and try again in a moment.', 'cloud', 'warn');
+    else if (serverError) ui.feedback.toast("Couldn't open this farm right now", `The village server said: ${serverError}`, 'cloud', 'warn');
     else ui.feedback.toast("This farm hasn't been shared yet", `${name} needs to play a little first. Try again later!`, 'farmer');
     return;
   }
