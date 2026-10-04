@@ -1,7 +1,7 @@
 {
   "name": "Cozy Acres",
   "short_name": "Cozy Acres",
-  "description": "Grow your own cozy little farm. Free, no ads.",
+  "description": "Grow your own cozy little farm. No ads.",
   "start_url": "/play/",
   "scope": "/",
   "display": "standalone",

@@ -1,10 +1,10 @@
 // usage: node render.js manifest.json   manifest: [{svg, out, w, h, transparent, jpg}]
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.PW_MODULE || 'playwright');
 const fs = require('fs');
 const path = require('path');
 (async () => {
   const items = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await browser.newContext({ deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   const fontDir = path.resolve(__dirname, 'fonts');

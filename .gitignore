@@ -29,3 +29,8 @@ android/*.aab
 android/*.apk
 android/*.idsig
 android/local.properties
+
+# art generator output
+design/art-source/out/
+design/art-source/__pycache__/
+design/art-source/.render_tmp.html

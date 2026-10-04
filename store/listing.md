@@ -12,17 +12,17 @@ Alternative if "Cozy Acres" is taken in search: `Cozy Acres: Farm & Village` (26
 **Short description** (80):
 
 ```
-Grow crops, raise animals and build a cozy farm with friends. Free, no ads.
+Grow crops, raise animals and build a cozy farm with friends. No ads.
 ```
 
-(75 characters)
+(69 characters)
 
 **Full description** (4000):
 
 ```
 Welcome to Cozy Acres, a gentle 3D farming game you can play at your own pace. Plant your fields, swipe to harvest, raise happy animals and turn a little patch of land into the cozy village of your dreams.
 
-Completely free. No ads. No in-app purchases. Every coin and gem is earned by playing.
+No ads. Play at your own pace - every coin and gem can be earned just by playing.
 
 GROW YOUR FARM
 - Plant 18 kinds of crops, from wheat and carrots to strawberries, pumpkins and watermelons
@@ -111,7 +111,7 @@ Cloud Saves!
 ```
 
 (For the first Play release you can also use: "Welcome to Cozy Acres on Google Play! Grow crops, raise animals,
-trade on the Shared Market and play with friends. Free, no ads, no purchases.")
+trade on the Shared Market and play with friends. No ads.")
 
 ## Content rating questionnaire (IARC)
 

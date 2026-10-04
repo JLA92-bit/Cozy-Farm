@@ -11,7 +11,7 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
   and publishes a public profile so friends, gifts, the Shared Market and leaderboards work. This happens for every
   player who goes online; there is no switch to turn it off, so the data below is marked **required** unless noted.
 - **Sign in with Google is optional.** It links Google to the anonymous account and turns on the cloud save.
-- No ads, no analytics, no crash reporting SDK, no in-app purchases, no location, no contacts, no device IDs.
+- No ads, no analytics, no crash reporting SDK, no in-app purchases yet (if gem purchases are added, revisit this form: Google Play handles the payment, so no payment info reaches the game), no location, no contacts, no device IDs.
 - Backend: Supabase (database and auth). Website and game files: GitHub Pages. Sign-in: Google. These are service
   providers acting for us, which Play does not count as "sharing".
 - All traffic is HTTPS.

@@ -62,7 +62,7 @@ for name, var, stacked in (("cozy-acres-logo-full-colour", "full", False), ("coz
 # ---------- 5 feature graphic ----------
 lg, lh = art.logo_group("full", 46, 0, 340)
 lg = lg.replace(f'y="0"', f'y="{(500-lh)/2-40:.0f}"', 1)
-tag_d, _, _ = art.text_path("Free  -  no ads", 26, 216, (500 - lh) / 2 - 40 + lh + 30, fname="Fredoka-SemiBold.ttf", anchor="middle")
+tag_d, _, _ = art.text_path("Grow your own cozy farm", 26, 216, (500 - lh) / 2 - 40 + lh + 30, fname="Fredoka-SemiBold.ttf", anchor="middle")
 tagline = f'<path d="{tag_d}" fill="#fff" stroke="{art.OUT}" stroke-width="6" stroke-linejoin="round" paint-order="stroke"/>'
 fgph = art.scene(1024, 500, 680, 315, 0.39, 238, sun=(0.2, -0.05),
                  clouds=[(0.12, 0.12, 0.7), (0.55, 0.08, 0.5), (0.9, 0.16, 0.55)], big_animals=True,
@@ -79,7 +79,7 @@ png(tsvg("splash", sp), "marketing/splash-1080x1920.png", 1080, 1920)
 
 # ---------- 8 OG ----------
 lg2, lh2 = art.logo_group("full", 60, 120, 470)
-btn = art.candy_button(150, 140 + lh2, 290, 84, "Play free")
+btn = art.candy_button(150, 140 + lh2, 290, 84, "Play now")
 og = art.scene(1200, 630, 830, 410, 0.49, 300, sun=(0.18, -0.05),
                clouds=[(0.1, 0.1, 0.7), (0.6, 0.08, 0.55), (0.9, 0.2, 0.5)], big_animals=True,
                overlay='<rect width="560" height="630" fill="url(#fade)"/>' + lg2 + btn)
@@ -112,7 +112,7 @@ save("illustrations/404-lost-chicken.svg", lc)
 png(tsvg("lc", lc), "illustrations/404-lost-chicken-800.png", 800, 800, transparent=True)
 
 json.dump(M, open("out/_m1.json", "w"))
-subprocess.run(["node", "render.js", "out/_m1.json"], check=True)
+subprocess.run(["node", "render.cjs", "out/_m1.json"], check=True)
 
 # ---------- studio ----------
 M.clear()
@@ -133,10 +133,10 @@ cs = st.coming_soon_cover()
 open(f"{SR}/coming-soon-cover.svg", "w").write(cs)
 M.append(dict(svg=tsvg("cs", cs), out=f"{SR}/coming-soon-cover-1024x500.png", w=1024, h=500))
 json.dump(M, open("out/_m2.json", "w"))
-subprocess.run(["node", "render.js", "out/_m2.json"], check=True)
+subprocess.run(["node", "render.cjs", "out/_m2.json"], check=True)
 b64 = base64.b64encode(open("out/graphics/store/feature-graphic-1024x500.jpg", "rb").read()).decode()
 ogs = st.og("data:image/jpeg;base64," + b64)
 open(f"{SR}/studio-og-image-1200x630.svg", "w").write(ogs)
 json.dump([dict(svg=tsvg("sog", ogs), out=f"{SR}/studio-og-image-1200x630.png", w=1200, h=630)], open("out/_m3.json", "w"))
-subprocess.run(["node", "render.js", "out/_m3.json"], check=True)
+subprocess.run(["node", "render.cjs", "out/_m3.json"], check=True)
 print("done")

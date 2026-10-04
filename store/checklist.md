@@ -34,7 +34,7 @@ In order. Tick each box as you go. Details for the Android build are in `android
 ## 2. Create the app
 
 - [ ] Play Console > **Create app**: name "Cozy Acres", default language English (United States), **Game**, **Free**,
-      accept the declarations. (Free cannot be changed to paid later; that is fine, the game is free forever.)
+      accept the declarations. (The app itself stays Free to download. Optional gem purchases can be added later as in-app products with Google Play Billing; you then answer "Yes" to in-app purchases and update the listing, Data safety and privacy policy.)
 - [ ] **Setup > App signing**: keep **Play App Signing** on (default). It activates with the first upload.
 
 ## 3. App content (Policy > App content) - all must be green before review
