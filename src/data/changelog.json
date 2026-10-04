@@ -1,6 +1,113 @@
 {
  "releases": [
   {
+   "version": "1.5.0",
+   "date": "2026-10-04",
+   "title": "Gone Fishing",
+   "icon": "fishing_pole",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fishing_pole",
+     "text": "Go fishing at the dock from level 7, with 13 fish to catch by time of day"
+    },
+    {
+     "icon": "hug",
+     "text": "Help your neighbours while visiting: water a field, feed animals or tend a tree"
+    },
+    {
+     "icon": "bell",
+     "text": "Phone notifications when crops, animals and goods are ready - with quiet hours"
+    },
+    {
+     "icon": "sparkle_heart",
+     "text": "Like a neighbour's farm and leave a friendly note in their guestbook"
+    }
+   ],
+   "sections": [
+    {
+     "title": "Fishing",
+     "icon": "fishing_pole",
+     "items": [
+      {
+       "icon": "fishing_pole",
+       "text": "From level 7, tap the dock or the Fish button: cast, tap when the bobber dips, then keep the fish in the green"
+      },
+      {
+       "icon": "tropical_fish",
+       "text": "13 fish to catch by time of day, from sardines to the legendary Reef Shark, plus a few funny surprises"
+      },
+      {
+       "icon": "house",
+       "text": "New Fish Shack (level 8) cooks your catch into fish cake, fish pie and seafood curry"
+      },
+      {
+       "icon": "blowfish",
+       "text": "New Fish page in the Collection Book with your biggest catches, new fishing awards and a daily quest"
+      }
+     ]
+    },
+    {
+     "title": "Neighbours",
+     "icon": "hug",
+     "items": [
+      {
+       "icon": "hug",
+       "text": "While visiting, water a growing field, feed hungry animals or tend a fruit tree once a day for a thank-you reward"
+      },
+      {
+       "icon": "sparkle_heart",
+       "text": "Like a neighbour's farm and leave a friendly note in their guestbook"
+      },
+      {
+       "icon": "house",
+       "text": "See who dropped by: \"While you were away\" and a new Visitors tab in Friends, with a Visit back button"
+      },
+      {
+       "icon": "heart",
+       "text": "New awards: Helping Hand and Popular Farm, plus a new daily quest"
+      }
+     ]
+    },
+    {
+     "title": "Notifications",
+     "icon": "bell",
+     "items": [
+      {
+       "icon": "bell",
+       "text": "Get a gentle nudge when your crops, animals and goods are ready (Settings > Notifications)"
+      },
+      {
+       "icon": "moon",
+       "text": "Choose what you hear about and set quiet hours - nothing arrives at night"
+      },
+      {
+       "icon": "gift",
+       "text": "Hear when a neighbour sends you a gift or something sells on the Shared Market"
+      },
+      {
+       "icon": "calendar",
+       "text": "A friendly daily reward reminder to keep your streak going"
+      }
+     ]
+    },
+    {
+     "title": "Smoother updates",
+     "icon": "sparkles",
+     "items": [
+      {
+       "icon": "sparkles",
+       "text": "The game now checks for new versions every 10 minutes and whenever you come back"
+      },
+      {
+       "icon": "house",
+       "text": "Clearer messages if a neighbour's farm cannot be opened"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "version": "1.4.0",
    "date": "2026-10-04",
    "title": "Visiting",
