@@ -995,7 +995,8 @@ function sheepGeometry(src: THREE.BufferGeometry, size: THREE.Vector3): THREE.Bu
   const u = uv.getX(top), v = uv.getY(top);
   const r = rng(hashString('sheep'));
   for (let i = 0; i < 9; i++) {
-    const g = new THREE.IcosahedronGeometry(size.x * (0.16 + r() * 0.05), 0).toNonIndexed();
+    const ico = new THREE.IcosahedronGeometry(size.x * (0.16 + r() * 0.05), 0);
+    const g = ico.index ? ico.toNonIndexed() : ico; // r186 builds it non-indexed already
     g.translate((r() - 0.5) * size.x * 0.75, size.y * (0.72 + r() * 0.2), (r() - 0.5) * size.z * 0.6 - size.z * 0.05);
     const n = g.attributes.position.count;
     g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2).map((_, k) => (k % 2 ? v : u)), 2));
