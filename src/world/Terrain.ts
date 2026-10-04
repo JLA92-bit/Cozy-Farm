@@ -20,6 +20,9 @@ function valueNoise(seed: number, cells = 32): (x: number, z: number) => number 
 
 interface Tuft { m: THREE.Matrix4; chunk: string }
 
+/** The little wooden dock on the far beach (world units): centre line x, first plank z, deck height, plank count and spacing, sea level. */
+export const DOCK = { x: 5, z0: -HALF - 1.2, deckY: -1.6 + 0.68, planks: 6, step: 0.9, waterY: -1.6 + 0.2 } as const;
+
 /**
  * The farm island: a grass slab with meadow-patch colour variation, drifting cloud shadows and a soft
  * shader-drawn build grid, cliffs, a sandy beach ring with a little dock, animated water with glints and
@@ -137,9 +140,9 @@ export class Terrain {
       }
     }
     // a little wooden dock on the far beach
-    const dx = 5, dz0 = -HALF - 1.2, deckY = -cliffH + 0.68;
-    for (let k = 0; k < 6; k++) {
-      const zz = dz0 - k * 0.9;
+    const dx = DOCK.x, dz0 = DOCK.z0, deckY = DOCK.deckY;
+    for (let k = 0; k < DOCK.planks; k++) {
+      const zz = dz0 - k * DOCK.step;
       b.block(1.3, 0.08, 0.8, k % 2 ? PAL.wood : PAL.woodLight, [dx, deckY, zz]);
       if (k % 2 === 0) for (const sx of [-0.6, 0.6]) b.block(0.14, 1.0, 0.14, PAL.woodDark, [dx + sx, deckY - 0.9, zz]);
     }

@@ -54,8 +54,8 @@ Level-up rewards: `25 x level` coins (+100 every 5th level) and 1 gem (5 every 5
 | 4 | Turnip, Bakery (bread), flower beds, hay bales, first land expansion |
 | 5 | Sugarcane, Sugar Mill, Farmhouse level 2, pup companion |
 | 6 | Apple trees, cows, Cow Pasture, scarecrow, travelling merchant |
-| 7 | Tomato, Dairy (cream), lanterns |
-| 8 | Cotton, Truck Depot, corn bread |
+| 7 | Tomato, Dairy (cream), lanterns, fishing at the dock, worm bait |
+| 8 | Cotton, Truck Depot, corn bread, Fish Shack (fish cake) |
 | 9 | Sheep, Sheep Pen, beanie |
 | 10 | Strawberry, Loom (yarn), butter, Farmhouse level 3 |
 | 11-20 | Cherry/grape/pear/orange trees, pigs, goats, Jam Kitchen, cookies, cheese, fountain, statues |
@@ -250,3 +250,76 @@ sender's save first (escrow) and are refunded if the send fails.
 Received gifts are clamped to the same per-gift caps and to known items. Gift codes can be opened
 once per farm (the save remembers claimed nonces) and never by the farm that made them. In practice
 mode a demo neighbour sends at most one small thank-you gift a day (`botGift`).
+
+## Fishing (`fish.json`)
+
+Fishing is a calm side activity at the dock, not a second economy: a few casts a day for fun, a collection to
+fill, and a steady trickle of common fish for orders and the Fish Shack.
+
+**Unlock.** Fishing opens at level 7 (announced on the level-up card as "Fishing at the dock", together with the
+Worm Bait recipe at the Feed Mill). The Fish Shack follows at level 8, with Fish Pie at 9 and Seafood Curry at 11.
+
+**Casts and bait.** Every day brings 5 free casts (they come back at local midnight). After that each cast uses one
+Worm Bait. Bait is made at the Feed Mill (1 wheat + 1 corn -> 4 bait in 1 min, about 2.25 coins a cast) or bought
+at the dock, 5 for 25 coins. Bait sells for 3 at the barn, so it cannot be flipped. Why this shape:
+
+- Free casts mean nobody is ever locked out, and they are a light reason to drop by every day (the Fish button
+  shows a dot while free casts are left).
+- Bait is cheap enough that a player who enjoys fishing is never nagged, but it is not free: a common fish is worth
+  8-14 coins and about 3 XP, so spamming casts with bought bait earns only a few coins per cast (roughly the same as
+  replanting wheat). Fishing never beats farming, orders or production for money.
+- Reeling in early (leaving before anything bites) gives the cast back. A missed bite is not the end of a cast:
+  the fish nibbles again up to 3 times. Losing a fish costs only that cast.
+
+**The mini-game.** Tap to cast, wait 2-6 s (a couple of small nibbles tease you; tapping too early does nothing
+bad), tap within the bite window (1.6 s for easy fish down to 0.95 s for legendary ones), then reel: hold to slide the
+green zone right, let go to drift left, and keep the fish inside it. The catch meter starts at 30%, fills 32% a
+second inside the zone and drains 15% a second outside, so an easy fish takes about 2-3 s and a lively one 4-8 s.
+The zone is 42% of the bar for difficulty 1 and 22% for difficulty 5. After a lost fish the next reel gets a slightly
+bigger zone (+8%, up to twice) until you land one. Junk needs no reeling.
+
+**What bites.** First a rarity tier is rolled (common 62%, uncommon 26%, rare 9%, legendary 3%, only tiers with
+something biting right now count), then a species in it. 12% of casts bring up junk instead (old boot, seaweed, or a
+message in a bottle worth `20 + 4 x level` coins with a 25% chance of a gem). Time of day follows the 24 min
+day/night clock: morning is the dawn glow (phase 0.88-0.12), day until 0.6, dusk 0.6-0.72, night 0.72-0.88.
+
+| Fish | Rarity | Level | When | Difficulty | Size (cm) | Sells | XP |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Sardine | common | 7 | any time | 1 | 10-22 | 8 | 3 |
+| Shrimp | common | 7 | any time | 1 | 4-10 | 9 | 3 |
+| Crab | common | 7 | any time | 2 | 8-20 | 14 | 4 |
+| Mackerel | common | 8 | morning, day | 2 | 20-40 | 20 | 5 |
+| Clownfish | uncommon | 9 | day | 2 | 6-11 | 26 | 6 |
+| Pufferfish | uncommon | 10 | dusk, night | 3 | 15-35 | 34 | 7 |
+| Salmon | uncommon | 11 | morning, dusk | 3 | 45-85 | 42 | 8 |
+| Squid | uncommon | 12 | night | 3 | 25-60 | 40 | 8 |
+| Moon Jelly | rare | 13 | night | 2 | 10-40 | 55 | 10 |
+| Octopus | rare | 15 | dusk, night | 4 | 40-120 | 70 | 12 |
+| Lobster | rare | 17 | morning, night | 4 | 25-55 | 85 | 14 |
+| Golden Sunfish | legendary | 20 | day | 5 | 120-300 | 240 | 35 |
+| Reef Shark | legendary | 24 | night | 5 | 150-320 | 300 | 45 |
+
+Sizes lean small (`min + range x r^1.6`), so a big one is a treat. A new size record gives +50% XP for that catch.
+The legendary fish need the right time of day and about 30 casts on average to hook, then a hard reel: a goal for
+dedicated players, not a requirement for anything except the last Fish page entries and the Legend of the Deep award.
+
+**Uses.** Fish sell at the barn, the stall and the market like any item. Orders and the truck only ask for the
+common, any-time fish (sardine, shrimp, crab) and only after the player has caught that kind once; truck crates
+of raw fish are half the usual size because every fish is its own cast. Fish Shack recipes use only those three, so
+they are always makeable:
+
+| Recipe | Level | In | Time | Sells | Value |
+| --- | --- | --- | --- | --- | --- |
+| Fish Cake | 8 | 3 sardine, 2 wheat (30) | 5 min | 44 | 1.47x |
+| Fish Pie | 9 | 2 sardine, 2 carrot, 1 bread (62) | 15 min | 90 | 1.45x |
+| Seafood Curry | 11 | 2 shrimp, 1 crab, 2 tomato (74) | 25 min | 108 | 1.46x |
+
+**Collection and awards.** The Collection Book has a Fish page (13 fish, old boot and seaweed) showing the biggest
+catch and count per kind, and for unknown ones when and from which level they bite. Filling it pays 8 gems and an
+epic crate. Awards: Gone Fishing (catch 10 / 100 / 500 fish), Fish Collector (5 / 9 / 13 kinds, gold = every
+species), Legend of the Deep (1 / 3 / 10 legendary fish) and a hidden one for junk. Daily quest: "Catch {n} fish"
+(n = 2-3, scaled by level like other quests, from level 7).
+
+**Simulation.** `simulate-economy.mjs` models fishing lightly (free casts every day, bait when orders or the Fish
+Shack want fish, 20 s of attention per cast, success by difficulty). Fishing adds about 0-1 XP per real hour and the
+level curve is unchanged within the simulation's noise; the simulated player buys the Fish Shack within two days of level 8.

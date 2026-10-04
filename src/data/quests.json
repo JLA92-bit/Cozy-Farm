@@ -18,7 +18,8 @@
       { "id": "fruit", "text": "Pick {n} fruit", "stat": "fruit_harvested", "n": [6, 12], "level": 6, "icon": "apple" },
       { "id": "decor", "text": "Place {n} decorations", "stat": "decorations_placed", "n": [1, 3], "level": 3, "icon": "sparkles" },
       { "id": "pets", "text": "Pet your animals {n} times", "stat": "animal_pets", "n": [3, 6], "level": 2, "icon": "heart" },
-      { "id": "market_buy", "text": "Buy {n} listings at the market", "stat": "market_buys", "n": [1, 2], "level": 6, "icon": "bags" }
+      { "id": "market_buy", "text": "Buy {n} listings at the market", "stat": "market_buys", "n": [1, 2], "level": 6, "icon": "bags" },
+      { "id": "fish", "text": "Catch {n} fish", "stat": "fish_caught", "n": [2, 3], "level": 7, "icon": "fishing_pole" }
     ]
   },
   "weekly": {

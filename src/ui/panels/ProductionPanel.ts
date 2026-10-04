@@ -2,6 +2,7 @@ import { Panel } from '../Panel';
 import { h, append, icon, itemIcon, button, clear, priceTag, stableRefresh } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, RECIPE, ANIMALS, TREES, itemSource } from '../../data';
+import { fishing } from '../../systems/Fishing';
 import { game } from '../../systems/Game';
 import { production } from '../../systems/Production';
 import { buildings } from '../../systems/Buildings';
@@ -48,6 +49,10 @@ export function goToSource(item: string): void {
   if (s?.kind === 'tree') {
     const t = TREES.find((x) => x.id === s.id)!;
     ui.feedback.toast(`${name} grows on ${t.name}s`, game.buildingsOf(t.id).length ? 'Pick them when ripe' : 'Plant one from the shop', ITEMS[item].icon);
+    return;
+  }
+  if (s?.kind === 'fish') {
+    ui.feedback.toast(`Catch ${name} at the dock`, `${fishing.whenText(item)}. Tap the Fish button or the dock.`, ITEMS[item].icon);
     return;
   }
   ui.feedback.toast(name, sourceText(item) || undefined, ITEMS[item]?.icon ?? 'package');

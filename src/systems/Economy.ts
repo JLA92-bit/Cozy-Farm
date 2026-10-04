@@ -9,11 +9,15 @@ import { rng, hashString } from '../world/Procedural';
 import { isBuilt } from './Timers';
 
 // ======================================================================== obtainable items
+/** Extra sources of obtainable items from features outside this file (e.g. fish from the dock). */
+export const extraObtainable: (() => string[])[] = [];
+
 /** Items the player can currently produce (used to generate fair orders). */
 export function obtainableItems(): string[] {
   const lv = game.level;
   const out = new Set<string>();
   for (const c of CROPS) if (c.level <= lv) out.add(c.id);
+  for (const fn of extraObtainable) for (const i of fn()) out.add(i);
   for (const t of TREES) if (game.buildingsOf(t.id).length) out.add(t.item);
   for (const a of ANIMALS) if (game.buildingsOf(a.house).some((b) => (b.animals?.length ?? 0) > 0)) out.add(a.product);
   // recipes need a finished building and ingredients the player can really get; repeat until stable so
@@ -174,7 +178,8 @@ export class TruckSystem {
     for (let i = 0; i < n; i++) {
       const item = left.length ? left.splice(Math.floor(r() * left.length), 1)[0] : pool[Math.floor(r() * pool.length)];
       const value = ITEMS[item].sell;
-      const qty = Math.max(2, Math.round((value > 150 ? 2 : value > 60 ? 4 : 7) * ECONOMY.truck.qtyMult * (0.7 + r() * 0.6)));
+      // fish are caught one cast at a time, so their crates are half size
+      const qty = Math.max(2, Math.round((value > 150 ? 2 : value > 60 ? 4 : 7) * ECONOMY.truck.qtyMult * (0.7 + r() * 0.6) * (ITEMS[item].cat === 'fish' ? 0.5 : 1)));
       crates.push({ item, qty, coins: Math.round(value * qty * ECONOMY.truck.coinMult), xp: itemXp(item) * qty, filled: false });
     }
     const bonus = Math.round(crates.reduce((s, c) => s + c.coins, 0) * ECONOMY.truck.bonusMult);

@@ -13,6 +13,7 @@ import rewardsJson from './rewards.json';
 import eventsJson from './events.json';
 import tutorialJson from './tutorial.json';
 import landJson from './land.json';
+import fishJson from './fish.json';
 
 export interface CropDef {
   id: string; name: string; level: number; seedCost: number; growSec: number; yield: number; xp: number;
@@ -82,6 +83,20 @@ export const EVENTS: EventDef[] = eventsJson.events as EventDef[];
 export const TUTORIAL: TutorialStep[] = tutorialJson.steps;
 export const LAND = landJson;
 
+export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
+export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number }
+export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
+/** Fishing at the dock (fish.json). */
+export const FISHING = fishJson as unknown as {
+  level: number; freeCastsPerDay: number; baitItem: string; baitShop: { qty: number; coins: number }; junkChance: number;
+  rarityChance: Record<FishRarity, number>; times: Record<FishTime, [number, number]>;
+  bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
+  reel: { zone: number[]; fishSpeed: number[]; fillPerSec: number; drainPerSec: number; start: number; assistZone: number };
+  recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];
+};
+export const FISH = Object.fromEntries(FISHING.species.map((f) => [f.id, f])) as Record<string, FishDef>;
+
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;
 export const ANIMAL = Object.fromEntries(ANIMALS.map((a) => [a.id, a])) as Record<string, AnimalDef>;
@@ -95,12 +110,14 @@ export const ITEM_LEVEL: Record<string, number> = (() => {
   for (const c of CROPS) out[c.id] = c.level;
   for (const t of TREES) out[t.item] = t.level;
   for (const a of ANIMALS) out[a.product] = a.level;
+  for (const f of FISHING.species) out[f.id] = f.level;
+  for (const j of FISHING.junk) out[j.id] = FISHING.level;
   for (const r of RECIPES) out[r.item] = Math.min(out[r.item] ?? 99, Math.max(r.level, BUILDING[r.building]?.level ?? 1));
   return out;
 })();
 
 /** Which building produces an item (for "where do I get this?" hints). */
-export function itemSource(item: string): { kind: 'crop' | 'tree' | 'animal' | 'recipe' | 'event'; id: string } | null {
+export function itemSource(item: string): { kind: 'crop' | 'tree' | 'animal' | 'recipe' | 'event' | 'fish'; id: string } | null {
   if (CROP[item]) return { kind: 'crop', id: item };
   const t = TREES.find((x) => x.item === item);
   if (t) return { kind: 'tree', id: t.id };
@@ -109,6 +126,7 @@ export function itemSource(item: string): { kind: 'crop' | 'tree' | 'animal' | '
   const r = RECIPES.find((x) => x.item === item);
   if (r) return { kind: 'recipe', id: r.id };
   if (ITEMS[item]?.cat === 'event') return { kind: 'event', id: item };
+  if (ITEMS[item]?.cat === 'fish') return { kind: 'fish', id: item };
   return null;
 }
 

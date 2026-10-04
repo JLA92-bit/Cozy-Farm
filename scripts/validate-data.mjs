@@ -110,6 +110,31 @@ releases?.forEach((r, i) => {
   }
 }
 
+// fishing (fish.json): species and junk are real items, known times/rarities, sane ranges
+{
+  const fish = read('fish.json');
+  const times = Object.keys(fish.times);
+  const rarities = Object.keys(fish.rarityChance);
+  if (!items[fish.baitItem]) err(`fish.json: unknown bait item ${fish.baitItem}`);
+  if (!(fish.freeCastsPerDay >= 0) || !(fish.level >= 2)) err('fish.json: bad level or freeCastsPerDay');
+  const ids = new Set();
+  for (const f of fish.species) {
+    if (ids.has(f.id)) err(`fish ${f.id}: duplicate`);
+    ids.add(f.id);
+    if (!items[f.id]) err(`fish ${f.id}: no item`);
+    else if (items[f.id].cat !== 'fish') err(`fish ${f.id}: item cat must be "fish"`);
+    if (!rarities.includes(f.rarity)) err(`fish ${f.id}: unknown rarity ${f.rarity}`);
+    if (!f.times?.length || f.times.some((t) => !times.includes(t))) err(`fish ${f.id}: bad times`);
+    if (!(f.difficulty >= 1 && f.difficulty <= fish.reel.zone.length)) err(`fish ${f.id}: difficulty out of range`);
+    if (!(f.size?.[0] > 0 && f.size[1] >= f.size[0])) err(`fish ${f.id}: bad size range`);
+    if (f.level < fish.level) err(`fish ${f.id}: level ${f.level} is below the fishing level ${fish.level}`);
+  }
+  // something always bites at the fishing level, whatever the time of day
+  for (const t of times) if (!fish.species.some((f) => f.level <= fish.level && f.times.includes(t))) err(`fish.json: nothing bites at ${t} at level ${fish.level}`);
+  for (const j of fish.junk) if (!items[j.id] && !j.coinsBase) err(`fish junk ${j.id}: needs an item or a coin reward`);
+  for (const [id, it] of Object.entries(items)) if (it.cat === 'fish' && !ids.has(id) && !fish.junk.some((j) => j.id === id)) err(`item ${id}: cat "fish" but not in fish.json`);
+}
+
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

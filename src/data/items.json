@@ -1,5 +1,5 @@
 {
- "_comment": "Every inventory item. sell = coins at the barn/market. icon = key in public/assets/icons, or 'model:<id>' to render a 3D thumbnail. cat: crop|fruit|animal|feed|goods|event",
+ "_comment": "Every inventory item. sell = coins at the barn/market. icon = key in public/assets/icons, or 'model:<id>' to render a 3D thumbnail. cat: crop|fruit|animal|feed|goods|fish|event",
  "items": {
   "wheat": {
    "name": "Wheat",
@@ -420,6 +420,120 @@
    "cat": "event",
    "sell": 0,
    "icon": "shell"
+  },
+  "sardine": {
+   "name": "Sardine",
+   "cat": "fish",
+   "sell": 8,
+   "icon": "fish"
+  },
+  "shrimp": {
+   "name": "Shrimp",
+   "cat": "fish",
+   "sell": 9,
+   "icon": "shrimp"
+  },
+  "crab": {
+   "name": "Crab",
+   "cat": "fish",
+   "sell": 14,
+   "icon": "crab"
+  },
+  "mackerel": {
+   "name": "Mackerel",
+   "cat": "fish",
+   "sell": 20,
+   "icon": "fish_green"
+  },
+  "clownfish": {
+   "name": "Clownfish",
+   "cat": "fish",
+   "sell": 26,
+   "icon": "tropical_fish"
+  },
+  "pufferfish": {
+   "name": "Pufferfish",
+   "cat": "fish",
+   "sell": 34,
+   "icon": "blowfish"
+  },
+  "salmon": {
+   "name": "Salmon",
+   "cat": "fish",
+   "sell": 42,
+   "icon": "fish_pink"
+  },
+  "squid": {
+   "name": "Squid",
+   "cat": "fish",
+   "sell": 40,
+   "icon": "squid"
+  },
+  "moon_jelly": {
+   "name": "Moon Jelly",
+   "cat": "fish",
+   "sell": 55,
+   "icon": "jellyfish"
+  },
+  "octopus": {
+   "name": "Octopus",
+   "cat": "fish",
+   "sell": 70,
+   "icon": "octopus"
+  },
+  "lobster": {
+   "name": "Lobster",
+   "cat": "fish",
+   "sell": 85,
+   "icon": "lobster"
+  },
+  "sunfish": {
+   "name": "Golden Sunfish",
+   "cat": "fish",
+   "sell": 240,
+   "icon": "fish_gold"
+  },
+  "reef_shark": {
+   "name": "Reef Shark",
+   "cat": "fish",
+   "sell": 300,
+   "icon": "shark"
+  },
+  "old_boot": {
+   "name": "Old Boot",
+   "cat": "fish",
+   "sell": 2,
+   "icon": "boot"
+  },
+  "seaweed": {
+   "name": "Seaweed",
+   "cat": "fish",
+   "sell": 3,
+   "icon": "seaweed"
+  },
+  "bait": {
+   "name": "Worm Bait",
+   "cat": "feed",
+   "sell": 3,
+   "icon": "worm"
+  },
+  "fish_cake": {
+   "name": "Fish Cake",
+   "cat": "goods",
+   "sell": 44,
+   "icon": "fish_cake"
+  },
+  "fish_pie": {
+   "name": "Fish Pie",
+   "cat": "goods",
+   "sell": 90,
+   "icon": "fish_pie"
+  },
+  "seafood_curry": {
+   "name": "Seafood Curry",
+   "cat": "goods",
+   "sell": 108,
+   "icon": "curry"
   }
  }
 }

@@ -14,6 +14,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { FISHING_ICONS, writeVariants } from './icon-variants.mjs';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -478,6 +479,7 @@ const ICONS = {
   sunrise: 'sunrise', rocket: 'rocket', zzz: 'zzz', wave: 'waving-hand', thumbs: 'thumbs-up', smile: 'smiling-face-with-smiling-eyes',
   hug: 'smiling-face-with-hearts', bat: 'bat', spider_web: 'spider-web', leaf: 'leaf-fluttering-in-wind', chestnut: 'chestnut',
   acorn: 'chestnut', shell: 'spiral-shell', framed: 'framed-picture', bricks: 'brick', tractor: 'tractor', seed: 'seedling', plus: 'plus', info: 'information',
+  ...FISHING_ICONS,
 };
 
 function buildIcons() {
@@ -496,8 +498,10 @@ function buildIcons() {
     fs.writeFileSync(path.join(dir, `${key}.svg`), svg);
   }
   if (missing.length) console.warn('icons missing:', missing.join(', '));
-  console.log('icons:', Object.keys(ICONS).length - missing.length);
-  return Object.fromEntries(Object.keys(ICONS).filter((k) => !missing.some((m) => m.startsWith(`${k}:`))).map((k) => [k, `icons/${k}.svg`]));
+  // recoloured / composed variants (fish species, fish pie)
+  const variants = writeVariants(json, dir, ICONS);
+  console.log('icons:', Object.keys(ICONS).length - missing.length + Object.keys(variants).length);
+  return { ...Object.fromEntries(Object.keys(ICONS).filter((k) => !missing.some((m) => m.startsWith(`${k}:`))).map((k) => [k, `icons/${k}.svg`])), ...variants };
 }
 
 // ---------------------------------------------------------------- main

@@ -21,7 +21,8 @@
       "Animal goods": { "gems": 3, "crate": "rare" },
       "Animals": { "gems": 3, "crate": "rare" },
       "Goods": { "gems": 8, "crate": "epic" },
-      "Styles": { "gems": 8, "crate": "epic" }
+      "Styles": { "gems": 8, "crate": "epic" },
+      "Fish": { "gems": 8, "crate": "epic" }
     }
   },
   "crates": {

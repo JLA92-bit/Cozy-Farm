@@ -53,6 +53,7 @@ export function actionForStat(stat: string): GoalAction | undefined {
   if (stat === 'truck_crates') return game.state.truck ? { panel: 'truck' } : undefined;
   if (stat === 'daily_quests_completed') return { panel: 'quests', arg: 'daily' };
   if (stat.startsWith('market_')) return { panel: 'market' };
+  if (stat === 'fish_caught' || stat.startsWith('catch_')) return { panel: 'fishing' };
   if (stat === 'crates_opened') return game.state.crates.length ? { panel: 'crates' } : { panel: 'quests', arg: 'daily' };
   return undefined;
 }

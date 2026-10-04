@@ -1,7 +1,7 @@
 # Cozy Acres
 
 A cozy, mobile-first 3D farming and village builder that runs in the browser. Plant and swipe-harvest crops,
-raise animals, run bakeries and dairies, fill orders and delivery trucks, decorate your farm to raise its
+raise animals, run bakeries and dairies, go fishing at the dock, fill orders and delivery trucks, decorate your farm to raise its
 Charm, and customise your farmer. Built with Three.js + TypeScript + Vite, installable as an offline PWA.
 
 - Chunky low-poly look from **KayKit** and **Kenney** CC0 packs (see [CREDITS.md](CREDITS.md)), shared palette
@@ -33,6 +33,7 @@ The built assets in `public/assets` are committed, so you do not need to run the
 | Harvest | Tap a ripe field or **swipe across** ripe fields | same |
 | Animals | Tap a home: collects what is ready and re-feeds from the barn in one tap; tap again to open it | same |
 | Move a building | **Long-press** it, drag, then tick | Hold and drag |
+| Fish (level 7+) | Tap the dock or the Fish button. Tap to cast, tap when the bobber dips, then hold / let go to keep the fish in the green | same, or Space |
 | Build mode | Hammer button: tap any building to move, rotate or store it | same |
 | Place from the shop | Drag the ghost (green = OK, red = blocked), rotate, tick | same |
 
@@ -81,6 +82,7 @@ All balance lives in `src/data/*.json`; no code changes are needed to rebalance:
 | `levels.json` | XP needed per level, level-up rewards, order-board slots |
 | `economy.json` | starting resources, orders, truck, stall, merchant, charm bonuses, gem speed-up price |
 | `achievements.json`, `quests.json`, `rewards.json` | awards, quest templates, daily calendar and crate tables |
+| `fish.json` | fishing: unlock level, free casts and bait, what bites when, rarity odds, bite window and reel difficulty |
 | `events.json` | seasonal events (dates, token, quests) |
 | `cosmetics.json` | skin tones, hair and outfit colours, hats, accessories, pets and how they unlock |
 | `land.json` | map size, expansions, obstacles |
