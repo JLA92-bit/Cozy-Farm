@@ -733,6 +733,32 @@
    ],
    "desc": "Buy {n} listings from neighbours at the market",
    "icon": "basket"
+  },
+  {
+   "id": "helping_hand",
+   "name": "Helping Hand",
+   "category": "economy",
+   "stat": "neighbours_helped",
+   "tiers": [
+    5,
+    30,
+    150
+   ],
+   "desc": "Help {n} neighbours' farms while visiting",
+   "icon": "hug"
+  },
+  {
+   "id": "popular_farm",
+   "name": "Popular Farm",
+   "category": "decorating",
+   "stat": "likes_received",
+   "tiers": [
+    10,
+    100,
+    500
+   ],
+   "desc": "Get {n} likes on your farm from neighbours",
+   "icon": "heart"
   }
  ]
 }

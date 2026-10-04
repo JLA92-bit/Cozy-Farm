@@ -1,8 +1,9 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
-  PlayerProfile, ProfileStats, PublicLook,
+  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget,
 } from './types';
+import { cleanHelp } from './FarmHelp';
 import { setOnlineStatus } from './Status';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
 import { weekKey } from './Weekly';
@@ -43,6 +44,10 @@ interface CloudSaveRow {
   user_id: string; data: unknown; save_version: number | null; level: number | null; coins: number | null; updated_at: string; device: string | null;
 }
 interface FarmRow { data: unknown; updated_at: string }
+interface FarmHelpRow {
+  id: string; owner_id: string; helper_id: string; helper_name: string; kind: string; target: unknown; note: string | null;
+  created_at: string; claimed_at: string | null;
+}
 interface Result<T> { data: T | null; error: { message: string; code?: string } | null; status?: number }
 
 const REQUEST_TIMEOUT = 15000;
@@ -464,6 +469,59 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend {
     if (!UUID.test(playerId)) return null;
     const row = await this.query((sb) => sb.from('farm_snapshots').select('data, updated_at').eq('user_id', playerId).maybeSingle() as PromiseLike<Result<FarmRow>>);
     return row ? sanitizeSnapshot(row.data) : null;
+  }
+
+  // ------------------------------------------------------------------ helping neighbours
+  private mapHelp(r: FarmHelpRow): FarmHelp | null {
+    return cleanHelp({ id: r.id, owner: r.owner_id, helper: { id: r.helper_id, name: r.helper_name }, kind: r.kind, target: r.target, note: r.note, at: ms(r.created_at), claimed: !!r.claimed_at });
+  }
+  /** Server refusals ('already today', 'not yourself', ...) as the short codes of the contract. */
+  private helpError(e: unknown): Error {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (e instanceof OfflineError) return e;
+    for (const [k, code] of [['already', 'already'], ['yourself', 'self'], ['unknown player', 'unknown player'], ['busy', 'busy'], ['too many', 'busy']] as const) if (msg.includes(k)) return new Error(code);
+    if (/bad|invalid|violates/.test(msg)) return new Error('bad');
+    return e instanceof Error ? e : new Error(msg);
+  }
+
+  async helpFarm(ownerId: string, kind: FarmHelpKind, target: FarmHelpTarget): Promise<FarmHelp> {
+    if (!UUID.test(ownerId)) throw new Error('unknown player');
+    let row: FarmHelpRow;
+    try {
+      row = await this.rpc<FarmHelpRow>('help_farm', { p_owner: ownerId, p_kind: kind, p_target: { type: String(target.type).slice(0, 40), x: int(target.x, 200), z: int(target.z, 200) } });
+    } catch (e) { throw this.helpError(e); }
+    const h = this.mapHelp(row);
+    if (!h) throw new Error('bad');
+    return h;
+  }
+
+  async likeFarm(ownerId: string, note?: string | null): Promise<FarmHelp> {
+    if (!UUID.test(ownerId)) throw new Error('unknown player');
+    let row: FarmHelpRow;
+    try {
+      row = await this.rpc<FarmHelpRow>('like_farm', { p_owner: ownerId, p_note: note || null });
+    } catch (e) { throw this.helpError(e); }
+    const h = this.mapHelp(row);
+    if (!h) throw new Error('bad');
+    return h;
+  }
+
+  async farmHelpStatus(ownerId: string): Promise<FarmHelpStatus> {
+    if (!UUID.test(ownerId)) return { likes: 0, helped: false, liked: false };
+    const r = await this.rpc<{ likes?: number; helped?: boolean; liked?: boolean }>('farm_help_status', { p_owner: ownerId });
+    return { likes: int(Number(r.likes), 1e9), helped: !!r.helped, liked: !!r.liked };
+  }
+
+  async myFarmHelp(): Promise<FarmHelp[]> {
+    const rows = await this.query((sb) => sb.from('farm_help').select('*').eq('owner_id', this.uid).order('created_at', { ascending: false }).limit(60) as PromiseLike<Result<FarmHelpRow[]>>);
+    return (rows ?? []).map((r) => this.mapHelp(r)).filter((h): h is FarmHelp => !!h);
+  }
+
+  async claimFarmHelp(ids: string[]): Promise<string[]> {
+    const valid = [...new Set(ids.filter((id) => UUID.test(id)))].slice(0, 100);
+    if (!valid.length) return [];
+    const rows = await this.rpc<FarmHelpRow[]>('claim_farm_help', { p_ids: valid });
+    return (rows ?? []).map((r) => r.id);
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void {

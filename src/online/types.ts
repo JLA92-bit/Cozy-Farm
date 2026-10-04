@@ -65,6 +65,33 @@ export interface Listing {
   collected?: boolean;
 }
 
+/** Ways to help a neighbour's farm ('like' = a like, with an optional guestbook note). */
+export type FarmHelpKind = 'water' | 'feed' | 'tend';
+/** Which building on the owner's farm was helped: its type and corner tile (checked again by the owner). */
+export interface FarmHelpTarget { type: string; x: number; z: number }
+export interface FarmHelp {
+  id: string;
+  owner: string;
+  helper: PlayerRef;
+  kind: FarmHelpKind | 'like';
+  target: FarmHelpTarget | null;
+  /** preset guestbook note id (likes only) */
+  note: string | null;
+  at: number;
+  claimed: boolean;
+}
+export interface FarmHelpStatus { likes: number; helped: boolean; liked: boolean }
+
+/** Preset guestbook notes (no free text). Ids are stored; the server accepts only these ids. */
+export const HELP_NOTES: Record<string, string> = {
+  lovely: 'Lovely farm!',
+  flowers: 'Love your flowers!',
+  thanks: 'Thanks for the gift!',
+  market: 'See you at the market!',
+  animals: 'Your animals look so happy!',
+  cozy: 'So cozy here!',
+};
+
 export type LeaderboardKind = 'level' | 'farmValue' | 'charm' | 'weeklyXp';
 
 export type OnlineEvent =
@@ -111,6 +138,21 @@ export interface OnlineBackend {
    * have not shared one yet. Rejects when the server cannot be reached.
    */
   getFarm(playerId: string): Promise<FarmSnapshot | null>;
+
+  /**
+   * Helping neighbours (Update 5). Help a neighbour's farm once per UTC day (water a field, feed an
+   * animal home or tend a fruit tree). Rejects with Error('self' | 'unknown player' | 'already' |
+   * 'busy' | 'bad') when refused, or an offline error.
+   */
+  helpFarm(ownerId: string, kind: FarmHelpKind, target: FarmHelpTarget): Promise<FarmHelp>;
+  /** Like a neighbour's farm once per UTC day, with an optional preset guestbook note id (see HELP_NOTES). */
+  likeFarm(ownerId: string, note?: string | null): Promise<FarmHelp>;
+  /** A farm's like count and what the caller already did for it today (UTC). */
+  farmHelpStatus(ownerId: string): Promise<FarmHelpStatus>;
+  /** Recent help and likes left on the caller's own farm, newest first (claimed and unclaimed). */
+  myFarmHelp(): Promise<FarmHelp[]>;
+  /** Marks the caller's own help rows claimed exactly once; returns the ids claimed by this call. */
+  claimFarmHelp(ids: string[]): Promise<string[]>;
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }

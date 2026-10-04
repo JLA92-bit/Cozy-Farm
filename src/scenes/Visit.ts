@@ -2,6 +2,11 @@ import * as THREE from 'three';
 import type { DragKind, Pointer } from '../core/Input';
 import { ANIMAL, BUILDING, CROP, LAND, TREE } from '../data';
 import { FrozenGame, sanitizeSnapshot, snapshotState, type FarmSnapshot } from '../online/FarmSnapshot';
+import { HELP_ACTION, HELP_ICON, helpKindFor } from '../online/FarmHelp';
+import { HELP_NOTES, type FarmHelpKind } from '../online/types';
+import { neighbours } from '../systems/Neighbours';
+import { audio, haptics } from '../systems/Audio';
+import '../ui/panels/neighbours.css';
 import { online } from '../online/Online';
 import { playerCardHooks } from '../online/Leaderboard';
 import { game } from '../systems/Game';
@@ -47,6 +52,13 @@ interface Active {
   sunShadow: boolean;
   banner: HTMLElement;
   layer: HTMLElement;
+  /** whose farm this is (for helping and liking) */
+  owner: { id: string; name: string; level: number };
+  /** what the visitor already did today ('?' while loading or unknown) */
+  help: { helped: boolean | '?'; liked: boolean | '?'; likes: number; busy: boolean };
+  likeBtn: HTMLButtonElement;
+  helpPill: HTMLElement;
+  picker: HTMLElement | null;
   bubble: { el: HTMLElement; at: THREE.Vector3; until: number } | null;
 }
 
@@ -153,7 +165,7 @@ export async function visitFarm(who: { id: string; name: string }): Promise<void
   saves.save();
   visiting.active = true;
   try {
-    await enter(scene, snap);
+    await enter(scene, snap, who.id);
   } catch (e) {
     console.error('[visit] could not show the farm', e);
     leave(scene, interaction);
@@ -167,7 +179,7 @@ export async function visitFarm(who: { id: string; name: string }): Promise<void
   if (intro) ui.feedback.toast(`Welcome to ${possessive(snap.name)} farm!`, 'Look around and tap things to see what they are. Tap Back home whenever you like.', 'house');
 }
 
-async function enter(scene: FarmScene, snap: FarmSnapshot): Promise<void> {
+async function enter(scene: FarmScene, snap: FarmSnapshot, ownerId: string): Promise<void> {
   const g = new FrozenGame(snap.at);
   g.load(snapshotState(snap));
   scene.hideOwnFarm();
@@ -175,13 +187,20 @@ async function enter(scene: FarmScene, snap: FarmSnapshot): Promise<void> {
   const group = new THREE.Group();
   scene.scene.add(group);
   const layer = h('div', { class: 'visit-layer' });
+  const likeBtn = button([icon('heart'), h('span', { class: 'visit-like-n' }, '...')], () => { if (cur) openLikes(cur); }, 'small heart-btn visit-like', { 'aria-label': 'Like this farm' });
+  const helpPill = h('span', { class: 'pill visit-help-pill' }, icon('hug'), 'Helping...');
   const a: Active = {
     snap, g, view, group, char: null, layer, bubble: null,
     cam: { target: scene.rig.target.clone(), distance: scene.rig.distance, max: scene.rig.maxDistance },
     sunShadow: scene.env.sun.castShadow,
-    banner: banner(snap),
+    banner: banner(snap, likeBtn, helpPill),
+    owner: { id: ownerId, name: snap.name, level: snap.level },
+    help: { helped: '?', liked: '?', likes: 0, busy: false },
+    likeBtn, helpPill, picker: null,
   };
   cur = a;
+  renderHelp(a);
+  void loadHelpStatus(a);
   // from here on the scene draws the visited farm and pauses all of the player's hooks
   scene.visit = { view, frame: (dt) => frame(a, dt) };
   scene.handler = visitHandler;
@@ -273,6 +292,7 @@ function leave(scene: FarmScene, interaction: Interaction): void {
     scene.scene.remove(a.group);
     a.banner.remove();
     a.layer.remove();
+    a.picker?.remove();
     scene.rig.stop();
     scene.rig.target.copy(a.cam.target);
     scene.rig.distance = a.cam.distance;
@@ -282,16 +302,19 @@ function leave(scene: FarmScene, interaction: Interaction): void {
   scene.showOwnFarm();
   ui.root.classList.remove('visiting');
   visiting.active = false;
+  // rewards for helping on this visit go into the player's own farm (and are saved) now, at home
+  neighbours.applyPending();
 }
 
 // ------------------------------------------------------------------------------------ UI
 
-function banner(snap: FarmSnapshot): HTMLElement {
+function banner(snap: FarmSnapshot, likeBtn: HTMLElement, helpPill: HTMLElement): HTMLElement {
   const home = button([icon('house'), h('span', null, 'Back home')], () => void goHome(), 'green visit-home', { 'aria-label': 'Back home to your farm' });
   return h('div', { class: 'visit-banner visit-keep' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, `Visiting ${possessive(snap.name)} farm - Level ${snap.level}`),
-      h('div', { class: 'visit-sub' }, h('span', { class: 'visit-charm' }, icon('sparkle_heart'), `Charm ${fmt(snap.charm)}`), h('span', { class: 'visit-when' }, sharedAgo(snap.at)))),
+      h('div', { class: 'visit-sub' }, h('span', { class: 'visit-charm' }, icon('sparkle_heart'), `Charm ${fmt(snap.charm)}`), h('span', { class: 'visit-when' }, sharedAgo(snap.at))),
+      h('div', { class: 'visit-help-row' }, likeBtn, helpPill)),
     home);
 }
 
@@ -309,11 +332,11 @@ function hideBubble(a: Active): void {
   a.bubble = null;
 }
 
-function showBubble(a: Active, at: THREE.Vector3, title: string, sub?: string): void {
+function showBubble(a: Active, at: THREE.Vector3, title: string, sub?: string, action?: HTMLElement | null): void {
   hideBubble(a);
-  const el = h('div', { class: 'visit-bubble' }, h('div', { class: 'card' }, h('div', { class: 'card-title' }, title), sub ? h('div', { class: 'card-sub' }, sub) : null));
+  const el = h('div', { class: 'visit-bubble' }, h('div', { class: 'card' }, h('div', { class: 'card-title' }, title), sub ? h('div', { class: 'card-sub' }, sub) : null, action ?? null));
   a.layer.append(el);
-  a.bubble = { el, at: at.clone(), until: performance.now() + 3500 };
+  a.bubble = { el, at: at.clone(), until: performance.now() + (action ? 7000 : 3500) };
   frame(a, 0);
 }
 
@@ -375,7 +398,14 @@ function inspect(p: Pointer): void {
     const d = describe(b, now);
     const bv = a.view.views.get(b.uid);
     if (bv) a.view.bounce(bv);
-    showBubble(a, a.view.anchor(b.uid), d.title, d.sub);
+    // buildings of a visited farm are numbered in snapshot order (see snapshotState)
+    const e = a.snap.b[b.uid - 1];
+    const kind = e && e[0] === b.type ? helpKindFor(e) : null;
+    let sub = d.sub;
+    let action: HTMLElement | null = null;
+    if (kind && a.help.helped === true) sub = `${sub ? `${sub}. ` : ''}You helped here today - thank you!`;
+    else if (kind) action = button([icon(HELP_ICON[kind]), HELP_ACTION[kind]], () => void doHelp(a, b.uid, kind), 'small blue visit-help-btn');
+    showBubble(a, a.view.anchor(b.uid), d.title, sub, action);
     return;
   }
   if (!t || !inMap(t[0], t[1])) { hideBubble(a); return; }
@@ -390,3 +420,145 @@ function inspect(p: Pointer): void {
   hideBubble(a);
 }
 
+
+// ------------------------------------------------------------------------------------ helping (Update 5)
+
+/** The visitor's helps and likes for this farm today, and its like count (shown on the banner). */
+async function loadHelpStatus(a: Active): Promise<void> {
+  try {
+    const st = await neighbours.status(a.owner.id);
+    if (cur !== a) return;
+    a.help.helped = st.helped;
+    a.help.liked = st.liked;
+    a.help.likes = st.likes;
+  } catch (e) {
+    console.warn('[visit] help status unavailable', e);
+  }
+  if (cur === a) renderHelp(a);
+}
+
+function renderHelp(a: Active): void {
+  const n = a.likeBtn.querySelector('.visit-like-n');
+  if (n) n.textContent = a.help.liked === '?' && !a.help.likes ? 'Like' : fmt(a.help.likes);
+  a.likeBtn.classList.toggle('liked', a.help.liked === true);
+  a.likeBtn.setAttribute('aria-label', a.help.liked === true ? `You liked this farm today (${a.help.likes} likes)` : `Like this farm (${a.help.likes} likes)`);
+  const left = a.help.helped === true ? 0 : 1;
+  a.helpPill.replaceChildren(icon(left ? 'hug' : 'check'), a.help.helped === '?' ? 'Tap a field, tree or animal home to help' : left ? '1 help left today' : 'You helped today - thank you!');
+  a.helpPill.classList.toggle('done', !left);
+}
+
+/** Water / feed / tend one building of the visited farm (once per neighbour per day). */
+async function doHelp(a: Active, uid: number, kind: FarmHelpKind): Promise<void> {
+  if (a.help.busy || cur !== a) return;
+  const e = a.snap.b[uid - 1];
+  if (!e) return;
+  a.help.busy = true;
+  hideBubble(a);
+  const at = a.view.anchor(uid);
+  try {
+    const r = await neighbours.help(a.owner, kind, { type: e[0], x: e[1], z: e[2] });
+    if (cur !== a) return;
+    a.help.helped = true;
+    renderHelp(a);
+    burst(a, at, kind === 'water' ? 'droplet' : kind === 'feed' ? 'heart' : 'leaf', kind === 'water' ? 14 : 10);
+    audio.play('sparkle');
+    haptics.play('success');
+    const done = { water: 'Watered!', feed: 'Fed and happy!', tend: 'Tended with care!' }[kind];
+    showBubble(a, at, done, r.coins ? `${a.owner.name} will see it next time they play. +${r.coins} coins and +${r.xp} XP wait for you at home.` : `${a.owner.name} will see it next time they play.`);
+  } catch (err) {
+    if (cur !== a) return;
+    const msg = (err as Error).message;
+    if (/already helped/.test(msg)) { a.help.helped = true; renderHelp(a); }
+    audio.play('error');
+    showBubble(a, at, 'Not this time', msg);
+  } finally {
+    a.help.busy = false;
+  }
+}
+
+/** The like heart: pick a friendly note (or none). */
+function openLikes(a: Active): void {
+  if (a.picker) { closeLikes(a); return; }
+  if (a.help.liked === true) {
+    ui.feedback.toast('You liked this farm today', 'Come back tomorrow to like it again!', 'heart');
+    return;
+  }
+  const send = async (note: string | null, btn: HTMLElement) => {
+    if (a.help.busy) return;
+    a.help.busy = true;
+    btn.classList.add('disabled');
+    try {
+      await neighbours.like(a.owner, note);
+      if (cur !== a) return;
+      a.help.liked = true;
+      a.help.likes++;
+      renderHelp(a);
+      closeLikes(a);
+      heartsFrom(a.likeBtn);
+      audio.play('pop');
+      haptics.play('light');
+      ui.feedback.toast(`You liked ${possessive(a.owner.name)} farm!`, note ? `Your note: "${HELP_NOTES[note]}"` : undefined, 'heart');
+    } catch (err) {
+      if (cur !== a) return;
+      const msg = (err as Error).message;
+      if (/already liked/.test(msg)) { a.help.liked = true; renderHelp(a); closeLikes(a); }
+      btn.classList.remove('disabled');
+      audio.play('error');
+      ui.feedback.toast('Like not sent', msg, 'info');
+    } finally {
+      a.help.busy = false;
+    }
+  };
+  const notes = h('div', { class: 'visit-notes' });
+  for (const [id, text] of Object.entries(HELP_NOTES)) {
+    const b = button(text, () => void send(id, b), 'small grey visit-note');
+    notes.append(b);
+  }
+  const plain = button([icon('heart'), 'Just a like'], () => void send(null, plain), 'small heart-btn');
+  const close = button(icon('cross'), () => closeLikes(a), 'small grey visit-picker-x', { 'aria-label': 'Close' });
+  a.picker = h('div', { class: 'visit-picker visit-keep', role: 'dialog', 'aria-label': 'Like this farm' },
+    h('div', { class: 'visit-picker-head' }, h('div', { class: 'card-title' }, 'Like this farm'), close),
+    h('div', { class: 'muted' }, 'Leave a friendly note in their guestbook:'),
+    notes, plain);
+  // just under the banner, scrolling when the screen is short (landscape phones)
+  const top = Math.round(a.banner.getBoundingClientRect().bottom + 8);
+  a.picker.style.top = `${top}px`;
+  a.picker.style.maxHeight = `calc(100dvh - ${top + 8}px)`;
+  ui.root.append(a.picker);
+  audio.play('open');
+}
+function closeLikes(a: Active): void {
+  a.picker?.remove();
+  a.picker = null;
+}
+
+/** Little droplets / hearts / leaves popping out of a spot on the visited farm (DOM only, no draw calls). */
+function burst(a: Active, at: THREE.Vector3, ic: string, n: number): void {
+  if (!ctx) return;
+  const p = ctx.scene.project(at, tmp2);
+  for (let i = 0; i < n; i++) {
+    const el = icon(ic, 'icon visit-fx');
+    const ang = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = 30 + Math.random() * 40;
+    el.style.left = `${Math.round(p.x)}px`;
+    el.style.top = `${Math.round(p.y)}px`;
+    el.style.setProperty('--dx', `${Math.round(Math.cos(ang) * dist)}px`);
+    el.style.setProperty('--dy', `${Math.round(Math.sin(ang) * dist * 0.6 - 30)}px`);
+    el.style.animationDelay = `${Math.round(Math.random() * 120)}ms`;
+    a.layer.append(el);
+    setTimeout(() => el.remove(), 1400);
+  }
+}
+function heartsFrom(btn: HTMLElement): void {
+  const r = btn.getBoundingClientRect();
+  for (let i = 0; i < 7; i++) {
+    const el = icon('heart', 'icon visit-fx heart-up');
+    el.style.left = `${Math.round(r.left + r.width / 2)}px`;
+    el.style.top = `${Math.round(r.top + r.height / 2)}px`;
+    el.style.setProperty('--dx', `${Math.round((Math.random() - 0.5) * 80)}px`);
+    el.style.setProperty('--dy', `${Math.round(40 + Math.random() * 50)}px`);
+    el.style.animationDelay = `${i * 60}ms`;
+    document.body.append(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+}

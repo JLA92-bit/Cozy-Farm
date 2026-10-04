@@ -633,3 +633,195 @@ begin
   end if;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------- helping neighbours
+-- "Helping neighbours while visiting" (Update 5). A visitor can help a neighbour's farm once per UTC day
+-- (water a growing field, feed an animal home or tend a fruit tree) and like it once per UTC day with an
+-- optional guestbook note picked from a preset list (no free text). The owner's game reads its own rows,
+-- applies the help to its save (after checking the field, home or tree is still there and still needs
+-- it) and marks them claimed with claim_farm_help().
+--
+-- Rules (enforced in farm_help_add() below): not your own farm, the owner must exist, one help and one
+-- like per helper per owner per UTC day, notes only from the preset list, at most 50 rows per owner per
+-- day and 200 per helper per day. Owners read their own rows; helpers read rows they created. Clients
+-- have no write grants. Deleting either account removes the rows (foreign keys cascade both ways, so
+-- delete_my_account() cleans them up through the profile).
+
+create table if not exists public.farm_help (
+  id          uuid primary key default gen_random_uuid(),
+  owner_id    uuid not null references public.profiles (id) on delete cascade,
+  helper_id   uuid not null references public.profiles (id) on delete cascade,
+  helper_name text not null check (char_length(helper_name) between 1 and 24),
+  kind        text not null check (kind in ('water', 'feed', 'tend', 'like')),
+  -- the helped building: {"type": "plot", "x": 12, "z": 30} (null for likes)
+  target      jsonb check (target is null or (jsonb_typeof(target) = 'object' and octet_length(target::text) <= 200)),
+  note        text check (note is null or note in ('lovely', 'flowers', 'thanks', 'market', 'animals', 'cozy')),
+  -- the UTC day the row counts for (one help and one like per helper per owner per day)
+  day         date not null default ((now() at time zone 'utc')::date),
+  created_at  timestamptz not null default now(),
+  claimed_at  timestamptz,
+  check (owner_id <> helper_id),
+  check ((kind = 'like') = (target is null)),
+  check (note is null or kind = 'like')
+);
+
+create unique index if not exists farm_help_once_a_day_idx on public.farm_help (owner_id, helper_id, day, (kind = 'like'));
+create index if not exists farm_help_owner_idx  on public.farm_help (owner_id, created_at desc);
+create index if not exists farm_help_owner_day_idx on public.farm_help (owner_id, day);
+create index if not exists farm_help_likes_idx  on public.farm_help (owner_id) where kind = 'like';
+create index if not exists farm_help_helper_idx on public.farm_help (helper_id, day);
+
+alter table public.farm_help enable row level security;
+revoke all on public.farm_help from anon, authenticated, public;
+grant select on public.farm_help to authenticated;
+
+drop policy if exists "farm help visible to owner and helper" on public.farm_help;
+create policy "farm help visible to owner and helper" on public.farm_help
+  for select to authenticated using (owner_id = auth.uid() or helper_id = auth.uid());
+
+-- Internal: add one help or like row with every rule checked. Only called by help_farm() and like_farm().
+create or replace function public.farm_help_add(p_helper uuid, p_owner uuid, p_kind text, p_target jsonb, p_note text)
+returns public.farm_help
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_day date := (now() at time zone 'utc')::date;
+  v_name text;
+  r public.farm_help;
+begin
+  if p_helper is null then raise exception 'not signed in'; end if;
+  if p_owner is null then raise exception 'unknown player'; end if;
+  if p_owner = p_helper then raise exception 'not yourself'; end if;
+  select p.name into v_name from public.profiles p where p.id = p_helper;
+  if not found then raise exception 'no profile'; end if;
+  -- lock the owner's profile row so helpers of one farm take turns (keeps the daily cap exact)
+  perform 1 from public.profiles p where p.id = p_owner for update;
+  if not found then raise exception 'unknown player'; end if;
+  if exists (select 1 from public.farm_help h
+             where h.owner_id = p_owner and h.helper_id = p_helper and h.day = v_day and (h.kind = 'like') = (p_kind = 'like')) then
+    raise exception 'already today';
+  end if;
+  if (select count(*) from public.farm_help h where h.owner_id = p_owner and h.day = v_day) >= 50 then
+    raise exception 'farm busy';
+  end if;
+  if (select count(*) from public.farm_help h where h.helper_id = p_helper and h.day = v_day) >= 200 then
+    raise exception 'too many today';
+  end if;
+  insert into public.farm_help (owner_id, helper_id, helper_name, kind, target, note, day)
+  values (p_owner, p_helper, public.clean_text(v_name, 24, 'Farmer'), p_kind, p_target, p_note, v_day)
+  returning * into r;
+  return r;
+exception when unique_violation then
+  raise exception 'already today';
+end;
+$$;
+
+-- Help a neighbour's farm: p_kind 'water' | 'feed' | 'tend', p_target {"type", "x", "z"} of the building.
+create or replace function public.help_farm(p_owner uuid, p_kind text, p_target jsonb)
+returns public.farm_help
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_type text;
+  v_x numeric;
+  v_z numeric;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_kind is null or p_kind not in ('water', 'feed', 'tend') then raise exception 'bad kind'; end if;
+  if p_target is null or jsonb_typeof(p_target) <> 'object'
+     or jsonb_typeof(p_target -> 'x') is distinct from 'number'
+     or jsonb_typeof(p_target -> 'z') is distinct from 'number' then
+    raise exception 'bad target';
+  end if;
+  v_type := p_target ->> 'type';
+  v_x := (p_target ->> 'x')::numeric;
+  v_z := (p_target ->> 'z')::numeric;
+  if v_type is null or v_type !~ '^[a-z0-9_]{1,40}$'
+     or v_x <> trunc(v_x) or v_z <> trunc(v_z) or v_x < 0 or v_z < 0 or v_x > 200 or v_z > 200 then
+    raise exception 'bad target';
+  end if;
+  return public.farm_help_add(uid, p_owner, p_kind,
+    jsonb_build_object('type', v_type, 'x', v_x::integer, 'z', v_z::integer), null);
+end;
+$$;
+
+-- Like a neighbour's farm, with an optional preset guestbook note id (null = just a like).
+create or replace function public.like_farm(p_owner uuid, p_note text)
+returns public.farm_help
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_note text := nullif(p_note, '');
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if v_note is not null and v_note not in ('lovely', 'flowers', 'thanks', 'market', 'animals', 'cozy') then
+    raise exception 'bad note';
+  end if;
+  return public.farm_help_add(uid, p_owner, 'like', null, v_note);
+end;
+$$;
+
+-- A farm's like count, and whether the caller already helped / liked it today (UTC).
+create or replace function public.farm_help_status(p_owner uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_day date := (now() at time zone 'utc')::date;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  return jsonb_build_object(
+    'likes',  (select count(*) from public.farm_help h where h.owner_id = p_owner and h.kind = 'like'),
+    'helped', exists (select 1 from public.farm_help h where h.owner_id = p_owner and h.helper_id = uid and h.day = v_day and h.kind <> 'like'),
+    'liked',  exists (select 1 from public.farm_help h where h.owner_id = p_owner and h.helper_id = uid and h.day = v_day and h.kind = 'like'));
+end;
+$$;
+
+-- The owner marks help on their own farm claimed (each row once). Returns the rows claimed by this call.
+-- Also forgets the owner's claimed help (not likes) older than 60 days.
+create or replace function public.claim_farm_help(p_ids uuid[])
+returns setof public.farm_help
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.farm_help;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_ids is null or cardinality(p_ids) > 100 then raise exception 'bad ids'; end if;
+  delete from public.farm_help h
+   where h.owner_id = uid and h.kind <> 'like' and h.claimed_at is not null and h.created_at < now() - interval '60 days';
+  for r in
+    update public.farm_help h set claimed_at = now()
+     where h.owner_id = uid and h.claimed_at is null and h.id = any (p_ids)
+    returning h.*
+  loop
+    return next r;
+  end loop;
+  return;
+end;
+$$;
+
+revoke all on function public.farm_help_add(uuid, uuid, text, jsonb, text) from public, anon, authenticated;
+revoke all on function public.help_farm(uuid, text, jsonb) from public, anon;
+revoke all on function public.like_farm(uuid, text) from public, anon;
+revoke all on function public.farm_help_status(uuid) from public, anon;
+revoke all on function public.claim_farm_help(uuid[]) from public, anon;
+grant execute on function public.help_farm(uuid, text, jsonb) to authenticated;
+grant execute on function public.like_farm(uuid, text) to authenticated;
+grant execute on function public.farm_help_status(uuid) to authenticated;
+grant execute on function public.claim_farm_help(uuid[]) to authenticated;
