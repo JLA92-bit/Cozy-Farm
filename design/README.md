@@ -5,10 +5,18 @@ Made in Claude Design, reviewed and saved here. Status:
   Contact email everywhere: joshmakesgames92@gmail.com. Domain: joshmakesgames.app. The game site is
   https://cozyacres.joshmakesgames.app (website at /, game at /play/) and the studio homepage is
   https://joshmakesgames.app/ (build.py SITE settings; switching over step by step: ../DOMAIN.md).
-- Open: studio wordmark reads "Josh Makes Games" (no 92); placeholders below (screenshots, official Play
-  badge, Play package id, privacy policy brackets, support FAQ answers, changelog date); the delete-data
-  form needs a real endpoint (Supabase); top-farmers strip still uses sample data; privacy policy must
-  mention Google sign-in once that ships.
+- Updated with the second Claude Design pack: "Coming soon" store links instead of the Play badge, the redesigned
+  studio homepage (hero, My games, About me, contact) and style updates. The studio wordmark "Josh Makes Games"
+  matches the joshmakesgames.app domain.
+- Open: the top-farmers strip still shows sample data; when the Play listing is live, swap the Google Play
+  "Coming soon" link for the official badge (store/checklist.md).
+
+## Domains
+    joshmakesgames.app                   -> studio/website  (studio homepage, separate repo, see ../DOMAIN.md)
+    cozyacres.joshmakesgames.app         -> cozy-acres-website/public (built into dist/ by the deploy)
+    cozyacres.joshmakesgames.app/play/   -> the game (dist/play/)
+    /.well-known/assetlinks.json         -> written by the deploy from the ANDROID_PACKAGE and
+                                            ANDROID_CERT_SHA256 repo variables (see ../android/README.md)
 
 ## cozy-acres-graphics
 - icons/google-play-icon-512.png - Play Store icon (512, full square, no transparency)

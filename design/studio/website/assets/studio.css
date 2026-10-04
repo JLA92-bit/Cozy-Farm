@@ -71,3 +71,20 @@ p{margin:0 0 1em;text-wrap:pretty}
 .footer ul{list-style:none;margin:0;padding:0}
 .footer a{display:inline-flex;align-items:center;min-height:40px;color:var(--ink);font-weight:500}
 .footer small{display:block;margin-top:24px;color:var(--ink-2)}
+/* Store links (coming soon / live) */
+.section__lead{margin:-4px 0 0;color:var(--ink-2)}
+.stores{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.store{display:inline-flex;flex-direction:column;justify-content:center;min-height:48px;padding:6px 16px;border:2.5px solid var(--ink);border-radius:14px;background:var(--ink);color:var(--cream);text-decoration:none;line-height:1.15}
+.store__name{font-weight:700;font-size:1rem}
+.store__note{font-size:.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--yellow)}
+a.store:hover{color:#fff;background:#3a3446}
+.store--soon{background:transparent;color:var(--ink);border-style:dashed}
+.store--soon .store__note{color:var(--coral-d)}
+.game-card .stores{margin-top:2px}
+.game-card__link{position:static}
+.game-card__link::after{content:none}
+/* Quick facts */
+.facts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));margin:20px 0 0}
+.facts div{border:2px solid rgba(255,248,236,.35);border-radius:14px;padding:10px 14px}
+.facts dt{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--yellow)}
+.facts dd{margin:2px 0 0;font-weight:600}

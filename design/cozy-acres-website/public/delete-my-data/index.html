@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Delete my online data - Cozy Acres</title>
-<meta name="description" content="Delete the online data linked to your Cozy Acres friend code.">
+<meta name="description" content="How to delete your Cozy Acres online account and data: in the game or by email.">
 <link rel="canonical" href="https://cozyacres.joshmakesgames.app/delete-my-data/">
 <meta name="theme-color" content="#8fd3f4">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cozy Acres">
 <meta property="og:title" content="Delete my online data - Cozy Acres">
-<meta property="og:description" content="Delete the online data linked to your Cozy Acres friend code.">
+<meta property="og:description" content="How to delete your Cozy Acres online account and data: in the game or by email.">
 <meta property="og:url" content="https://cozyacres.joshmakesgames.app/delete-my-data/">
 <meta property="og:image" content="https://cozyacres.joshmakesgames.app/assets/img/og-image-1200x630.png">
 <meta property="og:image:width" content="1200">
@@ -64,7 +64,7 @@
   <header class="page-head">
     <div class="wrap">
       <h1 class="outlined">Delete my online data</h1>
-      <p>Remove your farm from friends lists, the Shared Market and leaderboards.</p>
+      <p>Delete your online account: your sign-in, profile, cloud save, gifts and Shared Market listings.</p>
     </div>
   </header>
   <div class="section">
@@ -72,33 +72,32 @@
       <div class="panel">
         <h2 style="margin-top:0">What gets deleted</h2>
         <ul>
-          <li>Your friend code, farm name and level on our server</li>
-          <li>Your friends list and any gifts waiting to be opened</li>
-          <li>Your Shared Market listings and leaderboard scores</li>
+          <li>Your online sign-in, including your Google email address if you signed in with Google</li>
+          <li>Your public profile: friend code, farmer name and look, farm name, level and leaderboard scores</li>
+          <li>Your cloud save, if you signed in with Google</li>
+          <li>Your Shared Market listings, and every gift you sent or received (including their notes)</li>
         </ul>
-        <p style="margin-bottom:0">Your farm on your own device is not touched. To remove that too, uninstall the app or clear site data for this website in your browser settings. This cannot be undone.</p>
+        <p>Goods you bought from other farmers stay with the seller, but your name on them is replaced with "A farmer".</p>
+        <p style="margin-bottom:0">Your farm on your own device is not touched. To remove that too, uninstall the app or clear site data for this website in your browser settings. Deleting your online account cannot be undone.</p>
       </div>
 
-      <form class="panel" id="delete-form" data-endpoint="/api/delete-data" novalidate>
-        <div class="field">
-          <label for="friend-code">Your friend code</label>
-          <p class="field__hint" id="code-hint">Find it in the game under Friends, then "My code".</p>
-          <input class="input" id="friend-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false"
-                 inputmode="text" placeholder="Your code" aria-describedby="code-hint code-error" required pattern="[A-Za-z0-9-]{4,16}">
-          <p class="field__hint" id="code-error" hidden style="color:#9c2f2c;font-weight:600">Please check your code. It uses letters and numbers.</p>
-        </div>
-        <label class="check"><input type="checkbox" name="confirm" required> I understand my online data will be deleted and this cannot be undone.</label>
-        <div style="margin-top:16px"><button class="btn btn--red" type="submit">Delete my data</button></div>
+      <div class="panel">
+        <h2 style="margin-top:0">Delete it in the game (fastest)</h2>
+        <ol>
+          <li>Open Cozy Acres and tap the gear button to open <strong>Settings</strong>.</li>
+          <li>Scroll to <strong>Online play</strong>.</li>
+          <li>Tap <strong>Delete my online account</strong> and confirm twice.</li>
+        </ol>
+        <p style="margin-bottom:0">Everything listed above is deleted from our server straight away. This works in the Android app and in the browser, whether or not you signed in with Google.</p>
+      </div>
 
-        <div class="status status--ok" role="status" data-state="ok" hidden>
-          <img src="/assets/icons/check_mark_button.svg" alt="" width="36" height="36">
-          <div><h3>All done</h3><p>Your online data has been deleted. Thanks for farming with us.</p></div>
+      <div class="panel contact-card">
+        <div>
+          <h2>Or ask us by email</h2>
+          <p style="margin:0">Can't open the game any more? Email us your friend code (Settings, then Online play) or the Google email address you signed in with. We will delete your online data within 30 days and let you know.</p>
         </div>
-        <div class="status status--err" role="alert" data-state="error" hidden>
-          <img src="/assets/icons/warning.svg" alt="" width="36" height="36">
-          <div><h3>Something went wrong</h3><p data-msg>We could not find that friend code. Check it and try again, or email <a href="mailto:joshmakesgames92@gmail.com">joshmakesgames92@gmail.com</a>.</p></div>
-        </div>
-      </form>
+        <a class="btn btn--red" href="mailto:joshmakesgames92@gmail.com?subject=Cozy%20Acres%20-%20delete%20my%20online%20data"><img src="/assets/icons/envelope.svg" alt="" width="28" height="28">joshmakesgames92@gmail.com</a>
+      </div>
     </div>
   </div>
 </main>

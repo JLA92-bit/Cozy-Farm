@@ -213,3 +213,16 @@ p{margin:0 0 1em;text-wrap:pretty}
 .lost{text-align:center;padding:40px 0 64px}
 .lost img{width:min(380px,86vw);margin:0 auto}
 .lost h1{font-size:clamp(2.2rem,8vw,3.4rem);margin-top:6px}
+
+/* ---------- Component: store links ---------- */
+.stores{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.store{display:inline-flex;flex-direction:column;justify-content:center;min-height:52px;padding:6px 16px;border:3px solid var(--outline);border-radius:14px;
+  background:var(--outline);color:var(--cream);text-decoration:none;line-height:1.15;box-shadow:0 4px 0 rgba(45,30,16,.35)}
+.store__name{font-family:var(--font-head);font-size:1.15rem}
+.store__note{font-size:.78rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow)}
+a.store:hover{color:#fff}
+.store--soon{background:rgba(255,246,223,.94);color:var(--ink);border-style:dashed}
+.store--soon .store__note{color:#9c2f2c}
+@media (min-width:900px){.hero .stores{justify-content:flex-start}}
+
+.contact-card .btn{max-width:100%;font-size:1.05rem;padding-inline:14px;overflow-wrap:anywhere;text-align:left}

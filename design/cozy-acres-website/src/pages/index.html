@@ -11,10 +11,13 @@
         <p class="hero__line">Plant, harvest, raise animals and trade with friends - free, no ads.</p>
         <div class="hero__cta">
           <a class="btn btn--lg" href="/play/">Play now</a>
-          <a class="play-badge" href="{{play_url}}" rel="noopener">
-            <img src="/assets/img/google-play-badge.png" alt="Get it on Google Play" width="210" height="62">
-          </a>
         </div>
+        <!-- Component: store links. When a listing is live, swap the <span class="store store--soon"> for
+             <a class="store" href="{{play_url}}"> (or the official store badge image). -->
+        <ul class="stores" aria-label="App stores">
+          <li><span class="store store--soon"><span class="store__name">Google Play</span><span class="store__note">Coming soon</span></span></li>
+          <li><span class="store store--soon"><span class="store__name">App Store</span><span class="store__note">Coming soon</span></span></li>
+        </ul>
       </div>
     </div>
   </section>
