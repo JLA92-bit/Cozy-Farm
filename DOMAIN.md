@@ -134,9 +134,12 @@ Only if online play is set up ([ONLINE.md](ONLINE.md), step 6).
 
 ## Step 7. The studio homepage (joshmakesgames.app)
 
-1. On GitHub create a new **public** repository, for example `joshmakesgames-site`.
-2. Copy everything inside `design/studio/website/` of this repo into the new repo's top folder (so
-   `index.html` is at the top), and commit.
+1. Done: the repo `JLA92-bit/joshmakesgames-site` already holds the studio site (copied from
+   `design/studio/website/`) with a `CNAME` file containing `joshmakesgames.app`. To update it later, change
+   `design/studio/website/` here and copy the files across again (or ask Claude to).
+2. Until step 4 below is finished, opening `https://joshmakesgames.app/` shows "Your connection is not private"
+   (`NET::ERR_CERT_COMMON_NAME_INVALID`). That is expected: the domain already points at GitHub, but GitHub only
+   issues the certificate once a repo claims the domain.
 3. New repo > **Settings** > **Pages**: **Source** "Deploy from a branch", branch `main`, folder `/ (root)`,
    **Save**. (Or use GitHub Actions if you prefer.)
 4. **Custom domain**: `joshmakesgames.app`, **Save**. The A and AAAA records from step 2 must be in place.
@@ -157,6 +160,7 @@ the root of a domain, so it only works after step 4.
 
 | What you see | What to do |
 | --- | --- |
+| "Your connection is not private" / `NET::ERR_CERT_COMMON_NAME_INVALID` | No repo has claimed that domain yet, or GitHub has not issued its certificate. Set the custom domain in that repo's **Settings** > **Pages** (step 4 or step 7), wait until the page says the certificate is ready (minutes to an hour, rarely up to 24 h), then tick **Enforce HTTPS**. |
 | GitHub says the DNS check failed or is still running | DNS changes can take up to 24 hours to reach everyone (usually minutes). Check the record has no typo (`cozyacres`, `jla92-bit.github.io`), then wait and click **Check again**. You can see what the world sees at <https://dnschecker.org> (type `cozyacres.joshmakesgames.app`, record CNAME). |
 | "Enforce HTTPS" is greyed out, or the certificate is "pending" | GitHub is still making the certificate. Wait up to an hour or so. If it is stuck for a day: remove the custom domain, **Save**, add it again. |
 | The new address does not open at all ("can't be reached", "not private") | Expected until the certificate exists (`.app` is https-only). See the row above. |
