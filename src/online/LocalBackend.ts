@@ -1,4 +1,6 @@
 import type { Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent, PlayerProfile, ProfileStats } from './types';
+import { botFarm } from './BotFarms';
+import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
 
 /**
  * Practice backend: a tiny "server" kept in this browser's localStorage, shared by all tabs of the
@@ -8,6 +10,8 @@ import type { Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent, Player
  */
 const DB_KEY = 'cozy-acres-online-local';
 const ID_KEY = 'cozy-acres-online-id';
+/** Published farm snapshots of the players in this browser (practice mode), by player id. */
+const FARMS_KEY = 'cozy-acres-online-farms';
 
 interface Db { profiles: PlayerProfile[]; gifts: Gift[]; listings: Listing[]; seq: number; botsAt: number }
 
@@ -202,6 +206,26 @@ export class LocalBackend implements OnlineBackend {
     });
     this.emit({ type: 'gift', gift: g });
     return g;
+  }
+
+  async publishFarm(snapshot: FarmSnapshot): Promise<void> {
+    await this.init();
+    const txt = JSON.stringify(snapshot);
+    if (txt.length > 65536) throw new Error('farm too big');
+    let farms: Record<string, unknown> = {};
+    try { farms = JSON.parse(localStorage.getItem(FARMS_KEY) ?? '{}') as Record<string, unknown> ?? {}; } catch { /* corrupt: start over */ }
+    farms[this.id] = snapshot;
+    try { localStorage.setItem(FARMS_KEY, JSON.stringify(farms)); } catch { throw new Error('storage full'); }
+  }
+
+  async getFarm(playerId: string): Promise<FarmSnapshot | null> {
+    await this.init();
+    const bot = this.read().profiles.find((p) => p.id === playerId && p.bot);
+    if (bot) return sanitizeSnapshot(botFarm(bot, this.now()), this.now());
+    try {
+      const farms = JSON.parse(localStorage.getItem(FARMS_KEY) ?? '{}') as Record<string, unknown>;
+      return farms && typeof farms === 'object' && farms[playerId] ? sanitizeSnapshot(farms[playerId], this.now()) : null;
+    } catch { return null; }
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void { this.subs.add(cb); return () => this.subs.delete(cb); }

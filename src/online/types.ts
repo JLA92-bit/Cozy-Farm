@@ -8,6 +8,8 @@
  * shared parts are atomic (a listing can be bought once, a gift claimed once, earnings collected once).
  */
 
+import type { FarmSnapshot } from './FarmSnapshot';
+
 /** Small public look so other players can draw your farmer (matches CharacterLook fields). */
 export interface PublicLook { body: string; skin: string; hair: string; top: string; bottom: string; hat: string }
 
@@ -98,6 +100,17 @@ export interface OnlineBackend {
   cancel(id: string): Promise<Listing>;
   /** Marks a sold listing's coins as collected exactly once; throws if already collected. */
   collect(id: string): Promise<Listing>;
+
+  /**
+   * Publish this player's public farm snapshot (what neighbours see when they visit). Replaces the
+   * previous one. Rejects when offline or refused (too big); callers retry later.
+   */
+  publishFarm(snapshot: FarmSnapshot): Promise<void>;
+  /**
+   * A player's last published farm snapshot, already checked with sanitizeSnapshot, or null when they
+   * have not shared one yet. Rejects when the server cannot be reached.
+   */
+  getFarm(playerId: string): Promise<FarmSnapshot | null>;
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }

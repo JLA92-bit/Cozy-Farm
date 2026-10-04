@@ -1,6 +1,35 @@
 {
  "releases": [
   {
+   "version": "1.4.0",
+   "date": "2026-10-04",
+   "title": "Visiting",
+   "icon": "house",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "house",
+     "text": "Visit a neighbour's farm from the Leaders board or your Friends list"
+    },
+    {
+     "icon": "sparkle_heart",
+     "text": "See their fields, animals, workshops and decorations just as they left them"
+    },
+    {
+     "icon": "farmer",
+     "text": "Tap anything on their farm to see what it is, then tap Back home"
+    },
+    {
+     "icon": "world",
+     "text": "Your own farm is shared too, so friends can come and look around"
+    },
+    {
+     "icon": "house",
+     "text": "Add the game to your phone's home screen from Settings"
+    }
+   ]
+  },
+  {
    "version": "1.3.0",
    "date": "2026-10-03",
    "title": "Cloud Saves",

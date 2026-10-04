@@ -6,6 +6,8 @@ import { ensureOnline, profileStats } from './Profile';
 import { setOnlineStatus } from './Status';
 import { SupabaseBackend } from './SupabaseBackend';
 import { trackWeeklyXp } from './Weekly';
+import { farmSnapshot, snapshotKey } from './FarmSnapshot';
+import { visiting } from '../systems/Visiting';
 
 /** True when this build was made with a real online server (see ONLINE.md). */
 export function onlineConfigured(): boolean {
@@ -79,6 +81,46 @@ export async function publishProfile(force = false): Promise<void> {
   }
 }
 
+// ------------------------------------------------------------------------------ farm snapshot
+
+/** Neighbours see the farm as of the last snapshot: publish at most this often while playing. */
+const FARM_MS = 5 * 60000;
+const FARM_MAX_BACKOFF_MS = 30 * 60000;
+let farmBusy = false;
+let farmFailures = 0;
+let farmNextAt = 0;
+/** the snapshot (without its time) last published, so an unchanged farm is never sent again */
+let farmLast = '';
+
+/**
+ * Publish this player's farm snapshot (what neighbours see when they visit) if it changed. At most
+ * every 5 minutes unless `force` (tab hidden, farmer just made). Never throws; failures back off.
+ */
+export async function publishFarm(force = false): Promise<void> {
+  if (farmBusy || held || visiting.active || !game.state?.player.created) return;
+  const now = Date.now();
+  if (now < farmNextAt && !(force && farmFailures === 0)) return;
+  let snap;
+  try { snap = farmSnapshot(game.state, game.now()); } catch (e) { console.warn('[online] farm snapshot failed', e); return; }
+  farmBusy = true;
+  try {
+    await ensureOnline();
+    // per account: after signing in to another account the farm is shared there too
+    const key = `${online.me()?.id ?? ''}|${snapshotKey(snap)}`;
+    if (key === farmLast) return;
+    await online.publishFarm(snap);
+    farmLast = key;
+    farmFailures = 0;
+    farmNextAt = Date.now() + FARM_MS;
+  } catch (e) {
+    farmFailures++;
+    farmNextAt = Date.now() + Math.min(FARM_MAX_BACKOFF_MS, 60000 * 2 ** (farmFailures - 1));
+    if (farmFailures === 1) console.warn('[online] could not share the farm yet, will retry', e);
+  } finally {
+    farmBusy = false;
+  }
+}
+
 /**
  * Keep the public profile fresh: every ~60 s while playing, on level up, when the farmer is
  * created, and when the tab is hidden or shown. Uses timers and DOM events only, never the frame loop.
@@ -86,19 +128,22 @@ export async function publishProfile(force = false): Promise<void> {
 export function startOnlineSync(): void {
   if (started) return;
   started = true;
-  window.setInterval(() => { if (!document.hidden) void publishProfile(); }, 15000);
+  window.setInterval(() => { if (!document.hidden) { void publishProfile(); void publishFarm(); } }, 15000);
   let levelTimer = 0;
   game.bus.on('levelup', () => {
     clearTimeout(levelTimer);
     levelTimer = window.setTimeout(() => void publishProfile(failures === 0), 1500);
   });
-  game.bus.on('tutorial', ({ signal }) => { if (signal === 'character_done') void publishProfile(true); });
+  game.bus.on('tutorial', ({ signal }) => {
+    if (signal === 'character_done') { void publishProfile(true); setTimeout(() => void publishFarm(true), 3000); }
+  });
   document.addEventListener('visibilitychange', () => {
     // leaving: send the latest stats; coming back: try again right away if we were offline
-    if (document.hidden) void publishProfile(failures === 0);
+    if (document.hidden) { void publishProfile(failures === 0); void publishFarm(true); }
     else void publishProfile(failures > 0);
   });
   window.addEventListener('online', () => void publishProfile(true));
   window.addEventListener('offline', () => { if (online.kind === 'supabase') setOnlineStatus('offline'); });
   void publishProfile(true);
+  setTimeout(() => void publishFarm(true), 5000);
 }

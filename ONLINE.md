@@ -32,9 +32,13 @@ Players do not need an account or e-mail: the game signs them in anonymously in 
    paste it into the editor.
 3. Click **Run**. You should see "Success. No rows returned".
 
-This creates the `profiles`, `gifts`, `listings` and `cloud_saves` tables, the security rules (each player can only
+This creates the `profiles`, `gifts`, `listings`, `cloud_saves` and `farm_snapshots` tables, the security rules (each player can only
 change their own things), the server functions that make trades safe (a listing can only be bought once,
 a gift claimed once) and turns on live updates. It is safe to run again after a game update.
+
+**Re-run `supabase/schema.sql` after updating the game.** New features sometimes need new tables or server
+functions (for example version 1.4.0 "Visiting" adds the `farm_snapshots` table and the `publish_farm`
+function). Running the whole file again only adds what is missing; players' data is kept.
 
 ## 4. Copy the project URL and anon key into GitHub
 
@@ -126,7 +130,7 @@ their farm appears.
 
 - In the game: **Settings > Online play > Delete my online account** (two confirmations). It calls
   `delete_my_account()`, which deletes the player's sign-in (`auth.users`), public profile and friend code,
-  cloud save, their own market listings and every gift they sent or received. Listings they bought from
+  cloud save, farm snapshot, their own market listings and every gift they sent or received. Listings they bought from
   other players stay for the seller, with the buyer's name replaced by "A farmer". The farm on the device is
   not touched. This is the in-app account deletion Google Play asks for.
 - By email: players can also ask at `joshmakesgames92@gmail.com`. Find them by friend code in **Table
@@ -157,6 +161,8 @@ their farm appears.
 | After Google the game opens a different address (or the home page) | Add the game's exact address to Supabase **Redirect URLs** (step 6B). |
 | Signing in gives the player a new friend code | Switch on **Manual linking** (step 6B). |
 | "Cloud save: could not save" in Settings | Run `schema.sql` again (step 3) so `save_cloud` exists. The game retries on its own. |
+| "Visit farm" always says **This farm hasn't been shared yet**, or the browser console shows `function public.publish_farm does not exist` / `relation "public.farm_snapshots" does not exist` | Run `supabase/schema.sql` again (step 3) so `farm_snapshots` and `publish_farm` exist. Each player's farm is shared a few seconds after they next open the game. |
+| "Visit farm" says **Couldn't reach the village** | The device is offline or the server is paused. The player's own farm is never touched; they can try again later. |
 | Free project paused after a week without players | Open the Supabase dashboard and click **Restore project**. |
 
 ## Good to know
@@ -167,7 +173,12 @@ their farm appears.
 - **Trust model:** coins and items live in each player's own save (as before), so this is a friendly co-op
   setup, not a cheat-proof competitive one. The server makes sure the shared parts are fair: a listing sells
   once, a gift is claimed once, and players can only change their own profile and listings.
-- **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP. Players
+- **Visiting farms:** every player's farm layout is shared as a small "farm snapshot" (`farm_snapshots`, at
+  most 64 KB): buildings, fields and their growth stage, fruit trees, animals, decorations, land, the farmer's look
+  and pet, level and charm, as of the last time it was shared (at most every 5 minutes while playing and when the
+  game is put in the background). Coins, items and the rest of the save are not in it. Visits are view only.
+- **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP, and the
+  layout of your farm when they visit it. Players
   who sign in with Google also store their Google email address and account id (in Supabase Auth) and a
   copy of their farm (`cloud_saves`, readable only by themselves). Nothing from the save is uploaded for
   players who do not sign in.

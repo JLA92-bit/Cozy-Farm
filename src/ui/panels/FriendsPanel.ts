@@ -1,4 +1,5 @@
 import { playerCardHooks } from '../../online/Leaderboard';
+import { possessive, visitFarm } from '../../scenes/Visit';
 import gsap from 'gsap';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, fmt, clear } from '../dom';
@@ -213,7 +214,8 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     return h('div', { class: 'list-item friend-item' },
       portrait(f.name, prof?.look),
       h('div', { class: 'grow' }, h('div', { class: 'title' }, f.name, f.id.startsWith('bot_') ? h('span', { class: 'demo-tag' }, 'demo') : null), h('div', { class: 'sub' }, sub)),
-      button([icon('gift'), 'Gift'], () => openCompose(f), 'small yellow', { 'aria-label': `Send ${f.name} a gift` }),
+      button([icon('house'), h('span', { class: 'fbtn-lbl' }, 'Visit')], () => void visitFarm({ id: f.id, name: f.name }), 'small blue visit-btn', { 'aria-label': `Visit ${possessive(f.name)} farm` }),
+      button([icon('gift'), h('span', { class: 'fbtn-lbl' }, 'Gift')], () => openCompose(f), 'small yellow gift-btn', { 'aria-label': `Send ${f.name} a gift` }),
       remove);
   };
 

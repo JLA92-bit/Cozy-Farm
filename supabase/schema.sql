@@ -516,10 +516,82 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------- farm snapshots
+-- "Visit a neighbour's farm" (Update 4): a small public picture of each player's farm, just what is
+-- needed to draw it (buildings, fields and their growth stage, trees, animals, decorations, land and the
+-- farmer's look). No coins, items or anything else from the save. Any signed-in player (anonymous ones
+-- too) can read every snapshot; writes only go through publish_farm(), which stores the caller's own
+-- row, checks the basic shape and refuses snapshots over 64 KB. One row per player.
+
+create table if not exists public.farm_snapshots (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  data       jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 65536),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.farm_snapshots enable row level security;
+revoke all on public.farm_snapshots from anon, authenticated, public;
+grant select on public.farm_snapshots to authenticated;
+
+drop policy if exists "farm snapshots are public to players" on public.farm_snapshots;
+create policy "farm snapshots are public to players" on public.farm_snapshots
+  for select to authenticated using (true);
+
+-- Defence in depth (clients have no write grants; publish_farm() does the writing).
+drop policy if exists "players insert only their own farm snapshot" on public.farm_snapshots;
+create policy "players insert only their own farm snapshot" on public.farm_snapshots
+  for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "players update only their own farm snapshot" on public.farm_snapshots;
+create policy "players update only their own farm snapshot" on public.farm_snapshots
+  for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Store the caller's farm snapshot (replacing the previous one). The game publishes at most every few
+-- minutes; more than one publish per 10 seconds is refused with 'too soon'. Returns the new updated_at.
+create or replace function public.publish_farm(p_data jsonb)
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_cur timestamptz;
+  v_at timestamptz := now();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_data is null or jsonb_typeof(p_data) <> 'object' then raise exception 'bad farm'; end if;
+  if octet_length(p_data::text) > 65536 then raise exception 'farm too big'; end if;
+  if coalesce(p_data ->> 'v', '') <> '1'
+     or jsonb_typeof(p_data -> 'b') is distinct from 'array'
+     or jsonb_typeof(p_data -> 'land') is distinct from 'array'
+     or jsonb_typeof(coalesce(p_data -> 'obs', '[]'::jsonb)) <> 'array' then
+    raise exception 'bad farm';
+  end if;
+  if jsonb_array_length(p_data -> 'b') > 1200
+     or jsonb_array_length(coalesce(p_data -> 'obs', '[]'::jsonb)) > 600
+     or jsonb_array_length(p_data -> 'land') > 36 then
+    raise exception 'farm too big';
+  end if;
+
+  select f.updated_at into v_cur from public.farm_snapshots f where f.user_id = uid for update;
+  if found and v_cur > v_at - interval '10 seconds' then raise exception 'too soon'; end if;
+
+  insert into public.farm_snapshots as f (user_id, data, updated_at)
+  values (uid, p_data, v_at)
+  on conflict (user_id) do update set
+    data       = excluded.data,
+    updated_at = excluded.updated_at;
+  return v_at;
+end;
+$$;
+
+revoke all on function public.publish_farm(jsonb) from public, anon;
+grant execute on function public.publish_farm(jsonb) to authenticated;
+
 -- ---------------------------------------------------------------------------- account deletion
 -- "Delete my online account" in Settings (Google Play requires in-app account deletion).
 -- Deleting the auth user cascades: profiles -> gifts sent or received (both directions) and the
--- player's own listings; cloud_saves. Listings this player bought from others stay for the seller
+-- player's own listings; cloud_saves; farm_snapshots. Listings this player bought from others stay for the seller
 -- (buyer_id becomes null) with the buyer's name replaced, so no personal data is left behind.
 create or replace function public.delete_my_account()
 returns void
@@ -535,6 +607,7 @@ begin
   delete from public.gifts g where g.from_id = uid or g.to_id = uid;
   delete from public.listings l where l.seller_id = uid;
   delete from public.cloud_saves c where c.user_id = uid;
+  delete from public.farm_snapshots f where f.user_id = uid;
   delete from public.profiles p where p.id = uid;
   delete from auth.users u where u.id = uid;
 end;

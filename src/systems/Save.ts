@@ -2,6 +2,7 @@ import { game } from './Game';
 import { createNewGame } from './NewGame';
 import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
+import { visiting } from './Visiting';
 import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data';
 
 const KEY = 'cozy-acres-save';
@@ -203,7 +204,8 @@ class SaveSystem {
   }
 
   save(): boolean {
-    if (this.locked || !game.state) return false;
+    // never while visiting a neighbour: the player's farm was saved just before the visit and stays untouched
+    if (this.locked || visiting.active || !game.state) return false;
     game.state.lastSeen = game.now();
     let txt: string;
     try { txt = JSON.stringify(game.state); } catch (e) { console.error('save failed', e); return false; }

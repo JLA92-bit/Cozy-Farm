@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { assets, assetUrl } from '../core/Assets';
 import { ANIMAL, BUILDING, CROP, ITEMS, LAND, TREE, type BuildingDef } from '../data';
-import { game } from '../systems/Game';
+import { game, type Game } from '../systems/Game';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } from './Grid';
 import { PoolSet, type InstancePool } from './InstancePool';
@@ -156,8 +156,9 @@ export class FarmView {
 
   /** set once the initial farm is built: later crop changes animate */
   private live = false;
+  private disposed = false;
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: THREE.Object3D, readonly g: Game = game) {
     this.terrain = new Terrain(assets.vertexMaterial);
     this.root.add(this.terrain.group);
     this.pools = new PoolSet(this.root);
@@ -165,8 +166,8 @@ export class FarmView {
     this.glowTex = makeGlowTexture();
     this.hints = new PlantHints(this.root);
     // happy little jumps when animals are fed or give their product
-    game.bus.on('animal:fed', ({ b, index }) => this.animalJump(b.uid, index, 0.45));
-    game.bus.on('animal:collected', ({ b, index }) => this.animalJump(b.uid, index, 0.55));
+    this.g.bus.on('animal:fed', ({ b, index }) => this.animalJump(b.uid, index, 0.45));
+    this.g.bus.on('animal:collected', ({ b, index }) => this.animalJump(b.uid, index, 0.55));
   }
 
   private animalJump(uid: number, index: number, sec: number): void {
@@ -177,26 +178,26 @@ export class FarmView {
   // ------------------------------------------------------------------ setup
   async build(): Promise<void> {
     this.refreshLand();
-    for (const o of game.state.obstacles) await this.addObstacle(o);
-    await Promise.all(game.state.buildings.map((b) => this.addBuilding(b)));
-    this.tick(game.now());
+    for (const o of this.g.state.obstacles) await this.addObstacle(o);
+    await Promise.all(this.g.state.buildings.map((b) => this.addBuilding(b)));
+    this.tick(this.g.now());
     this.live = true;
   }
 
   refreshLand(): void {
     // swap background stand-ins for full models on newly bought land
-    for (const o of game.state.obstacles) {
+    for (const o of this.g.state.obstacles) {
       const h = this.obstacleHandles.get(o.id);
-      if (h?.locked && game.isUnlocked(chunkOf(o.x, o.z))) {
+      if (h?.locked && this.g.isUnlocked(chunkOf(o.x, o.z))) {
         h.pool.remove(h.handle);
         this.obstacleHandles.delete(o.id);
         void this.addObstacle(o);
       }
     }
-    const purch = purchasableChunks();
-    this.terrain.setLand(game.unlockedChunks, new Set(purch));
+    const purch = purchasableChunks(this.g);
+    this.terrain.setLand(this.g.unlockedChunks, new Set(purch));
     // paint dirt paths + soil
-    for (const b of game.state.buildings) this.paintFor(b, true);
+    for (const b of this.g.state.buildings) this.paintFor(b, true);
     // for-sale signs
     for (const s of this.saleSigns) s.pool.remove(s.handle);
     this.saleSigns = [];
@@ -232,10 +233,11 @@ export class FarmView {
   async addObstacle(o: Obstacle): Promise<void> {
     const t = LAND.obstacles.types[o.type as keyof typeof LAND.obstacles.types];
     // background LOD: wilderness on land you don't own yet uses cheaper stand-ins
-    const locked = !game.isUnlocked(chunkOf(o.x, o.z));
+    const locked = !this.g.isUnlocked(chunkOf(o.x, o.z));
     const lod: Record<string, string> = { tree_big: 'nat/tree_b', tree_small: 'nat/tree_a', bush: 'nat/bush', stump: 'nat/stump_round' };
     const id = locked && lod[o.type] ? lod[o.type] : t.models[o.model % t.models.length];
     const sm = await assets.static(id);
+    if (this.disposed) return;
     const sway = SWAYS[o.type];
     const pool = this.pools.pool(`obs/${id}`, () => ({ geometry: sm.geometry, material: sway ? swayMaterial(sm.material, sm.size.y, sway) : sm.material, castShadow: false }));
     const r = rng(o.id * 7919 + 13);
@@ -279,7 +281,7 @@ export class FarmView {
     const def = BUILDING[b.type];
     const visual = await visualFor(b.type);
     this.pending.delete(b.uid);
-    if (!game.byUid(b.uid)) return; // removed while loading
+    if (this.disposed || !this.g.byUid(b.uid)) return; // removed while loading
     const view: BuildingView = {
       b, def, visual, obj: null, construction: null, center: new THREE.Vector3(), height: visual?.height ?? 0.1,
       box: new THREE.Box3(), plants: [], plantKey: '', plantAge: 99, swaying: false, animals: [], busy: false,
@@ -288,7 +290,7 @@ export class FarmView {
     this.paintFor(b, true);
     this.place(view);
     if (animate) this.squash(view);
-    this.updateDynamic(view, game.now(), true);
+    this.updateDynamic(view, this.g.now(), true);
   }
 
   /** Compute the world transform for a building view and (re)attach its visual. */
@@ -304,7 +306,7 @@ export class FarmView {
       if (view.construction) { this.root.remove(view.construction); view.construction = null; }
       return;
     }
-    const underConstruction = !!b.buildEnd && b.buildEnd > game.now();
+    const underConstruction = !!b.buildEnd && b.buildEnd > this.g.now();
     if (underConstruction) {
       this.detachVisual(view);
       if (!view.construction) {
@@ -408,7 +410,7 @@ export class FarmView {
     this.clearPlants(view);
     this.clearAnimals(view);
     this.place(view);
-    if (!hidden) this.updateDynamic(view, game.now(), true);
+    if (!hidden) this.updateDynamic(view, this.g.now(), true);
   }
 
   removeBuilding(uid: number): void {
@@ -430,7 +432,7 @@ export class FarmView {
     view.b = b;
     this.paintFor(b, true);
     this.place(view);
-    this.updateDynamic(view, game.now(), true);
+    this.updateDynamic(view, this.g.now(), true);
   }
 
   // ------------------------------------------------------------------ crops, trees, animals
@@ -445,9 +447,14 @@ export class FarmView {
     const sm = assets.getStatic(model);
     if (!sm) { void assets.static(model); return null; }
     return this.pools.pool(`c/${cropModelKey(model, tint)}`, () => ({
-      geometry: tint ? tintGeometry(sm.geometry, tint) : sm.geometry, material: model.startsWith('crop/') ? swayMaterial(sm.material, sm.size.y, 0.035) : sm.material, castShadow: false,
+      geometry: tint ? this.own(tintGeometry(sm.geometry, tint)) : sm.geometry, material: model.startsWith('crop/') ? swayMaterial(sm.material, sm.size.y, 0.035) : sm.material, castShadow: false,
     }));
   }
+
+  /** Geometry made for this view only (freed by dispose). */
+  private ownGeometry: THREE.BufferGeometry[] = [];
+  private ownMaterial: THREE.Material[] = [];
+  private own(g: THREE.BufferGeometry): THREE.BufferGeometry { this.ownGeometry.push(g); return g; }
 
   private procPool(name: string): InstancePool {
     return this.pools.pool(`p/${name}`, () => ({ geometry: procGeometry(name), material: assets.vertexMaterial, castShadow: false }));
@@ -643,8 +650,8 @@ export class FarmView {
         const sm = await assets.static(def.model);
         let geometry = sm.geometry;
         let material = sm.material;
-        if (def.variant === 'sheep') geometry = sheepGeometry(sm.geometry, sm.size);
-        if (def.variant === 'goat') material = goatMaterial(sm.material as THREE.MeshLambertMaterial);
+        if (def.variant === 'sheep') geometry = this.own(sheepGeometry(sm.geometry, sm.size));
+        if (def.variant === 'goat') { material = goatMaterial(sm.material as THREE.MeshLambertMaterial); this.ownMaterial.push(material); }
         return this.pools.pool(`a/${animal}`, () => ({ geometry, material, castShadow: true }));
       })();
       this.animalPools.set(animal, p);
@@ -725,7 +732,7 @@ export class FarmView {
 
   frame(dt: number, t: number, night: number): void {
     swayTime.value = t;
-    this.hints.update(dt, this.views, game.now());
+    this.hints.update(dt, this.views, this.g.now());
     for (const v of this.views.values()) {
       if (v.animals.length) this.animateAnimals(v, dt, t);
       if (v.plants.length && (v.swaying || v.plantAge < 1)) {
@@ -739,7 +746,7 @@ export class FarmView {
         }
       }
       if (v.fan) {
-        const busy = productionState(v.b, game.now()).running;
+        const busy = productionState(v.b, this.g.now()).running;
         v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
       }
       if (v.glow) {
@@ -754,7 +761,7 @@ export class FarmView {
       if (v.smokeAt && v.obj && !v.busy) this.emitSmoke(v, dt);
       // busy workshops hum: a tiny rhythmic squash while something is being made
       if (v.def.cat === 'production' && v.obj && !v.busy && !gsap.isTweening(v.obj.scale)) {
-        const k = productionState(v.b, game.now()).running ? Math.sin(t * 5.5 + v.b.uid) * 0.012 : 0;
+        const k = productionState(v.b, this.g.now()).running ? Math.sin(t * 5.5 + v.b.uid) * 0.012 : 0;
         v.obj.scale.set(1 - k * 0.5, 1 + k, 1 - k * 0.5);
       }
     }
@@ -803,7 +810,7 @@ export class FarmView {
   // ------------------------------------------------------------------ chimney smoke
   private emitSmoke(v: BuildingView, dt: number): void {
     const mode = SMOKE[v.def.id];
-    if (mode === 'busy' && !productionState(v.b, game.now()).running) return;
+    if (mode === 'busy' && !productionState(v.b, this.g.now()).running) return;
     v.smokeT = (v.smokeT ?? Math.random()) - dt;
     if (v.smokeT > 0) return;
     v.smokeT = mode === 'always' ? 0.8 + Math.random() * 0.5 : 0.45 + Math.random() * 0.25;
@@ -856,6 +863,37 @@ export class FarmView {
     return false;
   }
 
+  /**
+   * Take this view out of the scene and free what it alone owns (instance buffers, the terrain's own
+   * geometry and materials). Shared model geometry and materials (asset cache, sway materials) stay.
+   * Used for the read-only farm of a neighbour you visited; the player's own view is never disposed.
+   */
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.root.parent?.remove(this.root);
+    const shared = assets.vertexMaterial;
+    this.terrain.group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.geometry) return;
+      m.geometry.dispose();
+      for (const mat of Array.isArray(m.material) ? m.material : [m.material]) if (mat && mat !== shared) mat.dispose();
+    });
+    this.root.traverse((o) => { if ((o as THREE.InstancedMesh).isInstancedMesh) (o as THREE.InstancedMesh).dispose(); });
+    this.glowTex.dispose();
+    for (const g of this.ownGeometry) g.dispose();
+    for (const m of this.ownMaterial) { (m as THREE.MeshLambertMaterial).map?.dispose(); m.dispose(); }
+    for (const v of this.views.values()) {
+      (v.glow?.material as THREE.Material | undefined)?.dispose();
+      (v.lightPool?.material as THREE.Material | undefined)?.dispose();
+    }
+    for (const p of [...this.puffs, ...this.freePuffs]) (p.sprite.material as THREE.Material).dispose();
+    this.smokeTex?.dispose();
+    if (this.blobs) { this.blobs.geometry.dispose(); const bm = this.blobs.material as THREE.MeshBasicMaterial; bm.map?.dispose(); bm.dispose(); }
+    this.views.clear();
+    this.obstacleHandles.clear();
+  }
+
   // ------------------------------------------------------------------ picking
   /** Building whose box the ray hits first (tall buildings are easier to tap than their footprint). */
   pickBuilding(ray: THREE.Ray): BuildingView | null {
@@ -873,7 +911,7 @@ export class FarmView {
   }
 
   viewAt(tx: number, tz: number): BuildingView | null {
-    const b = game.buildingAt(tx, tz);
+    const b = this.g.buildingAt(tx, tz);
     return b ? this.views.get(b.uid) ?? null : null;
   }
 
@@ -885,19 +923,19 @@ export class FarmView {
   }
 
   hasReadyCrops(): boolean {
-    const now = game.now();
-    return game.state.buildings.some((b) => b.plot && plotReady(b, now));
+    const now = this.g.now();
+    return this.g.state.buildings.some((b) => b.plot && plotReady(b, now));
   }
 }
 
 // ------------------------------------------------------------------ helpers
-export function purchasableChunks(): string[] {
+export function purchasableChunks(g: Game = game): string[] {
   const out: string[] = [];
   const n = MAP / CHUNK;
   for (let z = 0; z < n; z++) for (let x = 0; x < n; x++) {
     const key = `${x},${z}`;
-    if (game.isUnlocked(key)) continue;
-    const adj = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => game.isUnlocked(`${x + dx},${z + dz}`));
+    if (g.isUnlocked(key)) continue;
+    const adj = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dz]) => g.isUnlocked(`${x + dx},${z + dz}`));
     if (adj) out.push(key);
   }
   return out;

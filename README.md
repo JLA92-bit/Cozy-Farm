@@ -8,7 +8,7 @@ Charm, and customise your farmer. Built with Three.js + TypeScript + Vite, insta
   atlases and instancing so a big farm stays at roughly 130 draw calls.
 - No real-money purchases. Saves live in `localStorage` with export/import, and players who **sign in with
   Google** also get a cloud save that follows them to other devices and the Android app (see [ONLINE.md](ONLINE.md)).
-- Online play (friends, gifts, shared market, leaderboards) works in a local **Practice mode** out of the box,
+- Online play (friends, gifts, shared market, leaderboards, visiting a neighbour's farm) works in a local **Practice mode** out of the box,
   and with real players once you connect a free Supabase project: see [ONLINE.md](ONLINE.md).
 
 ## Quick start

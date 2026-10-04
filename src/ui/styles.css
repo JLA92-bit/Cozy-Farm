@@ -966,3 +966,9 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 
 /* Add to home screen steps */
 .install-steps { margin: 4px 0 10px; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; line-height: 1.3; }
+/* friend cards: Visit + Gift + remove fit a phone held upright (labels give way to icons) */
+.friend-item .visit-btn, .friend-item .gift-btn { min-width: 48px; min-height: 44px; }
+@media (max-width: 480px) {
+  .friend-item .fbtn-lbl { display: none; }
+  .friend-item .visit-btn, .friend-item .gift-btn { padding: 4px 8px; }
+}

@@ -1,6 +1,7 @@
 import { LEVELS } from '../data';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
+import { visiting } from '../systems/Visiting';
 import { SAVE_VERSION, type SaveData } from '../systems/State';
 import { holdProfile, publishProfile } from './Connect';
 import { online } from './Online';
@@ -183,7 +184,7 @@ function dirty(): boolean { return !!game.state && farmHash(game.state) !== meta
 /** Upload this farm. `force` overwrites the cloud copy even if another device changed it. */
 async function upload(force = false): Promise<boolean> {
   const b = accountBackend();
-  if (!b || !signedIn() || busy || asking || saves.locked || status === 'newer') return false;
+  if (!b || !signedIn() || busy || asking || saves.locked || visiting.active || status === 'newer') return false;
   const json = saves.serialize();
   if (!json) return false;
   if (new Blob([json]).size > CLOUD_MAX_BYTES) {
@@ -238,7 +239,7 @@ function loadCloudFarm(row: CloudRow, data: SaveData, note: string, keep: boolea
 /** Compare the cloud farm with this one and act (upload, nothing, load, or ask). */
 async function syncNow(): Promise<void> {
   const b = accountBackend();
-  if (!b || !signedIn() || busy || asking || saves.locked) return;
+  if (!b || !signedIn() || busy || asking || saves.locked || visiting.active) return;
   const acct = b.account()!;
   if (meta.uid !== acct.id) { meta = { ...blankMeta(), uid: acct.id, signedIn: true, email: acct.email }; writeMeta(); }
   busy = true;
@@ -254,6 +255,8 @@ async function syncNow(): Promise<void> {
     return;
   }
   busy = false;
+  // a visit to a neighbour started meanwhile: decide later, back home
+  if (visiting.active) return;
   let cloudData: SaveData | null = null;
   if (row) {
     const parsed = row.saveVersion > SAVE_VERSION ? { error: 'newer' } : saves.parse(row.data);

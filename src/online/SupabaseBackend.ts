@@ -4,6 +4,7 @@ import type {
   PlayerProfile, ProfileStats, PublicLook,
 } from './types';
 import { setOnlineStatus } from './Status';
+import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
 import { weekKey } from './Weekly';
 
 /**
@@ -41,6 +42,7 @@ interface ListingRow {
 interface CloudSaveRow {
   user_id: string; data: unknown; save_version: number | null; level: number | null; coins: number | null; updated_at: string; device: string | null;
 }
+interface FarmRow { data: unknown; updated_at: string }
 interface Result<T> { data: T | null; error: { message: string; code?: string } | null; status?: number }
 
 const REQUEST_TIMEOUT = 15000;
@@ -452,6 +454,18 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend {
   async collect(id: string): Promise<Listing> { return this.mapListing(await this.rpc<ListingRow>('collect_listing', { p_id: id })); }
 
   // ------------------------------------------------------------------ live updates
+  async publishFarm(snapshot: FarmSnapshot): Promise<void> {
+    // the server also checks the size (64 KB) and shape; this just avoids sending what it would refuse
+    if (JSON.stringify(snapshot).length > 65536) throw new Error('farm too big');
+    await this.rpc<string>('publish_farm', { p_data: snapshot });
+  }
+
+  async getFarm(playerId: string): Promise<FarmSnapshot | null> {
+    if (!UUID.test(playerId)) return null;
+    const row = await this.query((sb) => sb.from('farm_snapshots').select('data, updated_at').eq('user_id', playerId).maybeSingle() as PromiseLike<Result<FarmRow>>);
+    return row ? sanitizeSnapshot(row.data) : null;
+  }
+
   subscribe(cb: (e: OnlineEvent) => void): () => void {
     this.subs.add(cb);
     if (this.uid) this.startLive();

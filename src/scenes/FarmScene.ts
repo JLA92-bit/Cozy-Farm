@@ -42,12 +42,21 @@ export class FarmScene implements InputHandler {
   private rect = { left: 0, top: 0, width: 1, height: 1 };
   private projTmp = new THREE.Vector3();
   private resizeTimer = 0;
+  /** Lights, sky and clouds: everything that stays on screen while visiting a neighbour. */
+  private envObjects: Set<THREE.Object3D>;
+  private hiddenForVisit: THREE.Object3D[] = [];
+  /**
+   * A neighbour's farm being visited (read-only). While set, it is drawn instead of the player's farm,
+   * and the player's own tick and frame hooks are paused: nothing of the player's farm runs or changes.
+   */
+  visit: { view: FarmView; frame: (dt: number, t: number) => void } | null = null;
 
   constructor(readonly canvas: HTMLCanvasElement, readonly renderer: Renderer) {
     this.rig = new CameraRig(window.innerWidth / window.innerHeight);
     this.rig.bounds.set(new THREE.Vector2(-HALF + 2, -HALF + 2), new THREE.Vector2(HALF - 2, HALF - 2));
     this.rig.target.set(-3, 0, -2);
     this.env = new Environment(this.scene, renderer.profile.shadowMapSize, renderer.profile.ambientLife);
+    this.envObjects = new Set(this.scene.children);
     this.farm = new FarmView(this.scene);
     this.input = new Input(canvas, this);
     this.loop = new GameLoop((dt, t) => this.frame(dt, t), (now) => this.tick(now));
@@ -82,7 +91,26 @@ export class FarmScene implements InputHandler {
     this.loop.wake(0.5);
   }
 
+  /**
+   * Hide everything of the player's farm (farm view, farmer, villagers, effects, ghosts) so a visited
+   * farm can be shown in its place. Only lights, sky and clouds stay.
+   */
+  hideOwnFarm(): void {
+    for (const o of this.scene.children) {
+      if (this.envObjects.has(o) || !o.visible) continue;
+      o.visible = false;
+      this.hiddenForVisit.push(o);
+    }
+  }
+  /** Undo hideOwnFarm: the player's farm exactly as it was. */
+  showOwnFarm(): void {
+    for (const o of this.hiddenForVisit) o.visible = true;
+    this.hiddenForVisit = [];
+    this.loop.wake(1);
+  }
+
   private tick(now: number): void {
+    if (this.visit) return; // the player's systems are paused while visiting
     for (const fn of this.tickHooks) fn(this.now());
     void now;
   }
@@ -91,13 +119,16 @@ export class FarmScene implements InputHandler {
     const start = performance.now();
     this.rig.update(dt);
     this.env.update(dt, t, this.now(), this.rig.target);
-    this.farm.terrain.update(t, this.env.light, this.env.sky, this.env.night, this.rig.target, dt);
-    this.farm.blobShadows = !this.renderer.renderer.shadowMap.enabled;
-    this.farm.frame(dt, t, this.env.night);
-    for (const fn of this.frameHooks) fn(dt, t);
+    const visit = this.visit;
+    const view = visit ? visit.view : this.farm;
+    view.terrain.update(t, this.env.light, this.env.sky, this.env.night, this.rig.target, dt);
+    view.blobShadows = !this.renderer.renderer.shadowMap.enabled || !this.env.sun.castShadow;
+    view.frame(dt, t, this.env.night);
+    if (visit) visit.frame(dt, t);
+    else for (const fn of this.frameHooks) fn(dt, t);
     this.renderer.renderer.render(this.scene, this.rig.camera);
     // keep animating while things move; otherwise the loop idles at low fps
-    if (this.rig.moving || this.input.active || this.farm.hints.visible) this.loop.wake(0.3);
+    if (this.rig.moving || this.input.active || (!visit && this.farm.hints.visible)) this.loop.wake(0.3);
     this.lastFrameMs = performance.now() - start;
     this.fpsAcc += dt; this.fpsFrames++;
     if (this.fpsAcc >= 1) { this.fps = this.fpsFrames / this.fpsAcc; this.fpsAcc = 0; this.fpsFrames = 0; }

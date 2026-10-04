@@ -37,6 +37,8 @@ import { configureOnline, startOnlineSync } from '../online/Connect';
 import { startCloud } from '../online/CloudSave';
 import { wireAccountNudge } from '../ui/panels/AccountPanels';
 import { wireHintIntros } from '../systems/Hints';
+import { visiting } from '../systems/Visiting';
+import { initVisit } from './Visit';
 
 function setProgress(f: number, text?: string): void {
   const pct = `${Math.round(f * 100)}%`;
@@ -114,6 +116,7 @@ export async function boot(): Promise<void> {
   scene.now = () => game.now();
   interaction = new Interaction(scene);
   scene.handler = interaction;
+  initVisit(scene, interaction);
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;
@@ -205,6 +208,8 @@ function watchDayAndResume(): void {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = game.now(); return; }
     if (!hiddenAt) return;
+    // visiting a neighbour: the player's farm stays paused; it catches up on the next tick back home
+    if (visiting.active) return;
     const since = hiddenAt;
     hiddenAt = 0;
     const now = game.now();
