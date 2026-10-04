@@ -14,3 +14,4 @@ import './MarketPanel';
 import './LeaderboardPanel';
 import './AccountPanels';
 import './MoveFarmPanel';
+import './NeighboursPanel';

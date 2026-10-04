@@ -111,5 +111,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     lastSeenVersion: APP_VERSION,
     hints: { mode: '', intros: [] },
     social: { friends: [], sent: { day: '', gifts: 0, coins: 0 }, claimedCodes: [], madeCodes: [], botGiftDay: '' },
+    neighbours: { day: '', rewarded: 0, consoled: 0, paid: [] },
   };
 }

@@ -88,6 +88,8 @@ export interface SaveData {
   hints: { mode: '' | 'all' | 'new' | 'off'; intros: string[] };
   /** Friends and gifts (Update 2). */
   social: SocialState;
+  /** Helping neighbours while visiting (Update 5). */
+  neighbours: NeighbourState;
 }
 
 export interface FriendEntry { id: string; name: string; code: string; addedAt: number }
@@ -101,6 +103,18 @@ export interface SocialState {
   madeCodes: string[];
   /** practice mode: day a demo neighbour last sent a thank-you gift */
   botGiftDay: string;
+}
+
+/** Helping neighbours: daily reward counters and which rewards were already added (Update 5). */
+export interface NeighbourState {
+  /** local day the counters below belong to */
+  day: string;
+  /** helps that paid coins and XP today (a few a day) */
+  rewarded: number;
+  /** small "thanks anyway" rewards for help that could not be used today */
+  consoled: number;
+  /** ids of helper rewards already added to this farm, so one is never added twice */
+  paid: string[];
 }
 
 export const SAVE_VERSION = 1;

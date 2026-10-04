@@ -46,6 +46,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   if (!['', 'all', 'new', 'off'].includes(out.hints.mode)) out.hints.mode = '';
   out.hints.intros = strArr(out.hints.intros);
   out.social = { ...base.social, ...(isObj(s.social) ? s.social : {}) };
+  out.neighbours = { ...base.neighbours, ...(isObj(s.neighbours) ? s.neighbours : {}) };
   return sanitize(out, base);
 }
 
@@ -132,6 +133,11 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   so.claimedCodes = strArr(so.claimedCodes).slice(-300);
   so.madeCodes = strArr(so.madeCodes).slice(-300);
   if (typeof so.botGiftDay !== 'string') so.botGiftDay = '';
+  const nb = out.neighbours;
+  if (typeof nb.day !== 'string') nb.day = '';
+  nb.rewarded = Math.floor(finite(nb.rewarded, 0, 0));
+  nb.consoled = Math.floor(finite(nb.consoled, 0, 0));
+  nb.paid = strArr(nb.paid).slice(-100);
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;
 }

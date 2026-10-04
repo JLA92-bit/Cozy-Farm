@@ -39,6 +39,8 @@ a gift claimed once) and turns on live updates. It is safe to run again after a 
 **Re-run `supabase/schema.sql` after updating the game.** New features sometimes need new tables or server
 functions (for example version 1.4.0 "Visiting" adds the `farm_snapshots` table and the `publish_farm`
 function). Running the whole file again only adds what is missing; players' data is kept.
+The "Helping neighbours" update adds the `farm_help` table and the `help_farm`, `like_farm`,
+`farm_help_status` and `claim_farm_help` functions, so run it again for that too.
 
 ## 4. Copy the project URL and anon key into GitHub
 
@@ -130,7 +132,8 @@ their farm appears.
 
 - In the game: **Settings > Online play > Delete my online account** (two confirmations). It calls
   `delete_my_account()`, which deletes the player's sign-in (`auth.users`), public profile and friend code,
-  cloud save, farm snapshot, their own market listings and every gift they sent or received. Listings they bought from
+  cloud save, farm snapshot, their own market listings, every gift they sent or received and all neighbour
+  help and likes they gave or got (`farm_help`, through the profile cascade). Listings they bought from
   other players stay for the seller, with the buyer's name replaced by "A farmer". The farm on the device is
   not touched. This is the in-app account deletion Google Play asks for.
 - By email: players can also ask at `joshmakesgames92@gmail.com`. Find them by friend code in **Table
@@ -163,6 +166,7 @@ their farm appears.
 | "Cloud save: could not save" in Settings | Run `schema.sql` again (step 3) so `save_cloud` exists. The game retries on its own. |
 | "Visit farm" always says **This farm hasn't been shared yet**, or the browser console shows `function public.publish_farm does not exist` / `relation "public.farm_snapshots" does not exist` | Run `supabase/schema.sql` again (step 3) so `farm_snapshots` and `publish_farm` exist. Each player's farm is shared a few seconds after they next open the game. |
 | "Visit farm" says **Couldn't reach the village** | The device is offline or the server is paused. The player's own farm is never touched; they can try again later. |
+| Visiting works but **Water it** / the like heart says "Could not reach the village", or the console shows `function public.help_farm does not exist` / `relation "public.farm_help" does not exist` | Run `supabase/schema.sql` again (step 3) so `farm_help` and its functions exist. Help that could not be sent is not lost from the visitor's farm; they can simply try again. |
 | Free project paused after a week without players | Open the Supabase dashboard and click **Restore project**. |
 
 ## Good to know
@@ -177,6 +181,14 @@ their farm appears.
   most 64 KB): buildings, fields and their growth stage, fruit trees, animals, decorations, land, the farmer's look
   and pet, level and charm, as of the last time it was shared (at most every 5 minutes while playing and when the
   game is put in the background). Coins, items and the rest of the save are not in it. Visits are view only.
+- **Helping neighbours:** a visitor can help each neighbour once per UTC day (water a growing field, feed an
+  animal home or tend a fruit tree) and like their farm once per UTC day with an optional guestbook note picked
+  from a preset list (no free text). These are rows in `farm_help`, written only through `help_farm()` and
+  `like_farm()`, which refuse your own farm, unknown players, a second help or like on the same day, unknown
+  notes, more than 50 rows per farm per day and more than 200 per helper per day. Owners read their own rows
+  and helpers the rows they made. The owner's game applies the help when they next play (only if the field,
+  home or tree still needs it) and marks the rows claimed with `claim_farm_help()`. Deleting either account
+  removes its rows (foreign keys cascade).
 - **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP, and the
   layout of your farm when they visit it. Players
   who sign in with Google also store their Google email address and account id (in Supabase Auth) and a

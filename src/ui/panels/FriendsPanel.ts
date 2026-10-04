@@ -14,8 +14,10 @@ import type { FriendEntry } from '../../systems/State';
 import { online } from '../../online/Online';
 import type { PlayerProfile, PublicLook } from '../../online/types';
 import './friends.css';
+import { neighbours } from '../../systems/Neighbours';
+import { renderVisitors } from './NeighboursPanel';
 
-type Tab = 'friends' | 'mail' | 'codes';
+type Tab = 'friends' | 'mail' | 'codes' | 'visitors';
 
 // ------------------------------------------------------------------ small helpers
 
@@ -114,7 +116,7 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
   const mailLabel = () => (social.mailCount ? `Mailbox (${social.mailCount})` : 'Mailbox');
   const p = new Panel({
     title: 'Friends', icon: 'hug', color: 'pink', wallet: true,
-    tabs: [{ id: 'friends', label: 'Friends', icon: 'hug' }, { id: 'mail', label: mailLabel(), icon: 'mailbox' }, { id: 'codes', label: 'Gift codes', icon: 'gift' }],
+    tabs: [{ id: 'friends', label: 'Friends', icon: 'hug' }, { id: 'mail', label: mailLabel(), icon: 'mailbox' }, { id: 'codes', label: 'Gift codes', icon: 'gift' }, { id: 'visitors', label: 'Visitors', icon: 'heart' }],
   });
   let codeText = opts.code ?? '';
   const profiles = new Map<string, PlayerProfile>();
@@ -134,6 +136,7 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     updateMailTab();
     if (tab === 'mail') renderMail();
     else if (tab === 'codes') renderCodes();
+    else if (tab === 'visitors') renderVisitors(p.body);
     else renderFriends();
   };
 
@@ -344,11 +347,13 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     if (p.overlay.isConnected && !typing) render(p.tab);
     else updateMailTab();
   });
-  p.onClose = () => off();
+  const offHelp = neighbours.onChange(() => { if (p.overlay.isConnected && p.tab === 'visitors') render(p.tab); });
+  p.onClose = () => { off(); offHelp(); };
   p.onTab = render;
   p.tab = opts.tab ?? (social.mailCount ? 'mail' : 'friends');
   p.open();
   void load();
+  void neighbours.poll();
 }
 
 function limitsRow(): HTMLElement {

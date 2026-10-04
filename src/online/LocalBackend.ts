@@ -1,5 +1,6 @@
-import type { Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent, PlayerProfile, ProfileStats } from './types';
+import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats } from './types';
 import { botFarm } from './BotFarms';
+import { helpKindFor } from './FarmHelp';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
 
 /**
@@ -12,6 +13,13 @@ const DB_KEY = 'cozy-acres-online-local';
 const ID_KEY = 'cozy-acres-online-id';
 /** Published farm snapshots of the players in this browser (practice mode), by player id. */
 const FARMS_KEY = 'cozy-acres-online-farms';
+/** Neighbour help and likes (practice mode): rows plus the UTC day demo neighbours last helped this player. */
+const HELP_KEY = 'cozy-acres-online-help';
+/** Same limits as the server (supabase/schema.sql help_farm / like_farm). */
+export const HELP_LIMITS = { perOwnerPerDay: 50, keep: 400 };
+
+interface HelpDb { rows: FarmHelp[]; seq: number; botDay: string }
+const utcDay = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 interface Db { profiles: PlayerProfile[]; gifts: Gift[]; listings: Listing[]; seq: number; botsAt: number }
 
@@ -226,6 +234,129 @@ export class LocalBackend implements OnlineBackend {
       const farms = JSON.parse(localStorage.getItem(FARMS_KEY) ?? '{}') as Record<string, unknown>;
       return farms && typeof farms === 'object' && farms[playerId] ? sanitizeSnapshot(farms[playerId], this.now()) : null;
     } catch { return null; }
+  }
+
+  // ------------------------------------------------------------------ helping neighbours
+  private readHelp(): HelpDb {
+    try {
+      const raw = JSON.parse(localStorage.getItem(HELP_KEY) ?? 'null') as HelpDb | null;
+      if (raw && Array.isArray(raw.rows)) return { rows: raw.rows, seq: Number(raw.seq) || 1, botDay: typeof raw.botDay === 'string' ? raw.botDay : '' };
+    } catch { /* corrupt: start over */ }
+    return { rows: [], seq: 1, botDay: '' };
+  }
+  private writeHelp<T>(fn: (db: HelpDb) => T): T {
+    const db = this.readHelp();
+    const r = fn(db);
+    if (db.rows.length > HELP_LIMITS.keep) {
+      // forget the oldest claimed rows first
+      db.rows.sort((a, b) => b.at - a.at);
+      const keep: FarmHelp[] = [];
+      for (const row of db.rows) if (keep.length < HELP_LIMITS.keep || !row.claimed) keep.push(row);
+      db.rows = keep;
+    }
+    try { localStorage.setItem(HELP_KEY, JSON.stringify(db)); } catch { /* full or blocked */ }
+    return r;
+  }
+  /** Adds one row with the server's rules: not yourself, a known owner, once a day per helper and owner. */
+  private addHelp(db: HelpDb, owner: string, helper: { id: string; name: string }, kind: FarmHelp['kind'], target: FarmHelpTarget | null, note: string | null): FarmHelp {
+    if (owner === helper.id) throw new Error('self');
+    if (!this.read().profiles.some((p) => p.id === owner)) throw new Error('unknown player');
+    const now = this.now(), day = utcDay(now);
+    const today = db.rows.filter((r) => r.owner === owner && utcDay(r.at) === day);
+    if (today.some((r) => r.helper.id === helper.id && (r.kind === 'like') === (kind === 'like'))) throw new Error('already');
+    if (today.length >= HELP_LIMITS.perOwnerPerDay) throw new Error('busy');
+    const row: FarmHelp = { id: `h${db.seq++}`, owner, helper: { id: helper.id, name: helper.name }, kind, target, note, at: now, claimed: false };
+    db.rows.push(row);
+    return row;
+  }
+
+  async helpFarm(ownerId: string, kind: FarmHelpKind, target: FarmHelpTarget): Promise<FarmHelp> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (!['water', 'feed', 'tend'].includes(kind) || !target || typeof target.type !== 'string') throw new Error('bad');
+    const t: FarmHelpTarget = { type: target.type.slice(0, 40), x: Math.floor(target.x) || 0, z: Math.floor(target.z) || 0 };
+    return this.writeHelp((db) => ({ ...this.addHelp(db, ownerId, me, kind, t, null) }));
+  }
+
+  async likeFarm(ownerId: string, note?: string | null): Promise<FarmHelp> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (note && !HELP_NOTES[note]) throw new Error('bad');
+    return this.writeHelp((db) => ({ ...this.addHelp(db, ownerId, me, 'like', null, note || null) }));
+  }
+
+  async farmHelpStatus(ownerId: string): Promise<FarmHelpStatus> {
+    await this.init();
+    const day = utcDay(this.now());
+    const rows = this.readHelp().rows.filter((r) => r.owner === ownerId);
+    const mine = rows.filter((r) => r.helper.id === this.id && utcDay(r.at) === day);
+    // demo neighbours' farms start with a few likes so the heart is never lonely
+    const bot = this.read().profiles.find((p) => p.id === ownerId && p.bot);
+    const base = bot ? 3 + (bot.level % 7) * 2 : 0;
+    return { likes: base + rows.filter((r) => r.kind === 'like').length, helped: mine.some((r) => r.kind !== 'like'), liked: mine.some((r) => r.kind === 'like') };
+  }
+
+  async myFarmHelp(): Promise<FarmHelp[]> {
+    await this.init();
+    this.maybeBotHelp();
+    return this.readHelp().rows.filter((r) => r.owner === this.id).sort((a, b) => b.at - a.at).slice(0, 60).map((r) => ({ ...r }));
+  }
+
+  async claimFarmHelp(ids: string[]): Promise<string[]> {
+    await this.init();
+    const want = new Set(ids.slice(0, 100));
+    return this.writeHelp((db) => {
+      const out: string[] = [];
+      for (const r of db.rows) if (want.has(r.id) && r.owner === this.id && !r.claimed) { r.claimed = true; out.push(r.id); }
+      return out;
+    });
+  }
+
+  /**
+   * Practice mode only: once a (UTC) day, on the first check after the game opens (and only once this
+   * player has shared their farm), a demo neighbour
+   * drops by to help (a growing field, hungry animals or a fruit tree from the shared snapshot) and
+   * another one leaves a like with a note, so the owner side can be tried without a server.
+   * `force` (headless tests, via window.__neighbours.botVisit) ignores the once-a-day rule.
+   */
+  botHelp(force = false): boolean {
+    const day = utcDay(this.now());
+    const help = this.readHelp();
+    if (!force && help.botDay === day) return false;
+    let snap: FarmSnapshot | null = null;
+    try {
+      const farms = JSON.parse(localStorage.getItem(FARMS_KEY) ?? '{}') as Record<string, unknown>;
+      snap = farms && typeof farms === 'object' && farms[this.id] ? sanitizeSnapshot(farms[this.id], this.now()) : null;
+    } catch { /* none */ }
+    if (!snap) return false;
+    const bots = this.read().profiles.filter((p) => p.bot);
+    if (bots.length < 2) return false;
+    const pick = <T>(list: T[]): T => list[Math.floor(Math.random() * list.length)];
+    const options: { kind: FarmHelpKind; target: FarmHelpTarget }[] = [];
+    for (const e of snap.b) {
+      const kind = helpKindFor(e);
+      if (kind) options.push({ kind, target: { type: e[0], x: e[1], z: e[2] } });
+    }
+    const a = pick(bots);
+    const b = pick(bots.filter((x) => x.id !== a.id));
+    this.writeHelp((db) => {
+      db.botDay = day;
+      // watering is the easiest help to notice, so demo neighbours like it best
+      const water = options.filter((o) => o.kind === 'water');
+      const opt = water.length && Math.random() < 0.7 ? pick(water) : options.length ? pick(options) : null;
+      try { if (opt) this.addHelp(db, this.id, a, opt.kind, opt.target, null); } catch { /* already today */ }
+      try { this.addHelp(db, this.id, b, 'like', null, pick(Object.keys(HELP_NOTES))); } catch { /* already today */ }
+    });
+    return true;
+  }
+  /** Demo neighbours only drop by "while you were away": checked once per page load, never mid-session. */
+  private botHelpTried = false;
+  private maybeBotHelp(): void {
+    if (this.botHelpTried) return;
+    this.botHelpTried = true;
+    try { this.botHelp(false); } catch { /* demo only */ }
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void { this.subs.add(cb); return () => this.subs.delete(cb); }
