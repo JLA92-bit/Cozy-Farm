@@ -825,3 +825,391 @@ grant execute on function public.help_farm(uuid, text, jsonb) to authenticated;
 grant execute on function public.like_farm(uuid, text) to authenticated;
 grant execute on function public.farm_help_status(uuid) to authenticated;
 grant execute on function public.claim_farm_help(uuid[]) to authenticated;
+
+-- --------------------------------------------------------------------------- phone notifications
+-- "Notifications" in Settings (Update 5, see ONLINE.md "Notifications"). Each device that switched them on
+-- has a Web Push subscription here (push_subscriptions). The game plans its own reminders for the next day
+-- (crops, animals, goods, truck, stall, daily reward) and replaces the player's future schedule in one call
+-- (replace_push_schedule). Gifts and Shared Market sales are added here, by triggers. The Edge Function
+-- supabase/functions/send-push sends what is due (every 5 minutes, see push_cron_tick at the end).
+-- Clients can only read their own rows; writes go through the functions below. Deleting the account
+-- (delete_my_account -> auth.users) removes both tables' rows through the foreign keys (on delete cascade).
+
+create table if not exists public.push_subscriptions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  endpoint    text not null unique check (endpoint ~ '^https://' and char_length(endpoint) <= 1000),
+  p256dh      text not null check (p256dh ~ '^[A-Za-z0-9_-]{20,200}=*$'),
+  auth        text not null check (auth ~ '^[A-Za-z0-9_-]{8,100}=*$'),
+  -- the device's time zone and quiet hours (minutes after local midnight), for gifts and sales
+  tz          text not null default 'UTC' check (char_length(tz) <= 64),
+  quiet_start smallint not null default 1260 check (quiet_start between 0 and 1439),
+  quiet_end   smallint not null default 480 check (quiet_end between 0 and 1439),
+  -- gifts and Shared Market sales wanted on this device
+  social      boolean not null default true,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  last_ok_at  timestamptz
+);
+
+create table if not exists public.push_schedule (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  fire_at    timestamptz not null,
+  kind       text not null check (kind ~ '^[a-z]{1,16}$'),
+  title      text not null check (char_length(title) between 1 and 80),
+  body       text not null check (char_length(body) between 1 and 200),
+  created_at timestamptz not null default now(),
+  sent_at    timestamptz,
+  -- what the sender did: sent, skipped (daily limit), stale (too late), failed (no device took it)
+  status     text check (status is null or status in ('sent', 'skipped', 'stale', 'failed'))
+);
+
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
+create index if not exists push_schedule_due_idx       on public.push_schedule (fire_at) where sent_at is null;
+create index if not exists push_schedule_user_idx      on public.push_schedule (user_id, fire_at);
+
+alter table public.push_subscriptions enable row level security;
+alter table public.push_schedule      enable row level security;
+revoke all on public.push_subscriptions, public.push_schedule from anon, authenticated, public;
+grant select on public.push_subscriptions, public.push_schedule to authenticated;
+
+drop policy if exists "players read only their own push subscriptions" on public.push_subscriptions;
+create policy "players read only their own push subscriptions" on public.push_subscriptions
+  for select to authenticated using (user_id = auth.uid());
+drop policy if exists "players read only their own push schedule" on public.push_schedule;
+create policy "players read only their own push schedule" on public.push_schedule
+  for select to authenticated using (user_id = auth.uid());
+
+-- The first moment at or after p_at that is outside the quiet hours p_qs..p_qe (minutes, local time in p_tz).
+create or replace function public.push_after_quiet(p_at timestamptz, p_tz text, p_qs integer, p_qe integer)
+returns timestamptz
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  v_local timestamp;
+  v_min integer;
+  v_end timestamp;
+begin
+  if p_qs is null or p_qe is null or p_qs = p_qe then return p_at; end if;
+  v_local := p_at at time zone coalesce(p_tz, 'UTC');
+  v_min := extract(hour from v_local)::integer * 60 + extract(minute from v_local)::integer;
+  if (p_qs < p_qe and v_min >= p_qs and v_min < p_qe) or (p_qs > p_qe and (v_min >= p_qs or v_min < p_qe)) then
+    v_end := date_trunc('day', v_local) + make_interval(mins => p_qe);
+    if v_end <= v_local then v_end := v_end + interval '1 day'; end if;
+    return v_end at time zone coalesce(p_tz, 'UTC');
+  end if;
+  return p_at;
+exception when others then
+  return p_at; -- unknown time zone: no quiet hours rather than no notification
+end;
+$$;
+
+-- Save (or move to this account) this device's push subscription and its notification choices.
+-- A device belongs to the last account that saved it. At most 10 devices per player (the oldest go).
+create or replace function public.save_push_subscription(
+  p_endpoint text,
+  p_p256dh text,
+  p_auth text,
+  p_tz text,
+  p_quiet_start integer,
+  p_quiet_end integer,
+  p_social boolean
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_tz text := left(coalesce(p_tz, 'UTC'), 64);
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_endpoint is null or p_endpoint !~ '^https://' or char_length(p_endpoint) > 1000 then raise exception 'bad subscription'; end if;
+  if coalesce(p_p256dh, '') !~ '^[A-Za-z0-9_-]{20,200}=*$' or coalesce(p_auth, '') !~ '^[A-Za-z0-9_-]{8,100}=*$' then raise exception 'bad subscription'; end if;
+  if not exists (select 1 from pg_catalog.pg_timezone_names z where z.name = v_tz) then v_tz := 'UTC'; end if;
+
+  insert into public.push_subscriptions as s (user_id, endpoint, p256dh, auth, tz, quiet_start, quiet_end, social, updated_at)
+  values (uid, p_endpoint, p_p256dh, p_auth, v_tz,
+          least(greatest(coalesce(p_quiet_start, 1260), 0), 1439), least(greatest(coalesce(p_quiet_end, 480), 0), 1439),
+          coalesce(p_social, true), now())
+  on conflict (endpoint) do update set
+    user_id     = excluded.user_id,
+    p256dh      = excluded.p256dh,
+    auth        = excluded.auth,
+    tz          = excluded.tz,
+    quiet_start = excluded.quiet_start,
+    quiet_end   = excluded.quiet_end,
+    social      = excluded.social,
+    updated_at  = now();
+
+  delete from public.push_subscriptions s
+   where s.user_id = uid
+     and s.id not in (select x.id from public.push_subscriptions x where x.user_id = uid order by x.updated_at desc limit 10);
+  return true;
+end;
+$$;
+
+-- Forget one of the caller's devices (notifications switched off). With no device left, the planned
+-- reminders go too. Returns how many devices were removed.
+create or replace function public.delete_push_subscription(p_endpoint text)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  n integer;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  delete from public.push_subscriptions s where s.user_id = uid and s.endpoint = p_endpoint;
+  get diagnostics n = row_count;
+  if not exists (select 1 from public.push_subscriptions s where s.user_id = uid) then
+    delete from public.push_schedule p where p.user_id = uid and p.sent_at is null;
+  end if;
+  return n;
+end;
+$$;
+
+-- Replace the caller's planned reminders with p_rows: a JSON array of
+-- {"fire_at": "<ISO time>", "kind": "crops", "title": "...", "body": "..."}. Gift, market and test rows
+-- (made by the server) are kept. Limits: 30 rows, fire_at from 5 minutes ago to 48 hours ahead (rows
+-- outside are skipped, so a device with a wrong clock cannot fill the table), title 80 and body 200
+-- characters. Returns how many rows were planned.
+create or replace function public.replace_push_schedule(p_rows jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r jsonb;
+  v_at timestamptz;
+  v_kind text;
+  n integer := 0;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_rows is null or jsonb_typeof(p_rows) <> 'array' then raise exception 'bad schedule'; end if;
+  if jsonb_array_length(p_rows) > 30 then raise exception 'too many notifications'; end if;
+  perform 1 from public.profiles p where p.id = uid for update; -- serialises this player's calls (no-op without a profile)
+
+  delete from public.push_schedule p
+   where p.user_id = uid and p.sent_at is null and p.kind not in ('gift', 'market', 'test');
+  -- tidy up this player's old sent rows
+  delete from public.push_schedule p where p.user_id = uid and p.sent_at < now() - interval '2 days';
+  if not exists (select 1 from public.push_subscriptions s where s.user_id = uid) then return 0; end if;
+
+  for r in select e.value from jsonb_array_elements(p_rows) e loop
+    if jsonb_typeof(r) <> 'object' then raise exception 'bad schedule'; end if;
+    v_kind := r ->> 'kind';
+    if v_kind is null or v_kind not in ('crops', 'animals', 'goods', 'truck', 'sales', 'daily', 'mixed') then raise exception 'bad schedule'; end if;
+    begin
+      v_at := (r ->> 'fire_at')::timestamptz;
+    exception when others then raise exception 'bad schedule';
+    end;
+    if v_at is null or v_at < now() - interval '5 minutes' or v_at > now() + interval '48 hours' then continue; end if;
+    insert into public.push_schedule (user_id, fire_at, kind, title, body)
+    values (uid, v_at, v_kind, public.clean_text(r ->> 'title', 80, 'Cozy Acres'), public.clean_text(r ->> 'body', 200, 'Something is ready on your farm.'));
+    n := n + 1;
+  end loop;
+  return n;
+end;
+$$;
+
+-- "Send a test" in Settings: one test notification to the caller's devices with the next sender run.
+-- At most one every 2 minutes.
+create or replace function public.push_test()
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if not exists (select 1 from public.push_subscriptions s where s.user_id = uid) then raise exception 'no device'; end if;
+  if exists (select 1 from public.push_schedule p where p.user_id = uid and p.kind = 'test' and p.created_at > now() - interval '2 minutes') then
+    raise exception 'too soon';
+  end if;
+  insert into public.push_schedule (user_id, fire_at, kind, title, body)
+  values (uid, now(), 'test', 'Cozy Acres', 'Notifications work! We will let you know when your farm needs you.');
+  return now();
+end;
+$$;
+
+-- Add a server notification (gift, market sale) for a player who has a device that wants them,
+-- after their quiet hours. At most one of each kind per 30 minutes: while one is still waiting it
+-- becomes the "several" text instead of a second notification.
+create or replace function public.push_social(p_user uuid, p_kind text, p_title text, p_body text, p_many_title text, p_many_body text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  s public.push_subscriptions;
+begin
+  select x.* into s from public.push_subscriptions x where x.user_id = p_user and x.social order by x.updated_at desc limit 1;
+  if not found then return; end if;
+  update public.push_schedule p set title = p_many_title, body = p_many_body
+   where p.user_id = p_user and p.kind = p_kind and p.sent_at is null;
+  if found then return; end if;
+  if exists (select 1 from public.push_schedule p where p.user_id = p_user and p.kind = p_kind and p.created_at > now() - interval '30 minutes') then return; end if;
+  insert into public.push_schedule (user_id, fire_at, kind, title, body)
+  values (p_user, public.push_after_quiet(now(), s.tz, s.quiet_start, s.quiet_end), p_kind,
+          public.clean_text(p_title, 80, 'Cozy Acres'), public.clean_text(p_body, 200, 'Something happened on your farm.'));
+end;
+$$;
+
+-- Triggers on gifts and listings (send_gift and buy_listing are unchanged). A notification problem must
+-- never break a gift or a sale, so errors are only logged.
+create or replace function public.push_on_gift()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  begin
+    perform public.push_social(new.to_id, 'gift', 'A gift arrived!',
+      public.clean_text(new.from_name, 24, 'A neighbour') || ' sent you a gift. Open Cozy Acres to claim it.',
+      'Gifts are waiting!', 'Your neighbours sent you gifts. Open Cozy Acres to claim them.');
+  exception when others then
+    raise warning 'push_on_gift: %', sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+create or replace function public.push_on_sale()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.status = 'sold' and old.status = 'open' then
+    begin
+      perform public.push_social(new.seller_id, 'market', 'Sold at the market!',
+        public.clean_text(new.buyer_name, 24, 'A farmer') || ' bought your ' || new.qty || ' ' || replace(new.item, '_', ' ')
+          || ' for ' || new.price || ' coins. Collect them in the Shared Market.',
+        'Sold at the market!', 'Several of your market listings sold. Collect your coins in the Shared Market.');
+    exception when others then
+      raise warning 'push_on_sale: %', sqlerrm;
+    end;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists push_on_gift on public.gifts;
+create trigger push_on_gift after insert on public.gifts
+  for each row execute function public.push_on_gift();
+drop trigger if exists push_on_sale on public.listings;
+create trigger push_on_sale after update of status on public.listings
+  for each row execute function public.push_on_sale();
+
+-- For the sender (Edge Function, service role only): take the due notifications, at most p_limit, and
+-- mark them in the same step so two runs never send the same one. Too late (over 3 hours, for example
+-- after the sender was paused) = 'stale', not sent. More than 10 sent to a player in 24 hours = 'skipped'.
+-- Returns the rows to send now (status 'sent'); the sender sets 'failed' when no device took one.
+create or replace function public.claim_due_pushes(p_limit integer default 300)
+returns setof public.push_schedule
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.push_schedule p set sent_at = now(), status = 'stale'
+   where p.sent_at is null and p.fire_at < now() - interval '3 hours';
+  delete from public.push_schedule p where p.sent_at < now() - interval '3 days';
+  with locked as (
+    select p.id, p.user_id, p.fire_at
+      from public.push_schedule p
+     where p.sent_at is null and p.fire_at <= now()
+     order by p.fire_at
+     limit least(greatest(coalesce(p_limit, 300), 1), 1000)
+     for update skip locked
+  ), due as (
+    select l.id, l.user_id, row_number() over (partition by l.user_id order by l.fire_at, l.id) as nth from locked l
+  ), recent as (
+    select p.user_id, count(*) as n from public.push_schedule p
+     where p.status = 'sent' and p.sent_at > now() - interval '1 day' and p.user_id in (select d.user_id from due d)
+     group by p.user_id
+  )
+  update public.push_schedule p
+     set sent_at = now(),
+         status = case when coalesce(r.n, 0) + d.nth > 10 then 'skipped' else 'sent' end
+    from due d left join recent r on r.user_id = d.user_id
+   where p.id = d.id
+  returning p.*;
+$$;
+
+-- Called every 5 minutes by pg_cron (below): wakes the send-push Edge Function, only when something is due.
+-- Needs two Vault secrets (ONLINE.md "Notifications"): cozy_project_url (https://<project>.supabase.co) and
+-- cozy_push_secret (the same text as the PUSH_CRON_SECRET Edge Function secret).
+create or replace function public.push_cron_tick()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_url text;
+  v_secret text;
+begin
+  if not exists (select 1 from public.push_schedule p where p.sent_at is null and p.fire_at <= now()) then return; end if;
+  begin
+    select d.decrypted_secret into v_url from vault.decrypted_secrets d where d.name = 'cozy_project_url';
+    select d.decrypted_secret into v_secret from vault.decrypted_secrets d where d.name = 'cozy_push_secret';
+  exception when others then
+    v_url := null;
+  end;
+  if v_url is null or v_url = '' then
+    raise warning 'push_cron_tick: add the Vault secret cozy_project_url (see ONLINE.md, Notifications)';
+    return;
+  end if;
+  perform net.http_post(
+    url := rtrim(v_url, '/') || '/functions/v1/send-push',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-cron-secret', coalesce(v_secret, '')),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 30000);
+end;
+$$;
+
+revoke all on function public.push_after_quiet(timestamptz, text, integer, integer) from public, anon, authenticated;
+revoke all on function public.push_social(uuid, text, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.push_on_gift() from public, anon, authenticated;
+revoke all on function public.push_on_sale() from public, anon, authenticated;
+revoke all on function public.claim_due_pushes(integer) from public, anon, authenticated;
+revoke all on function public.push_cron_tick() from public, anon, authenticated;
+revoke all on function public.save_push_subscription(text, text, text, text, integer, integer, boolean) from public, anon;
+revoke all on function public.delete_push_subscription(text) from public, anon;
+revoke all on function public.replace_push_schedule(jsonb) from public, anon;
+revoke all on function public.push_test() from public, anon;
+grant execute on function public.save_push_subscription(text, text, text, text, integer, integer, boolean) to authenticated;
+grant execute on function public.delete_push_subscription(text) to authenticated;
+grant execute on function public.replace_push_schedule(jsonb) to authenticated;
+grant execute on function public.push_test() to authenticated;
+grant execute on function public.claim_due_pushes(integer) to service_role;
+-- the sender (service role) also marks failures, removes dead devices and notes when a device last worked
+grant select, update, delete on public.push_subscriptions, public.push_schedule to service_role;
+
+-- Every 5 minutes: send what is due. Needs the pg_cron and pg_net extensions (Database > Extensions, or
+-- the two "create extension" lines in ONLINE.md). Without them this step is skipped with a notice and
+-- nothing else changes; run this file again after enabling them, or use the dashboard Cron instead
+-- (Integrations > Cron, ONLINE.md). Running the file again updates the same job.
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') and exists (select 1 from pg_extension where extname = 'pg_net') then
+    perform cron.schedule('cozy-send-push', '*/5 * * * *', 'select public.push_cron_tick()');
+  else
+    raise notice 'Phone notifications: pg_cron and pg_net are not both enabled, so the send-push schedule was not created. See ONLINE.md, Notifications.';
+  end if;
+end;
+$$;

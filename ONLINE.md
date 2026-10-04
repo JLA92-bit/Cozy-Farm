@@ -198,3 +198,126 @@ their farm appears.
   delete claimed gifts and finished listings older than 30 days.
 - **Local development:** create a file `.env.local` next to `package.json` with
   `VITE_SUPABASE_URL=...` and `VITE_SUPABASE_ANON_KEY=...`, then `npm run dev`. Without it you get practice mode.
+
+## Notifications (phone notifications, optional)
+
+With this, players can switch on **Settings > Notifications** and get a gentle nudge when their crops, trees,
+animals and goods are ready, when the delivery truck arrives, when something sells at their stall or on the
+Shared Market, when a gift arrives, and a daily reward reminder. They choose which ones, and quiet hours
+(21:00 to 08:00 by default: anything ready then waits until the morning). At most about 6 a day.
+
+Where it works: Chrome on Android (also in the Play Store app, see [android/README.md](android/README.md)),
+desktop Chrome, Edge and Firefox. On iPhone and iPad only when the game was added to the Home Screen
+(iOS 16.4 or newer); the game explains this in Settings. Needs online play (steps 1 to 5 above). Until you
+do the steps below, the Settings section says "Available when online play is switched on" and nothing else
+changes.
+
+How it works: the game knows when everything on the farm will be ready. When timers change (and when the
+game goes to the background) it plans the next day's reminders and stores them on the server
+(`push_schedule`). Gifts and market sales are added by the server itself. Every 5 minutes the database wakes
+a small server function (`supabase/functions/send-push`), which sends whatever is due with Web Push.
+
+**A. Make the VAPID keys (once)**
+
+On any computer with Node.js, run:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+It prints a **Public Key** and a **Private Key**. Keep the private key secret (a password manager is a good
+place). If you ever make new keys, every player has to switch notifications on again.
+
+**B. GitHub: the public key**
+
+Repository > **Settings** > **Secrets and variables** > **Actions** > **Variables** > **New repository variable**:
+name `VITE_VAPID_PUBLIC_KEY`, value: the **Public Key**.
+
+**C. Supabase: the server function and its secrets**
+
+1. Make up a long random text for the cron secret, for example with `openssl rand -hex 24` (or 40 random
+   letters and numbers). It stops strangers from waking the function.
+2. **Edge Functions** > **Secrets** (on some dashboards: Project Settings > Edge Functions) > add:
+
+   | Name | Value |
+   | --- | --- |
+   | `VAPID_PUBLIC_KEY` | the Public Key |
+   | `VAPID_PRIVATE_KEY` | the Private Key |
+   | `VAPID_SUBJECT` | `mailto:joshmakesgames92@gmail.com` |
+   | `PUSH_CRON_SECRET` | the random text from step 1 |
+
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are already there; do not add them.
+3. Deploy the function, either way:
+   - **Supabase CLI** (from the repository folder):
+     ```bash
+     npx supabase login
+     npx supabase link --project-ref <your-project-ref>      # the part before .supabase.co
+     npx supabase secrets set VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:joshmakesgames92@gmail.com PUSH_CRON_SECRET=...
+     npx supabase functions deploy send-push --no-verify-jwt
+     ```
+     (`secrets set` does the same as step 2.)
+   - **Dashboard**: **Edge Functions** > **Deploy a new function** > **Via Editor**. Name it exactly
+     `send-push`, replace the example code with all of
+     [`supabase/functions/send-push/index.ts`](supabase/functions/send-push/index.ts), and click **Deploy**.
+     Then open the function's **Details** / settings and switch **off** "Enforce JWT verification" (the timer
+     sends the cron secret instead of a player's sign-in) and save.
+
+**D. Supabase: the 5 minute timer**
+
+1. **Database** > **Extensions**: search for `pg_cron` and switch it on, then `pg_net` and switch it on.
+2. **SQL Editor**, new query, run (with your own address and the cron secret from C1):
+   ```sql
+   select vault.create_secret('https://<your-project>.supabase.co', 'cozy_project_url');
+   select vault.create_secret('<the PUSH_CRON_SECRET text>', 'cozy_push_secret');
+   ```
+   (To change one later: `select vault.update_secret((select id from vault.secrets where name = 'cozy_push_secret'), '<new text>');`)
+3. Run the latest [`supabase/schema.sql`](supabase/schema.sql) again (step 3). It adds the `push_subscriptions`
+   and `push_schedule` tables, their functions, the gift and market sale triggers, and the timer job
+   `cozy-send-push`. Check with `select jobname, schedule from cron.job;`. If the extensions were not on yet,
+   the run says so in a notice; switch them on and run the file again.
+
+Alternative to D2 and the timer in schema.sql: **Integrations** > **Cron** > **Create job**: name `cozy-send-push`,
+schedule `*/5 * * * *`, type **Supabase Edge Function**, method POST, function `send-push`, and add the HTTP
+header `x-cron-secret` with the cron secret. (This one calls the function every 5 minutes even when nothing is
+due, which is fine on the free plan. Use one of the two, not both.)
+
+**E. Re-run the deploy and try it**
+
+1. GitHub **Actions** > **Deploy to GitHub Pages** > **Run workflow**.
+2. Open the game (reload twice if it was installed, so the new service worker is used), **Settings >
+   Notifications**, switch on **Phone notifications** and allow them. Tap **Send a test**: it arrives within
+   5 minutes (with the game in the background or the phone locked; while you are looking at the game, only
+   the test is shown).
+3. In Supabase **Table Editor** you can see `push_subscriptions` (one row per device) and `push_schedule` (the
+   planned reminders; `sent_at` and `status` fill in when they are sent).
+
+**Good to know**
+
+- Limits (in `schema.sql`): 30 planned reminders per player, at most 48 hours ahead, title 80 and text 200
+  characters, 10 devices per player, at most 10 sent per player per day, one gift and one market sale
+  notification per 30 minutes. A reminder more than 3 hours late (for example while the function was broken)
+  is dropped, not sent. The push service keeps a message for at most 4 hours if the phone is off.
+- Switching notifications off in Settings removes that device from the server. **Delete my online account**
+  also removes all devices and planned reminders. Devices that were uninstalled or blocked notifications are
+  removed automatically the next time a send fails with "gone".
+- **Privacy:** for each device that switched notifications on, the server stores its push address
+  (`endpoint`, a long address at Google, Mozilla, Apple or Microsoft's push service) with its encryption keys,
+  the device's time zone and quiet hours, and the planned notification texts. Nothing else.
+- Local testing: `node tools/test-notify.mjs` checks the planning rules (quiet hours, grouping, limits).
+  `__notify.plan()` in the browser console shows what the game would schedule right now.
+
+**Troubleshooting**
+
+| What you see | What to do |
+| --- | --- |
+| Settings > Notifications says **Available when online play is switched on** | The build has no `VITE_VAPID_PUBLIC_KEY` (step B), or no online play (steps 1 to 5). Re-run the deploy and reload twice. |
+| "On iPhone and iPad, add Cozy Acres to your Home Screen first" | Apple only allows notifications for Home Screen apps: Share > Add to Home Screen, then open it from there. iOS 16.4 or newer. |
+| **Notifications are blocked for Cozy Acres** | The player said no once. Browser: the lock or settings icon next to the address > Notifications > Allow. Android app: Settings > Apps > Cozy Acres > Notifications. Then switch on again. |
+| "Could not switch on notifications" | Private / incognito windows cannot get notifications in Chrome. Otherwise reload and try again. |
+| **Waiting for a connection** under the switch | The device is offline or `schema.sql` was not run again (functions missing, browser console shows `function public.save_push_subscription does not exist`). Run step D3. The game retries on its own. |
+| "Send a test" never arrives | Check, in order: `push_schedule` has the test row; if `sent_at` stays empty, the timer is not running (step D: `select * from cron.job;`, and `select status_code, content from net._http_response order by created desc limit 5;` shows the function's answers); if the status is `failed`, open **Edge Functions > send-push > Logs**. |
+| Function answers `forbidden` | `PUSH_CRON_SECRET` and the Vault secret `cozy_push_secret` (or the Cron header) are not the same text. |
+| Function answers `VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY secrets are missing` or `bad VAPID settings` | Step C2. The keys must be the pair printed together, and `VAPID_SUBJECT` must start with `mailto:`. |
+| Function answers 401 "Invalid JWT" / "Missing authorization header" | JWT verification is still on: deploy with `--no-verify-jwt`, or switch it off in the function's settings (step C3). |
+| Notifications stopped after making new VAPID keys | Expected: every player switches notifications off and on again in Settings (the game also does this by itself the next time it opens, if permission is still granted). |
+| A warning `push_cron_tick: add the Vault secret cozy_project_url` in the database logs | Step D2. |

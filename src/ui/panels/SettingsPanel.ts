@@ -15,6 +15,7 @@ import { hints, HINT_MODES } from '../../systems/Hints';
 import { onOldAddress, NEW_HOST } from '../../systems/FarmMove';
 import { installButton } from '../Install';
 import { openMoveFarm } from './MoveFarmPanel';
+import { notificationSettingsSection } from './NotificationSettings';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -65,6 +66,7 @@ export function openSettings(): void {
       button([icon('farmer'), 'Edit'], () => { p.close(); ui.open('character'); }, 'small blue'))),
   );
   p.body.append(onlineSettingsSection(() => { p.close(); ui.open('character'); }));
+  p.body.append(notificationSettingsSection());
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files?.[0];

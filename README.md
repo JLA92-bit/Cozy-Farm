@@ -122,6 +122,8 @@ step by step: **[DOMAIN.md](DOMAIN.md)**.
    (or no variables for the custom domain), then serve `dist` under that path.
 3. Optional, for real online play: add the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` repository variables
    as described in [ONLINE.md](ONLINE.md) and re-run the deploy.
+   Phone notifications also need the `VITE_VAPID_PUBLIC_KEY` variable and the `send-push` Edge Function
+   (ONLINE.md, "Notifications").
 4. Optional, for the Android app: repository variables `ANDROID_PACKAGE` (app id) and `ANDROID_CERT_SHA256`
    (signing certificate fingerprint from Play Console > App integrity) make the deploy publish
    `/.well-known/assetlinks.json`. Android only reads it at the root of a domain, so it works on
@@ -135,6 +137,8 @@ step by step: **[DOMAIN.md](DOMAIN.md)**.
   triangles and frame time.
 - `node tools/playtest.mjs <url>`: plays the tutorial and about an hour of farming through the real UI and reports
   progression and any errors.
+- `node tools/test-notify.mjs`: unit tests for the phone notification planner (quiet hours, grouping, daily limit)
+  in several time zones.
 
 ## License
 

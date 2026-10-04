@@ -55,6 +55,8 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
+        // phone notifications (push and notification taps) live in public/push-sw.js, loaded into the generated worker
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

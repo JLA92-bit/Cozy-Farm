@@ -1,7 +1,7 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
-  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget,
+  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow,
 } from './types';
 import { cleanHelp } from './FarmHelp';
 import { setOnlineStatus } from './Status';
@@ -106,7 +106,7 @@ function accountOf(u: User): AccountInfo {
   };
 }
 
-export class SupabaseBackend implements OnlineBackend, AccountBackend {
+export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBackend {
   readonly kind = 'supabase' as const;
   private client: SupabaseClient | null = null;
   private initP: Promise<void> | null = null;
@@ -457,6 +457,25 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend {
     return l;
   }
   async collect(id: string): Promise<Listing> { return this.mapListing(await this.rpc<ListingRow>('collect_listing', { p_id: id })); }
+
+  // ------------------------------------------------------------------ phone notifications (see src/notify)
+  async savePushDevice(d: PushDevice): Promise<void> {
+    await this.rpc<boolean>('save_push_subscription', {
+      p_endpoint: d.endpoint, p_p256dh: d.p256dh, p_auth: d.auth, p_tz: d.tz.slice(0, 64),
+      p_quiet_start: int(d.quietStart, 1439), p_quiet_end: int(d.quietEnd, 1439), p_social: d.social,
+    });
+  }
+  async deletePushDevice(endpoint: string): Promise<void> {
+    await this.rpc<number>('delete_push_subscription', { p_endpoint: endpoint });
+  }
+  async replacePushSchedule(rows: PushRow[]): Promise<number> {
+    return this.rpc<number>('replace_push_schedule', {
+      p_rows: rows.slice(0, 30).map((r) => ({ fire_at: new Date(r.fireAt).toISOString(), kind: r.kind, title: r.title, body: r.body })),
+    });
+  }
+  async sendTestPush(): Promise<void> {
+    await this.rpc<string>('push_test', {});
+  }
 
   // ------------------------------------------------------------------ live updates
   async publishFarm(snapshot: FarmSnapshot): Promise<void> {

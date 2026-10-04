@@ -2,6 +2,7 @@ import { CHUNK, MAP, chunkOf, rotatedSize } from '../world/Grid';
 import { rng } from '../world/Procedural';
 import { BUILDING, ECONOMY, LAND } from '../data';
 import { APP_VERSION } from './Version';
+import { defaultNotifyPrefs } from '../notify/Plan';
 import { SAVE_VERSION, type Obstacle, type PlacedBuilding, type SaveData } from './State';
 
 /** Builds the starting farm: farmhouse, barn, order board, a few fields, a path, and obstacles everywhere else. */
@@ -112,5 +113,6 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     hints: { mode: '', intros: [] },
     social: { friends: [], sent: { day: '', gifts: 0, coins: 0 }, claimedCodes: [], madeCodes: [], botGiftDay: '' },
     neighbours: { day: '', rewarded: 0, consoled: 0, paid: [] },
+    notify: defaultNotifyPrefs(),
   };
 }
