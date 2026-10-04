@@ -17,11 +17,22 @@ let configured = false;
  * Pick the online backend once, at the very start of boot: Supabase when the build has its URL and
  * key, otherwise the local practice backend with demo neighbours. Also starts weekly XP tracking.
  */
+/**
+ * The Supabase project address, reduced to just https://<ref>.supabase.co. The dashboard also shows a
+ * "RESTful endpoint" ending in /rest/v1; if that is pasted instead, sign-in links would point into the
+ * database API ("No API key found in request"), so any path, query or trailing slash is dropped.
+ */
+export function projectUrl(raw: string | undefined): string {
+  const v = (raw ?? '').trim();
+  if (!v) return '';
+  try { return new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`).origin; } catch { return v.replace(/\/+$/, ''); }
+}
+
 export function configureOnline(): void {
   if (configured) return;
   configured = true;
   trackWeeklyXp();
-  const url = import.meta.env.VITE_SUPABASE_URL?.trim();
+  const url = projectUrl(import.meta.env.VITE_SUPABASE_URL);
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
   if (url && key) {
     setOnlineBackend(new SupabaseBackend(url, key));

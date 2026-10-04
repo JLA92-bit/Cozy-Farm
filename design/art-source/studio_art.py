@@ -65,7 +65,7 @@ def favicon():
 
 def og(feature_png_datauri):
     d1, _, _ = text_path("Josh Makes Games", 62, 80, 262, fname=FB)
-    d2, _, _ = text_path("Small games made with love", 36, 80, 322, fname="Fredoka-SemiBold.ttf")
+    d2, _, _ = text_path("Cozy couch games for your phone", 36, 80, 322, fname="Fredoka-SemiBold.ttf")
     dots = "".join(f'<circle cx="{x}" cy="{y}" r="4" fill="{S_INK}" opacity=".07"/>' for x in range(20, 1200, 40) for y in range(20, 630, 40))
     return (f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">'
             f'<rect width="1200" height="630" fill="{S_CREAM}"/>{dots}'

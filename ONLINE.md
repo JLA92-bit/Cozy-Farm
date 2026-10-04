@@ -40,7 +40,8 @@ a gift claimed once) and turns on live updates. It is safe to run again after a 
 
 1. In Supabase, open **Project Settings** (gear icon) > **API** (on newer dashboards: **Data API** for the
    URL and **API Keys** for the key).
-2. Copy the **Project URL** (looks like `https://abcdefgh.supabase.co`).
+2. Copy the **Project URL** (looks like `https://abcdefgh.supabase.co`, nothing after `.co`). Not the
+   "RESTful endpoint" that ends in `/rest/v1` (the game now strips that, but use the plain URL).
 3. Copy the **anon / public** key (a long text starting with `eyJ...`, or a newer `sb_publishable_...` key).
    This key is meant to be public: it is safe in a website. **Never** use the `service_role` / secret key.
 4. In GitHub, open your repository > **Settings** > **Secrets and variables** > **Actions**.
@@ -91,7 +92,9 @@ tapped, and everything else keeps working.
    Without it the game falls back to a plain Google sign-in, and the player gets a new friend code.
    Keep **Allow anonymous sign-ins** on.
 3. **Authentication > URL Configuration**:
-   - **Site URL**: `https://cozyacres.joshmakesgames.app/play/`
+   - **Site URL**: `https://jla92-bit.github.io/Cozy-Farm/play/` for now. Change it to
+     `https://cozyacres.joshmakesgames.app/play/` once the custom domain is live (DOMAIN.md step 4). Supabase
+     falls back to this address whenever a return address is not on the list below.
    - **Redirect URLs** (add each one): `https://cozyacres.joshmakesgames.app/play/`,
      `https://jla92-bit.github.io/Cozy-Farm/play/` (the game is at `/play/` on the old address too, until
      the custom domain is switched on, see [DOMAIN.md](DOMAIN.md)), `https://jla92-bit.github.io/Cozy-Farm/`
@@ -149,6 +152,7 @@ their farm appears.
 | "Anonymous sign-ins are disabled" in the browser console | Do step 2. |
 | Errors like `function public.buy_listing does not exist` | Run `supabase/schema.sql` again (step 3). |
 | Tapping **Sign in with Google** shows "Could not reach Google sign-in" | The device is offline, or the Supabase URL is wrong. |
+| A page with `{"message":"No API key found in request", ...}` after tapping **Sign in with Google** | The browser landed on Supabase's database API. Look at the address bar: if it contains `/rest/v1`, the `VITE_SUPABASE_URL` variable has `/rest/v1` on the end - set it to just `https://<project>.supabase.co` and re-run the deploy (newer builds strip it automatically). If it is just `https://<project>.supabase.co/...` after choosing your Google account, the Google OAuth client's redirect URI must be exactly `https://<project>.supabase.co/auth/v1/callback` (step 6A) and the Supabase **Site URL** must be the game's address, not the Supabase URL (step 6B). |
 | Google says `redirect_uri_mismatch` | The redirect URI in the Google OAuth client must be exactly `https://<project>.supabase.co/auth/v1/callback` (step 6A). |
 | After Google the game opens a different address (or the home page) | Add the game's exact address to Supabase **Redirect URLs** (step 6B). |
 | Signing in gives the player a new friend code | Switch on **Manual linking** (step 6B). |
