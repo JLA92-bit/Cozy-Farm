@@ -9,3 +9,23 @@ coverage/
 *.local
 .env
 .asset-cache/
+
+# Android (Bubblewrap TWA): signing keys must never be committed
+android/upload-keystore.jks
+*.keystore
+*.jks
+# Android project files Bubblewrap generates from android/twa-manifest.json
+android/app/
+android/gradle/
+android/.gradle/
+android/build.gradle
+android/settings.gradle
+android/gradle.properties
+android/gradlew
+android/gradlew.bat
+android/store_icon.png
+android/manifest-checksum.txt
+android/*.aab
+android/*.apk
+android/*.idsig
+android/local.properties
