@@ -52,6 +52,10 @@ export default defineConfig({
             options: { cacheName: 'music', rangeRequests: true, cacheableResponse: { statuses: [0, 200] } },
           },
         ],
+        // Only Vite's own hashed bundles (assets/index-AbC12_xY.js) never change. The plugin's default treats
+        // everything under assets/ as hashed, which also caught public/assets (manifest.json, icons, models)
+        // and kept phones on a stale manifest.json after an update.
+        dontCacheBustURLsMatching: /^assets\/[^/]+-[A-Za-z0-9_-]{8}\.(js|css)$/,
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
