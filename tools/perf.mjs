@@ -1,7 +1,7 @@
 // Perf probe: loads the game, builds a busy mid-game farm via the debug hooks, and reports
 // draw calls, triangles and JS frame time with optional CPU throttling.
 import { chromium } from 'playwright-core';
-const url = process.argv[2] ?? 'http://localhost:4173/Cozy-Farm/';
+const url = process.argv[2] ?? 'http://localhost:4173/play/';
 const throttle = Number(process.argv[3] ?? 4);
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });

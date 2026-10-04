@@ -4,6 +4,12 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+  // The game used to live at this address (before it moved to play/). Its installed app still opens
+  // here: send it straight on to the game.
+  var standalone = window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches);
+  var playLink = $(".hero__cta a[href$='play/']");
+  if (standalone && playLink) { location.replace(playLink.href); return; }
+
   // Footer year
   $$("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
 

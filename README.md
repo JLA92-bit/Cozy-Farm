@@ -16,8 +16,8 @@ Charm, and customise your farmer. Built with Three.js + TypeScript + Vite, insta
 ```bash
 npm install
 npm run dev        # local play at http://localhost:5173 (use your LAN IP to try it on a phone)
-npm run build      # type-check + production build into dist/
-npm run preview    # serve the production build
+npm run build      # type-check + production build into dist/ (served from /play/)
+npm run preview    # serve the production build at http://localhost:4173/play/
 ```
 
 The built assets in `public/assets` are committed, so you do not need to run the asset pipeline to play.
@@ -103,13 +103,29 @@ npm run assets         # rebuild public/assets: meshopt GLBs, shared atlases, MP
 
 ## Deploying to GitHub Pages
 
-`.github/workflows/deploy.yml` builds and deploys on every push to `main`:
+`.github/workflows/deploy.yml` builds and deploys on every push to `main`. One deploy holds both:
+
+| Address | What |
+| --- | --- |
+| `https://cozyacres.joshmakesgames.app/` | the Cozy Acres website (`design/cozy-acres-website`) |
+| `https://cozyacres.joshmakesgames.app/play/` | the game |
+
+Before the custom domain is switched on the same layout is served from `https://jla92-bit.github.io/Cozy-Farm/`
+(game at `/Cozy-Farm/play/`). The workflow asks GitHub Pages for the current address
+(`actions/configure-pages`), so it builds the right paths for either without changes. Moving to the domain,
+step by step: **[DOMAIN.md](DOMAIN.md)**.
 
 1. In the repository settings, open **Pages** and set **Source** to **GitHub Actions** (one time).
-2. Push to `main`. The workflow sets `BASE_PATH=/<repo-name>/`, so asset URLs and the service worker work under
-   the Pages subpath. For a custom domain, build with `BASE_PATH=/`.
+2. Push to `main`. `scripts/pages/build.sh` builds the game with `BASE_PATH=<base>/play/` into `dist/play` and
+   the website (with the game's changelog) into `dist/`. To build it locally:
+   `BASE_PATH_ROOT=/Cozy-Farm SITE_URL=https://jla92-bit.github.io/Cozy-Farm bash scripts/pages/build.sh`
+   (or no variables for the custom domain), then serve `dist` under that path.
 3. Optional, for real online play: add the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` repository variables
    as described in [ONLINE.md](ONLINE.md) and re-run the deploy.
+4. Optional, for the Android app: repository variables `ANDROID_PACKAGE` (app id) and `ANDROID_CERT_SHA256`
+   (signing certificate fingerprint from Play Console > App integrity) make the deploy publish
+   `/.well-known/assetlinks.json`. Android only reads it at the root of a domain, so it works on
+   `cozyacres.joshmakesgames.app`, not on the github.io address.
 
 ## Testing helpers
 

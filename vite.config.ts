@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// GitHub Pages serves the site from /<repo>/. Override with BASE_PATH if the repo is renamed
-// or deployed elsewhere (e.g. BASE_PATH=/ for a custom domain).
-const base = process.env.BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/Cozy-Farm/' : '/');
+// The game lives under /play/ next to the Cozy Acres website (https://cozyacres.joshmakesgames.app/play/).
+// deploy.yml sets BASE_PATH (e.g. /Cozy-Farm/play/ on the github.io project URL); see DOMAIN.md.
+const base = process.env.BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/play/' : '/');
 
 export default defineConfig({
   base,
@@ -26,6 +26,8 @@ export default defineConfig({
         background_color: '#8fd3f4',
         display: 'fullscreen',
         orientation: 'any',
+        // fixed id (resolved against the origin): the installed app stays the same app across base path changes
+        id: '/play/',
         start_url: '.',
         scope: '.',
         icons: [

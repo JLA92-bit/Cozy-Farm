@@ -1,5 +1,12 @@
 name: Deploy to GitHub Pages
 
+# One site, one deploy:
+#   <site>/          the Cozy Acres website (design/cozy-acres-website)
+#   <site>/play/     the game
+# <site> is https://cozyacres.joshmakesgames.app once the custom domain is set (see DOMAIN.md), and
+# https://jla92-bit.github.io/Cozy-Farm before that. configure-pages tells us which, so the same
+# workflow works on both without changes.
+
 on:
   push:
     branches: [main]
@@ -23,17 +30,33 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # base_path: "" with a custom domain, "/Cozy-Farm" on the github.io project URL
+      - id: pages
+        uses: actions/configure-pages@v5
       - run: npm ci
       - run: npm run validate-data
-      - name: Build
-        run: npm run build
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Build website + game
+        run: |
+          url="${{ steps.pages.outputs.base_url }}"
+          # .app domains only work over https; the API reports http:// until "Enforce HTTPS" is ticked
+          case "$url" in *.app|*.app/*) url="https://${url#http*://}" ;; esac
+          BASE_PATH_ROOT="${{ steps.pages.outputs.base_path }}" SITE_URL="$url" bash scripts/pages/build.sh
         env:
-          BASE_PATH: /${{ github.event.repository.name }}/
           # Real online play (see ONLINE.md). Set these as repository variables (or secrets) under
           # Settings > Secrets and variables > Actions. When empty the game uses practice mode.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL || '' }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY || '' }}
-      - uses: actions/configure-pages@v5
+          # Android app link (.well-known/assetlinks.json), only written when both are set. Repository
+          # variables: the app id (e.g. app.joshmakesgames.cozyacres) and the SHA-256 signing certificate
+          # fingerprint(s) from Play Console > App integrity (comma separated).
+          ANDROID_PACKAGE: ${{ vars.ANDROID_PACKAGE || '' }}
+          ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 || '' }}
+      - name: List site
+        run: ls -la dist dist/play && (ls -la dist/.well-known 2>/dev/null || echo "no .well-known (no Android fingerprint set)")
+      # v3 archives dist with `tar ... --exclude=.git --exclude=.github .`, so dot folders such as
+      # .well-known and the .nojekyll file are included.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

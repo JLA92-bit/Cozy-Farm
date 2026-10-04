@@ -3,6 +3,17 @@
 
   python3 build.py            -> writes ./public
 
+Environment (all optional; the deploy workflow sets them):
+  SITE_BASE=/Cozy-Farm/       path the site is served from (default "/"). Every root-absolute
+                              path ("/assets/..", "/play/", data-*, manifest, CSS url(), site.js)
+                              is rewritten to start with it.
+  SITE_URL=https://...        full address of the site, no trailing slash (canonical, og:url, sitemap)
+  STUDIO_URL=https://...      studio homepage
+  OUT_DIR=path                write here instead of ./public
+  SITE_CHANGELOG=path         changelog to use instead of src/data/changelog.json. The game's own
+                              src/data/changelog.json ({"releases": [...]}) works: it is converted
+                              to the site's {"updates": [...]} shape (deploy.yml uses this).
+
 Pages live in src/pages. Inside a page you can use:
   <!--meta {...} -->                     page title, description, path, out file
   <!-- @include NAME -->                 src/partials/NAME.html
@@ -15,14 +26,19 @@ import html, json, os, re, shutil, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
-OUT = os.path.join(ROOT, "public")
+CHANGELOG = os.path.abspath(os.environ.get("SITE_CHANGELOG") or os.path.join(SRC, "data", "changelog.json"))
+OUT = os.path.abspath(os.environ.get("OUT_DIR") or os.path.join(ROOT, "public"))
+
+BASE = (os.environ.get("SITE_BASE") or "/").strip("/")
+BASE = "/" + BASE + "/" if BASE else "/"   # always "/" or "/x/y/"
 
 SITE = {
-    "site_url": "[game-site-url]",                    # full address of this website, no trailing slash; set once you have one
+    "site_url": (os.environ.get("SITE_URL") or "https://cozyacres.joshmakesgames.app").rstrip("/"),  # no trailing slash
     "support_email": "joshmakesgames92@gmail.com",
     "play_url": "https://play.google.com/store/apps/details?id=YOUR.PACKAGE.ID",
     "delete_endpoint": "/api/delete-data",            # POST {"code": "..."} -> 200 / 404 / 429
-    "studio_url": "[studio-site-url]",                 # studio homepage address; set once you have one
+    "studio_url": os.environ.get("STUDIO_URL") or "https://joshmakesgames.app/",  # studio homepage
+    "game_url": BASE + "play/",                       # the web game ("Play now")
     "head_extra": "",
 }
 
@@ -55,8 +71,37 @@ def vkey(v):
     return tuple(int(x) for x in re.findall(r"\d+", v))
 
 
+def load_changelog():
+    """The site's {"updates": [...]} data. Also accepts the game's {"releases": [...]} file."""
+    data = json.load(open(CHANGELOG, encoding="utf-8"))
+    if "updates" in data:
+        return data
+    ups = []
+    for r in data.get("releases", []):
+        u = {"version": r["version"], "name": r.get("title", ""), "date": r.get("date", "")}
+        ded = r.get("dedication") or {}
+        if ded.get("text"):
+            u["note"] = ded["text"]
+            u["heart"] = ded.get("icon") == "heart"
+        u["highlights"] = [h["text"] if isinstance(h, dict) else h for h in r.get("highlights", [])]
+        ups.append(u)
+    return {"updates": ups}
+
+
+def rebase(text):
+    """Point root-absolute paths ("/x") at BASE ("/Cozy-Farm/x"). No-op when BASE is "/"."""
+    if BASE == "/":
+        return text
+    b = BASE
+    text = re.sub(r'((?:href|src|action|poster|content|data-[\w-]+)=")/(?!/)', lambda m: m.group(1) + b, text)
+    text = re.sub(r'url\((["\']?)/(?!/)', lambda m: "url(" + m.group(1) + b, text)  # CSS
+    text = re.sub(r'("(?:src|start_url|scope|id)":\s*")/(?!/)', lambda m: m.group(1) + b, text)  # manifest
+    text = re.sub(r'(["\'])/assets/', lambda m: m.group(1) + b + "assets/", text)  # site.js
+    return text
+
+
 def changelog(n):
-    data = json.load(open(os.path.join(SRC, "data", "changelog.json"), encoding="utf-8"))
+    data = load_changelog()
     ups = sorted(data["updates"], key=lambda u: vkey(u["version"]), reverse=True)[:n]
     out = []
     for i, u in enumerate(ups):
@@ -95,9 +140,10 @@ def render(page_src):
     body = re.sub(r"<!-- @changelog (\d+) -->", lambda mm: changelog(int(mm.group(1))), body)
     body = body.replace("<!-- @leaderboard -->", leaderboard())
     data = dict(SITE); data.update({k: E(v) for k, v in meta.items()})
-    body = fill(body, data)
-    if leaderboard() and 'data-leaderboard="/leaderboard.json" hidden' in body:
-        body = body.replace('data-leaderboard="/leaderboard.json" hidden', 'data-leaderboard="/leaderboard.json"')
+    body = rebase(fill(body, data))
+    lb_attr = 'data-leaderboard="' + BASE + 'leaderboard.json"'
+    if leaderboard() and lb_attr + " hidden" in body:
+        body = body.replace(lb_attr + " hidden", lb_attr)
     return meta, body
 
 
@@ -112,8 +158,20 @@ def main():
             txt = f.read().replace("{{site_url}}", SITE["site_url"])
         with open(path, "w", encoding="utf-8") as f:
             f.write(txt)
-    for name in ("changelog.json", "leaderboard.json"):
-        shutil.copy(os.path.join(SRC, "data", name), os.path.join(OUT, name))
+    for rel in ("manifest.webmanifest", os.path.join("assets", "css", "cozy.css"), os.path.join("assets", "js", "site.js")):
+        path = os.path.join(OUT, rel)  # static files with root-absolute paths
+        with open(path, encoding="utf-8") as f:
+            txt = f.read()
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(rebase(txt))
+    raw = json.load(open(CHANGELOG, encoding="utf-8"))
+    if "updates" in raw:
+        shutil.copy(CHANGELOG, os.path.join(OUT, "changelog.json"))
+    else:  # the game's changelog: write it in the shape site.js reads
+        with open(os.path.join(OUT, "changelog.json"), "w", encoding="utf-8") as f:
+            json.dump(load_changelog(), f, indent=2, ensure_ascii=False)
+            f.write("\n")
+    shutil.copy(os.path.join(SRC, "data", "leaderboard.json"), os.path.join(OUT, "leaderboard.json"))
     for fn in sorted(os.listdir(os.path.join(SRC, "pages"))):
         meta, out = render(read("pages", fn))
         dest = os.path.join(OUT, meta.get("out", "index.html"))

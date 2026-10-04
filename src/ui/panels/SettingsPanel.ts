@@ -12,6 +12,8 @@ import { tutorial } from '../Tutorial';
 import { onlineSettingsSection } from './OnlineSettings';
 import { openWhatsNew, whatsNewPending } from './WhatsNewPanel';
 import { hints, HINT_MODES } from '../../systems/Hints';
+import { onOldAddress, NEW_HOST } from '../../systems/FarmMove';
+import { openMoveFarm } from './MoveFarmPanel';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -74,6 +76,7 @@ export function openSettings(): void {
   p.body.append(fileInput, h('div', { class: 'section-title' }, 'Your farm'), h('div', { class: 'chip-row', style: 'justify-content:flex-start' },
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
     button([icon('unlock'), 'Import save'], () => fileInput.click(), 'small blue'),
+    onOldAddress() ? button([icon('truck'), `Move my farm to ${NEW_HOST}`], () => void openMoveFarm(), 'small green') : null,
     saves.replacedFarm() ? button([icon('house'), 'Previous farm'], () => { p.close(); openReplacedFarm(); }, 'small blue') : null,
     whatsNewButton(),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
@@ -114,7 +117,7 @@ function hintsRow(): HTMLElement {
   return h('div', { class: 'setting-row stack' }, h('label', null, 'Helpful hints'), seg, note);
 }
 
-function confirmImport(data: SaveData): void {
+export function confirmImport(data: SaveData): void {
   const p = new Panel({ title: 'Load this farm?', size: 'small', color: 'blue', icon: 'unlock' });
   const pl = data.player;
   p.body.append(

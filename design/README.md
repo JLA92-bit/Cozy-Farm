@@ -2,8 +2,9 @@
 
 Made in Claude Design, reviewed and saved here. Status:
 - Done: the game's own PWA icons and favicon now use these designs (public/icons, public/favicon.svg).
-  Contact email everywhere: joshmakesgames92@gmail.com. No domain is owned yet: site addresses are the
-  placeholders [game-site-url] and [studio-site-url] (build.py SITE settings for the game site).
+  Contact email everywhere: joshmakesgames92@gmail.com. Domain: joshmakesgames.app. The game site is
+  https://cozyacres.joshmakesgames.app (website at /, game at /play/) and the studio homepage is
+  https://joshmakesgames.app/ (build.py SITE settings; switching over step by step: ../DOMAIN.md).
 - Open: studio wordmark reads "Josh Makes Games" (no 92); placeholders below (screenshots, official Play
   badge, Play package id, privacy policy brackets, support FAQ answers, changelog date); the delete-data
   form needs a real endpoint (Supabase); top-farmers strip still uses sample data; privacy policy must
@@ -21,16 +22,22 @@ Made in Claude Design, reviewed and saved here. Status:
 - illustrations/404-lost-chicken (800 transparent PNG + SVG)
 
 ## cozy-acres-website
-- public/ is ready to upload as static files. Your game itself lives at /play/ (not included).
+- public/ is a preview build. The live site is built and deployed together with the game by
+  .github/workflows/deploy.yml (scripts/pages/build.sh): website at the site root, game at /play/.
+- Base path: `SITE_BASE=/Cozy-Farm/ SITE_URL=https://jla92-bit.github.io/Cozy-Farm python3 build.py`
+  rewrites every root-absolute path (links, images, data-*, manifest, CSS url(), site.js). With no
+  environment the site is built for https://cozyacres.joshmakesgames.app at "/".
 - To change shared parts, edit src/ and run `python3 build.py` (no dependencies). Components:
   src/partials/header.html, footer.html, nav-links.html and src/components/button, feature-card, update-card, leaderboard-row.
-- What's new: edit src/data/changelog.json (or replace public/changelog.json on the server). The 3 newest versions show automatically.
+- What's new: the deploy uses the game's own src/data/changelog.json (SITE_CHANGELOG), converted to the site's
+  format, so the site always lists the real releases. src/data/changelog.json here is only for local previews.
+  The 3 newest versions show automatically.
 - Top farmers: public/leaderboard.json currently holds SAMPLE data. Point it at your live feed ({"farmers":[{"name","level","avatar"}]}).
   The section hides itself if the file is empty or missing.
 - Delete my data: the form POSTs {"code":"..."} to /api/delete-data. Reply 200 for success, 404 for unknown code, 429 for too many tries.
 
 ### Fill these in before going live
-- SITE settings at the top of build.py: site URL, Google Play URL (package id), delete endpoint, studio URL.
+- SITE settings at the top of build.py: Google Play URL (package id), delete endpoint. (Site and studio URLs are set.)
 - assets/img/google-play-badge.png is a placeholder. Download the official badge from Google's badge page and drop it in with the same name.
 - assets/img/screenshots/screenshot-1..5.png are placeholders (1080x1920 portrait) and their alt text is in index.html.
 - Privacy policy: replace every [bracketed] item, and check it matches what your game and server actually do. It is a starting draft, not legal advice.
@@ -39,7 +46,8 @@ Made in Claude Design, reviewed and saved here. Status:
 
 ## studio
 - brand/ - studio logo (full colour, on light, on dark, square, square on dark: SVG + 2000px PNG), favicons, 1200x630 OG image, coming-soon cover.
-- website/ - single static page. Replace [game-site-url] and the Google Play package id.
+- website/ - single static page for https://joshmakesgames.app (its own repo later, see ../DOMAIN.md step 7).
+  Links to the game site are set; replace the Google Play package id.
 
 ## art-source
 Python + Playwright generators for every graphic (python3 build_graphics.py, then outputs land in out/).
