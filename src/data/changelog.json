@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.5.1",
+   "date": "2026-10-04",
+   "title": "Fishing fixes",
+   "icon": "fishing_pole",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fishing_pole",
+     "text": "Fishing icons now always show, on the side bar and the Biting bar"
+    },
+    {
+     "icon": "tropical_fish",
+     "text": "Your catch leaps out of the water as itself - no more white boxes"
+    }
+   ]
+  },
+  {
    "version": "1.5.0",
    "date": "2026-10-04",
    "title": "Gone Fishing",

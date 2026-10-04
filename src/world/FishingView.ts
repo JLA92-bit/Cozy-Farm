@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { assets, assetUrl } from '../core/Assets';
+import { assets, assetUrl, iconPath } from '../core/Assets';
 import { geo, PAL } from './Procedural';
 import { DOCK } from './Terrain';
 import type { Character } from './Character';
@@ -29,8 +29,8 @@ export class FishingView {
   private rippleT = 1;
   private sprite: THREE.Sprite;
   private spriteMat: THREE.SpriteMaterial;
-  private textures = new Map<string, THREE.Texture>();
-  private loader = new THREE.TextureLoader();
+  /** Catch pictures, drawn once onto a canvas (null while loading or if the picture failed). */
+  private textures = new Map<string, Promise<THREE.Texture | null>>();
   private tipPos = new THREE.Vector3();
   private bob = new THREE.Vector3();
   private castFrom = new THREE.Vector3();
@@ -109,6 +109,7 @@ export class FishingView {
     this.char = null;
     this.group.visible = false;
     this.sprite.visible = false;
+    this.sprite.userData.leaping = false;
     gsap.killTweensOf(this.sprite.position);
     gsap.killTweensOf(this.sprite.scale);
   }
@@ -145,20 +146,24 @@ export class FishingView {
 
   /** The catch leaps out of the water towards the farmer. */
   leap(iconKey: string, done?: () => void): void {
-    const path = assets.manifest?.icons[iconKey];
-    if (path) {
-      let tex = this.textures.get(iconKey);
-      if (!tex) { tex = this.loader.load(assetUrl(path)); tex.colorSpace = THREE.SRGBColorSpace; this.textures.set(iconKey, tex); }
-      this.spriteMat.map = tex;
-      this.spriteMat.needsUpdate = true;
-    }
     const s = this.sprite;
-    s.visible = true;
+    // shown only once its picture is ready: an empty sprite would draw as a white square
+    s.visible = false;
+    this.spriteMat.map = null;
+    let tex: Promise<THREE.Texture | null> | undefined = this.textures.get(iconKey);
+    if (!tex) { tex = iconTexture(iconKey); this.textures.set(iconKey, tex); }
+    void tex.then((t) => {
+      if (!t || !s.userData.leaping) return;
+      this.spriteMat.map = t;
+      this.spriteMat.needsUpdate = true;
+      s.visible = true;
+    });
+    s.userData.leaping = true;
     s.position.copy(this.bob);
     s.scale.setScalar(0.05);
     const to = this.seat;
     gsap.killTweensOf(s.position);
-    gsap.timeline({ onComplete: () => { s.visible = false; done?.(); } })
+    gsap.timeline({ onComplete: () => { s.visible = false; s.userData.leaping = false; done?.(); } })
       .to(s.scale, { x: 0.9, y: 0.9, z: 0.9, duration: 0.25, ease: 'back.out(3)' }, 0)
       .to(s.position, { x: (this.bob.x + to.x) / 2, z: (this.bob.z + to.z) / 2, duration: 0.45, ease: 'none' }, 0)
       .to(s.position, { y: to.y + 2.2, duration: 0.45, ease: 'power2.out' }, 0)
@@ -222,4 +227,27 @@ export class FishingView {
     } else if ((p === 'wait' || p === 'reel') && Math.random() < dt * (p === 'reel' ? 2.5 : 0.35)) this.splashRing(p === 'reel' ? 0.6 : 0.45);
     this.ripple.visible = this.rippleT < 1;
   }
+}
+
+/**
+ * An icon as a sprite texture. The SVG is drawn onto a canvas first: some phones (Safari in particular)
+ * cannot upload an SVG image straight to WebGL and show a blank white square instead.
+ */
+function iconTexture(key: string, px = 128): Promise<THREE.Texture | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = c.height = px;
+        c.getContext('2d')!.drawImage(img, 0, 0, px, px);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        resolve(t);
+      } catch { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = assetUrl(iconPath(key));
+  });
 }

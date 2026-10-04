@@ -26,6 +26,12 @@ export interface Manifest {
 export const BASE = import.meta.env.BASE_URL;
 export const assetUrl = (p: string): string => `${BASE}assets/${p}`;
 
+/**
+ * Path of an icon inside assets/. Every icon is built as icons/<key>.svg, so a key missing from the
+ * manifest (a phone still holding an older manifest.json than the game code) still finds its file.
+ */
+export const iconPath = (key: string): string => assets.manifest?.icons[key] ?? `icons/${key}.svg`;
+
 /** A prepared static model: one merged geometry + one shared material, plus optional animated sub-parts. */
 export interface StaticModel {
   geometry: THREE.BufferGeometry;
@@ -77,7 +83,8 @@ export class Assets {
   }
 
   async loadManifest(): Promise<void> {
-    const res = await fetch(assetUrl('manifest.json'));
+    // revalidate so a browser-cached manifest.json never lags behind freshly deployed game code
+    const res = await fetch(assetUrl('manifest.json'), { cache: 'no-cache' }).catch(() => fetch(assetUrl('manifest.json')));
     this.manifest = await res.json();
   }
 

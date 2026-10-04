@@ -1,4 +1,4 @@
-import { assetUrl, assets } from '../core/Assets';
+import { assetUrl, iconPath } from '../core/Assets';
 import { ITEMS } from '../data';
 import { thumbs } from '../world/Thumbs';
 
@@ -46,8 +46,8 @@ export function setIcon(img: HTMLImageElement, key: string): void {
     img.src = TRANSPARENT;
     void thumbs.get(key).then((url) => { if (url) img.src = url; });
   } else {
-    const path = assets.manifest?.icons[key];
-    img.src = path ? assetUrl(path) : TRANSPARENT;
+    img.onerror = () => { img.onerror = null; img.src = TRANSPARENT; };
+    img.src = key ? assetUrl(iconPath(key)) : TRANSPARENT;
   }
 }
 
