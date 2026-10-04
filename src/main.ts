@@ -59,10 +59,17 @@ if (import.meta.env.PROD) {
     },
     onRegisteredSW(_url, reg) {
       if (!reg) return;
-      // games stay open for days on phones: look for updates every few hours and on return
-      const check = () => { if (navigator.onLine && Date.now() - lastCheck > 3 * 3600e3) { lastCheck = Date.now(); void reg.update().catch(() => {}); } };
-      setInterval(check, 3600e3);
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+      // games stay open for days on phones: look for a new version every 10 minutes while playing, and
+      // right away when the player comes back (at most once a minute). The check only fetches sw.js.
+      const check = (minGap: number) => {
+        if (!navigator.onLine || document.hidden || Date.now() - lastCheck < minGap) return;
+        lastCheck = Date.now();
+        void reg.update().catch(() => {});
+      };
+      setInterval(() => check(10 * 60e3), 60e3);
+      document.addEventListener('visibilitychange', () => check(60e3));
+      addEventListener('focus', () => check(60e3));
+      addEventListener('online', () => check(60e3));
     },
   });
 }
