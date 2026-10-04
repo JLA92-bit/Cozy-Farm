@@ -12,7 +12,7 @@
   "navigationDividerColor": "#7CC85A",
   "navigationDividerColorDark": "#7CC85A",
   "backgroundColor": "#8FD3F4",
-  "enableNotifications": false,
+  "enableNotifications": true,
   "startUrl": "/play/",
   "iconUrl": "https://cozyacres.joshmakesgames.app/play/icons/icon-512.png",
   "maskableIconUrl": "https://cozyacres.joshmakesgames.app/play/icons/icon-maskable-512.png",

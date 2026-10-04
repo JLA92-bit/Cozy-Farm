@@ -168,3 +168,34 @@ export interface AccountBackend {
   /** Listen for sign in / sign out; returns an unsubscribe function. */
   onAccount(cb: (a: AccountInfo | null) => void): () => void;
 }
+
+// ---------------------------------------------------------------------------- phone notifications
+
+/** This device's Web Push subscription plus the notification choices the server needs (quiet hours, gifts). */
+export interface PushDevice {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  /** IANA time zone, e.g. "Europe/London", so the server can respect quiet hours for gifts and sales */
+  tz: string;
+  quietStart: number;
+  quietEnd: number;
+  /** send gifts and Shared Market sales to this device */
+  social: boolean;
+}
+
+/** One planned notification (wall clock ms). */
+export interface PushRow { fireAt: number; kind: string; title: string; body: string }
+
+/**
+ * Optional phone notification features of a backend (Supabase only). Every call may reject when
+ * offline; callers retry calmly.
+ */
+export interface PushBackend {
+  savePushDevice(d: PushDevice): Promise<void>;
+  deletePushDevice(endpoint: string): Promise<void>;
+  /** Replace this player's whole future schedule with these rows (at most 30, within 48 hours). */
+  replacePushSchedule(rows: PushRow[]): Promise<number>;
+  /** Ask the server to send a test notification to this player's devices in the next few minutes. */
+  sendTestPush(): Promise<void>;
+}

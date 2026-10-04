@@ -48,6 +48,8 @@ jobs:
           # Settings > Secrets and variables > Actions. When empty the game uses practice mode.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL || '' }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY || '' }}
+          # Phone notifications (ONLINE.md, "Notifications"): the public VAPID key. Empty = notifications off.
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY || secrets.VITE_VAPID_PUBLIC_KEY || '' }}
           # Android app link (.well-known/assetlinks.json), only written when both are set. Repository
           # variables: the app id (e.g. app.joshmakesgames.cozyacres) and the SHA-256 signing certificate
           # fingerprint(s) from Play Console > App integrity (comma separated).

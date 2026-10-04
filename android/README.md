@@ -33,6 +33,15 @@ Notes on `twa-manifest.json`:
 - `fallbackType` is `customtabs`: on a phone without a Chrome that supports TWAs, the game opens in a Custom Tab.
 - Sign in with Google works inside the app: the Google page opens in the same Chrome window and comes back to
   `/play/` (see ONLINE.md, step 6).
+- `enableNotifications` is `true`: phone notifications (Settings > Notifications in the game, see ONLINE.md
+  "Notifications") are shown as the app's own notifications through Chrome's notification delegation, with the
+  app's name and icon. Bubblewrap then adds the `POST_NOTIFICATIONS` permission to the Android manifest. On
+  Android 13 and newer the player is asked to allow notifications the first time they switch them on in the game
+  (only then, never at app start); if they say no, they can allow them later in Android Settings > Apps >
+  Cozy Acres > Notifications. On Android 12 and older notifications are allowed by default. Changing this flag
+  needs a new app bundle (build and upload as below). In Play Console's Data safety form, the push subscription
+  the game stores for notifications can be declared as "Device or other IDs", collected for app functionality,
+  deletable by the user.
 
 ## 1. Create the upload key (once, keep it forever)
 

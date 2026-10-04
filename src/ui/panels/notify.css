@@ -1,0 +1,18 @@
+/* ---- Settings > Notifications (phone notifications) ---- */
+.notify-box { margin: 4px 0 10px; padding: 4px 12px 10px; border-radius: 14px; background: rgba(255, 255, 255, .55); border: 2px solid rgba(59, 42, 26, .12); }
+.notify-box > .setting-row { border-bottom: none; }
+.notify-box .notify-note { margin: 2px 4px 8px; font-size: 14px; }
+.notify-box .notify-note.warn { color: #b5532f; }
+.notify-box .toggle.disabled { opacity: .5; pointer-events: none; }
+.notify-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+@media (max-width: 560px) { .notify-kinds { grid-template-columns: 1fr; } }
+.notify-kind { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 2px 4px; border-bottom: 2px dashed #e6d3a6; }
+.notify-kind .icon { width: 26px; height: 26px; flex: 0 0 auto; }
+.notify-kind span { flex: 1 1 auto; font-weight: 700; }
+.notify-kind .toggle { transform: scale(.85); transform-origin: right center; }
+.notify-quiet { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 4px 2px; font-weight: 700; }
+.notify-quiet .notify-hour {
+  min-height: 44px; padding: 0 10px; border-radius: 12px; border: 3px solid var(--outline); background: var(--cream-2);
+  font-family: var(--font-display); font-size: 16px; color: var(--ink); cursor: pointer;
+}
+.notify-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }

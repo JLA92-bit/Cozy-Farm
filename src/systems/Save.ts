@@ -3,6 +3,7 @@ import { createNewGame } from './NewGame';
 import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
+import { sanitizeNotifyPrefs } from '../notify/Plan';
 import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data';
 
 const KEY = 'cozy-acres-save';
@@ -46,6 +47,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   if (!['', 'all', 'new', 'off'].includes(out.hints.mode)) out.hints.mode = '';
   out.hints.intros = strArr(out.hints.intros);
   out.social = { ...base.social, ...(isObj(s.social) ? s.social : {}) };
+  out.notify = sanitizeNotifyPrefs(s.notify);
   return sanitize(out, base);
 }
 

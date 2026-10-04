@@ -1,3 +1,5 @@
+import type { NotifyPrefs } from '../notify/Plan';
+
 /** The complete persistent game state. Everything time-based stores absolute timestamps, so timers keep running offline. */
 export interface CharacterLook {
   body: string; // mini character variant id, e.g. 'female-b'
@@ -88,6 +90,8 @@ export interface SaveData {
   hints: { mode: '' | 'all' | 'new' | 'off'; intros: string[] };
   /** Friends and gifts (Update 2). */
   social: SocialState;
+  /** Phone notifications: what to send and the quiet hours (see src/notify). */
+  notify: NotifyPrefs;
 }
 
 export interface FriendEntry { id: string; name: string; code: string; addedAt: number }
