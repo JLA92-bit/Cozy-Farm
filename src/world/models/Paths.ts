@@ -74,6 +74,12 @@ function offset(p: Pt[], d: number | number[]): Pt[] {
   });
 }
 
+/** Point inside (or on) a convex CCW polygon. */
+const inside = (p: Pt[], q: Pt): boolean => p.every((a, i) => {
+  const b = p[(i + 1) % p.length];
+  return (b[0] - a[0]) * (q[1] - a[1]) - (b[1] - a[1]) * (q[0] - a[0]) >= -1e-6;
+});
+
 const onEdge = (a: Pt, b: Pt): boolean =>
   (Math.abs(Math.abs(a[0]) - H) < 1e-6 && Math.abs(a[0] - b[0]) < 1e-6) || (Math.abs(Math.abs(a[1]) - H) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6);
 
@@ -124,8 +130,13 @@ function lay(b: GeoBuilder, poly: Pt[], o: Lay, salt = 0): void {
   p = ccw(p);
   const xs = p.map((q) => q[0]), zs = p.map((q) => q[1]);
   const minDim = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs));
-  const bev = Math.min(o.bevel, minDim * 0.3);
-  const top = offset(p, p.map((q, i) => (onEdge(q, p[(i + 1) % p.length]) ? 0 : bev)));
+  // chamfer the top; on sharp corners the mitred inset can overshoot the stone, so shrink it until it fits
+  let bev = Math.min(o.bevel, minDim * 0.3);
+  let top = p;
+  for (let k = 0; k < 4 && bev > 0.002; k++, bev /= 2) {
+    const t = offset(p, p.map((q, i) => (onEdge(q, p[(i + 1) % p.length]) ? 0 : bev)));
+    if (area(t) > 0 && t.every((q) => inside(p, q))) { top = t; break; }
+  }
   const r = cellHash(id, salt);
   const color = o.colors[Math.floor(r * o.colors.length) % o.colors.length];
   const h = o.h + (o.bump ? (cellHash(id, salt + 17) - 0.5) * o.bump : 0);
@@ -133,7 +144,8 @@ function lay(b: GeoBuilder, poly: Pt[], o: Lay, salt = 0): void {
 }
 
 const rect = (x0: number, z0: number, x1: number, z1: number): Pt[] => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
-const bed = (color: string): GeoBuilder => geo().block(1, BED, 1, color, [0, 0, 0]);
+// a hair wider than the tile so neighbouring beds overlap and no seam line shows between them
+const bed = (color: string): GeoBuilder => geo().block(1.004, BED, 1.004, color, [0, 0, 0]);
 
 /** Running bond: rows of `len` x `row` bricks, every other row shifted half a brick. */
 function runningBond(b: GeoBuilder, len: number, row: number, o: Lay, jitter = 0): void {
@@ -246,13 +258,13 @@ export const PATH_MODELS: Record<string, () => THREE.BufferGeometry> = {
 
   path_flagstone: () => {
     const b = bed('#a99a7e');
-    crazyPaving(b, 3, 0.07, 3, { grout: 0.028, h: 0.022, bevel: 0.02, bump: 0.008, colors: ['#dccfb5', '#cbbd9f', '#e3d9c4', '#c2b393', '#d5c3a2', '#cfc6b4'] });
+    crazyPaving(b, 3, 0.07, 3, { grout: 0.028, h: 0.022, bevel: 0.02, bump: 0.008, colors: ['#dccfb5', '#cbbd9f', '#e3d9c4', '#c2b393', '#d5c3a2', '#cfc6b4'] }, 0.12);
     return b.build();
   },
 
   path_mossy: () => {
     const b = bed('#6da044');
-    crazyPaving(b, 3, 0.08, 9, { grout: 0.04, h: 0.022, bevel: 0.022, bump: 0.01, colors: ['#a3a899', '#939b8c', '#adb19f', '#9aa38d', '#8c9585'] }, 0.2);
+    crazyPaving(b, 3, 0.07, 9, { grout: 0.034, h: 0.022, bevel: 0.016, bump: 0.01, colors: ['#a3a899', '#939b8c', '#adb19f', '#9aa38d', '#8c9585'] }, 0.06);
     pebbles(b, 9, 77, ['#79b84a', '#5f9e3a', '#8cc858'], [0.03, 0.055], BED + 0.02, 0.12);
     return b.build();
   },
@@ -276,10 +288,11 @@ export const PATH_MODELS: Record<string, () => THREE.BufferGeometry> = {
       const a = Math.atan2(-cz, -cx);
       peb(cx + Math.cos(a) * 0.08, cz + Math.sin(a) * 0.08, 0.035, '#f3ead6');
     }
-    // filler pebbles in the plain ring between
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-      peb(Math.cos(a) * 0.36, Math.sin(a) * 0.36, 0.03, i % 2 ? '#c9c2b2' : '#b4ad9d');
+    // grey and cream filler pebbles everywhere between the motifs
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+      const x = (i + 0.5) / 8 - H + (r() - 0.5) * 0.03, z = (j + 0.5) / 8 - H + (r() - 0.5) * 0.03;
+      if (Math.hypot(x, z) < 0.27 || Math.min(...[[-H, -H], [H, -H], [H, H], [-H, H]].map(([cx, cz]) => Math.hypot(x - cx, z - cz))) < 0.27) continue;
+      peb(x, z, 0.028, ['#c9c2b2', '#b4ad9d', '#dcd6c8', '#a39d90'][Math.floor(r() * 4)]);
     }
     return b.build();
   },
