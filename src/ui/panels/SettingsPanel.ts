@@ -16,6 +16,7 @@ import { onOldAddress, NEW_HOST } from '../../systems/FarmMove';
 import { installButton } from '../Install';
 import { openMoveFarm } from './MoveFarmPanel';
 import { notificationSettingsSection } from './NotificationSettings';
+import { openPhotoMode } from '../PhotoMode';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -64,6 +65,7 @@ export function openSettings(): void {
     hintsRow(),
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),
       button([icon('farmer'), 'Edit'], () => { p.close(); ui.open('character'); }, 'small blue'))),
+    row('Photo mode', button([icon('camera'), 'Take photos'], () => { p.close(); openPhotoMode(); }, 'small yellow', { 'aria-label': 'Open photo mode' })),
   );
   p.body.append(onlineSettingsSection(() => { p.close(); ui.open('character'); }));
   p.body.append(notificationSettingsSection());
