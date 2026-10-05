@@ -70,7 +70,7 @@ async function buildVisual(def: BuildingDef): Promise<Visual | null> {
     g.computeBoundingBox();
     const size = g.boundingBox!.getSize(new THREE.Vector3());
     const local = def.fit !== 1 ? fitMatrix(size, w, d, def.fit) : new THREE.Matrix4();
-    return { key: def.id, geometry: g, material: assets.vertexMaterial, local, height: size.y, castShadow: def.cat !== 'farm' };
+    return { key: def.id, geometry: g, material: assets.vertexMaterial, local, height: size.y, castShadow: def.cat !== 'farm' && !def.path };
   }
   if (m === 'tree') {
     const t = TREE[def.tree!];

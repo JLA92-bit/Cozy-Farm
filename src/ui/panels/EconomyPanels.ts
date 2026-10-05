@@ -371,7 +371,7 @@ function offerSub(o: MerchantOffer): string {
 export function anchorOfMerchant() { const p = merchantSpot(); return { x: p[0] - 24 + 0.5, y: 1.4, z: p[1] - 24 + 0.5 }; }
 /** Where the merchant parks: the west end of the farm path. */
 export function merchantSpot(): [number, number] {
-  const paths = game.state.buildings.filter((b) => b.type === 'path_dirt' || b.type === 'path_stone');
+  const paths = game.state.buildings.filter((b) => BUILDING[b.type]?.path);
   if (!paths.length) return [16, 20];
   const p = paths.reduce((a, b) => (b.x < a.x ? b : a));
   return [p.x, p.z];
