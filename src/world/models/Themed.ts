@@ -350,10 +350,10 @@ export const THEMED: Record<string, ThemedModel> = {
       b.block(0.3, 0.04, 0.3, d, [0, 0.61, 0]);
       b.block(0.3, 0.04, 0.3, d, [0, 0.79, 0]);
       // flared roof with upturned corners and a finial
-      b.cyl(0.08, 0.33, 0.16, s, [0, 0.83, 0], 6);
+      b.cyl(0.08, 0.28, 0.15, s, [0, 0.83, 0], 6);
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2;
-        b.sphere(0.04, d, [Math.cos(a) * 0.33, 0.86, Math.sin(a) * 0.33], 0, [1, 1.4, 1]);
+        b.sphere(0.035, d, [Math.cos(a) * 0.28, 0.85, Math.sin(a) * 0.28], 0, [1, 1.4, 1]);
       }
       b.sphere(0.06, s, [0, 1.02, 0], 0, [1, 1.35, 1]);
       b.sphere(0.035, d, [0, 1.1, 0], 0);

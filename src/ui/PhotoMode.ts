@@ -14,7 +14,7 @@ import './photo.css';
  * Everything it touches (camera, time of day, input handler, HUD) is restored on exit.
  */
 type FrameId = 'none' | 'warm' | 'polaroid' | 'vintage';
-const TIMES: [string, string, number | null][] = [['Now', 'timer', null], ['Morning', 'sunrise', 0.08], ['Midday', 'sun', 0.3], ['Golden', 'sparkles', 0.645], ['Night', 'moon', 0.76]];
+const TIMES: [string, number | null][] = [['Now', null], ['Morning', 0.06], ['Midday', 0.3], ['Golden', 0.645], ['Night', 0.76]];
 const FRAMES: [FrameId, string][] = [['none', 'None'], ['warm', 'Warm'], ['polaroid', 'Polaroid'], ['vintage', 'Vintage']];
 /** Live preview of the colour filters (the snapped photo applies the same grade per pixel). */
 const CSS_FILTER: Record<FrameId, string> = {
@@ -64,7 +64,7 @@ class PhotoMode {
 
     this.caption = h('div', { class: 'photo-caption' });
     this.frameEl = h('div', { class: 'photo-frame' }, h('div', { class: 'photo-window' }), this.caption);
-    const close = button(icon('cross'), () => this.close(), 'red round photo-close', { 'aria-label': 'Close photo mode' });
+    const close = button('✕', () => this.close(), 'red close-btn photo-close', { 'aria-label': 'Close photo mode' });
     const chips = <T>(items: [T, string, string?][], pick: (v: T) => void, initial: T): HTMLElement => {
       const row = h('div', { class: 'photo-chips' });
       for (const [v, label, ic] of items) {
@@ -87,7 +87,7 @@ class PhotoMode {
     const deg = THREE.MathUtils.radToDeg;
     const snap = button([icon('camera'), h('span', null, 'Snap')], () => void this.snap(), 'yellow photo-snap', { 'aria-label': 'Take photo' });
     const sheet = h('div', { class: 'photo-sheet' },
-      chips(TIMES.map(([l, ic, v]) => [v, l, ic] as [number | null, string, string]), (v) => this.setTime(v), null),
+      chips(TIMES.map(([l, v]) => [v, l] as [number | null, string]), (v) => this.setTime(v), null),
       chips(FRAMES.map(([v, l]) => [v, l] as [FrameId, string]), (v) => this.setFrame(v), 'none'),
       h('div', { class: 'photo-sliders' },
         slider('Turn', -180, 180, Math.round(deg(rig.azimuth - Math.PI / 4)), (v) => { rig.azimuth = Math.PI / 4 + THREE.MathUtils.degToRad(v); }),

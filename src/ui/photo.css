@@ -8,7 +8,7 @@
 .photo-top > * { pointer-events: auto; }
 .photo-title { display: flex; align-items: center; gap: 6px; font-size: 22px; }
 .photo-title .icon { width: 30px; height: 30px; filter: drop-shadow(0 2px 0 var(--outline)); }
-.photo-close { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
+.photo-ui .photo-close { position: static; }
 .photo-hint {
   position: absolute; top: calc(var(--safe-top) + 66px); left: 50%; transform: translateX(-50%);
   padding: 4px 12px; border-radius: 999px; background: rgba(45, 30, 16, .55); color: #fff;
@@ -26,8 +26,8 @@
 .photo-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 4px; }
 .photo-chips::-webkit-scrollbar { display: none; }
 .photo-chip {
-  flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  min-height: 38px; padding: 0 10px; border: 3px solid var(--outline); border-radius: 12px;
+  flex: 1 1 0; min-width: 0; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 38px; padding: 0 4px; border: 3px solid var(--outline); border-radius: 12px;
   background: var(--cream-2); color: var(--ink-soft); font-family: var(--font-display); font-size: 14px; cursor: pointer;
   box-shadow: 0 2px 0 var(--outline); touch-action: manipulation;
 }
