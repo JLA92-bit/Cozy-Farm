@@ -11,7 +11,7 @@ import { hints } from '../../systems/Hints';
 import { extraUnlocks } from '../../systems/Progression';
 import { extraObtainable } from '../../systems/Economy';
 import { visiting } from '../../systems/Visiting';
-import { fishing, sizeText, RARITY_LABEL, TIME_ICON, TIME_LABEL, type Catch, type CatchResult } from '../../systems/Fishing';
+import { fishing, isRareTier, sizeText, RARITY_LABEL, TIME_ICON, TIME_LABEL, type Catch, type CatchResult } from '../../systems/Fishing';
 import { FishingView } from '../../world/FishingView';
 import { DOCK } from '../../world/Terrain';
 import { worldToTile } from '../../world/Grid';
@@ -108,6 +108,7 @@ class FishingController {
   open(): void {
     if (this.el || visiting.active || !this.view) return;
     if (!fishing.unlocked) { ui.feedback.toast(`Fishing opens at level ${FISHING.level}`, undefined, 'lock'); return; }
+    fishing.syncRare();
     Panel.closeAll();
     ui.world.hidePopup();
     ui.interaction.exitPlant();
@@ -221,18 +222,21 @@ class FishingController {
       this.castsEl.setAttribute('aria-label', `${free} free casts left today, ${bait} bait`);
     }
     const time = fishing.time;
-    const key = `${time}|${game.level}|${Object.keys(fishing.st.caught).length}`;
+    const key = `${time}|${game.level}|${Object.keys(fishing.st.caught).length}|${fishing.mythicAwake}`;
     if (key === this.lastTimeKey) return;
     this.lastTimeKey = key;
     clear(this.timeEl).append(icon(TIME_ICON[time]), h('span', { class: 'fc-time' }, TIME_LABEL[time]));
     this.timeEl.setAttribute('aria-label', TIME_LABEL[time]);
     this.timeEl.title = TIME_LABEL[time];
-    clear(this.bitingEl).append(h('span', { class: 'fb-label outlined' }, 'Biting:'));
-    for (const f of fishing.biting(time)) {
+    // later in the game a dozen or more kinds bite at once: smaller icons that wrap onto a second row
+    const biting = fishing.biting(time);
+    const list = h('div', { class: `fb-list ${biting.length > 9 ? 'many' : ''}` });
+    clear(this.bitingEl).append(h('span', { class: 'fb-label outlined' }, 'Biting:'), list);
+    for (const f of biting) {
       const seen = !!fishing.st.caught[f.id];
       const ic = icon(ITEMS[f.id].icon);
       ic.title = seen ? ITEMS[f.id].name : '???';
-      this.bitingEl.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}` }, ic));
+      list.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}` }, ic));
     }
   }
 
@@ -336,7 +340,8 @@ class FishingController {
     this.progress = FISHING.reel.start;
     this.zoneEl.style.width = `${this.zoneW * 100}%`;
     // the marker never gives the catch away; rare ones glow
-    this.fishEl.classList.toggle('glow', c.def.rarity === 'rare' || c.def.rarity === 'legendary');
+    this.fishEl.classList.toggle('glow', isRareTier(c.def.rarity));
+    this.fishEl.classList.toggle('mythic', c.def.rarity === 'mythic');
     this.reels++;
     this.setStep('reel');
     this.trackW = (this.reel.firstChild as HTMLElement).clientWidth || 300;
@@ -468,7 +473,12 @@ class FishingController {
     this.catch = null;
     this.holding = false;
     if (c.kind === 'fish') this.assist = 0;
+    const wasAwake = fishing.mythicAwake;
     const res = fishing.land(c);
+    // the first legendary catch wakes the mythic fish: a little teaser once the card is up
+    if (!wasAwake && fishing.mythicAwake) {
+      setTimeout(() => { if (this.el) ui.feedback.toast('Something mythic stirs in the deep...', 'Rumour says mythic fish now bite at the dock', 'sparkles'); }, 2600);
+    }
     const view = this.view!;
     view.setPhase('land');
     this.splash(14);
@@ -487,8 +497,9 @@ class FishingController {
   private reveal(r: CatchResult): void {
     if (!this.el) return;
     this.setStep('reveal');
-    const legendary = r.rarity === 'legendary';
-    const ribbon = r.firstCatch && r.kind === 'fish' ? 'New species!' : r.record ? 'New record!' : '';
+    const mythic = r.rarity === 'mythic';
+    const legendary = r.rarity === 'legendary' || mythic;
+    const ribbon = r.firstCatch && r.kind === 'fish' ? (mythic ? 'Mythic catch!' : 'New species!') : r.record ? 'New record!' : '';
     const rows: (HTMLElement | null)[] = [];
     if (r.note) {
       rows.push(h('div', { class: 'fish-note' }, r.note));
@@ -496,6 +507,7 @@ class FishingController {
       rows.push(h('div', { class: 'row', style: 'gap:6px;justify-content:center;flex-wrap:wrap' },
         r.rarity ? h('span', { class: `pill fish-rarity r-${r.rarity}` }, RARITY_LABEL[r.rarity]) : null,
         h('span', { class: 'pill' }, icon('fishing_pole'), sizeText(r.size))));
+      if (mythic && r.firstCatch) rows.push(h('div', { class: 'card-sub' }, 'Only the luckiest anglers ever see one!'));
       if (r.record) rows.push(h('div', { class: 'card-sub' }, `Your old best was ${sizeText(r.prevRecord)}`));
       else if (!r.firstCatch) rows.push(h('div', { class: 'card-sub' }, `Your best: ${sizeText(fishing.recordOf(r.id).best)}`));
     } else if (r.line) rows.push(h('div', { class: 'card-sub' }, r.line));
@@ -511,8 +523,24 @@ class FishingController {
       gsap.to(card, { scale: 0.7, opacity: 0, duration: 0.18, onComplete: () => card.remove() });
       if (this.el) this.setStep('idle');
     };
+    // legendary and mythic cards twinkle: little sparkles dotted around the edge
+    const sparkles = legendary ? h('div', { class: 'fish-sparkles' }) : null;
+    if (sparkles) {
+      const n = mythic ? 14 : 8;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rand(-0.2, 0.2);
+        const sp = icon(mythic && i % 2 ? 'glowing_star' : 'sparkles');
+        sp.classList.add('fs-star');
+        sp.style.left = `${(50 + Math.cos(a) * rand(46, 54)).toFixed(1)}%`;
+        sp.style.top = `${(50 + Math.sin(a) * rand(44, 52)).toFixed(1)}%`;
+        sp.style.animationDelay = `${rand(0, 1.6).toFixed(2)}s`;
+        sp.style.setProperty('--s', rand(0.7, 1.25).toFixed(2));
+        sparkles.append(sp);
+      }
+    }
     const card = h('div', { class: `fish-reveal ${legendary ? 'legendary' : ''} ${r.rarity ? `r-${r.rarity}` : ''}` },
       h('div', { class: 'fish-reveal-card' },
+        sparkles,
         ribbon ? h('div', { class: 'fish-ribbon outlined' }, ribbon) : null,
         h('div', { class: 'fish-reveal-icon' }, icon(r.icon)),
         h('div', { class: 'fish-reveal-name outlined' }, r.note ? 'Message in a bottle!' : r.name),
@@ -522,10 +550,18 @@ class FishingController {
     this.el.append(card);
     gsap.fromTo(card.firstChild as HTMLElement, { scale: 0.4, y: 40 }, { scale: 1, y: 0, duration: 0.45, ease: 'back.out(1.8)' });
     gsap.fromTo(card.querySelector('.fish-reveal-icon'), { rotate: -25, scale: 0.3 }, { rotate: 0, scale: 1, duration: 0.6, ease: 'elastic.out(1.1, 0.45)', delay: 0.1 });
-    if (legendary) { confetti(50, ['#ffc93c', '#ffe066', '#fff3c4', '#8fd3ff']); audio.play('reward'); haptics.play('celebrate'); }
+    if (mythic) {
+      // the rarest catch in the game: rainbow confetti, a second burst and a little shake
+      confetti(80, ['#ff6fb5', '#ffd166', '#7ed957', '#4fc3ff', '#b07bff', '#ffffff']);
+      setTimeout(() => confetti(40, ['#ff6fb5', '#b07bff', '#4fc3ff', '#fff3c4']), 650);
+      audio.play('achievement');
+      audio.play('reward', { volume: 0.7 });
+      haptics.play('celebrate');
+      ui.scene.rig.shake(0.18, 0.4);
+    } else if (legendary) { confetti(50, ['#ffc93c', '#ffe066', '#fff3c4', '#8fd3ff']); audio.play('reward'); haptics.play('celebrate'); }
     else if (ribbon) { audio.play(r.firstCatch ? 'unlock' : 'bonus', { volume: 0.8 }); confetti(20); }
     else audio.play(r.note ? 'reward' : 'sparkle', { volume: 0.7 });
-    ui.effects.sparkle(this.tmp.copy(this.view!.seat).setY(this.view!.seat.y + 1.2), legendary ? '#ffe066' : '#fff6a0', legendary ? 20 : 10);
+    ui.effects.sparkle(this.tmp.copy(this.view!.seat).setY(this.view!.seat.y + 1.2), mythic ? '#ffb8f0' : legendary ? '#ffe066' : '#fff6a0', mythic ? 32 : legendary ? 20 : 10);
   }
 }
 

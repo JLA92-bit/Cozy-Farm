@@ -1,4 +1,5 @@
 /* Fishing at the dock: HTML overlay for the mini-game. Kept in its own file so it merges cleanly. */
+:root { --mythic: #c46bff; }
 
 #ui-root.mode-fishing .hud-layer,
 #ui-root.mode-fishing .world-layer { display: none !important; }
@@ -31,9 +32,14 @@
 .fish-biting .fb-label { color: #fff; font-family: var(--font-display); font-size: 13px; margin-right: 2px; flex: 0 0 auto; }
 .fish-biting .fb-fish { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .55); border: 2px solid rgba(45, 30, 16, .5); }
 .fish-biting .fb-fish .icon { width: 22px; height: 22px; }
+.fish-biting .fb-list { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; min-width: 0; }
+.fish-biting .fb-list.many { flex-wrap: wrap; gap: 3px; padding: 1px 0; }
+.fish-biting .fb-list.many .fb-fish { width: 26px; height: 26px; }
+.fish-biting .fb-list.many .fb-fish .icon { width: 19px; height: 19px; }
 .fish-biting .fb-fish.unseen .icon { filter: brightness(0) opacity(.45); }
 .fish-biting .fb-fish.r-rare { border-color: var(--rare); }
 .fish-biting .fb-fish.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px rgba(255, 176, 32, .8); }
+.fish-biting .fb-fish.r-mythic { border-color: var(--mythic); box-shadow: 0 0 9px rgba(214, 120, 255, .9); background: linear-gradient(135deg, rgba(255, 200, 240, .8), rgba(200, 225, 255, .8)); }
 
 .fish-touch { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; }
 .fish-center { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 16px; text-align: center; pointer-events: none; }
@@ -72,6 +78,7 @@
 .fr-fish { position: absolute; top: 50%; left: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; will-change: transform; }
 .fr-fish .icon { width: 34px; height: 34px; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
 .fr-fish.glow .icon { filter: drop-shadow(0 0 5px #fff3a0) drop-shadow(0 0 3px #ffb020); }
+.fr-fish.glow.mythic .icon { filter: drop-shadow(0 0 6px #ffd6f5) drop-shadow(0 0 4px #b07bff); }
 .fr-meter { height: 14px; border-radius: 8px; background: rgba(40, 25, 10, .55); border: 3px solid var(--outline); overflow: hidden; }
 .fr-fill { height: 100%; background: linear-gradient(90deg, #ffe066, #7ed957); transform-origin: left center; transform: scaleX(.3); will-change: transform; }
 
@@ -82,6 +89,23 @@
 }
 .fish-reveal.legendary .fish-reveal-card { background: linear-gradient(#fff8d8, #ffe9a8); box-shadow: 0 6px 0 var(--outline), 0 0 30px 6px rgba(255, 200, 60, .7); }
 .fish-reveal.r-rare .fish-reveal-card { box-shadow: 0 6px 0 var(--outline), 0 0 22px 4px rgba(63, 169, 245, .55); }
+.fish-reveal.r-mythic { background: radial-gradient(circle at 50% 45%, rgba(120, 60, 160, .35), rgba(20, 30, 70, .55)); }
+.fish-reveal.r-mythic .fish-reveal-card { background: linear-gradient(160deg, #fff0fb, #efe6ff 55%, #e2f4ff); animation: fishMythic 2.4s ease-in-out infinite alternate; }
+.fish-reveal.r-mythic .fish-reveal-icon { background: radial-gradient(#ffffff 45%, #ffe1f6 70%, #d9ccff); box-shadow: 0 0 0 3px #ff8ad8, 0 0 0 6px #8fd3ff, 0 0 18px 6px rgba(214, 120, 255, .6); }
+@keyframes fishMythic {
+  from { box-shadow: 0 6px 0 var(--outline), 0 0 30px 8px rgba(255, 110, 200, .75); }
+  to { box-shadow: 0 6px 0 var(--outline), 0 0 36px 10px rgba(100, 180, 255, .8); }
+}
+.fish-sparkles { position: absolute; inset: 0; pointer-events: none; }
+.fish-sparkles .fs-star { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; opacity: 0; animation: fishTwinkle 1.8s ease-in-out infinite; }
+@keyframes fishTwinkle {
+  0%, 100% { opacity: 0; transform: scale(calc(var(--s, 1) * .3)) rotate(0deg); }
+  45% { opacity: 1; transform: scale(var(--s, 1)) rotate(20deg); }
+  70% { opacity: .8; transform: scale(calc(var(--s, 1) * .8)) rotate(35deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fish-reveal.r-mythic .fish-reveal-card, .fish-sparkles .fs-star { animation: none; opacity: 1; }
+}
 .fish-reveal-icon { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(#ffffff, #cdeeff); border: 3px solid var(--outline); }
 .fish-reveal-icon .icon { width: 72px; height: 72px; }
 .fish-reveal-name { font-family: var(--font-display); font-size: 26px; color: #fff; line-height: 1.1; }
@@ -94,6 +118,7 @@
 .fish-rarity.r-uncommon { background: var(--btn-green); }
 .fish-rarity.r-rare { background: var(--rare); }
 .fish-rarity.r-legendary { background: var(--legendary); }
+.fish-rarity.r-mythic { background: linear-gradient(90deg, #ff6fb5, #b07bff 50%, #4fc3ff); }
 .fish-note {
   max-width: 260px; padding: 10px 12px; background: #fffdf4; border: 2px dashed #c9a46a; border-radius: 10px; transform: rotate(-1.5deg);
   font-size: 15px; line-height: 1.3; color: var(--ink); font-style: italic;
@@ -123,3 +148,7 @@
 
 /* collection book: fish records */
 .card .fish-book-line { font-size: 11px; line-height: 1.15; color: var(--ink-soft); }
+/* rare, legendary and mythic fish get a coloured frame in the book, even before they are caught (something to chase) */
+.card.fish-card.r-rare { border-color: var(--rare); }
+.card.fish-card.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px rgba(255, 176, 32, .55); }
+.card.fish-card.r-mythic { border-color: var(--mythic); box-shadow: 0 0 10px rgba(214, 120, 255, .65); background: linear-gradient(160deg, #fff6fd, #f1ebff); }

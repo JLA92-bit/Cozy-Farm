@@ -84,13 +84,15 @@ export const TUTORIAL: TutorialStep[] = tutorialJson.steps;
 export const LAND = landJson;
 
 export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
-export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary' | 'mythic';
 export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number }
 export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
 /** Fishing at the dock (fish.json). */
 export const FISHING = fishJson as unknown as {
   level: number; freeCastsPerDay: number; baitItem: string; baitShop: { qty: number; coins: number }; junkChance: number;
   rarityChance: Record<FishRarity, number>; times: Record<FishTime, [number, number]>;
+  /** Mythic fish only bite once the player has caught a legendary one. */
+  mythicNeedsLegendary?: boolean;
   bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
   reel: { zone: number[]; fishSpeed: number[]; fillPerSec: number; drainPerSec: number; start: number; assistZone: number };
   recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];

@@ -514,6 +514,34 @@
    "out": 1,
    "sec": 1500,
    "xp": 11
+  },
+  {
+   "id": "sushi_platter",
+   "building": "fish_shack",
+   "level": 15,
+   "in": {
+    "rainbow_trout": 1,
+    "seaweed": 1,
+    "cabbage": 1
+   },
+   "item": "sushi_platter",
+   "out": 1,
+   "sec": 1200,
+   "xp": 10
+  },
+  {
+   "id": "oyster_chowder",
+   "building": "fish_shack",
+   "level": 17,
+   "in": {
+    "pearl_oyster": 2,
+    "onion": 1,
+    "milk": 1
+   },
+   "item": "oyster_chowder",
+   "out": 1,
+   "sec": 2400,
+   "xp": 16
   }
  ]
 }
