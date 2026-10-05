@@ -5,6 +5,7 @@ import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
 import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data';
+import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
 const BACKUP_KEY = 'cozy-acres-save-backup';
@@ -98,6 +99,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     if (b.animals) b.animals = (Array.isArray(b.animals) ? b.animals : []).filter(isObj).map((a) => ({ fedAt: Number.isFinite(a.fedAt) ? a.fedAt as number : null }));
     if (b.queue) b.queue = (Array.isArray(b.queue) ? b.queue : []).filter((e) => isObj(e) && RECIPE[e.recipe] && Number.isFinite(e.start) && Number.isFinite(e.end));
     if (b.ready) b.ready = strArr(b.ready).filter((i) => ITEMS[i]);
+    sanitizeDecorFields(b);
     maxUid = Math.max(maxUid, b.uid);
     fixed.push(b);
   }

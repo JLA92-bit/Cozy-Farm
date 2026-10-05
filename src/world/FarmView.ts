@@ -12,6 +12,7 @@ import { PlantHints } from './PlantHints';
 import { constructionVisual, objectFor, tintGeometry, visualFor, type Visual } from './Visuals';
 import { hashString, rng } from './Procedural';
 import { cropStage, plotReady, treeReady, animalState, productionState } from '../systems/Timers';
+import { attachFx, fxKey, hasFx, styledVisual, type DecorFx } from './models/DecorFx';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -89,6 +90,9 @@ export interface BuildingView {
   links?: { pool: InstancePool; handle: number }[];
   /** tile the view was last placed on (a move changes b.x/b.z in place) */
   at?: [number, number];
+  /** pretty decor: per-instance extras (flames, bulbs, sign text) and the paint/text they were built for */
+  fx?: DecorFx | null;
+  styleKey?: string;
 }
 
 /** Fences join up with neighbouring fences of the same kind (straight runs turn to follow them, corners get arms). */
@@ -292,7 +296,7 @@ export class FarmView {
   private isPooled(def: BuildingDef): boolean {
     if (def.parts?.length) return false;
     if (def.cat === 'farm') return true; // plots, trees
-    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow;
+    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow && !hasFx(def);
   }
 
   async addBuilding(b: PlacedBuilding, animate = false): Promise<void> {
@@ -316,7 +320,12 @@ export class FarmView {
 
   /** Compute the world transform for a building view and (re)attach its visual. */
   place(view: BuildingView): void {
-    const { b, def, visual } = view;
+    const { b, def } = view;
+    const visual = view.visual && styledVisual(view.visual, def, b);
+    // repainted or re-lettered: rebuild the visual from scratch
+    const style = visual ? fxKey(visual, b) : '';
+    if (view.styleKey !== undefined && view.styleKey !== style) this.detachVisual(view);
+    view.styleKey = style;
     view.at = [b.x, b.z];
     const [w, d] = rotatedSize(def.size, b.rot);
     view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
@@ -371,10 +380,17 @@ export class FarmView {
           view.fanAxis = sz.x < sz.y && sz.x < sz.z ? 'x' : sz.z < sz.y ? 'z' : 'y';
         }
         this.root.add(view.obj);
+        view.fx = attachFx(view.obj.children[0], b, def, this.g.state.player.name);
         if (def.glow) {
           view.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTex, color: '#ffd27a', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
           view.glow.scale.setScalar(2.2 * def.glow);
-          view.glow.position.y = view.height * 0.85;
+          if (view.fx?.glowY !== undefined) {
+            // low glows (fires, strings of lights) would be cut off by the ground: smaller, drawn over it
+            view.glow.position.y = view.fx.glowY * visual.local.getMaxScaleOnAxis();
+            view.glow.scale.setScalar(1.2 * def.glow);
+            view.glow.material.depthTest = false;
+            view.glow.material.color.set('#ffb36b');
+          } else view.glow.position.y = view.height * 0.85;
           view.obj.add(view.glow);
           view.lightPool = new THREE.Mesh(lightPoolGeometry(), new THREE.MeshBasicMaterial({ map: this.glowTex, color: '#ffc46b', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
           view.lightPool.scale.setScalar(2.6 * def.glow);
@@ -438,7 +454,15 @@ export class FarmView {
   }
   private detachVisual(view: BuildingView): void {
     this.detachFromPool(view);
-    if (view.obj) { this.root.remove(view.obj); view.obj = null; }
+    if (view.obj) {
+      this.root.remove(view.obj);
+      view.obj = null;
+      view.fx?.dispose();
+      view.fx = null;
+      (view.glow?.material as THREE.Material | undefined)?.dispose();
+      (view.lightPool?.material as THREE.Material | undefined)?.dispose();
+      view.glow = view.lightPool = undefined;
+    }
   }
 
   /** Take a building out of its pool into a standalone object (for move mode / animations). */
@@ -826,9 +850,10 @@ export class FarmView {
         const busy = productionState(v.b, this.g.now()).running;
         v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
       }
+      if (v.fx && !this.hidden.has(v.b.uid)) v.fx.update(dt, t, night);
       if (v.glow) {
-        // campfires flicker, lamps hum steadily
-        const flick = v.def.id === 'campfire' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
+        // fires flicker, lamps hum steadily
+        const flick = v.def.id === 'campfire' || v.def.id === 'pumpkin_lanterns' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
         (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9 * flick;
         if (v.lightPool) {
           v.lightPool.visible = night > 0.02;
@@ -936,7 +961,7 @@ export class FarmView {
 
   /** True when something needs per-frame animation (keeps the loop awake). */
   get animating(): boolean {
-    for (const v of this.views.values()) if (v.animals.length || v.fan) return true;
+    for (const v of this.views.values()) if (v.animals.length || v.fan || v.fx) return true;
     return false;
   }
 
@@ -961,6 +986,7 @@ export class FarmView {
     for (const g of this.ownGeometry) g.dispose();
     for (const m of this.ownMaterial) { (m as THREE.MeshLambertMaterial).map?.dispose(); m.dispose(); }
     for (const v of this.views.values()) {
+      v.fx?.dispose();
       (v.glow?.material as THREE.Material | undefined)?.dispose();
       (v.lightPool?.material as THREE.Material | undefined)?.dispose();
     }

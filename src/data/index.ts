@@ -36,6 +36,8 @@ export interface BuildingDef {
   size: [number, number]; level: number; cost: number; costStep?: number; freeCount?: number; eventCost?: number; event?: string;
   buildSec?: number; model: string; parts?: string[]; fit: number; charm: number; cap?: string; max?: number;
   tree?: string; animal?: string; upgradeMult?: number; icon?: string; desc?: string; path?: boolean; glow?: number;
+  /** decor: shop filter group (paths, fences, plants, lights, ...); paint: model colour players can repaint; sign: shows custom text */
+  group?: string; paint?: string; sign?: boolean;
 }
 export interface LevelDef { level: number; xpToNext: number; coins: number; gems: number }
 export interface Unlock { level?: number; achievement?: string; event?: string; cost?: number; crate?: string; default?: boolean }
