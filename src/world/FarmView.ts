@@ -85,6 +85,26 @@ export interface BuildingView {
   smokeAt?: THREE.Vector3;
   smokeT?: number;
   busy: boolean;
+  /** fences: extra half-length arms drawn at corners, T-junctions and crossings */
+  links?: { pool: InstancePool; handle: number }[];
+  /** tile the view was last placed on (a move changes b.x/b.z in place) */
+  at?: [number, number];
+}
+
+/** Fences join up with neighbouring fences of the same kind (straight runs turn to follow them, corners get arms). */
+const isLinked = (def: BuildingDef): boolean => def.id.startsWith('fence') && def.size[0] === 1 && def.size[1] === 1;
+const LINK_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+/** Whether a model's long side runs along x (after its fit transform), per visual. */
+const runsAlongX = new Map<string, boolean>();
+function alongX(visual: Visual): boolean {
+  let v = runsAlongX.get(visual.key);
+  if (v === undefined) {
+    visual.geometry.computeBoundingBox();
+    const size = visual.geometry.boundingBox!.clone().applyMatrix4(visual.local).getSize(new THREE.Vector3());
+    v = size.x >= size.z;
+    runsAlongX.set(visual.key, v);
+  }
+  return v;
 }
 
 /** Shared clock for the wind-sway materials. */
@@ -289,6 +309,7 @@ export class FarmView {
     this.views.set(b.uid, view);
     this.paintFor(b, true);
     this.place(view);
+    if (isLinked(def)) this.relinkAround(b.x, b.z);
     if (animate) this.squash(view);
     this.updateDynamic(view, this.g.now(), true);
   }
@@ -296,6 +317,7 @@ export class FarmView {
   /** Compute the world transform for a building view and (re)attach its visual. */
   place(view: BuildingView): void {
     const { b, def, visual } = view;
+    view.at = [b.x, b.z];
     const [w, d] = rotatedSize(def.size, b.rot);
     view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
     view.box.set(new THREE.Vector3(b.x - HALF, 0, b.z - HALF), new THREE.Vector3(b.x - HALF + w, Math.max(0.4, view.height), b.z - HALF + d));
@@ -322,11 +344,20 @@ export class FarmView {
     const rotQ = tmpQ.setFromAxisAngle(UP, -b.rot * Math.PI / 2);
     if (this.isPooled(def) && !view.busy) {
       if (view.obj) { this.root.remove(view.obj); view.obj = null; }
-      const world = new THREE.Matrix4().compose(view.center, rotQ, tmpS.set(1, 1, 1)).multiply(visual.local);
+      const mats = isLinked(def) ? this.linkMatrices(view, visual) : null;
+      const world = mats ? mats[0] : new THREE.Matrix4().compose(view.center, rotQ, tmpS.set(1, 1, 1)).multiply(visual.local);
       if (!view.pool) {
         view.pool = this.pools.pool(`b/${visual.key}`, () => ({ geometry: visual.geometry, material: visual.material, castShadow: visual.castShadow }));
         view.handle = view.pool.add(world);
       } else view.pool.set(view.handle!, world);
+      // extra arms for fence corners / junctions
+      const extra = mats ? mats.slice(1) : [];
+      view.links ??= [];
+      while (view.links.length > extra.length) { const l = view.links.pop()!; l.pool.remove(l.handle); }
+      extra.forEach((m, i) => {
+        const l = view.links![i];
+        if (l) l.pool.set(l.handle, m); else view.links!.push({ pool: view.pool!, handle: view.pool!.add(m) });
+      });
     } else {
       this.detachFromPool(view);
       if (!view.obj) {
@@ -361,7 +392,49 @@ export class FarmView {
 
   private detachFromPool(view: BuildingView): void {
     if (view.pool && view.handle) { view.pool.remove(view.handle); }
+    for (const l of view.links ?? []) l.pool.remove(l.handle);
+    view.links = undefined;
     view.pool = undefined; view.handle = undefined;
+  }
+
+  /** The same-kind fence next to `b` in each direction (E, W, S, N), ignoring ones being moved. */
+  private linkedNeighbours(b: PlacedBuilding): boolean[] {
+    return LINK_DIRS.map(([dx, dz]) => {
+      const n = this.g.buildingAt(b.x + dx, b.z + dz);
+      return !!n && n.uid !== b.uid && n.type === b.type && !this.hidden.has(n.uid) && !(n.buildEnd && n.buildEnd > this.g.now());
+    });
+  }
+
+  /**
+   * Instance matrices for a fence tile: one full piece along a straight run (or as placed when alone), or one
+   * half-length arm from the tile centre towards each neighbour at a corner, T-junction or crossing.
+   */
+  private linkMatrices(view: BuildingView, visual: Visual): THREE.Matrix4[] {
+    const [e, w, s, n] = this.linkedNeighbours(view.b);
+    const onX = e || w, onZ = s || n;
+    const longX = alongX(visual);
+    // rotation that lays the model's long side along world x or z
+    const turn = (worldX: boolean) => tmpQ2.setFromAxisAngle(UP, worldX === longX ? 0 : Math.PI / 2);
+    if (!onX && !onZ) return [new THREE.Matrix4().compose(view.center, tmpQ.setFromAxisAngle(UP, -view.b.rot * Math.PI / 2), tmpS.set(1, 1, 1)).multiply(visual.local)];
+    if (onX !== onZ) return [new THREE.Matrix4().compose(view.center, turn(onX), tmpS.set(1, 1, 1)).multiply(visual.local)];
+    const half = longX ? tmpS.set(0.5, 1, 1) : tmpS.set(1, 1, 0.5);
+    const out: THREE.Matrix4[] = [];
+    [e, w, s, n].forEach((has, i) => {
+      if (!has) return;
+      const [dx, dz] = LINK_DIRS[i];
+      const pos = new THREE.Vector3(view.center.x + dx * 0.25, view.center.y, view.center.z + dz * 0.25);
+      out.push(new THREE.Matrix4().compose(pos, turn(dx !== 0), half).multiply(visual.local));
+    });
+    return out;
+  }
+
+  /** Re-place the fences around a tile after a fence there appeared, disappeared or moved. */
+  private relinkAround(x: number, z: number): void {
+    for (const [dx, dz] of LINK_DIRS) {
+      const n = this.g.buildingAt(x + dx, z + dz);
+      const v = n && this.views.get(n.uid);
+      if (v && isLinked(v.def)) this.place(v);
+    }
   }
   private detachVisual(view: BuildingView): void {
     this.detachFromPool(view);
@@ -410,6 +483,7 @@ export class FarmView {
     this.clearPlants(view);
     this.clearAnimals(view);
     this.place(view);
+    if (isLinked(view.def)) this.relinkAround(view.b.x, view.b.z);
     if (!hidden) this.updateDynamic(view, this.g.now(), true);
   }
 
@@ -423,15 +497,18 @@ export class FarmView {
     this.clearAnimals(view);
     this.views.delete(uid);
     this.blobDirty = true;
+    if (isLinked(view.def)) this.relinkAround(view.b.x, view.b.z);
   }
 
   refreshBuilding(b: PlacedBuilding, moved = false): void {
     const view = this.views.get(b.uid);
     if (!view) { void this.addBuilding(b); return; }
     if (moved) { this.paintFor(view.b, false); this.clearAnimals(view); this.clearPlants(view); }
+    const before = view.at ?? [b.x, b.z];
     view.b = b;
     this.paintFor(b, true);
     this.place(view);
+    if (isLinked(view.def)) { this.relinkAround(before[0], before[1]); this.relinkAround(b.x, b.z); }
     this.updateDynamic(view, this.g.now(), true);
   }
 

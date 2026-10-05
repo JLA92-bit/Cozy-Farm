@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.5.2",
+   "date": "2026-10-05",
+   "title": "Tidy fences",
+   "icon": "wood",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "wood",
+     "text": "Fences join up at corners, T-junctions and crossings"
+    },
+    {
+     "icon": "sparkle_heart",
+     "text": "Fences in a row turn to follow the line by themselves"
+    }
+   ]
+  },
+  {
    "version": "1.5.1",
    "date": "2026-10-04",
    "title": "Fishing fixes",
