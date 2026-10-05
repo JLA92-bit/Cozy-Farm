@@ -894,6 +894,8 @@ export function attachThemed(model: string, obj: THREE.Object3D, seed: number, h
   if (m.halo && halo) {
     (halo.material as THREE.SpriteMaterial).color.set(m.halo.color);
     if (m.halo.at) halo.position.set(...m.halo.at).applyMatrix4(inner.matrix);
+    // keep the (camera-facing) halo clear of the ground, or the ground cuts it off with a hard edge
+    halo.position.y = Math.max(halo.position.y, halo.scale.x * 0.36);
     if (pool) (pool.material as THREE.MeshBasicMaterial).color.set(m.halo.pool ?? m.halo.color);
   }
   const parts: ((dt: number, t: number, night: number) => void)[] = [];

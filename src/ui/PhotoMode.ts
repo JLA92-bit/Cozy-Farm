@@ -212,8 +212,10 @@ class PhotoMode {
     rig.minDistance = v.min;
     rig.maxDistance = v.max;
     rig.bounds.copy(v.bounds);
-    gsap.to(rig, { azimuth: v.azimuth, elevation: v.elevation, distance: v.distance, duration: 0.5, ease: 'power2.inOut', onUpdate: () => s.loop.wake(0.2) });
-    gsap.to(rig.target, { x: v.target.x, y: v.target.y, z: v.target.z, duration: 0.5, ease: 'power2.inOut' });
+    rig.azimuth = v.azimuth;
+    rig.elevation = v.elevation;
+    rig.distance = v.distance;
+    rig.target.copy(v.target);
     s.env.timeOffset = v.timeOffset;
     s.handler = v.handler;
     s.renderer.renderer.domElement.style.filter = '';
