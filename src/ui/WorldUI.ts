@@ -77,8 +77,20 @@ export class WorldUI {
     const off = p.x < -80 || p.y < -80 || p.x > window.innerWidth + 80 || p.y > window.innerHeight + 80;
     if (off !== !a.visible) { a.visible = !off; a.el.style.display = off ? 'none' : ''; }
     if (off) return;
+    let px = p.x, py = p.y + a.dy;
+    // the context popup stays fully on screen and below the top bar / goal banner, so its title is never hidden
+    if (a === this.popup) {
+      const w = a.el.offsetWidth, hgt = a.el.offsetHeight;
+      const top = Math.max(8, ...[...document.querySelectorAll<HTMLElement>('.hud-layer .goal-card, .hud-layer .hud-top')].map((e) => e.getBoundingClientRect().bottom + 6));
+      py = Math.min(Math.max(py, top + hgt), window.innerHeight - 8);
+      // and left of the side button column when there is room for it
+      const side = document.querySelector<HTMLElement>('.hud-layer .hud-side');
+      const sideLeft = side && side.offsetWidth ? side.getBoundingClientRect().left - 6 : window.innerWidth - 6;
+      const right = sideLeft - w / 2 >= w / 2 + 6 ? sideLeft : window.innerWidth - 6;
+      px = Math.min(Math.max(px, w / 2 + 6), right - w / 2);
+    }
     // skip the style write (and the style recalc it triggers) when the bubble has not moved
-    const x = Math.round(p.x * 10) / 10, y = Math.round((p.y + a.dy) * 10) / 10;
+    const x = Math.round(px * 10) / 10, y = Math.round(py * 10) / 10;
     if (x === a.px && y === a.py) return;
     a.px = x; a.py = y;
     a.el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -100%)`;
