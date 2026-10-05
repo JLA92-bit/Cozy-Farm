@@ -272,14 +272,14 @@ at the dock, 5 for 25 coins. Bait sells for 3 at the barn, so it cannot be flipp
   the fish nibbles again up to 3 times. Losing a fish costs only that cast.
 
 **The mini-game.** Tap to cast, wait 2-6 s (a couple of small nibbles tease you; tapping too early does nothing
-bad), tap within the bite window (1.6 s for easy fish down to 0.95 s for legendary ones), then reel: hold to slide the
+bad), tap within the bite window (1.6 s for easy fish down to 0.95 s for legendary and mythic ones), then reel: hold to slide the
 green zone right, let go to drift left, and keep the fish inside it. The catch meter starts at 30%, fills 32% a
 second inside the zone and drains 15% a second outside, so an easy fish takes about 2-3 s and a lively one 4-8 s.
 The zone is 42% of the bar for difficulty 1 and 22% for difficulty 5. After a lost fish the next reel gets a slightly
 bigger zone (+8%, up to twice) until you land one. Junk needs no reeling.
 
-**What bites.** First a rarity tier is rolled (common 62%, uncommon 26%, rare 9%, legendary 3%, only tiers with
-something biting right now count), then a species in it. 12% of casts bring up junk instead (old boot, seaweed, or a
+**What bites.** First a rarity tier is rolled (common 61%, uncommon 26%, rare 9%, legendary 3%, mythic 1%, only
+tiers with something biting right now count), then a species in it. 12% of casts bring up junk instead (old boot, seaweed, or a
 message in a bottle worth `20 + 4 x level` coins with a 25% chance of a gem). Time of day follows the 24 min
 day/night clock: morning is the dawn glow (phase 0.88-0.12), day until 0.6, dusk 0.6-0.72, night 0.72-0.88.
 
@@ -298,26 +298,63 @@ day/night clock: morning is the dawn glow (phase 0.88-0.12), day until 0.6, dusk
 | Lobster | rare | 17 | morning, night | 4 | 25-55 | 85 | 14 |
 | Golden Sunfish | legendary | 20 | day | 5 | 120-300 | 240 | 35 |
 | Reef Shark | legendary | 24 | night | 5 | 150-320 | 300 | 45 |
+| Hermit Crab | uncommon | 13 | day, dusk | 2 | 3-12 | 32 | 7 |
+| Sea Snail | common | 14 | morning, day | 1 | 2-6 | 12 | 4 |
+| Rainbow Trout | uncommon | 14 | morning, day | 3 | 30-70 | 44 | 8 |
+| Pearl Oyster | uncommon | 16 | morning, night | 2 | 7-16 | 46 | 8 |
+| Sunset Snapper | uncommon | 18 | dusk | 3 | 30-80 | 50 | 9 |
+| Bluegill | common | 19 | dusk, night | 2 | 12-28 | 18 | 5 |
+| Sea Turtle | rare | 21 | morning, day | 3 | 50-120 | 95 | 15 |
+| Lantern Fish | rare | 22 | night | 3 | 5-15 | 100 | 15 |
+| Coral Grouper | rare | 26 | day | 4 | 40-110 | 115 | 17 |
+| Moonlight Koi | rare | 28 | dusk, night | 4 | 40-90 | 125 | 18 |
+| Ghost Ray | rare | 30 | night | 4 | 80-220 | 140 | 20 |
+| Ancient Coelacanth | legendary | 32 | morning, night | 5 | 100-200 | 360 | 55 |
+| Crown Jewel Betta | legendary | 36 | day, dusk | 5 | 5-9 | 400 | 60 |
+| Kraken | mythic | 40 | night | 5 | 400-1200 | 900 | 140 |
+| Leafy Sea Dragon | legendary | 42 | morning, dusk | 5 | 20-45 | 450 | 70 |
+| Celestial Koi | mythic | 46 | morning | 5 | 60-120 | 1000 | 160 |
 
 Sizes lean small (`min + range x r^1.6`), so a big one is a treat. A new size record gives +50% XP for that catch.
 The legendary fish need the right time of day and about 30 casts on average to hook, then a hard reel: a goal for
 dedicated players, not a requirement for anything except the last Fish page entries and the Legend of the Deep award.
 
+**More species (29 in all).** The second wave starts at level 13, so the first week of fishing is exactly as before
+(the common tier only grows at 14 and 19, and the early any-time fish keep their odds). Every time of day gets
+something new, and the rare end is much deeper: 8 rare, 5 legendary and 2 mythic fish. Prices follow the tiers
+(common 8-20, uncommon 26-50, rare 55-140, legendary 240-450, mythic 900-1000) and XP follows price, so a rare fish
+is worth about 7-10 ordinary casts and a mythic one about 70-100. More species per tier means each one is a bit
+rarer later on: at level 40+ each legendary is roughly 1 in 60 night casts.
+
+**Mythic, the tier above legendary.** Mythic fish only start to bite once the player has landed any legendary fish
+(`mythicNeedsLegendary`; a "Something mythic stirs in the deep..." toast announces it, and the Book shows "after a
+legendary catch" until then). The Kraken bites only at night from level 40 and the Celestial Koi only in the
+morning from level 46, each about 1 in 100+ casts at the right time, then the hardest reel. They have their own
+pink-purple colour and rainbow label, a twinkling, glowing reveal card with rainbow confetti, a second burst and a
+little camera shake. They are never needed for anything except the Fish page, the gold Fish Collector tier and the
+Myth of the Deep award.
+
 **Uses.** Fish sell at the barn, the stall and the market like any item. Orders and the truck only ask for the
 common, any-time fish (sardine, shrimp, crab) and only after the player has caught that kind once; truck crates
-of raw fish are half the usual size because every fish is its own cast. Fish Shack recipes use only those three, so
-they are always makeable:
+of raw fish are half the usual size because every fish is its own cast. The first three Fish Shack recipes use only
+those three, so they are always makeable. Two later ones turn a time-of-day catch into a better price; they need a
+fish that orders never ask for, so they are a sell-only bonus for anglers (the simulation flags them as never asked
+for, which is intended):
 
 | Recipe | Level | In | Time | Sells | Value |
 | --- | --- | --- | --- | --- | --- |
 | Fish Cake | 8 | 3 sardine, 2 wheat (30) | 5 min | 44 | 1.47x |
 | Fish Pie | 9 | 2 sardine, 2 carrot, 1 bread (62) | 15 min | 90 | 1.45x |
 | Seafood Curry | 11 | 2 shrimp, 1 crab, 2 tomato (74) | 25 min | 108 | 1.46x |
+| Sushi Platter | 15 | 1 rainbow trout, 1 seaweed, 1 cabbage (95) | 20 min | 138 | 1.45x |
+| Oyster Chowder | 17 | 2 pearl oyster, 1 onion, 1 milk (186) | 40 min | 260 | 1.40x |
 
-**Collection and awards.** The Collection Book has a Fish page (13 fish, old boot and seaweed) showing the biggest
-catch and count per kind, and for unknown ones when and from which level they bite. Filling it pays 8 gems and an
-epic crate. Awards: Gone Fishing (catch 10 / 100 / 500 fish), Fish Collector (5 / 9 / 13 kinds, gold = every
-species), Legend of the Deep (1 / 3 / 10 legendary fish) and a hidden one for junk. Daily quest: "Catch {n} fish"
+**Collection and awards.** The Collection Book has a Fish page (29 fish, old boot and seaweed) showing the biggest
+catch and count per kind, and for unknown ones when and from which level they bite. Rare, legendary and mythic
+cards get a coloured frame even before they are caught, so there is something to chase. Filling it pays 8 gems
+and an epic crate. Awards: Gone Fishing (catch 10 / 100 / 500 fish), Fish Collector (5 / 15 / 29 kinds, gold =
+every species), Rare Finds (5 / 25 / 100 rare fish, counted from the catch log so older catches count), Legend of
+the Deep (1 / 3 / 10 legendary fish), Myth of the Deep (1 / 3 / 8 mythic fish) and a hidden one for junk. Daily quest: "Catch {n} fish"
 (n = 2-3, scaled by level like other quests, from level 7).
 
 **Simulation.** `simulate-economy.mjs` models fishing lightly (free casts every day, bait when orders or the Fish

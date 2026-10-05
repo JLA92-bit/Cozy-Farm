@@ -630,6 +630,18 @@
    "cat": "goods",
    "sell": 108,
    "icon": "curry"
+  },
+  "sushi_platter": {
+   "name": "Sushi Platter",
+   "cat": "goods",
+   "sell": 138,
+   "icon": "sushi"
+  },
+  "oyster_chowder": {
+   "name": "Oyster Chowder",
+   "cat": "goods",
+   "sell": 260,
+   "icon": "oyster_chowder"
   }
  }
 }

@@ -13,7 +13,7 @@ export const FISHING_ICONS = {
   fish: 'fish', tropical_fish: 'tropical-fish', blowfish: 'blowfish', crab: 'crab', shrimp: 'shrimp', octopus: 'octopus',
   squid: 'squid', lobster: 'lobster', jellyfish: 'jellyfish', shark: 'shark', fishing_pole: 'fishing-pole', worm: 'worm',
   boot: 'hiking-boot', fish_cake: 'fish-cake-with-swirl', curry: 'curry-rice', water_wave: 'water-wave', bottle: 'bottle-with-popping-cork',
-  oyster: 'oyster',
+  oyster: 'oyster', sushi: 'sushi',
 };
 
 /**
@@ -42,6 +42,7 @@ export const ICON_VARIANTS = {
   sea_dragon: { base: 'dragon', hue: 55, sat: 0.95, light: 1.05 },
   kraken: { base: 'octopus', hue: -95, sat: 1.05, light: 0.85, badge: 'sparkles' },
   celestial_koi: { base: 'fish', hue: 125, sat: 0.9, light: 1.42, flip: true, badge: 'glowing-star' },
+  oyster_chowder: { base: 'pot-of-food', badge: 'oyster' },
 };
 
 function hexToHsl(hex) {
