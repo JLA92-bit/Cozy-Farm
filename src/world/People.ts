@@ -6,8 +6,14 @@ import { Character } from './Character';
 import { HALF, MAP, chunkOf, footprintCenter, inMap, rotatedSize, tileToWorld } from './Grid';
 import { findPath } from './Path';
 
-/** Tiles people can walk on: unlocked, no obstacle, and either empty or a path/field. */
-export function walkable(x: number, z: number): boolean {
+/** Every walker in the scene (gates swing open for them). */
+export const walkers = new Set<Walker>();
+
+/**
+ * Tiles people can walk on: unlocked, no obstacle, and either empty or a path/field/gate. With `stand`, only tiles
+ * fit to stop on (people walk through gates but never loiter in them).
+ */
+export function walkable(x: number, z: number, stand = false): boolean {
   if (!inMap(x, z) || !game.isUnlocked(chunkOf(x, z))) return false;
   if (game.occO[z * MAP + x]) return false;
   const uid = game.occB[z * MAP + x];
@@ -15,7 +21,7 @@ export function walkable(x: number, z: number): boolean {
   const b = game.byUid(uid);
   if (!b) return true;
   const def = BUILDING[b.type];
-  return !!def.path || b.type === 'plot';
+  return !!def.path || (!!def.gate && !stand) || b.type === 'plot';
 }
 
 /** A free tile next to a building's footprint, closest to `from`. */
@@ -24,7 +30,7 @@ export function besideBuilding(b: PlacedBuilding, from: [number, number]): [numb
   let best: [number, number] | null = null, bestD = Infinity;
   for (let z = b.z - 1; z <= b.z + d; z++) for (let x = b.x - 1; x <= b.x + w; x++) {
     const edge = x === b.x - 1 || x === b.x + w || z === b.z - 1 || z === b.z + d;
-    if (!edge || !walkable(x, z)) continue;
+    if (!edge || !walkable(x, z, true)) continue;
     const dd = (x - from[0]) ** 2 + (z - from[1]) ** 2;
     if (dd < bestD) { bestD = dd; best = [x, z]; }
   }
@@ -51,6 +57,7 @@ export class Walker {
 
   constructor(char: Character, public scene: THREE.Object3D) {
     this.char = char;
+    walkers.add(this);
     scene.add(char.root);
     char.attachPetTo(scene);
   }

@@ -106,7 +106,7 @@ export class Player {
     let best: [number, number] | null = null, bestD = Infinity;
     for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) {
       const tx = x + dx, tz = z + dz;
-      if (!walkable(tx, tz) || (tileToWorld(tx) - pos.x) ** 2 + (tileToWorld(tz) - pos.z) ** 2 < 2.6 * 2.6) continue;
+      if (!walkable(tx, tz, true) || (tileToWorld(tx) - pos.x) ** 2 + (tileToWorld(tz) - pos.z) ** 2 < 2.6 * 2.6) continue;
       // the nearest tile that is clear of the cart
       const d = dx * dx + dz * dz + Math.random() * 0.5;
       if (d < bestD) { bestD = d; best = [tx, tz]; }
@@ -155,7 +155,7 @@ export class Player {
     for (let i = 0; i < 10; i++) {
       const bx = far ? x + Math.sign(this.home[0] - x) * 4 : x, bz = far ? z + Math.sign(this.home[1] - z) * 4 : z;
       const tx = bx + Math.round((Math.random() - 0.5) * 8), tz = bz + Math.round((Math.random() - 0.5) * 8);
-      if (walkable(tx, tz)) {
+      if (walkable(tx, tz, true)) {
         this.walker.walkTo(tx, tz, () => {
           const r = Math.random();
           if (r < 0.25) void this.walker.char.gesture('emote-yes');

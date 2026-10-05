@@ -70,7 +70,7 @@ export class BuildingSystem {
   private recordPlacedStats(def: BuildingDef): void {
     if (def.cat === 'decor') {
       if (def.path) game.incStat('paths_placed');
-      else if (def.id.startsWith('fence') || def.id === 'hedge') game.incStat('fences_placed');
+      else if (def.link || def.id === 'hedge') game.incStat('fences_placed');
       else game.incStat('decorations_placed');
     } else game.incStat('buildings_built');
     if (def.tree) game.incStat('trees_planted');
