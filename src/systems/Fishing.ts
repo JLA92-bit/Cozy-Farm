@@ -21,7 +21,9 @@ export interface CatchResult {
 export const TIME_ORDER: FishTime[] = ['morning', 'day', 'dusk', 'night'];
 export const TIME_LABEL: Record<FishTime, string> = { morning: 'Morning', day: 'Day', dusk: 'Dusk', night: 'Night' };
 export const TIME_ICON: Record<FishTime, string> = { morning: 'sunrise', day: 'sun', dusk: 'sunrise', night: 'moon' };
-export const RARITY_LABEL: Record<string, string> = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', legendary: 'Legendary' };
+export const RARITY_LABEL: Record<string, string> = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', legendary: 'Legendary', mythic: 'Mythic' };
+/** Rare, legendary and mythic: the reel marker glows and the Book card gets a coloured frame. */
+export const isRareTier = (r?: string): boolean => r === 'rare' || r === 'legendary' || r === 'mythic';
 
 export function emptyFishing(): FishingState {
   return { caught: {}, records: {}, freeDay: '', freeUsed: 0, casts: 0 };
@@ -79,9 +81,15 @@ class FishingSystem {
     return true;
   }
 
-  /** Species that can bite right now (level and time of day). */
+  /** Mythic fish stay away until a legendary one has been landed. */
+  get mythicAwake(): boolean {
+    return !FISHING.mythicNeedsLegendary || FISHING.species.some((f) => f.rarity === 'legendary' && this.st.caught[f.id]);
+  }
+
+  /** Species that can bite right now (level and time of day; mythic ones once awake). */
   biting(time = this.time): FishDef[] {
-    return FISHING.species.filter((f) => f.level <= game.level && f.times.includes(time));
+    const awake = this.mythicAwake;
+    return FISHING.species.filter((f) => f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
   }
 
   /** What is on the hook this cast. */
@@ -130,7 +138,10 @@ class FishingSystem {
       game.addItem(c.id, 1);
       game.incStat('fish_caught');
       game.incStat(`catch_${c.id}`);
+      // counted from the catch log, so rare fish landed before this award existed count too
+      if (c.def.rarity === 'rare') game.setGauge('fish_rare', FISHING.species.reduce((n, f) => n + (f.rarity === 'rare' ? st.caught[f.id] ?? 0 : 0), 0));
       if (c.def.rarity === 'legendary') game.incStat('fish_legendary');
+      if (c.def.rarity === 'mythic') game.incStat('fish_mythic');
       game.setGauge('fish_species', FISHING.species.filter((f) => st.caught[f.id]).length);
     } else {
       const j = c.def;
@@ -164,7 +175,8 @@ class FishingSystem {
     const f = FISH[id];
     if (!f) return 'Fished up at the dock';
     const when = f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', ');
-    return f.level > game.level ? `${when}, from level ${f.level}` : when;
+    if (f.level > game.level) return `${when}, from level ${f.level}`;
+    return f.rarity === 'mythic' && !this.mythicAwake ? `${when}, after a legendary catch` : when;
   }
 }
 

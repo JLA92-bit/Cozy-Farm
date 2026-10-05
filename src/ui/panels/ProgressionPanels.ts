@@ -2,9 +2,9 @@ import gsap from 'gsap';
 import { Panel } from '../Panel';
 import { h, icon, button, clear, fmt, itemIcon } from '../dom';
 import { ui } from '../UI';
-import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, MAX_LEVEL, REWARDS, ITEMS, COSMETICS, BUILDINGS, type EventDef } from '../../data';
+import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, MAX_LEVEL, REWARDS, ITEMS, FISH, COSMETICS, BUILDINGS, type EventDef } from '../../data';
 import { game } from '../../systems/Game';
-import { fishBookLine } from '../../systems/Fishing';
+import { fishBookLine, isRareTier } from '../../systems/Fishing';
 import { achievements, book, BOOK_PAGES, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
 import { actionForStat, actionForUnlock } from '../../systems/Goals';
 import { audio, haptics } from '../../systems/Audio';
@@ -552,7 +552,8 @@ export function openCollection(tab?: string): void {
     const grid = h('div', { class: 'grid tight' });
     for (const e of list) {
       const seen = !!game.state.collection[e.key];
-      grid.append(h('div', { class: `card ${seen ? '' : 'locked'}` },
+      const fishTier = e.group === 'Fish' && isRareTier(FISH[e.id]?.rarity) ? ` fish-card r-${FISH[e.id].rarity}` : '';
+      grid.append(h('div', { class: `card ${seen ? '' : 'locked'}${fishTier}` },
         seen && isNew(e.key) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
         icon(e.icon, 'card-icon'), h('div', { class: 'card-sub' }, seen ? e.name : '???'),
         seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:11px' }, `sells ${ITEMS[e.id].sell}`) : null,

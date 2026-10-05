@@ -499,6 +499,102 @@
    "sell": 300,
    "icon": "shark"
   },
+  "hermit_crab": {
+   "name": "Hermit Crab",
+   "cat": "fish",
+   "sell": 32,
+   "icon": "hermit_crab"
+  },
+  "sea_snail": {
+   "name": "Sea Snail",
+   "cat": "fish",
+   "sell": 12,
+   "icon": "sea_snail"
+  },
+  "rainbow_trout": {
+   "name": "Rainbow Trout",
+   "cat": "fish",
+   "sell": 44,
+   "icon": "rainbow_trout"
+  },
+  "pearl_oyster": {
+   "name": "Pearl Oyster",
+   "cat": "fish",
+   "sell": 46,
+   "icon": "oyster"
+  },
+  "sunset_snapper": {
+   "name": "Sunset Snapper",
+   "cat": "fish",
+   "sell": 50,
+   "icon": "snapper"
+  },
+  "bluegill": {
+   "name": "Bluegill",
+   "cat": "fish",
+   "sell": 18,
+   "icon": "fish_blue"
+  },
+  "sea_turtle": {
+   "name": "Sea Turtle",
+   "cat": "fish",
+   "sell": 95,
+   "icon": "sea_turtle"
+  },
+  "lantern_fish": {
+   "name": "Lantern Fish",
+   "cat": "fish",
+   "sell": 100,
+   "icon": "lantern_fish"
+  },
+  "coral_grouper": {
+   "name": "Coral Grouper",
+   "cat": "fish",
+   "sell": 115,
+   "icon": "coral_grouper"
+  },
+  "moonlight_koi": {
+   "name": "Moonlight Koi",
+   "cat": "fish",
+   "sell": 125,
+   "icon": "moon_koi"
+  },
+  "ghost_ray": {
+   "name": "Ghost Ray",
+   "cat": "fish",
+   "sell": 140,
+   "icon": "ghost_ray"
+  },
+  "coelacanth": {
+   "name": "Ancient Coelacanth",
+   "cat": "fish",
+   "sell": 360,
+   "icon": "coelacanth"
+  },
+  "crown_betta": {
+   "name": "Crown Jewel Betta",
+   "cat": "fish",
+   "sell": 400,
+   "icon": "betta_crown"
+  },
+  "kraken": {
+   "name": "Kraken",
+   "cat": "fish",
+   "sell": 900,
+   "icon": "kraken"
+  },
+  "sea_dragon": {
+   "name": "Leafy Sea Dragon",
+   "cat": "fish",
+   "sell": 450,
+   "icon": "sea_dragon"
+  },
+  "celestial_koi": {
+   "name": "Celestial Koi",
+   "cat": "fish",
+   "sell": 1000,
+   "icon": "celestial_koi"
+  },
   "old_boot": {
    "name": "Old Boot",
    "cat": "fish",
