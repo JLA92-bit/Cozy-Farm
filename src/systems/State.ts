@@ -28,6 +28,10 @@ export interface PlacedBuilding {
   animals?: { fedAt: number | null }[];
   queue?: QueueEntry[];
   ready?: string[];
+  /** decor paint colour (a key of PAINTS in systems/Decor) */
+  tint?: string;
+  /** Farm Sign text */
+  text?: string;
 }
 
 export interface Obstacle { id: number; type: string; x: number; z: number; model: number }

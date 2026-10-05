@@ -4,6 +4,7 @@ import { BUILDING, COSMETICS } from '../data';
 import { Character } from './Character';
 import { procGeometry } from './ProcModels';
 import { objectFor, visualFor } from './Visuals';
+import { attachFx } from './models/DecorFx';
 
 /**
  * Renders 3D thumbnails (shop cards, item icons for things without an emoji) with the main renderer
@@ -81,7 +82,11 @@ class Thumbs {
         return m;
       }
       const v = await visualFor(type);
-      return v ? objectFor(v) : null;
+      if (!v) return null;
+      const o = objectFor(v);
+      // flames, bulbs and sign text of pretty decor, posed once
+      attachFx(o.children[0], { uid: 1, type, x: 0, z: 0, rot: 0, level: 1 }, def, '')?.update(0, 0.6, 0.45);
+      return o;
     }
     const id = key.slice(6);
     if (id.startsWith('proc/')) return new THREE.Mesh(procGeometry(id.slice(5)), assets.vertexMaterial);

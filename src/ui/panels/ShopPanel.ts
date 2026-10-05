@@ -50,12 +50,47 @@ export function openShop(tab?: string): void {
   p.open();
 }
 
+/** Decor filter chip picked last this session ('' = all). */
+let lastGroup = '';
+/** Nicer chip names for some groups; any other group shows as its id with a capital letter. */
+const GROUP_LABEL: Record<string, string> = { rustic: 'Farmyard', landmarks: 'Big builds' };
+const groupLabel = (g: string): string => GROUP_LABEL[g] ?? g.charAt(0).toUpperCase() + g.slice(1).replace(/_/g, ' ');
+
+/** Filter chips for the decor groups in the list (straight from the data, in the order they first appear). */
+function groupChips(list: BuildingDef[], onPick: () => void): HTMLElement | null {
+  const groups = [...new Set(BUILDINGS.filter((b) => list.includes(b) && b.group).map((b) => b.group!))];
+  if (groups.length < 2) return null;
+  if (lastGroup && !groups.includes(lastGroup)) lastGroup = '';
+  const row = h('div', { class: 'filter-chips', role: 'tablist', 'aria-label': 'Decor groups' });
+  for (const g of ['', ...groups]) {
+    const chip = h('button', { class: `filter-chip${g === lastGroup ? ' active' : ''}`, type: 'button', role: 'tab', 'aria-selected': String(g === lastGroup) }, g ? groupLabel(g) : 'All');
+    chip.addEventListener('click', () => {
+      if (lastGroup === g) return;
+      lastGroup = g;
+      audio.play('select', { volume: 0.4 });
+      row.querySelectorAll('.filter-chip').forEach((c) => { const on = c === chip; c.classList.toggle('active', on); c.setAttribute('aria-selected', String(on)); });
+      onPick();
+    });
+    row.append(chip);
+  }
+  // keep the picked chip in view on narrow phones
+  requestAnimationFrame(() => row.querySelector<HTMLElement>('.filter-chip.active')?.scrollIntoView({ inline: 'center', block: 'nearest' }));
+  return row;
+}
+
 function render(p: Panel, tab: string): void {
   clear(p.body);
   if (tab === 'animal') { renderAnimals(p); return; }
   const list = BUILDINGS.filter((b) => inTab(b, tab)).sort((a, b) => a.level - b.level);
   const grid = h('div', { class: 'grid shop-grid' });
-  for (const def of list) grid.append(card(p, def));
+  const fill = (): void => {
+    clear(grid);
+    for (const def of list) if (tab !== 'decor' || !lastGroup || def.group === lastGroup) grid.append(card(p, def));
+    p.body.scrollTop = 0;
+  };
+  const chips = tab === 'decor' ? groupChips(list, fill) : null;
+  if (chips) p.body.append(chips);
+  fill();
   if (tab === 'event' && game.state.event) {
     p.body.append(h('div', { class: 'section-title' }, `You have ${game.state.event.tokens} `, icon(ITEMS[eventTokenItem(game.state.event.id)].icon)));
   }

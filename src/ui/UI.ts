@@ -19,6 +19,7 @@ import { Terrain } from '../world/Terrain';
 import type { FarmScene } from '../scenes/FarmScene';
 import type { Interaction } from '../scenes/Interaction';
 import type { Pointer } from '../core/Input';
+import { decorPopupRows } from './DecorUI';
 
 type PanelOpener = (arg?: unknown) => void;
 type BuildingTapHandler = (b: PlacedBuilding) => boolean;
@@ -451,6 +452,7 @@ class UIManager {
     if (def.charm && def.cat === 'decor') rows.push(h('div', { class: 'card-sub' }, `+${def.charm} charm`));
     if (def.desc && !timerEnd && !extra.length) rows.push(h('div', { class: 'card-sub' }, def.desc));
     rows.push(...extra);
+    if (isBuilt(b, now)) rows.push(...decorPopupRows(b));
     const btns = h('div', { class: 'chip-row' });
     if (speedFn && speedCost) {
       btns.append(button([priceTag(0, speedCost), 'Finish'], () => {
