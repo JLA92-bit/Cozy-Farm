@@ -1,0 +1,70 @@
+/* ---------- Photo mode ---------- */
+#app.photo-on #ui-root > :not(.photo-ui):not(.toast-stack) { visibility: hidden !important; }
+.photo-ui { position: absolute; inset: 0; z-index: 60; font-family: var(--font-display); }
+.photo-top {
+  position: absolute; top: calc(var(--safe-top) + 10px); left: 12px; right: 12px;
+  display: flex; align-items: center; justify-content: space-between; pointer-events: none;
+}
+.photo-top > * { pointer-events: auto; }
+.photo-title { display: flex; align-items: center; gap: 6px; font-size: 22px; }
+.photo-title .icon { width: 30px; height: 30px; filter: drop-shadow(0 2px 0 var(--outline)); }
+.photo-close { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
+.photo-hint {
+  position: absolute; top: calc(var(--safe-top) + 66px); left: 50%; transform: translateX(-50%);
+  padding: 4px 12px; border-radius: 999px; background: rgba(45, 30, 16, .55); color: #fff;
+  font-family: var(--font-body); font-size: 13px; white-space: nowrap; pointer-events: none !important;
+  animation: photo-hint-out .6s ease 3.5s forwards;
+}
+@keyframes photo-hint-out { to { opacity: 0; } }
+
+.photo-sheet {
+  position: absolute; left: 8px; right: 8px; bottom: calc(var(--safe-bottom) + 8px);
+  max-width: 520px; margin: 0 auto; padding: 10px 10px 12px;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+  background: rgba(255, 246, 223, .94); border: 3px solid var(--outline); border-radius: 20px; box-shadow: 0 5px 0 var(--outline);
+}
+.photo-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 4px; }
+.photo-chips::-webkit-scrollbar { display: none; }
+.photo-chip {
+  flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 38px; padding: 0 10px; border: 3px solid var(--outline); border-radius: 12px;
+  background: var(--cream-2); color: var(--ink-soft); font-family: var(--font-display); font-size: 14px; cursor: pointer;
+  box-shadow: 0 2px 0 var(--outline); touch-action: manipulation;
+}
+.photo-chip .icon { width: 20px; height: 20px; }
+.photo-chip.active { background: var(--btn-green); color: #fff; -webkit-text-stroke: 1.5px var(--outline); paint-order: stroke fill; }
+.photo-sliders { display: flex; gap: 12px; padding: 0 4px; }
+.photo-slider { flex: 1 1 0; display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-soft); min-width: 0; }
+.photo-slider input { flex: 1 1 auto; min-width: 0; accent-color: var(--btn-green); }
+.photo-snap { min-height: 54px; font-size: 22px; }
+.photo-snap .icon { width: 30px; height: 30px; }
+
+/* frames: live preview overlays (the snapped photo is composed on a canvas) */
+.photo-frame { position: absolute; inset: 0; pointer-events: none !important; display: none; }
+.photo-frame[data-frame='polaroid'] { display: block; }
+.photo-window {
+  position: absolute; left: 50%; top: calc(var(--safe-top) + 92px); transform: translateX(-50%);
+  width: min(82vw, calc((100dvh - 400px) * .8), 420px); aspect-ratio: 4 / 5;
+  box-shadow: 0 0 0 100vmax rgba(251, 248, 241, .9), inset 0 0 0 1px rgba(0, 0, 0, .15);
+}
+.photo-caption {
+  position: absolute; left: 0; right: 0; top: calc(var(--safe-top) + 100px + min(82vw, calc((100dvh - 400px) * .8), 420px) * 1.25);
+  display: flex; flex-direction: column; align-items: center; color: var(--ink); line-height: 1.15;
+}
+.photo-caption b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
+.photo-caption span { font-family: var(--font-body); font-weight: 600; font-size: 14px; color: #8a6a48; }
+
+.photo-flash { position: absolute; inset: 0; background: #fff; pointer-events: none !important; }
+
+.photo-result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(30, 20, 10, .55); padding: 16px; }
+.photo-result-box {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: min(92vw, 440px); max-height: 100%;
+  padding: 12px; background: var(--cream); border: 3px solid var(--outline); border-radius: 20px; box-shadow: 0 5px 0 var(--outline);
+}
+.photo-result-title { font-size: 26px; }
+.photo-result-img {
+  display: block; max-width: 100%; max-height: calc(100dvh - 220px); min-height: 0; object-fit: contain;
+  border: 3px solid var(--outline); border-radius: 10px; background: #fff; transform: rotate(-1.5deg);
+  box-shadow: 0 4px 0 rgba(45, 30, 16, .35);
+}
+.photo-result-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }

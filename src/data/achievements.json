@@ -681,6 +681,20 @@
    "hidden": true
   },
   {
+   "id": "say_cheese",
+   "name": "Say Cheese!",
+   "category": "hidden",
+   "stat": "photos_taken",
+   "tiers": [
+    1,
+    10,
+    50
+   ],
+   "desc": "Take {n} photos in photo mode",
+   "icon": "camera",
+   "hidden": true
+  },
+  {
    "id": "homebody",
    "name": "Homebody",
    "category": "hidden",
