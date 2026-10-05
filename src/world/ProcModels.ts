@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { geo, PAL, rng, type GeoBuilder } from './Procedural';
 import { assets } from '../core/Assets';
+import { PATH_MODELS } from './models/Paths';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -60,6 +61,7 @@ function sack(tag: string): THREE.BufferGeometry {
 }
 
 export const PROC: Record<string, () => THREE.BufferGeometry> = {
+  ...PATH_MODELS,
   barn: () => {
     const b = geo();
     b.block(3, 0.12, 3, PAL.stoneDark, [0, 0, 0]);

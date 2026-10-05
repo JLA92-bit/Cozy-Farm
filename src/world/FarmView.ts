@@ -7,6 +7,7 @@ import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } from './Grid';
 import { PoolSet, type InstancePool } from './InstancePool';
 import { procGeometry } from './ProcModels';
+import { PATH_SPIN } from './models/Paths';
 import { Terrain } from './Terrain';
 import { PlantHints } from './PlantHints';
 import { constructionVisual, objectFor, tintGeometry, visualFor, type Visual } from './Visuals';
@@ -341,7 +342,9 @@ export class FarmView {
       return;
     }
     if (view.construction) { this.root.remove(view.construction); view.construction = null; }
-    const rotQ = tmpQ.setFromAxisAngle(UP, -b.rot * Math.PI / 2);
+    // scattered paths get a quarter turn per tile (from its position) so big areas don't repeat
+    const spin = def.path && PATH_SPIN.has(def.model.slice(5)) ? ((b.x * 7 + b.z * 13 + ((b.x * b.z) >> 1)) & 3) : 0;
+    const rotQ = tmpQ.setFromAxisAngle(UP, -(b.rot + spin) * Math.PI / 2);
     if (this.isPooled(def) && !view.busy) {
       if (view.obj) { this.root.remove(view.obj); view.obj = null; }
       const mats = isLinked(def) ? this.linkMatrices(view, visual) : null;
