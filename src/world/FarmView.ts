@@ -9,6 +9,7 @@ import { PoolSet, type InstancePool } from './InstancePool';
 import { procGeometry } from './ProcModels';
 import { Terrain } from './Terrain';
 import { PlantHints } from './PlantHints';
+import { attachThemed, themedAnimated } from './models/Themed';
 import { constructionVisual, objectFor, tintGeometry, visualFor, type Visual } from './Visuals';
 import { hashString, rng } from './Procedural';
 import { cropStage, plotReady, treeReady, animalState, productionState } from '../systems/Timers';
@@ -81,6 +82,8 @@ export interface BuildingView {
   glow?: THREE.Sprite;
   /** warm pool of light on the ground under lamps at night */
   lightPool?: THREE.Mesh;
+  /** themed decor: moving and night-glowing parts */
+  themed?: (dt: number, t: number, night: number) => void;
   /** chimney smoke: emitter point in the inner model space, and time until the next puff */
   smokeAt?: THREE.Vector3;
   smokeT?: number;
@@ -292,7 +295,7 @@ export class FarmView {
   private isPooled(def: BuildingDef): boolean {
     if (def.parts?.length) return false;
     if (def.cat === 'farm') return true; // plots, trees
-    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow;
+    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow && !themedAnimated(def.model);
   }
 
   async addBuilding(b: PlacedBuilding, animate = false): Promise<void> {
@@ -383,6 +386,7 @@ export class FarmView {
           view.lightPool.visible = false;
           view.obj.add(view.lightPool);
         }
+        view.themed = attachThemed(def.model, view.obj, b.uid, view.glow, view.lightPool);
         if (SMOKE[def.id]) view.smokeAt = chimneyPoint(visual.geometry);
       }
       view.obj.position.copy(view.center);
@@ -835,6 +839,7 @@ export class FarmView {
           (v.lightPool.material as THREE.MeshBasicMaterial).opacity = night * 0.38 * flick;
         }
       }
+      if (v.themed && v.obj) v.themed(dt, t, night);
       if (v.smokeAt && v.obj && !v.busy) this.emitSmoke(v, dt);
       // busy workshops hum: a tiny rhythmic squash while something is being made
       if (v.def.cat === 'production' && v.obj && !v.busy && !gsap.isTweening(v.obj.scale)) {
@@ -936,7 +941,7 @@ export class FarmView {
 
   /** True when something needs per-frame animation (keeps the loop awake). */
   get animating(): boolean {
-    for (const v of this.views.values()) if (v.animals.length || v.fan) return true;
+    for (const v of this.views.values()) if (v.animals.length || v.fan || v.themed) return true;
     return false;
   }
 

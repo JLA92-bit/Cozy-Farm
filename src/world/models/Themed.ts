@@ -131,7 +131,6 @@ export interface ThemedModel {
   halo?: { color: string; at?: V3; pool?: string };
   /** Extra moving parts. Returns a per-frame update. */
   anim?: (inner: THREE.Object3D, seed: number) => (dt: number, t: number, night: number) => void;
-  /** Keep the piece standalone (not pooled) even without an animator, e.g. for the glass. */
 }
 
 function koiGeo(main: string, spot: string): THREE.BufferGeometry {
@@ -526,7 +525,7 @@ export const THEMED: Record<string, ThemedModel> = {
       b.box(0.24, 0.015, 0.08, PAL.woodLight, [0.68, 0.42, -0.17], [0, -0.3, 0]);
       b.torus(0.08, 0.025, '#d9c08a', [0.62, 0.04, 0.32], [Math.PI / 2, 0, 0]);
       b.torus(0.05, 0.022, '#d9c08a', [0.62, 0.07, 0.32], [Math.PI / 2, 0, 0]);
-      b.sphere(0.05, PAL.shell ?? '#ffd1c0', [-0.75, 0.04, 0.3], 0, [1, 0.5, 1]);
+      b.sphere(0.05, '#ffd1c0', [-0.75, 0.04, 0.3], 0, [1, 0.5, 1]);
     },
   },
   lighthouse: {
@@ -724,7 +723,7 @@ export const THEMED: Record<string, ThemedModel> = {
       b.sphere(0.025, PAL.gold, [0.04, 0.22, 0.46], 0);
       b.block(0.34, 0.05, 0.16, '#9a978c', [-0.05, 0, 0.53]);
       b.block(0.26, 0.07, 0.08, PAL.wood, [0.37, 0.38, 0.13]);
-      flowerDot(b, 0.32, 0.47, 0.14, PAL.pink).toString();
+      flowerDot(b, 0.32, 0.47, 0.14, PAL.pink);
       flowerDot(b, 0.42, 0.47, 0.13, PAL.yellow);
       // little chimney through the cap
       b.cyl(0.07, 0.08, 0.3, '#9a978c', [0.3, 1.3, -0.3], 6);
