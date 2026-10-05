@@ -144,8 +144,9 @@ function lay(b: GeoBuilder, poly: Pt[], o: Lay, salt = 0): void {
 }
 
 const rect = (x0: number, z0: number, x1: number, z1: number): Pt[] => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
-// a hair wider than the tile so neighbouring beds overlap and no seam line shows between them
-const bed = (color: string): GeoBuilder => geo().block(1.004, BED, 1.004, color, [0, 0, 0]);
+// Grout bed: just a flat top, a hair wider than the tile so neighbours overlap. No side walls: where two beds meet,
+// a wall would peek through the join as a faint line, and at the outer edge it is too thin to see anyway.
+const bed = (color: string): GeoBuilder => geo().geometry(new THREE.PlaneGeometry(1.004, 1.004), color, [0, BED, 0], [-Math.PI / 2, 0, 0]);
 
 /** Running bond: rows of `len` x `row` bricks, every other row shifted half a brick. */
 function runningBond(b: GeoBuilder, len: number, row: number, o: Lay, jitter = 0): void {
@@ -263,9 +264,17 @@ export const PATH_MODELS: Record<string, () => THREE.BufferGeometry> = {
   },
 
   path_mossy: () => {
-    const b = bed('#6da044');
-    crazyPaving(b, 3, 0.07, 9, { grout: 0.034, h: 0.022, bevel: 0.016, bump: 0.01, colors: ['#a3a899', '#939b8c', '#adb19f', '#9aa38d', '#8c9585'] }, 0.06);
-    pebbles(b, 9, 77, ['#79b84a', '#5f9e3a', '#8cc858'], [0.03, 0.055], BED + 0.02, 0.12);
+    // old rounded stones bedded in soft moss, a few tufts and moss patches on top
+    const b = bed('#6c9a45');
+    const r = rng(9);
+    const greys = ['#a3a899', '#939b8c', '#adb19f', '#9aa38d', '#b2b4a6'];
+    // one big stone, two middling and one small, packed loosely (tiles are turned by position so it never grids up)
+    const stones: [number, number, number, number][] = [[-0.16, -0.14, 0.27, 0.24], [0.25, 0.17, 0.2, 0.22], [0.27, -0.27, 0.17, 0.15], [-0.24, 0.29, 0.18, 0.15]];
+    stones.forEach(([cx, cz, rx, rz], k) => {
+      flatStone(b, cx, cz, rx * 1.1, rz * 1.1, 0.026 + r() * 0.008, greys[Math.floor(r() * greys.length)], 50 + k, BED);
+      if (rx > 0.15 && r() < 0.7) b.geometry(new THREE.IcosahedronGeometry(0.05, 0), r() < 0.5 ? '#7fb24c' : '#8cc055', [cx + (r() - 0.5) * rx * 0.8, BED + 0.032, cz + (r() - 0.5) * rz * 0.8], [r() * 3, r() * 3, r() * 3], [1.3, 0.12, 1]);
+    });
+    pebbles(b, 7, 77, ['#79b84a', '#5f9e3a', '#8cc858'], [0.03, 0.05], BED + 0.004, 0.04);
     return b.build();
   },
 
@@ -344,4 +353,4 @@ export const PATH_MODELS: Record<string, () => THREE.BufferGeometry> = {
 };
 
 /** Path models with no pattern crossing the tile edge: these are turned per tile (by position) for variety. */
-export const PATH_SPIN = new Set(['path_gravel', 'path_stepping', 'path_mosaic', 'path_blossom']);
+export const PATH_SPIN = new Set(['path_gravel', 'path_stepping', 'path_mossy', 'path_mosaic', 'path_blossom']);
