@@ -108,6 +108,7 @@ class FishingController {
   open(): void {
     if (this.el || visiting.active || !this.view) return;
     if (!fishing.unlocked) { ui.feedback.toast(`Fishing opens at level ${FISHING.level}`, undefined, 'lock'); return; }
+    fishing.syncRare();
     Panel.closeAll();
     ui.world.hidePopup();
     ui.interaction.exitPlant();
@@ -227,12 +228,15 @@ class FishingController {
     clear(this.timeEl).append(icon(TIME_ICON[time]), h('span', { class: 'fc-time' }, TIME_LABEL[time]));
     this.timeEl.setAttribute('aria-label', TIME_LABEL[time]);
     this.timeEl.title = TIME_LABEL[time];
-    clear(this.bitingEl).append(h('span', { class: 'fb-label outlined' }, 'Biting:'));
-    for (const f of fishing.biting(time)) {
+    // later in the game a dozen or more kinds bite at once: smaller icons that wrap onto a second row
+    const biting = fishing.biting(time);
+    const list = h('div', { class: `fb-list ${biting.length > 9 ? 'many' : ''}` });
+    clear(this.bitingEl).append(h('span', { class: 'fb-label outlined' }, 'Biting:'), list);
+    for (const f of biting) {
       const seen = !!fishing.st.caught[f.id];
       const ic = icon(ITEMS[f.id].icon);
       ic.title = seen ? ITEMS[f.id].name : '???';
-      this.bitingEl.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}` }, ic));
+      list.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}` }, ic));
     }
   }
 

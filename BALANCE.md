@@ -324,7 +324,7 @@ dedicated players, not a requirement for anything except the last Fish page entr
 something new, and the rare end is much deeper: 8 rare, 5 legendary and 2 mythic fish. Prices follow the tiers
 (common 8-20, uncommon 26-50, rare 55-140, legendary 240-450, mythic 900-1000) and XP follows price, so a rare fish
 is worth about 7-10 ordinary casts and a mythic one about 70-100. More species per tier means each one is a bit
-rarer later on: at level 40+ each legendary is roughly 1 in 60 night casts.
+rarer later on: at level 40 each night legendary is roughly 1 in 75 night casts.
 
 **Mythic, the tier above legendary.** Mythic fish only start to bite once the player has landed any legendary fish
 (`mythicNeedsLegendary`; a "Something mythic stirs in the deep..." toast announces it, and the Book shows "after a

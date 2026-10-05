@@ -32,6 +32,10 @@
 .fish-biting .fb-label { color: #fff; font-family: var(--font-display); font-size: 13px; margin-right: 2px; flex: 0 0 auto; }
 .fish-biting .fb-fish { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .55); border: 2px solid rgba(45, 30, 16, .5); }
 .fish-biting .fb-fish .icon { width: 22px; height: 22px; }
+.fish-biting .fb-list { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; min-width: 0; }
+.fish-biting .fb-list.many { flex-wrap: wrap; gap: 3px; padding: 1px 0; }
+.fish-biting .fb-list.many .fb-fish { width: 26px; height: 26px; }
+.fish-biting .fb-list.many .fb-fish .icon { width: 19px; height: 19px; }
 .fish-biting .fb-fish.unseen .icon { filter: brightness(0) opacity(.45); }
 .fish-biting .fb-fish.r-rare { border-color: var(--rare); }
 .fish-biting .fb-fish.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px rgba(255, 176, 32, .8); }

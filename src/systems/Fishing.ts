@@ -40,7 +40,7 @@ export function timeOfDay(phase: number): FishTime {
 
 /** Format a size in cm: "8.5 cm", "34 cm", "1.2 m". */
 export function sizeText(cm: number): string {
-  if (cm >= 100) return `${(cm / 100).toFixed(cm >= 1000 ? 0 : 2).replace(/0$/, '')} m`;
+  if (cm >= 100) return `${parseFloat((cm / 100).toFixed(cm >= 1000 ? 1 : 2))} m`;
   return cm < 10 ? `${cm.toFixed(1)} cm` : `${Math.round(cm)} cm`;
 }
 
@@ -79,6 +79,12 @@ class FishingSystem {
     game.addItem(FISHING.baitItem, qty);
     game.bus.emit('sfx', { name: 'purchase' });
     return true;
+  }
+
+  /** Rare fish landed so far, from the catch log, so ones caught before the Rare Finds award existed count too. */
+  syncRare(): void {
+    const n = FISHING.species.reduce((s, f) => s + (f.rarity === 'rare' ? this.st.caught[f.id] ?? 0 : 0), 0);
+    if (n !== game.stat('fish_rare')) game.setGauge('fish_rare', n);
   }
 
   /** Mythic fish stay away until a legendary one has been landed. */
@@ -138,8 +144,7 @@ class FishingSystem {
       game.addItem(c.id, 1);
       game.incStat('fish_caught');
       game.incStat(`catch_${c.id}`);
-      // counted from the catch log, so rare fish landed before this award existed count too
-      if (c.def.rarity === 'rare') game.setGauge('fish_rare', FISHING.species.reduce((n, f) => n + (f.rarity === 'rare' ? st.caught[f.id] ?? 0 : 0), 0));
+      if (c.def.rarity === 'rare') this.syncRare();
       if (c.def.rarity === 'legendary') game.incStat('fish_legendary');
       if (c.def.rarity === 'mythic') game.incStat('fish_mythic');
       game.setGauge('fish_species', FISHING.species.filter((f) => st.caught[f.id]).length);
