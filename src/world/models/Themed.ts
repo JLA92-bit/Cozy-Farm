@@ -340,26 +340,31 @@ export const THEMED: Record<string, ThemedModel> = {
   // ================================================================ zen garden
   stone_lantern: {
     body: (b) => {
-      const s = '#b9b6aa', d = '#9a978c';
-      b.cyl(0.3, 0.34, 0.08, d, [0, 0, 0], 6);
-      b.cyl(0.2, 0.24, 0.1, s, [0, 0.08, 0], 6);
-      b.cyl(0.09, 0.11, 0.42, s, [0, 0.18, 0], 6);
-      b.cyl(0.24, 0.16, 0.1, d, [0, 0.6, 0], 6);
-      b.block(0.32, 0.26, 0.32, s, [0, 0.7, 0]);
-      b.cyl(0.04, 0.46, 0.2, d, [0, 0.96, 0], 6);
+      const s = '#bdb9ac', d = '#9a968a';
+      b.cyl(0.26, 0.3, 0.08, d, [0, 0, 0], 6);
+      b.cyl(0.17, 0.21, 0.08, s, [0, 0.08, 0], 6);
+      b.cyl(0.075, 0.095, 0.36, s, [0, 0.16, 0], 6);
+      b.cyl(0.22, 0.13, 0.09, d, [0, 0.52, 0], 6);
+      // fire box: four corner posts around the light, with a lintel
+      for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) b.block(0.06, 0.2, 0.06, s, [x * 0.12, 0.61, z * 0.12]);
+      b.block(0.3, 0.04, 0.3, d, [0, 0.61, 0]);
+      b.block(0.3, 0.04, 0.3, d, [0, 0.79, 0]);
+      // flared roof with upturned corners and a finial
+      b.cyl(0.08, 0.33, 0.16, s, [0, 0.83, 0], 6);
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2;
-        b.sphere(0.045, d, [Math.cos(a) * 0.44, 0.99, Math.sin(a) * 0.44], 0);
+        b.sphere(0.04, d, [Math.cos(a) * 0.33, 0.86, Math.sin(a) * 0.33], 0, [1, 1.4, 1]);
       }
-      b.sphere(0.07, s, [0, 1.18, 0], 0, [1, 1.3, 1]);
-      b.sphere(0.08, '#6f9a4a', [0.17, 0.08, 0.16], 0, [1.5, 0.4, 1]);
+      b.sphere(0.06, s, [0, 1.02, 0], 0, [1, 1.35, 1]);
+      b.sphere(0.035, d, [0, 1.1, 0], 0);
+      b.sphere(0.09, '#6f9a4a', [0.15, 0.07, 0.17], 0, [1.5, 0.4, 1]);
+      b.sphere(0.07, '#6f9a4a', [-0.12, 0.88, 0.1], 0, [1.6, 0.35, 1.2]);
     },
     glow: (b) => {
-      b.box(0.17, 0.15, 0.02, '#ffd27a', [0, 0.83, 0.162]).box(0.02, 0.15, 0.17, '#ffd27a', [0.162, 0.83, 0]);
-      b.box(0.17, 0.15, 0.02, '#ffd27a', [0, 0.83, -0.162]).box(0.02, 0.15, 0.17, '#ffd27a', [-0.162, 0.83, 0]);
+      b.box(0.19, 0.14, 0.19, '#ffd27a', [0, 0.72, 0]);
     },
     glowColor: '#ffbb55',
-    halo: { color: '#ffcf7a', at: [0, 0.83, 0] },
+    halo: { color: '#ffcf7a', at: [0, 0.72, 0] },
   },
   bonsai: {
     body: (b) => {
@@ -511,13 +516,12 @@ export const THEMED: Record<string, ThemedModel> = {
       b.sphere(0.5, PAL.sand, [0, 0, 0], 1, [2, 0.06, 1]);
       // chocks
       for (const x of [-0.45, 0.45]) b.block(0.12, 0.12, 0.5, PAL.woodDark, [x, 0, 0]);
-      const hull = new THREE.SphereGeometry(0.5, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
-      b.geometry(hull, '#3f86d8', [0, 0.38, 0], [0, 0, 0], [1.75, 0.55, 0.72]);
+      // tapered tub hull (elliptical), with a white stripe below the gunwale
+      b.geometry(new THREE.CylinderGeometry(0.5, 0.34, 0.24, 18), '#3f86d8', [0, 0.22, 0], [0, 0, 0], [1.75, 1, 0.72]);
+      b.geometry(new THREE.CylinderGeometry(0.505, 0.47, 0.05, 18, 1, true), PAL.white, [0, 0.3, 0], [0, 0, 0], [1.75, 1, 0.72]);
       b.geometry(new THREE.TorusGeometry(0.5, 0.035, 5, 20), PAL.white, [0, 0.36, 0], [Math.PI / 2, 0, 0], [1.75, 0.72, 1]);
       b.geometry(new THREE.TorusGeometry(0.5, 0.03, 5, 20), PAL.woodLight, [0, 0.39, 0], [Math.PI / 2, 0, 0], [1.75, 0.72, 1]);
-      b.cyl(0.5, 0.5, 0.02, '#a8693a', [0, 0.33, 0], 16, [0, 0, 0]);
-      // scale the floor into the hull ellipse
-      b.geometry(new THREE.CylinderGeometry(0.47, 0.47, 0.02, 16), '#c98a4b', [0, 0.34, 0], [0, 0, 0], [1.72, 1, 0.68]);
+      b.geometry(new THREE.CylinderGeometry(0.46, 0.46, 0.02, 18), '#c98a4b', [0, 0.345, 0], [0, 0, 0], [1.72, 1, 0.68]);
       for (const x of [-0.3, 0.25]) b.box(0.12, 0.03, 0.6, PAL.woodLight, [x, 0.38, 0]);
       rod(b, [-0.7, 0.4, -0.25], [0.55, 0.43, 0.2], 0.018, PAL.woodLight, 5);
       b.box(0.24, 0.015, 0.08, PAL.woodLight, [0.62, 0.43, 0.23], [0, 0.35, 0]);
