@@ -18,7 +18,7 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
 - **Phone notifications are optional** (from 1.5, off until the player switches them on): the device's push
   subscription (push service address and keys), its time zone, quiet hours and choices, and the reminder texts
   queued for the next day.
-- No ads, no analytics, no crash reporting SDK, no in-app purchases yet (if gem purchases are added, revisit this form: Google Play handles the payment, so no payment info reaches the game), no location, no contacts, no advertising ID or hardware IDs.
+- No ads and no in-app purchases yet (when either is added, use the ready-made additions in `store/monetisation.md`), no analytics, no crash reporting SDK, no location, no contacts, no advertising ID or hardware IDs.
 - Backend: Supabase (database and auth). Website and game files: GitHub Pages. Sign-in: Google. These are service
   providers acting for us, which Play does not count as "sharing".
 - All traffic is HTTPS.

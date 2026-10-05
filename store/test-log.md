@@ -55,7 +55,7 @@ what really happened (be specific - concrete examples help the review).
 > their phone.
 
 **Describe how your app provides value to users.**
-> Cozy Acres is a free, ad-free 3D farming game: players grow crops, raise animals, make goods, fish, decorate and
+> Cozy Acres is a free-to-play 3D farming game: players grow crops, raise animals, make goods, fish, decorate and
 > play with friends (visits, gifts, a shared market). It is designed to be calm and fair, with everything earnable
 > by playing and no pressure to spend.
 

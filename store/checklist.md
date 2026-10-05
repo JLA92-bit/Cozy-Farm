@@ -35,13 +35,13 @@ In order. Tick each box as you go. Details for the Android build are in `android
 ## 2. Create the app
 
 - [ ] Play Console > **Create app**: name "Cozy Acres", default language English (United States), **Game**, **Free**,
-      accept the declarations. (The app itself stays Free to download. Optional gem purchases can be added later as in-app products with Google Play Billing; you then answer "Yes" to in-app purchases and update the listing, Data safety and privacy policy.)
+      accept the declarations. (Free to download. Ads and gem purchases can be added later without changing that: the plan and ready-made paperwork are in `store/monetisation.md`. Set up the **payments profile** early, section 1 there.)
 - [ ] **Setup > App signing**: keep **Play App Signing** on (default). It activates with the first upload.
 
 ## 3. App content (Policy > App content) - all must be green before review
 
 - [ ] **Privacy policy**: `https://cozyacres.joshmakesgames.app/privacy/`
-- [ ] **Ads**: "No, my app does not contain ads".
+- [ ] **Ads**: "No, my app does not contain ads" (true today; when ads are added, follow `store/monetisation.md`).
 - [ ] **App access**: "All functionality is available without special access" (no login needed; Google sign-in is optional).
 - [ ] **Content rating**: fill the IARC questionnaire with the answers in `store/listing.md` (category Game; users
       interact: yes; shares location: no; digital purchases: no; no violence, no gambling).
