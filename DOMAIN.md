@@ -1,5 +1,8 @@
 # Moving Cozy Acres to joshmakesgames.app
 
+> **Hosting moved to Cloudflare Pages** (October 2026): see CLOUDFLARE.md. The GitHub Pages steps below are kept for
+> reference; the DNS record for `cozyacres` now points at the Cloudflare Pages project instead of `jla92-bit.github.io`.
+
 Where everything ends up:
 
 | Address | What | Comes from |

@@ -144,4 +144,4 @@ step by step: **[DOMAIN.md](DOMAIN.md)**.
 
 ## License
 
-Code: MIT. Third-party assets: see [CREDITS.md](CREDITS.md) (CC0, MIT, Apache-2.0, OFL).
+Copyright Josh Makes Games, all rights reserved (see [LICENSE](LICENSE)). Third-party assets keep their own licences: see [CREDITS.md](CREDITS.md) (CC0, MIT, Apache-2.0, OFL).

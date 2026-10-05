@@ -1,11 +1,11 @@
-name: Deploy to GitHub Pages
+name: Deploy website and game
 
 # One site, one deploy:
-#   <site>/          the Cozy Acres website (design/cozy-acres-website)
-#   <site>/play/     the game
-# <site> is https://cozyacres.joshmakesgames.app once the custom domain is set (see DOMAIN.md), and
-# https://jla92-bit.github.io/Cozy-Farm before that. configure-pages tells us which, so the same
-# workflow works on both without changes.
+#   https://cozyacres.joshmakesgames.app/        the Cozy Acres website (design/cozy-acres-website)
+#   https://cozyacres.joshmakesgames.app/play/   the game
+# Hosted on Cloudflare Pages when the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets are set
+# (CLOUDFLARE.md): GitHub builds the site and uploads only the finished files, so the repository can be private.
+# Without those secrets it deploys to GitHub Pages as before (used during the move).
 
 on:
   push:
@@ -18,32 +18,36 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.target.outputs.target }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      # base_path: "" with a custom domain, "/Cozy-Farm" on the github.io project URL
-      - id: pages
-        uses: actions/configure-pages@v5
+      - name: Choose host
+        id: target
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CF_TOKEN" ] && [ -n "$CF_ACCOUNT" ]; then echo "target=cloudflare" >> "$GITHUB_OUTPUT"; echo "Deploying to Cloudflare Pages";
+          else echo "target=github" >> "$GITHUB_OUTPUT"; echo "::notice::No Cloudflare secrets yet: deploying to GitHub Pages (CLOUDFLARE.md)"; fi
       - run: npm ci
       - run: npm run validate-data
       - name: Type check
         run: npx tsc --noEmit
       - name: Build website + game
-        run: |
-          url="${{ steps.pages.outputs.base_url }}"
-          # .app domains only work over https; the API reports http:// until "Enforce HTTPS" is ticked
-          case "$url" in *.app|*.app/*) url="https://${url#http*://}" ;; esac
-          BASE_PATH_ROOT="${{ steps.pages.outputs.base_path }}" SITE_URL="$url" bash scripts/pages/build.sh
+        run: BASE_PATH_ROOT="" SITE_URL="${SITE_URL:-https://cozyacres.joshmakesgames.app}" bash scripts/pages/build.sh
         env:
+          SITE_URL: ${{ vars.SITE_URL || '' }}
           # Real online play (see ONLINE.md). Set these as repository variables (or secrets) under
           # Settings > Secrets and variables > Actions. When empty the game uses practice mode.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL || '' }}
@@ -57,14 +61,32 @@ jobs:
           ANDROID_CERT_SHA256: ${{ vars.ANDROID_CERT_SHA256 || '' }}
       - name: List site
         run: ls -la dist dist/play && (ls -la dist/.well-known 2>/dev/null || echo "no .well-known (no Android fingerprint set)")
-      # v3 archives dist with `tar ... --exclude=.git --exclude=.github .`, so dot folders such as
-      # .well-known and the .nojekyll file are included.
-      - uses: actions/upload-pages-artifact@v3
+      # creates the Pages project on the first run; fails harmlessly once it exists
+      - name: Create Cloudflare Pages project (first run only)
+        if: steps.target.outputs.target == 'cloudflare'
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'cozy-acres' }} --production-branch=main
+      - name: Deploy to Cloudflare Pages
+        if: steps.target.outputs.target == 'cloudflare'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'cozy-acres' }} --branch=main --commit-dirty=true
+      # GitHub Pages (until the Cloudflare secrets are set). v3 archives dist with `tar ... --exclude=.git
+      # --exclude=.github .`, so dot folders such as .well-known and the .nojekyll file are included.
+      - if: steps.target.outputs.target == 'github'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
-  deploy:
+  deploy-github-pages:
     needs: build
+    if: needs.build.outputs.target == 'github'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

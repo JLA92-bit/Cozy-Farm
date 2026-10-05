@@ -14,7 +14,7 @@
     "validate-data": "node scripts/validate-data.mjs",
     "simulate-economy": "node scripts/simulate-economy.mjs"
   },
-  "license": "MIT",
+  "license": "UNLICENSED",
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
     "gsap": "^3.15.0",

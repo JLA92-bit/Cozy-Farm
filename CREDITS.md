@@ -63,8 +63,8 @@ build environment:
 - Wool tufts and face plates that turn the polar-bear cube pet into a sheep
 - Ambient bird and butterfly sprites
 
-All original code, procedural models and project-specific derivatives are released under the MIT license with
-this project.
+All original code, procedural models and project-specific derivatives are copyright Josh Makes Games, all rights
+reserved (see LICENSE).
 
 ## Asset sources considered but not used
 

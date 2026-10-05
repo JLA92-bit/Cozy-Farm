@@ -1,0 +1,36 @@
+# Cloudflare Pages response headers (copied to dist/_headers by build.sh; GitHub Pages ignores this file).
+# Files that decide which version of the game a phone runs must always be revalidated, so an update can
+# never leave a phone on a stale service worker or asset list. Vite's hashed bundles never change.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/sw.js
+  Cache-Control: no-cache
+
+/play/
+  Cache-Control: no-cache
+
+/play/index.html
+  Cache-Control: no-cache
+
+/play/sw.js
+  Cache-Control: no-cache
+
+/play/push-sw.js
+  Cache-Control: no-cache
+
+/play/manifest.webmanifest
+  Cache-Control: no-cache
+
+/play/assets/manifest.json
+  Cache-Control: no-cache
+
+/play/assets/index-*
+  Cache-Control: public, max-age=31536000, immutable
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Access-Control-Allow-Origin: *
+  Cache-Control: max-age=3600

@@ -29,6 +29,8 @@ rm -rf dist/.site
 cp scripts/pages/legacy-sw.js dist/sw.js
 # serve files as they are (no Jekyll processing; keeps .well-known)
 touch dist/.nojekyll
+# Cloudflare Pages: cache rules and headers (_headers is not served as a file)
+cp scripts/pages/_headers dist/_headers
 
 if [ -n "${ANDROID_CERT_SHA256:-}" ] && [ -n "${ANDROID_PACKAGE:-}" ]; then
   mkdir -p dist/.well-known
