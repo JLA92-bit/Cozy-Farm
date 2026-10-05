@@ -17,7 +17,8 @@ In order. Tick each box as you go. Details for the Android build are in `android
       build machine, so `design/cozy-acres-website/src/assets/img/google-play-badge.png` is still the placeholder.
       Download it from <https://play.google.com/intl/en_us/badges/> (English, PNG), save it over that file and rebuild
       the site. Use it only with the real Play link once the app is live (Google's badge guidelines).
-- [ ] Create the upload keystore and back it up twice (android/README.md step 1).
+- [ ] Create the upload keystore and back it up twice: open `android/make-upload-key.html` in your browser (no Java
+      needed, works offline) or use keytool (android/README.md step 1).
 - [ ] Add the GitHub secrets `ANDROID_KEYSTORE_BASE64`, `BUBBLEWRAP_KEYSTORE_PASSWORD`, `BUBBLEWRAP_KEY_PASSWORD`
       (android/README.md step 2).
 - [ ] Run **Build Android app (TWA)** with versionCode 1 and download the artifact. Install `app-release-signed.apk`
@@ -57,8 +58,9 @@ In order. Tick each box as you go. Details for the Android build are in `android
 - [ ] **Financial features**: "My app doesn't provide any financial features".
 - [ ] **Health**: "My app does not have any health features" / No health apps declaration.
 - [ ] **Advertising ID**: No, the app does not use the advertising ID (Bubblewrap apps do not include it).
-- [ ] **Actions / foreground services / permissions declarations**: none needed (notifications are off in
-      twa-manifest.json, no location delegation, no Play Billing).
+- [ ] **Actions / foreground services / permissions declarations**: none needed. The app asks for the normal
+      notifications permission (Android 13+) only when the player switches notifications on in the game; that needs
+      no declaration. No location delegation, no Play Billing, no foreground services.
 
 ## 4. Store listing (Grow users > Store presence)
 
@@ -80,17 +82,18 @@ New personal developer accounts must run a **closed test with at least 12 tester
 - [ ] After the first upload: copy the **App signing key certificate SHA-256** (Setup > App signing) and set
       `ANDROID_CERT_SHA256` to `<app signing SHA-256>,<upload key SHA-256>`, redeploy the website, and confirm the
       app from Play opens full screen without a browser bar.
-- [ ] Send testers the opt-in link; ask them to install, play a few times and keep the app installed for 14 days.
+- [ ] Send testers the opt-in link with the invite in `store/testing.md`; ask them to install, play a few times and
+      keep the app installed for 14 days.
 - [ ] Ship fixes during the test if needed (website deploys update the game instantly; a new bundle needs a higher
       versionCode).
-- [ ] Note feedback; Play asks about the test when you apply.
+- [ ] Note feedback in `store/test-log.md`; Play asks about the test when you apply (draft answers are in there).
 
 ## 6. Production access and release
 
 - [ ] Dashboard > **Apply for production** (available after 14 days with 12+ opted-in testers). Answer the
       questions about the test, what you changed, and readiness. Review usually takes up to about 7 days.
 - [ ] Production > **Create new release**: promote the tested bundle (or build a new one with a higher versionCode),
-      release notes for 1.3.0, countries: all (or start with a few).
+      release notes from `store/listing.md`, countries: all (or start with a few).
 - [ ] **Send for review**. Optionally use a staged rollout (e.g. 20%) for the first days.
 - [ ] When live: put the Play link in `build.py` SITE settings (the other agent owns build.py; ask the lead), add the
       official badge, rebuild the website, and update the studio site.

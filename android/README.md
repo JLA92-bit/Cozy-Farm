@@ -46,7 +46,16 @@ Notes on `twa-manifest.json`:
 ## 1. Create the upload key (once, keep it forever)
 
 Google Play uses **Play App Signing**: Google keeps the real app signing key, and you sign each upload with your
-own **upload key**. Create it on your own computer (needs Java; `keytool` comes with any JDK, for example
+own **upload key**.
+
+**Easiest (no Java needed):** download `android/make-upload-key.html` from the repository and open it in your
+browser. It works offline (you can switch off Wi-Fi first) and gives you everything for step 2: the keystore file
+to keep (`upload-keystore.jks`, alias `upload`, RSA 2048, valid until 2054), the text for the
+`ANDROID_KEYSTORE_BASE64` secret, the password for both password secrets, and the SHA-256 fingerprint. The file is a
+PKCS#12 keystore, which Java 9+ and Android's signing tools read like a `.jks` (checked with keytool and jarsigner).
+Then skip to "Keep it safe" below.
+
+**Or with keytool** on your own computer (needs Java; `keytool` comes with any JDK, for example
 Temurin 17 from <https://adoptium.net>):
 
 ```bash

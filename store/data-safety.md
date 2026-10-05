@@ -1,7 +1,7 @@
 # Google Play Data safety form - Cozy Acres
 
 Play Console > **App content** > **Data safety**. Answers derived from the code (`src/online/*`,
-`supabase/schema.sql`, `src/systems/Save.ts`) as of version 1.3.0. Re-check this file whenever online features change.
+`supabase/schema.sql`, `src/systems/Save.ts`, `src/notify/Push.ts`) as of version 1.5.1. Re-check this file whenever online features change.
 
 ## How the app handles data (summary)
 
@@ -11,12 +11,21 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
   and publishes a public profile so friends, gifts, the Shared Market and leaderboards work. This happens for every
   player who goes online; there is no switch to turn it off, so the data below is marked **required** unless noted.
 - **Sign in with Google is optional.** It links Google to the anonymous account and turns on the cloud save.
-- No ads, no analytics, no crash reporting SDK, no in-app purchases yet (if gem purchases are added, revisit this form: Google Play handles the payment, so no payment info reaches the game), no location, no contacts, no device IDs.
+- **Farm visits** (from 1.4): a public snapshot of the farm layout (fields and crop stages, buildings, animals,
+  trees, decorations, plus farmer name, level and look) so neighbours can visit. No coins, items or other save data.
+- **Neighbour help** (from 1.5): helping a neighbour's farm (water, feed, tend) and likes, with an optional guestbook
+  note picked from a **preset list** (no free text).
+- **Phone notifications are optional** (from 1.5, off until the player switches them on): the device's push
+  subscription (push service address and keys), its time zone, quiet hours and choices, and the reminder texts
+  queued for the next day.
+- No ads, no analytics, no crash reporting SDK, no in-app purchases yet (if gem purchases are added, revisit this form: Google Play handles the payment, so no payment info reaches the game), no location, no contacts, no advertising ID or hardware IDs.
 - Backend: Supabase (database and auth). Website and game files: GitHub Pages. Sign-in: Google. These are service
   providers acting for us, which Play does not count as "sharing".
 - All traffic is HTTPS.
 - In-app deletion: Settings > Online play > **Delete my online account** (calls `delete_my_account()`, which removes
-  the auth user, profile, friend code, cloud save, the player's market listings and all gifts they sent or received).
+  the auth user, profile, friend code, cloud save, farm snapshot, the player's market listings, all gifts they sent or
+  received, neighbour help and likes in both directions, push subscriptions and queued notifications; checked on
+  Postgres on 5 October 2026).
 
 ## Section 1: Data collection and security
 
@@ -50,8 +59,8 @@ defines as emails, SMS and other in-app messages; if a reviewer asks, the notes 
 
 | Data type | Collected | Required or optional | Purposes | What it is in the app |
 | --- | --- | --- | --- | --- |
-| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters) and, for Google sign-in, the cloud save (a copy of the whole farm). |
-| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases. |
+| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, guestbook notes (preset list) and, for Google sign-in, the cloud save (a copy of the whole farm). |
+| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes. |
 | App interactions, In-app search history, Installed apps | No | | | The game does not record taps, searches or other apps. |
 
 ### App info and performance
@@ -64,12 +73,18 @@ defines as emails, SMS and other in-app messages; if a reviewer asks, the notes 
 
 ### Device or other IDs
 
-**No.** The cloud save stores a generic device label such as "Android phone" (from the browser user agent) so the
-player can recognise their farm; it is not an identifier.
+| Data type | Collected | Required or optional | Purposes | What it is in the app |
+| --- | --- | --- | --- | --- |
+| **Device or other IDs** | Yes | **Optional** | App functionality | Only when the player switches on notifications: the device's push subscription (the address at its push service and the keys to send to it). Deleted when notifications are switched off or the account is deleted. |
+
+The cloud save also stores a generic device label such as "Android phone" (from the browser user agent) so the
+player can recognise their farm; that is not an identifier. The device time zone stored with notifications is used
+only for quiet hours and is not declared as Location (it is not a location from GPS or IP).
 
 ### Purposes not used
 
-Not used for: Analytics, Developer communications, Advertising or marketing, Fraud prevention/security/compliance
+Not used for: Analytics, Developer communications (notifications are only game reminders the player chose, such as
+"Wheat is ready", which is App functionality), Advertising or marketing, Fraud prevention/security/compliance
 (beyond the server checks that are part of app functionality), Personalisation.
 
 ## Note on "sharing"

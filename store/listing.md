@@ -12,10 +12,10 @@ Alternative if "Cozy Acres" is taken in search: `Cozy Acres: Farm & Village` (26
 **Short description** (80):
 
 ```
-Grow crops, raise animals and build a cozy farm with friends. No ads.
+Grow crops, go fishing and build a cozy farm with friends. No ads.
 ```
 
-(69 characters)
+(66 characters)
 
 **Full description** (4000):
 
@@ -42,6 +42,12 @@ FILL ORDERS AND GET RICH
 - Deliver orders from the village, load the delivery truck and run your own roadside stall
 - Trade with the travelling merchant when he comes by
 
+GO FISHING
+- Cast a line from the dock from level 7 and reel in 13 kinds of fish, from sardines to the legendary Reef Shark
+- Different fish bite in the morning, day, dusk and night
+- Cook your catch into fish cakes, fish pie and seafood curry at the Fish Shack
+- Beat your biggest catches and fill the Fish page of your Collection Book
+
 DECORATE AND RELAX
 - Place flowerbeds, lanterns, fountains, statues and more to raise your farm's Charm
 - Watch golden sunsets, moonlit nights, fireflies and crops swaying in the wind
@@ -49,6 +55,7 @@ DECORATE AND RELAX
 
 PLAY WITH FRIENDS (optional)
 - Add friends with a friend code and send gifts with a short note
+- Visit your neighbours' farms, help them water, feed and tend, and leave a friendly guestbook note
 - Buy and sell goods with other farmers on the Shared Market
 - Climb the leaderboards for level, farm value, Charm and this week's XP
 - Sign in with Google to back up your farm and keep playing on your phone, tablet or computer
@@ -59,8 +66,9 @@ ALWAYS SOMETHING TO DO
 - Seasonal festivals: Harvest Festival, Winter Wonderland, Spring Blossom and Summer Fair
 - Fill your Collection Book with everything you discover
 - Your farm keeps growing while you are away
+- Optional phone reminders when crops, animals and goods are ready, with quiet hours
 
-Made with love by Josh Makes Games, a tiny indie studio. Questions or ideas? Email joshmakesgames92@gmail.com - we read every message.
+Made by Josh Makes Games, a tiny indie studio making cozy couch games for your phone. Questions or ideas? Email joshmakesgames92@gmail.com - we read every message.
 ```
 
 **Category:** Games > **Simulation** (recommended). Farming and village builders sit in Simulation on Google
@@ -91,27 +99,31 @@ Farming, Simulation, Casual, Relaxing / Cozy, Building.
 | 7-inch tablet screenshots | reuse `store/screenshots/tablet-*.png` | 1600 x 2560 is within Play's limits |
 | 10-inch tablet screenshots | `store/screenshots/tablet-*.png` | 1600 x 2560 |
 
-Recommended phone order (Play shows up to 8): 01 farm at golden hour, 02 swipe harvest, 03 animals, 04 Shared
-Market, 05 friends and gifts, 06 leaderboards, 07 farmer creator, 09 level up. (08 What's new is spare.)
+Recommended phone order (Play shows up to 8): 01 farm at golden hour, 02 swipe harvest, 10 fishing, 03 animals,
+04 Shared Market, 05 friends and gifts, 06 leaderboards, 07 farmer creator. (08 What's new and 09 level up are spare.)
 
 Screenshots were captured from the real game in a headless browser with a scripted level-18 farm. Practice-mode
 labels and "demo" tags were hidden because the Play version runs with real online play, where they never appear;
 the neighbours shown (Granny Mae, Priya, Farmer Joe...) are the game's demo neighbours standing in for real players.
 
-## What's new in 1.3.0 (Release notes, 500 characters max)
+## Release notes (500 characters max)
+
+First release (closed test and the first production release):
 
 ```
 <en-US>
-Cloud Saves!
-- Sign in with Google to back up your farm
-- Play the same farm on your phone, tablet or computer
-- Found a farm in the cloud? Choose which farm to keep - the other one is kept safe
-- Delete my online account, right in Settings
+Welcome to Cozy Acres on Google Play!
+- Grow crops, raise animals and make tasty goods
+- Go fishing at the dock from level 7
+- Visit your neighbours' farms and help them out
+- Trade on the Shared Market and send gifts to friends
+- Optional phone reminders when your farm needs you
+No ads. Thanks for testing!
 </en-US>
 ```
 
-(For the first Play release you can also use: "Welcome to Cozy Acres on Google Play! Grow crops, raise animals,
-trade on the Shared Market and play with friends. No ads.")
+Later updates: copy the highlights of the newest release from `src/data/changelog.json` (the same text as the
+game's What's new).
 
 ## Content rating questionnaire (IARC)
 
@@ -133,7 +145,7 @@ Play Console > App content > Content rating > Start questionnaire.
 | Gambling: real-money gambling or betting | No |
 | Randomised items (loot boxes) purchasable with real money | No (mystery crates exist but are only earned by playing, never bought) |
 | Does the app contain digital purchases (in-app purchases)? | No |
-| Can users interact or exchange content with each other (chat, messaging, user-generated content)? | **Yes**: players see each other's public farmer names, send gifts with a short typed note (up to 140 characters) and trade on a shared market. There is no open chat. |
+| Can users interact or exchange content with each other (chat, messaging, user-generated content)? | **Yes**: players see each other's public farmer names, visit each other's farms, help and like them with a guestbook note picked from a preset list, send gifts with a short typed note (up to 140 characters) and trade on a shared market. There is no open chat. |
 | Does the app share the user's current physical location with other users? | No |
 | Does the app allow users to buy digital goods? | No |
 | Does the app provide unrestricted internet access (a web browser)? | No (the app only opens the game's own site) |
