@@ -2,7 +2,7 @@
  * For the developer dashboard (ADMIN.md): play statistics and gifts from the developer.
  * - A session start, then minutes played (counted only while the game is visible), sent every 5 minutes.
  * - Gifts from the developer (coins, gems, items, land) are picked up by themselves: on start, every few
- *   minutes and when the game comes back to the front. Each is claimed once on the server, then added.
+ *   minutes and every time the game is opened again (comes back to the front or back online). Each is claimed once on the server, then added.
  * Only with real online play and once the farmer exists; never shown while visiting a neighbour.
  */
 import { online } from './Online';
@@ -81,7 +81,11 @@ export function startActivity(): void {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
     // back after a long break counts as a new session
-    if (sessionSent && Date.now() - lastGiftCheck > 30 * 60000) sessionSent = false;
-    if (Date.now() - lastGiftCheck > 60000) void tick();
+    const away = Date.now() - lastGiftCheck;
+    if (sessionSent && away > 30 * 60000) sessionSent = false;
+    if (!sessionSent) void tick();
+    // opening the game again: look for gifts straight away
+    else if (away > 15000) void checkGifts();
   });
+  window.addEventListener('online', () => { if (sessionSent) void checkGifts(); });
 }
