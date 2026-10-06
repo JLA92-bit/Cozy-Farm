@@ -146,6 +146,21 @@ releases?.forEach((r, i) => {
   for (const [id, it] of Object.entries(items)) if (it.cat === 'fish' && !ids.has(id) && !fish.junk.some((j) => j.id === id)) err(`item ${id}: cat "fish" but not in fish.json`);
 }
 
+// 1.8 villagers: unique ids, real items in their tastes, valid birthdays and milestones
+{
+  const v = read('villagers.json');
+  const seen = new Set();
+  for (const p of v.villagers) {
+    if (seen.has(p.id)) err(`villager ${p.id}: duplicate id`);
+    seen.add(p.id);
+    for (const k of ['loves', 'likes', 'dislikes']) for (const it of p[k] ?? []) if (it !== 'fish' && !items[it]) err(`villager ${p.id}: ${k} has unknown item ${it}`);
+    const [m, d] = p.birthday ?? [];
+    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) err(`villager ${p.id}: bad birthday`);
+    if (!p.perk6?.id) err(`villager ${p.id}: no 6-heart perk`);
+  }
+  if (!v.friendship?.pointsPerHeart || !Array.isArray(v.friendship.milestones)) err('villagers.json: friendship settings missing');
+}
+
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

@@ -100,7 +100,50 @@ export interface SaveData {
   notify: NotifyPrefs;
   /** Fishing at the dock: catches per species, biggest catch (cm) per species, free casts used today. */
   fishing: FishingState;
+  /** 1.8 Village Friends: friendship with the named villagers (src/systems/Village.ts). */
+  village: VillageState;
+  /** 1.8 star quality: how many of each inventory item are silver / gold. Always <= the item's inventory count; the rest are normal (src/systems/Quality.ts). */
+  quality: Record<string, [number, number]>;
+  /** 1.8 mailbox: letters from villagers, the team and the game (src/systems/Mail.ts). */
+  mail: MailState;
+  /** 1.8 Ask a friend: Auto-help settings and when each item was last asked for (src/systems/Help.ts). */
+  help: HelpState;
+  /** 1.8 welcome for players who played before 1.8, and the one-time head start (src/systems/Welcome18.ts). */
+  welcome18: Welcome18State;
 }
+
+/** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */
+export interface FriendshipState {
+  points: number;
+  /** local day (YYYY-MM-DD) of the last gift and the last chat, one of each per day */
+  giftDay: string;
+  chatDay: string;
+  gifts: number;
+  /** heart milestones whose reward was given (2, 4, 6, 8, 10) */
+  rewards: number[];
+  /** item ids this villager's reaction has revealed (loves / likes / dislikes shown on their card) */
+  known: string[];
+}
+export interface VillageState {
+  friends: Record<string, FriendshipState>;
+  /** the daily rhythm (src/systems/Daily18.ts): today's villager visit and farm finds */
+  today: { day: string; visitor: string; visitorDone: boolean; finds: { id: string; item: string; x: number; z: number; taken: boolean }[] };
+}
+export type LetterFrom = string; // a villager id, 'team' (the developer), or 'game'
+export interface Letter {
+  id: number;
+  at: number;
+  from: LetterFrom;
+  title: string;
+  body: string;
+  /** optional things to collect from the letter */
+  attach?: { coins?: number; gems?: number; items?: Record<string, number> };
+  read: boolean;
+  claimed: boolean;
+}
+export interface MailState { letters: Letter[]; nextId: number }
+export interface HelpState { auto: boolean; reserve: number; asked: Record<string, number> }
+export interface Welcome18State { step: number; done: boolean; headStart: boolean }
 
 export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }
 

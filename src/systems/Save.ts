@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS } from '../data';
+import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -51,6 +51,13 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.neighbours = { ...base.neighbours, ...(isObj(s.neighbours) ? s.neighbours : {}) };
   out.notify = sanitizeNotifyPrefs(s.notify);
   out.fishing = { ...base.fishing, ...(isObj(s.fishing) ? s.fishing : {}) };
+  out.village = { ...base.village, ...(isObj(s.village) ? s.village : {}) };
+  out.village.today = { ...base.village.today, ...(isObj(out.village.today) ? out.village.today : {}) };
+  out.mail = { ...base.mail, ...(isObj(s.mail) ? s.mail : {}) };
+  out.help = { ...base.help, ...(isObj(s.help) ? s.help : {}) };
+  // a farm from before 1.8 gets the welcome and the head start once
+  out.welcome18 = isObj(s.welcome18) ? { ...base.welcome18, ...s.welcome18 } : { step: 0, done: false, headStart: false };
+  out.quality = isObj(s.quality) ? (s.quality as SaveData['quality']) : {};
   return sanitize(out, base);
 }
 
@@ -149,6 +156,46 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   if (typeof fi.freeDay !== 'string') fi.freeDay = '';
   fi.freeUsed = Math.floor(finite(fi.freeUsed, 0, 0));
   fi.casts = Math.floor(finite(fi.casts, 0, 0));
+  // 1.8: friendships, quality, mail, help
+  const vf: SaveData['village']['friends'] = {};
+  for (const [k, f] of Object.entries(isObj(out.village.friends) ? out.village.friends : {})) {
+    if (!VILLAGER[k] || !isObj(f)) continue;
+    const r = f as unknown as Record<string, unknown>;
+    vf[k] = {
+      points: Math.min(1000, Math.floor(finite(r.points, 0, 0))),
+      giftDay: typeof r.giftDay === 'string' ? r.giftDay : '',
+      chatDay: typeof r.chatDay === 'string' ? r.chatDay : '',
+      gifts: Math.floor(finite(r.gifts, 0, 0)),
+      rewards: Array.isArray(r.rewards) ? r.rewards.filter((x): x is number => typeof x === 'number') : [],
+      known: strArr(r.known).filter((x) => !!ITEMS[x]),
+    };
+  }
+  out.village.friends = vf;
+  const td = out.village.today;
+  if (typeof td.day !== 'string') td.day = '';
+  if (typeof td.visitor !== 'string') td.visitor = '';
+  td.visitorDone = !!td.visitorDone;
+  td.finds = Array.isArray(td.finds) ? td.finds.filter((f) => isObj(f) && typeof f.id === 'string' && !!ITEMS[f.item as string] && Number.isFinite(f.x) && Number.isFinite(f.z)) : [];
+  const q: SaveData['quality'] = {};
+  for (const [k, v] of Object.entries(out.quality)) {
+    const have = out.inventory[k] ?? 0;
+    if (!ITEMS[k] || !Array.isArray(v) || have <= 0) continue;
+    const silver = Math.min(have, Math.floor(finite(v[0], 0, 0)));
+    const gold = Math.min(have - silver, Math.floor(finite(v[1], 0, 0)));
+    if (silver || gold) q[k] = [silver, gold];
+  }
+  out.quality = q;
+  const mail = out.mail;
+  mail.letters = Array.isArray(mail.letters) ? mail.letters.filter((l) => isObj(l) && typeof l.id === 'number' && typeof l.title === 'string' && typeof l.body === 'string').slice(-200) : [];
+  mail.nextId = Math.max(Math.floor(finite(mail.nextId, 1, 1)), ...mail.letters.map((l) => l.id + 1));
+  const hp = out.help;
+  hp.auto = !!hp.auto;
+  hp.reserve = Math.min(999, Math.floor(finite(hp.reserve, 20, 0)));
+  hp.asked = isObj(hp.asked) ? Object.fromEntries(Object.entries(hp.asked).filter(([k, t]) => !!ITEMS[k] && typeof t === 'number' && Number.isFinite(t))) : {};
+  const w = out.welcome18;
+  w.step = Math.floor(finite(w.step, 0, 0));
+  w.done = !!w.done;
+  w.headStart = !!w.headStart;
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;
 }

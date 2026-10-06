@@ -1,5 +1,6 @@
 /** Typed access to the JSON game data. All balance numbers live in the JSON files next to this one. */
 import cropsJson from './crops.json';
+import villagersJson from './villagers.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -102,6 +103,18 @@ export const FISHING = fishJson as unknown as {
   recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];
 };
 export const FISH = Object.fromEntries(FISHING.species.map((f) => [f.id, f])) as Record<string, FishDef>;
+
+/** 1.8 Village Friends (villagers.json). */
+export interface VillagerDef {
+  id: string; name: string; role: string; about: string;
+  loves: string[]; likes: string[]; dislikes: string[];
+  /** [month 1-12, day] */
+  birthday: [number, number];
+  perk6: { id: string; text: string };
+}
+export const VILLAGERS: VillagerDef[] = villagersJson.villagers as VillagerDef[];
+export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as Record<string, VillagerDef>;
+export const FRIENDSHIP = villagersJson.friendship;
 
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;

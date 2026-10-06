@@ -115,5 +115,11 @@ export function createNewGame(now = Date.now(), seed = Math.floor(Math.random() 
     neighbours: { day: '', rewarded: 0, consoled: 0, paid: [] },
     notify: defaultNotifyPrefs(),
     fishing: { caught: {}, records: {}, freeDay: '', freeUsed: 0, casts: 0 },
+    village: { friends: {}, today: { day: '', visitor: '', visitorDone: false, finds: [] } },
+    quality: {},
+    mail: { letters: [], nextId: 1 },
+    help: { auto: false, reserve: 20, asked: {} },
+    // a brand-new farm meets the villagers through the normal tutorial: no 1.8 welcome, no head start
+    welcome18: { step: 0, done: true, headStart: true },
   };
 }

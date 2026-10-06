@@ -97,6 +97,8 @@
   "gemsPerMinute": 0.2,
   "minGems": 1
  },
+ "_qualityComment": "1.8 star quality: base chance of a silver or gold item from harvests, animals, fishing and workshops (src/systems/Quality.ts).",
+ "quality": { "silver": 0.12, "gold": 0.03 },
  "eventTokenChance": 0.12,
  "social": {
   "_comment": "Friends and gifts. Daily limits keep gifting cozy: gifts and gift codes both count. Coins per gift and per day are capped; items per gift count every unit.",

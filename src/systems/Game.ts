@@ -7,12 +7,19 @@ import type { Obstacle, PlacedBuilding, SaveData } from './State';
 
 export interface Vec { x: number; y: number; z: number }
 
+/** 1.8 star quality: value multiplier for normal, silver, gold (sell price and friendship from gifts). */
+export const QUALITY_MULT = [1, 1.25, 1.5] as const;
+
 export interface GameEvents extends Record<string, unknown> {
   coins: { delta: number; total: number; at?: Vec };
   gems: { delta: number; total: number; at?: Vec };
   xp: { delta: number; total: number; at?: Vec };
   levelup: { level: number };
-  item: { item: string; delta: number; total: number; at?: Vec };
+  item: { item: string; delta: number; total: number; at?: Vec; quality?: 0 | 1 | 2 };
+  /** 1.8: friendship changed (src/systems/Village.ts) */
+  'village:points': { id: string; delta: number; points: number; hearts: number; reason: string };
+  /** 1.8: a letter arrived (src/systems/Mail.ts) */
+  'mail': { id: number };
   stat: { stat: string; value: number; delta: number };
   'building:placed': { b: PlacedBuilding; isNew: boolean };
   'building:moved': { b: PlacedBuilding };
@@ -146,13 +153,50 @@ export class Game {
   }
 
   count(item: string): number { return this.state.inventory[item] ?? 0; }
-  addItem(item: string, n: number, at?: Vec): void {
+  /**
+   * Add (n > 0) or remove (n < 0) items. 1.8 star quality: `quality` 1 = silver, 2 = gold marks added items;
+   * removals take normal items first, then silver, then gold (use removeQuality() to take a specific quality).
+   */
+  addItem(item: string, n: number, at?: Vec, quality: 0 | 1 | 2 = 0): void {
     if (!n) return;
     const inv = this.state.inventory;
     inv[item] = Math.max(0, (inv[item] ?? 0) + n);
     if (inv[item] === 0) delete inv[item];
-    this.bus.emit('item', { item, delta: n, total: inv[item] ?? 0, at });
+    const q = this.state.quality;
+    if (n > 0 && quality) {
+      const cur = q[item] ?? [0, 0];
+      cur[quality - 1] += n;
+      q[item] = cur;
+    } else if (n < 0 && q[item]) {
+      // normal items go first: only what is left over comes out of silver, then gold
+      const [s, g] = q[item];
+      let over = s + g - (inv[item] ?? 0);
+      const s2 = Math.max(0, s - Math.max(0, over));
+      over -= s - s2;
+      const g2 = Math.max(0, g - Math.max(0, over));
+      if (s2 || g2) q[item] = [s2, g2]; else delete q[item];
+    }
+    this.bus.emit('item', { item, delta: n, total: inv[item] ?? 0, at, quality: n > 0 ? quality : undefined });
     if (n > 0) this.discover(item, 'item');
+  }
+  /** How many of an item are normal, silver and gold. */
+  qualityCounts(item: string): [number, number, number] {
+    const total = this.count(item);
+    const [s, g] = this.state.quality[item] ?? [0, 0];
+    return [Math.max(0, total - s - g), s, g];
+  }
+  /** Remove n items of one quality (0 normal, 1 silver, 2 gold). False (nothing changed) if there are not enough. */
+  removeQuality(item: string, quality: 0 | 1 | 2, n: number, at?: Vec): boolean {
+    if (n <= 0 || this.qualityCounts(item)[quality] < n) return false;
+    if (quality === 0) { this.addItem(item, -n, at); return true; }
+    const cur = this.state.quality[item]!;
+    cur[quality - 1] -= n;
+    if (!cur[0] && !cur[1]) delete this.state.quality[item];
+    const inv = this.state.inventory;
+    inv[item] = Math.max(0, (inv[item] ?? 0) - n);
+    if (inv[item] === 0) delete inv[item];
+    this.bus.emit('item', { item, delta: -n, total: inv[item] ?? 0, at });
+    return true;
   }
   has(items: Record<string, number>): boolean {
     return Object.entries(items).every(([k, v]) => this.count(k) >= v);
@@ -162,11 +206,13 @@ export class Game {
     for (const [k, v] of Object.entries(items)) this.addItem(k, -v);
     return true;
   }
-  sellItem(item: string, n: number, at?: Vec): number {
-    n = Math.min(n, this.count(item));
+  /** Sell from the barn. 1.8: `quality` sells that quality (silver +25%, gold +50%); without it, normal first. */
+  sellItem(item: string, n: number, at?: Vec, quality?: 0 | 1 | 2): number {
+    n = Math.min(n, quality === undefined ? this.count(item) : this.qualityCounts(item)[quality]);
     if (n <= 0) return 0;
-    const value = Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult);
-    this.addItem(item, -n);
+    const mult = quality === 2 ? QUALITY_MULT[2] : quality === 1 ? QUALITY_MULT[1] : 1;
+    const value = Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult * mult);
+    if (quality === undefined) this.addItem(item, -n); else this.removeQuality(item, quality, n, at);
     this.addCoins(value, at);
     this.bus.emit('sfx', { name: 'coins' });
     return value;
