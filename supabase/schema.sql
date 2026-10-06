@@ -1213,3 +1213,93 @@ begin
   end if;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------- farm transfer codes
+-- Support tool: give a player their farm back with a short code (like K7QM-2XPA) instead of a long
+-- #farm= link. The developer makes a code in the SQL Editor:
+--     select public.make_farm_transfer('<the part after #farm= in a farm link>', 'note, e.g. Mel restore');
+-- and the player types it in Settings > Load a farm. A code works for 14 days (up to 5 loads, in case
+-- they load it on two devices). Players cannot list or read this table; they can only exchange a code
+-- they know for its farm, and wrong guesses are limited to 10 an hour per player.
+
+create table if not exists public.farm_transfers (
+  code       text primary key check (code ~ '^[A-Z2-9]{8}$'),
+  data       text not null check (data ~ '^[zj]\.[A-Za-z0-9_-]+$' and length(data) <= 2000000),
+  note       text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '14 days',
+  max_claims integer not null default 5,
+  claims     integer not null default 0,
+  claimed_at timestamptz
+);
+
+create table if not exists public.farm_transfer_tries (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  at      timestamptz not null default now()
+);
+create index if not exists farm_transfer_tries_user_at on public.farm_transfer_tries (user_id, at);
+
+alter table public.farm_transfers enable row level security;
+alter table public.farm_transfer_tries enable row level security;
+revoke all on public.farm_transfers, public.farm_transfer_tries from anon, authenticated, public;
+
+-- Developer only (SQL Editor). Stores farm link data and returns its new code, shown as XXXX-XXXX.
+create or replace function public.make_farm_transfer(p_data text, p_note text default null)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  abc constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  v_data text := regexp_replace(coalesce(p_data, ''), '^.*farm=', '');
+  v_code text;
+  b bytea;
+begin
+  v_data := regexp_replace(v_data, '[^A-Za-z0-9_.-]', '', 'g');
+  v_data := regexp_replace(v_data, '\.+$', '');
+  if v_data !~ '^[zj]\.[A-Za-z0-9_-]+$' then raise exception 'that is not farm link data'; end if;
+  delete from public.farm_transfers where expires_at < now() - interval '30 days';
+  loop
+    b := decode(replace(gen_random_uuid()::text, '-', ''), 'hex');
+    v_code := '';
+    for i in 0..7 loop v_code := v_code || substr(abc, get_byte(b, i) % 32 + 1, 1); end loop;
+    exit when not exists (select 1 from public.farm_transfers t where t.code = v_code);
+  end loop;
+  insert into public.farm_transfers (code, data, note) values (v_code, v_data, p_note);
+  return substr(v_code, 1, 4) || '-' || substr(v_code, 5, 4);
+end;
+$$;
+
+-- Exchange a code for its farm link data. Spaces, dashes and lower case are fine (codes never use 0, O, 1
+-- or I). Returns null when the code is wrong, expired or used up (null, not an error, so the wrong try is
+-- kept); raises 'too many tries' after 10 wrong codes in an hour.
+create or replace function public.claim_farm_transfer(p_code text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_code text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  v_data text;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if (select count(*) from public.farm_transfer_tries t where t.user_id = uid and t.at > now() - interval '1 hour') >= 10 then
+    raise exception 'too many tries';
+  end if;
+  update public.farm_transfers t set claims = t.claims + 1, claimed_at = now()
+   where t.code = v_code and t.expires_at > now() and t.claims < t.max_claims
+  returning t.data into v_data;
+  if v_data is null then
+    insert into public.farm_transfer_tries (user_id) values (uid);
+    delete from public.farm_transfer_tries t where t.at < now() - interval '1 day';
+  end if;
+  return v_data;
+end;
+$$;
+
+revoke all on function public.make_farm_transfer(text, text) from public, anon, authenticated;
+revoke all on function public.claim_farm_transfer(text) from public, anon;
+grant execute on function public.claim_farm_transfer(text) to authenticated;

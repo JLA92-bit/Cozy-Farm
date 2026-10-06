@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.6.1",
+   "date": "2026-10-06",
+   "title": "Farm links",
+   "icon": "unlock",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "unlock",
+     "text": "Got a farm code or link? Settings > Load a farm brings that farm into the game, even in the Play app"
+    }
+   ]
+  },
+  {
    "version": "1.6.0",
    "date": "2026-10-05",
    "title": "Pretty Farms",

@@ -216,6 +216,10 @@ export class LocalBackend implements OnlineBackend {
     return g;
   }
 
+  async claimFarmTransfer(): Promise<string> {
+    throw new Error('Farm codes need online play.');
+  }
+
   async publishFarm(snapshot: FarmSnapshot): Promise<void> {
     await this.init();
     const txt = JSON.stringify(snapshot);

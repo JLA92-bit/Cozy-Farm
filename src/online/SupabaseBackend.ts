@@ -490,6 +490,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     return row ? sanitizeSnapshot(row.data) : null;
   }
 
+  async claimFarmTransfer(code: string): Promise<string> {
+    return this.rpc<string>('claim_farm_transfer', { p_code: code });
+  }
+
   // ------------------------------------------------------------------ helping neighbours
   private mapHelp(r: FarmHelpRow): FarmHelp | null {
     return cleanHelp({ id: r.id, owner: r.owner_id, helper: { id: r.helper_id, name: r.helper_name }, kind: r.kind, target: r.target, note: r.note, at: ms(r.created_at), claimed: !!r.claimed_at });

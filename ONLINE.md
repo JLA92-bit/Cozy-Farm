@@ -143,6 +143,25 @@ their farm appears.
   static). Until a small server function is added for it, point players to the in-game button or the email
   address above.
 
+## Restoring a player's farm with a short code
+
+When a player loses their farm and you have made them a farm link (`https://cozyacres.joshmakesgames.app/play/#farm=...`),
+you can turn it into a short code they type in the game instead of a very long link.
+
+1. Run the latest `supabase/schema.sql` once (it adds `farm_transfers` and two functions; safe to re-run).
+2. **SQL Editor**, paste the whole farm link between the quotes and run:
+   ```sql
+   select public.make_farm_transfer('https://cozyacres.joshmakesgames.app/play/#farm=z.H4sI...', 'Mel restore');
+   ```
+   It returns a code like `K7QM-2XPA`.
+3. Send the player the code. In the game (website or Play app): **Settings > Load a farm**, type the code,
+   **Load farm**, then confirm. Their current farm is kept under Settings > Previous farm.
+
+A code works for 14 days and up to 5 loads. Players cannot list codes; each player gets 10 wrong guesses an hour.
+See your codes with `select code, note, claims, expires_at from farm_transfers order by created_at desc;`
+and remove one early with `delete from farm_transfers where code = 'K7QM2XPA';` (no dash). Expired codes are
+deleted automatically 30 days later. A code holds that player's farm, so only send it to them.
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in

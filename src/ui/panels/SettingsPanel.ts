@@ -14,7 +14,7 @@ import { openWhatsNew, whatsNewPending } from './WhatsNewPanel';
 import { hints, HINT_MODES } from '../../systems/Hints';
 import { onOldAddress, NEW_HOST } from '../../systems/FarmMove';
 import { installButton } from '../Install';
-import { openMoveFarm } from './MoveFarmPanel';
+import { openMoveFarm, openLoadFarm } from './MoveFarmPanel';
 import { notificationSettingsSection } from './NotificationSettings';
 import { openPhotoMode } from '../PhotoMode';
 
@@ -82,6 +82,7 @@ export function openSettings(): void {
     installButton(),
     button([icon('package'), 'Export save'], () => { saves.exportFile(); ui.feedback.toast('Save exported', 'Keep the file somewhere safe', 'package'); }, 'small blue'),
     button([icon('unlock'), 'Import save'], () => fileInput.click(), 'small blue'),
+    button([icon('unlock'), 'Load a farm'], () => { p.close(); openLoadFarm(); }, 'small blue'),
     onOldAddress() ? button([icon('truck'), `Move my farm to ${NEW_HOST}`], () => void openMoveFarm(), 'small green') : null,
     saves.replacedFarm() ? button([icon('house'), 'Previous farm'], () => { p.close(); openReplacedFarm(); }, 'small blue') : null,
     whatsNewButton(),

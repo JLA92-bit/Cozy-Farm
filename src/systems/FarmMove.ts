@@ -63,6 +63,23 @@ export function farmInHash(): string | null {
   return location.hash.startsWith(PARAM) ? location.hash.slice(PARAM.length) : null;
 }
 
+/**
+ * The farm data in pasted text: a whole link, or just its "z.<data>" part. Message apps can add spaces, line breaks
+ * or a full stop, so everything that cannot be part of the data is removed. Null when there is no farm in it.
+ */
+export function farmLinkData(text: string): string | null {
+  const i = text.indexOf('farm=');
+  const rest = (i >= 0 ? text.slice(i + 5) : text).replace(/\s+/g, '');
+  const m = /^[zj]\.[A-Za-z0-9_-]+/.exec(rest);
+  return m && m[0].length > 20 ? m[0] : null;
+}
+
+/** A typed farm code (like K7QM-2XPA, any case, spaces or dashes) in its stored form, or null. */
+export function farmCode(text: string): string | null {
+  const c = text.toUpperCase().replace(/[\s-]+/g, '');
+  return /^[A-Z2-9]{8}$/.test(c) ? c : null;
+}
+
 /** Remove #farm=... from the address bar so a reload does not ask again. */
 export function clearFarmHash(): void {
   try { history.replaceState(history.state, '', location.pathname + location.search); } catch { /* ignore */ }

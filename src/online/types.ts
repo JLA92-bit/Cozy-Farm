@@ -138,6 +138,11 @@ export interface OnlineBackend {
    * have not shared one yet. Rejects when the server cannot be reached.
    */
   getFarm(playerId: string): Promise<FarmSnapshot | null>;
+  /**
+   * Exchange a farm code (from the developer, for restoring a farm) for its farm link data ("z.<data>").
+   * Rejects with 'not found' (wrong, expired or used up), 'too many tries', or when offline.
+   */
+  claimFarmTransfer(code: string): Promise<string>;
 
   /**
    * Helping neighbours (Update 5). Help a neighbour's farm once per UTC day (water a field, feed an
