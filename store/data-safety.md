@@ -18,14 +18,20 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
 - **Phone notifications are optional** (from 1.5, off until the player switches them on): the device's push
   subscription (push service address and keys), its time zone, quiet hours and choices, and the reminder texts
   queued for the next day.
-- No ads and no in-app purchases yet (when either is added, use the ready-made additions in `store/monetisation.md`), no analytics, no crash reporting SDK, no location, no contacts, no advertising ID or hardware IDs.
+- **Play statistics** (from 1.7): days played, sessions, approximate minutes, game version and platform (Play app,
+  installed web app or browser), stored with the player's account for the developer dashboard (ADMIN.md). First-party,
+  no analytics SDK; never shown to other players.
+- **Feedback** (from 1.7, optional): message, category, farmer name, level, version and the browser user agent.
+- **Farm backups** (from 1.7): daily copies of cloud saves / farm snapshots kept up to 60 days for restoring farms.
+- No ads and no in-app purchases yet (when either is added, use the ready-made additions in `store/monetisation.md`), no third-party analytics, no crash reporting SDK, no location, no contacts, no advertising ID or hardware IDs.
 - Backend: Supabase (database and auth). Website and game files: GitHub Pages. Sign-in: Google. These are service
   providers acting for us, which Play does not count as "sharing".
 - All traffic is HTTPS.
 - In-app deletion: Settings > Online play > **Delete my online account** (calls `delete_my_account()`, which removes
   the auth user, profile, friend code, cloud save, farm snapshot, the player's market listings, all gifts they sent or
-  received, neighbour help and likes in both directions, push subscriptions and queued notifications; checked on
-  Postgres on 5 October 2026).
+  received, neighbour help and likes in both directions, push subscriptions and queued notifications; play statistics,
+  feedback, farm backups and developer gifts go with the account through `on delete cascade`; checked on Postgres on
+  6 October 2026).
 
 ## Section 1: Data collection and security
 
@@ -59,16 +65,17 @@ defines as emails, SMS and other in-app messages; if a reviewer asks, the notes 
 
 | Data type | Collected | Required or optional | Purposes | What it is in the app |
 | --- | --- | --- | --- | --- |
-| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, guestbook notes (preset list) and, for Google sign-in, the cloud save (a copy of the whole farm). |
+| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, guestbook notes (preset list), feedback messages (optional, Settings > Send feedback) and, for Google sign-in, the cloud save (a copy of the whole farm). |
 | **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes. |
-| App interactions, In-app search history, Installed apps | No | | | The game does not record taps, searches or other apps. |
+| **App interactions** | Yes | Required | Analytics | From 1.7: the days a player plays, sessions and approximate minutes played, game version and platform. Kept with the account, never shared, deleted with it. |
+| In-app search history, Installed apps | No | | | The game does not record searches or other apps. |
 
 ### App info and performance
 
 | Data type | Collected | Notes |
 | --- | --- | --- |
 | Crash logs | No | No crash reporting. |
-| Diagnostics | No | No analytics or performance monitoring. |
+| Diagnostics | No | No crash or performance monitoring. Feedback messages include the browser user agent (device model and Android version) only when the player sends feedback; declared under user-generated content. |
 | Other app performance data | No | |
 
 ### Device or other IDs

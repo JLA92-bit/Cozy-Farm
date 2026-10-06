@@ -100,6 +100,12 @@ export type OnlineEvent =
   | { type: 'listings' }
   | { type: 'profiles' };
 
+/** A gift from the developer (admin dashboard): arrives by itself, no code to type. */
+export interface AdminGift { id: string; coins: number; gems: number; items: Record<string, number>; land: number; message: string | null; created_at: string }
+
+/** Where the game is running, for play statistics. */
+export type Platform = 'android' | 'pwa' | 'web' | 'ios';
+
 /** What a reward code gives. */
 export interface RewardCode { coins: number; gems: number; items: Record<string, number>; message: string | null }
 
@@ -151,6 +157,14 @@ export interface OnlineBackend {
    * used up), 'already claimed', 'too many tries', or when offline.
    */
   claimRewardCode(code: string): Promise<RewardCode>;
+  /** Play statistics for the developer: a session start, or minutes played since the last call. Never throws. */
+  logActivity(session: boolean, minutes: number, platform: Platform, version: string): Promise<void>;
+  /** This player's unclaimed gifts from the developer. */
+  adminGifts(): Promise<AdminGift[]>;
+  /** Mark a developer gift received (exactly once); rejects with 'not found' if it was already claimed. */
+  claimAdminGift(id: string): Promise<AdminGift>;
+  /** Settings > Send feedback. Rejects with 'too many' (10 a day) or when offline. */
+  submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void>;
 
   /**
    * Helping neighbours (Update 5). Help a neighbour's farm once per UTC day (water a field, feed an

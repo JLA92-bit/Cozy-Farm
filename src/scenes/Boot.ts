@@ -34,6 +34,7 @@ import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
+import { startActivity } from '../online/Activity';
 import { startCloud } from '../online/CloudSave';
 import { startNotifications } from '../notify/Push';
 import { wireAccountNudge } from '../ui/panels/AccountPanels';
@@ -167,6 +168,7 @@ export async function boot(): Promise<void> {
   for (const fn of afterBoot) fn();
   startCloud();
   startOnlineSync();
+  startActivity();
   startNotifications();
   wireAccountNudge();
   ui.setFps(settings.showFps);

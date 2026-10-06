@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds the whole GitHub Pages site into dist/: the Cozy Acres website at the root and the game at play/.
+# Builds the whole GitHub Pages site into dist/: the Cozy Acres website at the root, the game at play/ and the
+# private admin dashboard at admin/.
 # Used by .github/workflows/deploy.yml; also handy locally (see DOMAIN.md).
 #
 #   BASE_PATH_ROOT=""           custom domain (https://cozyacres.joshmakesgames.app/)     <- default
@@ -18,6 +19,9 @@ site_url="${site_url%/}"
 rm -rf dist
 echo "== game: base ${root}/play/"
 BASE_PATH="${root}/play/" node node_modules/vite/bin/vite.js build --outDir dist/play --emptyOutDir
+
+echo "== admin dashboard: ${root}/admin/ (ADMIN.md)"
+node node_modules/vite/bin/vite.js build --config admin/vite.config.ts --emptyOutDir
 
 echo "== website: base ${root}/  url ${site_url}"
 SITE_BASE="${root}/" SITE_URL="${site_url}" OUT_DIR=dist/.site SITE_CHANGELOG=src/data/changelog.json \

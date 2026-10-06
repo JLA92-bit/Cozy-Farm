@@ -34,3 +34,9 @@
   Content-Type: application/json
   Access-Control-Allow-Origin: *
   Cache-Control: max-age=3600
+
+# The private admin dashboard (ADMIN.md): never indexed, never cached, never embedded in another site.
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Cache-Control: no-cache

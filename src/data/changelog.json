@@ -1,15 +1,27 @@
 {
  "releases": [
   {
-   "version": "1.6.2",
+   "version": "1.7.0",
    "date": "2026-10-06",
-   "title": "Reward codes",
+   "title": "Farm care",
    "icon": "gift",
    "color": "purple",
    "highlights": [
     {
+     "icon": "light_bulb",
+     "text": "Send feedback straight from Settings: tell us about a problem, an idea or what you love"
+    },
+    {
+     "icon": "gift",
+     "text": "Gifts from the Cozy Acres team now arrive by themselves, and can even include new land"
+    },
+    {
      "icon": "gift",
      "text": "Got a reward code? Type it in Friends > Gift codes and tap Open"
+    },
+    {
+     "icon": "map",
+     "text": "Your farm is backed up every day, so we can help if something goes wrong"
     }
    ]
   },

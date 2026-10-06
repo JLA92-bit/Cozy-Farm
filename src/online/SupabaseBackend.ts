@@ -1,7 +1,7 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
-  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode,
+  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, Platform,
 } from './types';
 import { cleanHelp } from './FarmHelp';
 import { setOnlineStatus } from './Status';
@@ -397,15 +397,23 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     return (rows ?? []).map((r) => this.mapProfile(r));
   }
 
+  private lbFilter = true;
   async leaderboard(kind: LeaderboardKind, limit: number): Promise<PlayerProfile[]> {
     const n = Math.max(1, Math.min(100, Math.floor(limit) || 20));
-    const rows = await this.query((sb) => {
+    const board = (hide: boolean) => this.query((sb) => {
       let q = sb.from('profiles').select('*');
+      if (hide) q = q.eq('lb_hidden', false); // players the developer took off the leaderboards
       if (kind === 'level') q = q.order('level', { ascending: false }).order('total_xp', { ascending: false });
       else if (kind === 'farmValue') q = q.order('farm_value', { ascending: false });
       else if (kind === 'charm') q = q.order('charm', { ascending: false }).order('total_xp', { ascending: false });
       else q = q.eq('week_start', weekKey()).order('weekly_xp', { ascending: false });
       return q.limit(n) as PromiseLike<Result<ProfileRow[]>>;
+    });
+    // a database without the lb_hidden column (schema.sql not re-run yet) refuses the filter: show everyone
+    const rows = await board(this.lbFilter).catch((e) => {
+      if (!this.lbFilter || !/lb_hidden/.test((e as Error).message)) throw e;
+      this.lbFilter = false;
+      return board(false);
     });
     return (rows ?? []).map((r) => this.mapProfile(r));
   }
@@ -496,6 +504,27 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   async claimRewardCode(code: string): Promise<RewardCode> {
     return this.rpc<RewardCode>('claim_reward_code', { p_code: code });
+  }
+
+  // ------------------------------------------------------------------ developer: stats, gifts, feedback
+  async logActivity(session: boolean, minutes: number, platform: Platform, version: string): Promise<void> {
+    try {
+      await this.init();
+      this.check(await this.db().rpc('log_activity', { p_session: session, p_minutes: Math.round(minutes), p_platform: platform, p_version: version }) as Result<unknown>);
+    } catch { /* statistics only: never bother the player */ }
+  }
+
+  async adminGifts(): Promise<AdminGift[]> {
+    const rows = await this.query((sb) => sb.from('admin_gifts').select('*').eq('user_id', this.uid).is('claimed_at', null).order('created_at') as PromiseLike<Result<AdminGift[]>>);
+    return rows ?? [];
+  }
+
+  async claimAdminGift(id: string): Promise<AdminGift> {
+    return this.rpc<AdminGift>('claim_admin_gift', { p_id: id });
+  }
+
+  async submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void> {
+    await this.rpc<string>('submit_feedback', { p_category: category, p_message: message.slice(0, 2000), p_version: info.version, p_platform: info.platform, p_device: info.device.slice(0, 200), p_level: info.level });
   }
 
   // ------------------------------------------------------------------ helping neighbours

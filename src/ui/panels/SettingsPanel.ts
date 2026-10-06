@@ -15,6 +15,7 @@ import { hints, HINT_MODES } from '../../systems/Hints';
 import { onOldAddress, NEW_HOST } from '../../systems/FarmMove';
 import { installButton } from '../Install';
 import { openMoveFarm, openLoadFarm } from './MoveFarmPanel';
+import { openFeedback } from './FeedbackPanel';
 import { notificationSettingsSection } from './NotificationSettings';
 import { openPhotoMode } from '../PhotoMode';
 
@@ -86,6 +87,7 @@ export function openSettings(): void {
     onOldAddress() ? button([icon('truck'), `Move my farm to ${NEW_HOST}`], () => void openMoveFarm(), 'small green') : null,
     saves.replacedFarm() ? button([icon('house'), 'Previous farm'], () => { p.close(); openReplacedFarm(); }, 'small blue') : null,
     whatsNewButton(),
+    button([icon('light_bulb'), 'Send feedback'], () => { p.close(); openFeedback(); }, 'small blue'),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),

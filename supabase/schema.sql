@@ -999,7 +999,7 @@ begin
   perform 1 from public.profiles p where p.id = uid for update; -- serialises this player's calls (no-op without a profile)
 
   delete from public.push_schedule p
-   where p.user_id = uid and p.sent_at is null and p.kind not in ('gift', 'market', 'test');
+   where p.user_id = uid and p.sent_at is null and p.kind not in ('gift', 'market', 'test', 'news');
   -- tidy up this player's old sent rows
   delete from public.push_schedule p where p.user_id = uid and p.sent_at < now() - interval '2 days';
   if not exists (select 1 from public.push_subscriptions s where s.user_id = uid) then return 0; end if;
@@ -1398,3 +1398,1058 @@ $$;
 revoke all on function public.make_reward_code(integer, integer, text, integer, jsonb, text) from public, anon, authenticated;
 revoke all on function public.claim_reward_code(text) from public, anon;
 grant execute on function public.claim_reward_code(text) to authenticated;
+
+-- ================================================================================= admin dashboard
+-- The private dashboard at /admin/ (ADMIN.md). Only Google accounts whose email is in admin_users can use
+-- the admin_* functions. admin_users is empty in this file: add your own email once in the SQL Editor
+--     insert into public.admin_users (email) values ('you@gmail.com') on conflict do nothing;
+-- so it is never written in the (public) repository. Every admin action is written to admin_log.
+--
+-- New for players: play-time stats (player_days, written by log_activity), gifts from the developer that
+-- arrive by themselves (admin_gifts), in-game feedback (feedback), hiding a player from leaderboards
+-- (profiles.lb_hidden) and daily farm backups (farm_backups).
+
+create table if not exists public.admin_users (
+  email      text primary key check (email = lower(email) and email ~ '^[^@\s]+@[^@\s]+$'),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_log (
+  id     bigint generated always as identity primary key,
+  at     timestamptz not null default now(),
+  admin  text not null,
+  action text not null,
+  target uuid,
+  detail jsonb
+);
+create index if not exists admin_log_at_idx on public.admin_log (at desc);
+
+create table if not exists public.admin_notes (
+  id      bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  at      timestamptz not null default now(),
+  admin   text not null,
+  note    text not null check (char_length(note) between 1 and 2000)
+);
+create index if not exists admin_notes_user_idx on public.admin_notes (user_id, at desc);
+
+-- One row per player per UTC day they played: sessions, minutes (from a heartbeat every few minutes while
+-- the game is open), and the platform and game version they used.
+create table if not exists public.player_days (
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  day      date not null,
+  sessions integer not null default 0 check (sessions >= 0),
+  minutes  integer not null default 0 check (minutes between 0 and 1440),
+  platform text check (platform is null or platform in ('android', 'pwa', 'web', 'ios')),
+  version  text check (version is null or version ~ '^[0-9A-Za-z.+-]{1,16}$'),
+  first_at timestamptz not null default now(),
+  last_at  timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create index if not exists player_days_day_idx on public.player_days (day);
+
+-- Gifts from the developer: coins, gems, items and land plots. The game picks them up by itself (no code to
+-- type), shows "A gift from Cozy Acres" and adds them to the farm.
+create table if not exists public.admin_gifts (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  coins      integer not null default 0 check (coins between 0 and 10000000),
+  gems       integer not null default 0 check (gems between 0 and 100000),
+  items      jsonb not null default '{}'::jsonb check (jsonb_typeof(items) = 'object'),
+  land       integer not null default 0 check (land between 0 and 36),
+  message    text check (message is null or char_length(message) <= 200),
+  created_at timestamptz not null default now(),
+  created_by text,
+  claimed_at timestamptz
+);
+create index if not exists admin_gifts_open_idx on public.admin_gifts (user_id) where claimed_at is null;
+
+create table if not exists public.feedback (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users (id) on delete cascade,
+  player_name text,
+  created_at  timestamptz not null default now(),
+  category    text not null check (category in ('bug', 'idea', 'praise', 'other')),
+  message     text not null check (char_length(message) between 1 and 2000),
+  version     text check (version is null or char_length(version) <= 16),
+  platform    text check (platform is null or char_length(platform) <= 16),
+  device      text check (device is null or char_length(device) <= 200),
+  level       integer,
+  status      text not null default 'new' check (status in ('new', 'seen', 'done')),
+  admin_note  text check (admin_note is null or char_length(admin_note) <= 2000)
+);
+create index if not exists feedback_created_idx on public.feedback (created_at desc);
+
+create table if not exists public.farm_backups (
+  id       bigint generated always as identity primary key,
+  user_id  uuid not null references auth.users (id) on delete cascade,
+  taken_at timestamptz not null default now(),
+  source   text not null check (source in ('cloud', 'snapshot')),
+  name     text,
+  level    integer,
+  hash     text not null,
+  data     jsonb not null check (jsonb_typeof(data) = 'object')
+);
+create index if not exists farm_backups_user_idx on public.farm_backups (user_id, taken_at desc);
+create index if not exists farm_backups_taken_idx on public.farm_backups (taken_at);
+
+alter table public.profiles add column if not exists lb_hidden boolean not null default false;
+
+alter table public.admin_users  enable row level security;
+alter table public.admin_log    enable row level security;
+alter table public.admin_notes  enable row level security;
+alter table public.player_days  enable row level security;
+alter table public.admin_gifts  enable row level security;
+alter table public.feedback     enable row level security;
+alter table public.farm_backups enable row level security;
+revoke all on public.admin_users, public.admin_log, public.admin_notes, public.player_days, public.admin_gifts,
+  public.feedback, public.farm_backups from anon, authenticated, public;
+-- players can read only their own developer gifts (the game polls for them)
+grant select on public.admin_gifts to authenticated;
+drop policy if exists "players read only their own developer gifts" on public.admin_gifts;
+create policy "players read only their own developer gifts" on public.admin_gifts
+  for select to authenticated using (user_id = auth.uid());
+
+-- --------------------------------------------------------------------------------- player functions
+
+-- Called by the game when a session starts (p_session) and every few minutes while it is open (p_minutes,
+-- at most 10 per call and only after 3 quiet minutes, so the numbers cannot be pumped).
+create or replace function public.log_activity(p_session boolean, p_minutes integer, p_platform text, p_version text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_day date := (now() at time zone 'utc')::date;
+  v_platform text := case when p_platform in ('android', 'pwa', 'web', 'ios') then p_platform else null end;
+  v_version text := case when p_version ~ '^[0-9A-Za-z.+-]{1,16}$' then p_version else null end;
+  v_min integer := case when coalesce(p_session, false) then 0 else least(greatest(coalesce(p_minutes, 0), 0), 10) end;
+begin
+  if uid is null then return; end if;
+  insert into public.player_days as d (user_id, day, sessions, minutes, platform, version)
+  values (uid, v_day, case when coalesce(p_session, false) then 1 else 0 end, v_min, v_platform, v_version)
+  on conflict (user_id, day) do update set
+    sessions = d.sessions + case when coalesce(p_session, false) and d.last_at < now() - interval '2 minutes' then 1 else 0 end,
+    minutes  = least(1440, d.minutes + case when d.last_at < now() - interval '3 minutes' then v_min else 0 end),
+    platform = coalesce(v_platform, d.platform),
+    version  = coalesce(v_version, d.version),
+    last_at  = case when coalesce(p_session, false) or d.last_at < now() - interval '3 minutes' then now() else d.last_at end;
+end;
+$$;
+
+-- Mark one of the caller's developer gifts as received, exactly once; returns it (the game then adds it).
+create or replace function public.claim_admin_gift(p_id uuid)
+returns public.admin_gifts
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.admin_gifts;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  update public.admin_gifts g set claimed_at = now()
+   where g.id = p_id and g.user_id = uid and g.claimed_at is null
+  returning g.* into r;
+  if not found then raise exception 'not found'; end if;
+  return r;
+end;
+$$;
+
+-- Settings > Send feedback. At most 10 messages per player per day.
+create or replace function public.submit_feedback(p_category text, p_message text, p_version text, p_platform text, p_device text, p_level integer)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_id uuid;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if (select count(*) from public.feedback f where f.user_id = uid and f.created_at > now() - interval '1 day') >= 10 then
+    raise exception 'too many';
+  end if;
+  if p_message is null or char_length(btrim(p_message)) = 0 then raise exception 'empty'; end if;
+  insert into public.feedback (user_id, player_name, category, message, version, platform, device, level)
+  values (uid, (select p.name from public.profiles p where p.id = uid),
+          case when p_category in ('bug', 'idea', 'praise', 'other') then p_category else 'other' end,
+          left(btrim(p_message), 2000), left(p_version, 16), left(p_platform, 16), left(p_device, 200),
+          least(greatest(coalesce(p_level, 0), 0), 999))
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+-- Snapshot every farm into farm_backups: the cloud save for Google players, otherwise the public farm
+-- layout. Unchanged farms are skipped. Backups older than 60 days are removed, except each player's newest.
+create or replace function public.backup_all_farms()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  n integer := 0;
+  m integer := 0;
+begin
+  with src as (
+    select c.user_id, 'cloud'::text as source, c.data, c.level, md5(c.data::text) as hash from public.cloud_saves c
+    union all
+    select f.user_id, 'snapshot', f.data, coalesce((f.data ->> 'level')::integer, null), md5(f.data::text)
+      from public.farm_snapshots f
+     where not exists (select 1 from public.cloud_saves c where c.user_id = f.user_id)
+  ), fresh as (
+    select s.* from src s
+     where not exists (select 1 from public.farm_backups b
+                        where b.user_id = s.user_id and b.hash = s.hash
+                          and b.taken_at = (select max(b2.taken_at) from public.farm_backups b2 where b2.user_id = s.user_id))
+  ), ins as (
+    insert into public.farm_backups (user_id, source, name, level, hash, data)
+    select fr.user_id, fr.source, (select p.name from public.profiles p where p.id = fr.user_id), fr.level, fr.hash, fr.data from fresh fr
+    returning 1
+  )
+  select count(*) into n from ins;
+  delete from public.farm_backups b
+   where b.taken_at < now() - interval '60 days'
+     and b.taken_at < (select max(b2.taken_at) from public.farm_backups b2 where b2.user_id = b.user_id);
+  get diagnostics m = row_count;
+  return n;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------------- admin helpers
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false
+     and exists (select 1 from auth.identities i
+                   join public.admin_users a on a.email = lower(i.identity_data ->> 'email')
+                  where i.user_id = auth.uid() and i.provider = 'google');
+$$;
+
+-- Raises 'not admin' unless the caller is an admin; returns their email (for the log).
+create or replace function public.admin_guard()
+returns text
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_email text;
+begin
+  if not public.is_admin() then raise exception 'not admin'; end if;
+  select lower(i.identity_data ->> 'email') into v_email from auth.identities i
+   where i.user_id = auth.uid() and i.provider = 'google' limit 1;
+  return v_email;
+end;
+$$;
+
+create or replace function public.admin_note_log(p_admin text, p_action text, p_target uuid, p_detail jsonb)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.admin_log (admin, action, target, detail) values (p_admin, p_action, p_target, p_detail);
+$$;
+
+-- Who am I (the dashboard asks first, to show "not an admin" instead of empty pages).
+create or replace function public.admin_whoami()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then return jsonb_build_object('admin', false); end if;
+  return jsonb_build_object('admin', true, 'email', public.admin_guard());
+end;
+$$;
+
+-- -------------------------------------------------------------------------------- admin: analytics
+
+create or replace function public.admin_overview(p_days integer default 90)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 90), 7), 365);
+  today date := (now() at time zone 'utc')::date;
+  out jsonb;
+begin
+  perform public.admin_guard();
+  select jsonb_build_object(
+    'generatedAt', now(),
+    'players',      (select count(*) from public.profiles),
+    'accounts',     (select count(*) from auth.users),
+    'anonymousNoFarm', (select count(*) from auth.users u where not exists (select 1 from public.profiles p where p.id = u.id)),
+    'google',       (select count(distinct i.user_id) from auth.identities i join public.profiles p on p.id = i.user_id where i.provider = 'google'),
+    'cloudSaves',   (select count(*) from public.cloud_saves),
+    'snapshots',    (select count(*) from public.farm_snapshots),
+    'pushPlayers',  (select count(distinct s.user_id) from public.push_subscriptions s),
+    'pushDevices',  (select count(*) from public.push_subscriptions),
+    'new1',  (select count(*) from public.profiles p where p.created_at > now() - interval '1 day'),
+    'new7',  (select count(*) from public.profiles p where p.created_at > now() - interval '7 days'),
+    'new30', (select count(*) from public.profiles p where p.created_at > now() - interval '30 days'),
+    'active1',  (select count(distinct d.user_id) from public.player_days d where d.day = today),
+    'active7',  (select count(distinct d.user_id) from public.player_days d where d.day > today - 7),
+    'active30', (select count(distinct d.user_id) from public.player_days d where d.day > today - 30),
+    'seen7',    (select count(*) from public.profiles p where p.updated_at > now() - interval '7 days'),
+    'minutes1', (select coalesce(sum(d.minutes), 0) from public.player_days d where d.day = today),
+    'minutes7', (select coalesce(sum(d.minutes), 0) from public.player_days d where d.day > today - 7),
+    'sessions7', (select coalesce(sum(d.sessions), 0) from public.player_days d where d.day > today - 7),
+    'gifts7',   (select count(*) from public.gifts g where g.sent_at > now() - interval '7 days'),
+    'listingsOpen', (select count(*) from public.listings l where l.status = 'open'),
+    'sales7',   (select count(*) from public.listings l where l.status = 'sold' and l.sold_at > now() - interval '7 days'),
+    'helps7',   (select count(*) from public.farm_help h where h.kind <> 'like' and h.created_at > now() - interval '7 days'),
+    'likes7',   (select count(*) from public.farm_help h where h.kind = 'like' and h.created_at > now() - interval '7 days'),
+    'feedbackNew', (select count(*) from public.feedback f where f.status = 'new'),
+    'giftsPending', (select count(*) from public.admin_gifts g where g.claimed_at is null),
+    'hidden',   (select count(*) from public.profiles p where p.lb_hidden),
+    'lastBackup', (select max(b.taken_at) from public.farm_backups b),
+    'backups',  (select count(*) from public.farm_backups),
+    'daily', (
+      select coalesce(jsonb_agg(jsonb_build_object('day', g.day, 'active', coalesce(a.active, 0), 'minutes', coalesce(a.minutes, 0),
+               'sessions', coalesce(a.sessions, 0), 'new', coalesce(n.new, 0)) order by g.day), '[]'::jsonb)
+        from (select (today - i) as day from generate_series(0, v_days - 1) i) g
+        left join (select d.day, count(*) as active, sum(d.minutes) as minutes, sum(d.sessions) as sessions
+                     from public.player_days d where d.day > today - v_days group by d.day) a on a.day = g.day
+        left join (select (p.created_at at time zone 'utc')::date as day, count(*) as new
+                     from public.profiles p where p.created_at > now() - make_interval(days => v_days) group by 1) n on n.day = g.day),
+    'levels', (select coalesce(jsonb_agg(jsonb_build_object('level', x.level, 'n', x.n) order by x.level), '[]'::jsonb)
+                 from (select p.level, count(*) as n from public.profiles p group by p.level) x),
+    'platforms', (select coalesce(jsonb_agg(jsonb_build_object('platform', x.platform, 'n', x.n) order by x.n desc), '[]'::jsonb)
+                    from (select coalesce(l.platform, 'unknown') as platform, count(*) as n
+                            from (select distinct on (d.user_id) d.user_id, d.platform from public.player_days d
+                                   where d.day > today - 30 order by d.user_id, d.day desc) l group by 1) x),
+    'versions', (select coalesce(jsonb_agg(jsonb_build_object('version', x.version, 'n', x.n) order by x.n desc), '[]'::jsonb)
+                   from (select coalesce(l.version, 'unknown') as version, count(*) as n
+                           from (select distinct on (d.user_id) d.user_id, d.version from public.player_days d
+                                  where d.day > today - 7 order by d.user_id, d.day desc) l group by 1) x),
+    'weekdays', (select coalesce(jsonb_agg(jsonb_build_object('dow', x.dow, 'active', x.active, 'minutes', x.minutes) order by x.dow), '[]'::jsonb)
+                   from (select extract(isodow from d.day)::integer as dow, count(*) as active, sum(d.minutes) as minutes
+                           from public.player_days d where d.day > today - 56 group by 1) x),
+    'cohorts', (select coalesce(jsonb_agg(c order by c ->> 'week' desc), '[]'::jsonb) from (
+                  select jsonb_build_object(
+                    'week', w.week,
+                    'size', count(*),
+                    'd1',  count(*) filter (where exists (select 1 from public.player_days d where d.user_id = w.id and d.day = w.start + 1)),
+                    'd7',  count(*) filter (where exists (select 1 from public.player_days d where d.user_id = w.id and d.day between w.start + 7 and w.start + 13)),
+                    'd14', count(*) filter (where exists (select 1 from public.player_days d where d.user_id = w.id and d.day >= w.start + 14)),
+                    'eligible1',  count(*) filter (where w.start + 1 <= today),
+                    'eligible7',  count(*) filter (where w.start + 7 <= today),
+                    'eligible14', count(*) filter (where w.start + 14 <= today)) as c
+                    from (select p.id, (p.created_at at time zone 'utc')::date as start,
+                                 date_trunc('week', p.created_at at time zone 'utc')::date as week
+                            from public.profiles p where p.created_at > now() - interval '12 weeks') w
+                   group by w.week) cs),
+    'tester14', (select coalesce(jsonb_agg(jsonb_build_object('id', x.id, 'name', x.name, 'code', x.code, 'days', x.days, 'minutes', x.minutes, 'last', x.last, 'platform', x.platform) order by x.days desc, x.minutes desc), '[]'::jsonb)
+                   from (select p.id, p.name, p.code, count(d.day) as days, coalesce(sum(d.minutes), 0) as minutes, max(d.day) as last,
+                                (array_agg(d.platform order by d.day desc))[1] as platform
+                           from public.profiles p join public.player_days d on d.user_id = p.id and d.day > today - 14
+                          group by p.id, p.name, p.code) x),
+    'top', (select coalesce(jsonb_agg(jsonb_build_object('id', x.id, 'name', x.name, 'level', x.level, 'charm', x.charm, 'minutes', x.minutes) order by x.minutes desc), '[]'::jsonb)
+              from (select p.id, p.name, p.level, p.charm, sum(d.minutes) as minutes
+                      from public.profiles p join public.player_days d on d.user_id = p.id and d.day > today - 30
+                     group by p.id, p.name, p.level, p.charm order by sum(d.minutes) desc limit 10) x)
+  ) into out;
+  return out;
+end;
+$$;
+
+-- -------------------------------------------------------------------------------- admin: players
+
+-- Search and list players. p_filter: all, google, nobackup, active7, inactive14, new7, hidden, gifts.
+-- p_sort: last, level, created, name, minutes, days, charm.
+create or replace function public.admin_players(p_search text default null, p_filter text default 'all', p_sort text default 'last',
+  p_limit integer default 100, p_offset integer default 0)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_q text := nullif(btrim(coalesce(p_search, '')), '');
+  v_code text := upper(regexp_replace(coalesce(p_search, ''), '[^A-Za-z0-9]', '', 'g'));
+  today date := (now() at time zone 'utc')::date;
+  out jsonb;
+begin
+  perform public.admin_guard();
+  with base as (
+    select p.id, p.name, p.farm_name, p.code, p.level, p.total_xp, p.farm_value, p.charm, p.created_at, p.updated_at, p.lb_hidden,
+           (select lower(i.identity_data ->> 'email') from auth.identities i where i.user_id = p.id and i.provider = 'google' limit 1) as email,
+           c.updated_at as cloud_at, c.device as cloud_device,
+           f.updated_at as snap_at,
+           a.days, a.minutes, a.last_day, a.platform, a.version,
+           exists (select 1 from public.push_subscriptions s where s.user_id = p.id) as push,
+           (select count(*) from public.admin_gifts g where g.user_id = p.id and g.claimed_at is null) as gifts_pending,
+           (select count(*) from public.admin_notes n where n.user_id = p.id) as notes
+      from public.profiles p
+      left join public.cloud_saves c on c.user_id = p.id
+      left join public.farm_snapshots f on f.user_id = p.id
+      left join lateral (select count(*) as days, coalesce(sum(d.minutes), 0) as minutes, max(d.day) as last_day,
+                                (array_agg(d.platform order by d.day desc))[1] as platform,
+                                (array_agg(d.version order by d.day desc))[1] as version
+                           from public.player_days d where d.user_id = p.id) a on true
+  ), hit as (
+    select b.* from base b
+     where (v_q is null or b.name ilike '%' || v_q || '%' or coalesce(b.farm_name, '') ilike '%' || v_q || '%'
+            or replace(b.code, '-', '') = v_code or coalesce(b.email, '') ilike '%' || v_q || '%' or b.id::text = v_q)
+       and case coalesce(p_filter, 'all')
+             when 'google' then b.email is not null
+             when 'nobackup' then b.cloud_at is null
+             when 'active7' then b.last_day > today - 7
+             when 'inactive14' then coalesce(b.last_day, (b.updated_at at time zone 'utc')::date) <= today - 14
+             when 'new7' then b.created_at > now() - interval '7 days'
+             when 'hidden' then b.lb_hidden
+             when 'gifts' then b.gifts_pending > 0
+             else true end
+  )
+  select jsonb_build_object(
+    'total', (select count(*) from hit),
+    'rows', coalesce((select jsonb_agg(to_jsonb(r)) from (
+      select h.* from hit h
+       order by case when p_sort = 'level' then h.level end desc nulls last,
+                case when p_sort = 'level' then h.total_xp end desc nulls last,
+                case when p_sort = 'created' then h.created_at end desc nulls last,
+                case when p_sort = 'name' then lower(h.name) end asc nulls last,
+                case when p_sort = 'minutes' then h.minutes end desc nulls last,
+                case when p_sort = 'days' then h.days end desc nulls last,
+                case when p_sort = 'charm' then h.charm end desc nulls last,
+                h.updated_at desc
+       limit least(greatest(coalesce(p_limit, 100), 1), 5000) offset greatest(coalesce(p_offset, 0), 0)) r), '[]'::jsonb)
+  ) into out;
+  return out;
+end;
+$$;
+
+create or replace function public.admin_player(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  out jsonb;
+begin
+  perform public.admin_guard();
+  if not exists (select 1 from auth.users u where u.id = p_id) then raise exception 'not found'; end if;
+  select jsonb_build_object(
+    'id', p_id,
+    'profile', (select to_jsonb(p) from public.profiles p where p.id = p_id),
+    'auth', (select jsonb_build_object('created_at', u.created_at, 'last_sign_in_at', u.last_sign_in_at, 'is_anonymous', u.is_anonymous,
+               'providers', (select coalesce(jsonb_agg(distinct i.provider), '[]'::jsonb) from auth.identities i where i.user_id = u.id),
+               'email', (select lower(i.identity_data ->> 'email') from auth.identities i where i.user_id = u.id and i.provider = 'google' limit 1))
+             from auth.users u where u.id = p_id),
+    'cloud', (select jsonb_build_object('updated_at', c.updated_at, 'device', c.device, 'level', c.level, 'coins', c.coins,
+                'save_version', c.save_version, 'bytes', octet_length(c.data::text)) from public.cloud_saves c where c.user_id = p_id),
+    'snapshot', (select jsonb_build_object('updated_at', f.updated_at, 'data', f.data) from public.farm_snapshots f where f.user_id = p_id),
+    'days', (select coalesce(jsonb_agg(to_jsonb(d) - 'user_id' order by d.day desc), '[]'::jsonb)
+               from (select * from public.player_days d where d.user_id = p_id order by d.day desc limit 180) d),
+    'giftsSent', (select count(*) from public.gifts g where g.from_id = p_id),
+    'giftsReceived', (select count(*) from public.gifts g where g.to_id = p_id),
+    'recentGifts', (select coalesce(jsonb_agg(x order by x ->> 'sent_at' desc), '[]'::jsonb) from (
+                      select jsonb_build_object('id', g.id, 'from', g.from_name, 'from_id', g.from_id, 'to_id', g.to_id,
+                               'to', (select p.name from public.profiles p where p.id = g.to_id), 'items', g.items, 'coins', g.coins,
+                               'message', g.message, 'sent_at', g.sent_at, 'claimed', g.claimed) as x
+                        from public.gifts g where g.from_id = p_id or g.to_id = p_id order by g.sent_at desc limit 30) y),
+    'listings', (select coalesce(jsonb_agg(to_jsonb(l) order by l.listed_at desc), '[]'::jsonb)
+                   from (select * from public.listings l where l.seller_id = p_id or l.buyer_id = p_id order by l.listed_at desc limit 30) l),
+    'helpGiven', (select count(*) from public.farm_help h where h.helper_id = p_id),
+    'helpReceived', (select count(*) from public.farm_help h where h.owner_id = p_id),
+    'push', (select jsonb_build_object('devices', count(*), 'last_ok_at', max(s.last_ok_at)) from public.push_subscriptions s where s.user_id = p_id),
+    'feedback', (select coalesce(jsonb_agg(to_jsonb(f) order by f.created_at desc), '[]'::jsonb) from public.feedback f where f.user_id = p_id),
+    'adminGifts', (select coalesce(jsonb_agg(to_jsonb(g) order by g.created_at desc), '[]'::jsonb) from public.admin_gifts g where g.user_id = p_id),
+    'backups', (select coalesce(jsonb_agg(jsonb_build_object('id', b.id, 'taken_at', b.taken_at, 'source', b.source, 'level', b.level,
+                  'bytes', octet_length(b.data::text)) order by b.taken_at desc), '[]'::jsonb) from public.farm_backups b where b.user_id = p_id),
+    'notes', (select coalesce(jsonb_agg(to_jsonb(n) order by n.at desc), '[]'::jsonb) from public.admin_notes n where n.user_id = p_id)
+  ) into out;
+  return out;
+end;
+$$;
+
+-- A player's whole cloud save (Google players), for "Download save file".
+create or replace function public.admin_cloud_save(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v jsonb;
+begin
+  select c.data into v from public.cloud_saves c where c.user_id = p_id;
+  if v is null then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'download cloud save', p_id, null);
+  return v;
+end;
+$$;
+
+create or replace function public.admin_backup_data(p_backup bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  b public.farm_backups;
+begin
+  select * into b from public.farm_backups x where x.id = p_backup;
+  if b.id is null then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'download backup', b.user_id, jsonb_build_object('backup', p_backup));
+  return jsonb_build_object('id', b.id, 'user_id', b.user_id, 'name', b.name, 'source', b.source, 'taken_at', b.taken_at, 'data', b.data);
+end;
+$$;
+
+-- All the newest backups at once (one per player), for "Download everything".
+create or replace function public.admin_backup_bundle()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v jsonb;
+begin
+  select coalesce(jsonb_agg(jsonb_build_object('user_id', b.user_id, 'name', b.name, 'code', (select p.code from public.profiles p where p.id = b.user_id),
+           'source', b.source, 'level', b.level, 'taken_at', b.taken_at, 'data', b.data)), '[]'::jsonb)
+    into v
+    from (select distinct on (x.user_id) x.* from public.farm_backups x order by x.user_id, x.taken_at desc) b;
+  perform public.admin_note_log(v_admin, 'download all backups', null, jsonb_build_object('farms', jsonb_array_length(v)));
+  return v;
+end;
+$$;
+
+create or replace function public.admin_backup_now()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  n integer;
+begin
+  n := public.backup_all_farms();
+  perform public.admin_note_log(v_admin, 'backup all farms', null, jsonb_build_object('new', n));
+  return n;
+end;
+$$;
+
+create or replace function public.admin_backups(p_limit integer default 200)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'count', (select count(*) from public.farm_backups),
+    'players', (select count(distinct b.user_id) from public.farm_backups b),
+    'bytes', (select coalesce(sum(octet_length(b.data::text)), 0) from public.farm_backups b),
+    'last', (select max(b.taken_at) from public.farm_backups b),
+    'rows', (select coalesce(jsonb_agg(jsonb_build_object('id', b.id, 'user_id', b.user_id, 'name', b.name, 'source', b.source, 'level', b.level,
+               'taken_at', b.taken_at, 'bytes', octet_length(b.data::text)) order by b.taken_at desc), '[]'::jsonb)
+             from (select * from public.farm_backups x order by x.taken_at desc limit least(greatest(coalesce(p_limit, 200), 1), 2000)) b));
+end;
+$$;
+
+create or replace function public.admin_set_hidden(p_id uuid, p_hidden boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+begin
+  update public.profiles p set lb_hidden = coalesce(p_hidden, false) where p.id = p_id;
+  if not found then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, case when p_hidden then 'hide from leaderboards' else 'show on leaderboards' end, p_id, null);
+end;
+$$;
+
+create or replace function public.admin_add_note(p_id uuid, p_note text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+begin
+  insert into public.admin_notes (user_id, admin, note) values (p_id, v_admin, left(btrim(p_note), 2000));
+  perform public.admin_note_log(v_admin, 'add note', p_id, null);
+end;
+$$;
+
+create or replace function public.admin_delete_note(p_note bigint)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_user uuid;
+begin
+  delete from public.admin_notes n where n.id = p_note returning n.user_id into v_user;
+  perform public.admin_note_log(v_admin, 'delete note', v_user, null);
+end;
+$$;
+
+-- Delete a player completely (like Settings > Delete my online account, for them). Their farm on their
+-- device is not touched; it starts again as a new online account next time they play.
+create or replace function public.admin_delete_player(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_who jsonb;
+begin
+  select jsonb_build_object('name', p.name, 'code', p.code, 'level', p.level) into v_who from public.profiles p where p.id = p_id;
+  if not exists (select 1 from auth.users u where u.id = p_id) then raise exception 'not found'; end if;
+  update public.listings l set buyer_name = 'A farmer' where l.buyer_id = p_id;
+  delete from public.gifts g where g.from_id = p_id or g.to_id = p_id;
+  delete from public.listings l where l.seller_id = p_id;
+  delete from public.cloud_saves c where c.user_id = p_id;
+  delete from public.farm_snapshots f where f.user_id = p_id;
+  delete from public.profiles p where p.id = p_id;
+  delete from auth.users u where u.id = p_id;
+  perform public.admin_note_log(v_admin, 'delete player', null, coalesce(v_who, '{}'::jsonb) || jsonb_build_object('id', p_id));
+end;
+$$;
+
+-- Remove online accounts that never made a farmer (anonymous sign-ins with no profile) older than p_days.
+-- p_dry_run = true only counts them.
+create or replace function public.admin_cleanup_accounts(p_days integer, p_dry_run boolean default true)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  n integer;
+begin
+  if coalesce(p_dry_run, true) then
+    select count(*) into n from auth.users u
+     where u.is_anonymous and u.created_at < now() - make_interval(days => greatest(coalesce(p_days, 30), 7))
+       and not exists (select 1 from public.profiles p where p.id = u.id);
+    return n;
+  end if;
+  with del as (
+    delete from auth.users u
+     where u.is_anonymous and u.created_at < now() - make_interval(days => greatest(coalesce(p_days, 30), 7))
+       and not exists (select 1 from public.profiles p where p.id = u.id)
+    returning 1)
+  select count(*) into n from del;
+  perform public.admin_note_log(v_admin, 'clean up empty accounts', null, jsonb_build_object('deleted', n, 'days', p_days));
+  return n;
+end;
+$$;
+
+-- -------------------------------------------------------------------------------- admin: gifts
+
+-- Give coins, gems, items and land plots. To p_ids, or (when p_ids is null) to an audience:
+-- all, active7, active14, active30, google. Returns how many players get the gift.
+create or replace function public.admin_give(p_ids uuid[], p_audience text, p_coins integer, p_gems integer, p_items jsonb, p_land integer, p_message text)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_items jsonb := '{}'::jsonb;
+  k text;
+  v jsonb;
+  today date := (now() at time zone 'utc')::date;
+  n integer;
+begin
+  if p_items is not null and jsonb_typeof(p_items) = 'object' then
+    for k, v in select * from jsonb_each(p_items) loop
+      if k ~ '^[a-z0-9_]{1,40}$' and jsonb_typeof(v) = 'number' and (v #>> '{}')::numeric >= 1 then
+        v_items := v_items || jsonb_build_object(k, least(floor((v #>> '{}')::numeric), 100000)::integer);
+      end if;
+    end loop;
+  end if;
+  if coalesce(p_coins, 0) <= 0 and coalesce(p_gems, 0) <= 0 and v_items = '{}'::jsonb and coalesce(p_land, 0) <= 0 then
+    raise exception 'empty gift';
+  end if;
+  with who as (
+    select p.id from public.profiles p
+     where (p_ids is not null and p.id = any (p_ids))
+        or (p_ids is null and case coalesce(p_audience, '')
+              when 'all' then true
+              when 'active7' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 7)
+              when 'active14' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 14)
+              when 'active30' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 30)
+              when 'google' then exists (select 1 from auth.identities i where i.user_id = p.id and i.provider = 'google')
+              else false end)
+  ), ins as (
+    insert into public.admin_gifts (user_id, coins, gems, items, land, message, created_by)
+    select w.id, least(greatest(coalesce(p_coins, 0), 0), 10000000), least(greatest(coalesce(p_gems, 0), 0), 100000), v_items,
+           least(greatest(coalesce(p_land, 0), 0), 36), nullif(left(btrim(coalesce(p_message, '')), 200), ''), v_admin
+      from who w
+    returning 1)
+  select count(*) into n from ins;
+  perform public.admin_note_log(v_admin, 'give gift', case when array_length(p_ids, 1) = 1 then p_ids[1] end,
+    jsonb_build_object('players', n, 'audience', coalesce(p_audience, 'chosen'), 'coins', p_coins, 'gems', p_gems, 'items', v_items, 'land', p_land, 'message', p_message));
+  return n;
+end;
+$$;
+
+create or replace function public.admin_gifts_list(p_limit integer default 200)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(to_jsonb(g) || jsonb_build_object('name', (select p.name from public.profiles p where p.id = g.user_id)) order by g.created_at desc), '[]'::jsonb)
+            from (select * from public.admin_gifts x order by x.created_at desc limit least(greatest(coalesce(p_limit, 200), 1), 2000)) g);
+end;
+$$;
+
+create or replace function public.admin_cancel_gift(p_gift uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_user uuid;
+begin
+  delete from public.admin_gifts g where g.id = p_gift and g.claimed_at is null returning g.user_id into v_user;
+  if v_user is null then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'cancel gift', v_user, jsonb_build_object('gift', p_gift));
+end;
+$$;
+
+-- -------------------------------------------------------------------------------- admin: codes
+
+create or replace function public.admin_codes()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'reward', (select coalesce(jsonb_agg(to_jsonb(r) || jsonb_build_object('claimers',
+                 (select coalesce(jsonb_agg(jsonb_build_object('id', c.user_id, 'name', (select p.name from public.profiles p where p.id = c.user_id), 'at', c.at)), '[]'::jsonb)
+                    from public.reward_claims c where c.code = r.code)) order by r.created_at desc), '[]'::jsonb) from public.reward_codes r),
+    'transfers', (select coalesce(jsonb_agg(jsonb_build_object('code', t.code, 'note', t.note, 'created_at', t.created_at, 'expires_at', t.expires_at,
+                    'claims', t.claims, 'max_claims', t.max_claims, 'claimed_at', t.claimed_at, 'bytes', length(t.data)) order by t.created_at desc), '[]'::jsonb)
+                    from public.farm_transfers t));
+end;
+$$;
+
+create or replace function public.admin_make_reward_code(p_coins integer, p_gems integer, p_message text, p_max_claims integer, p_items jsonb, p_note text, p_days integer)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_code text;
+begin
+  v_code := public.make_reward_code(p_coins, p_gems, nullif(left(btrim(coalesce(p_message, '')), 120), ''), p_max_claims, coalesce(p_items, '{}'::jsonb), p_note);
+  update public.reward_codes r set expires_at = now() + make_interval(days => least(greatest(coalesce(p_days, 30), 1), 365))
+   where r.code = replace(v_code, '-', '');
+  perform public.admin_note_log(v_admin, 'make reward code', null, jsonb_build_object('code', v_code, 'coins', p_coins, 'gems', p_gems, 'max', p_max_claims, 'note', p_note));
+  return v_code;
+end;
+$$;
+
+create or replace function public.admin_make_farm_transfer(p_data text, p_note text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_code text;
+begin
+  v_code := public.make_farm_transfer(p_data, p_note);
+  perform public.admin_note_log(v_admin, 'make farm code', null, jsonb_build_object('code', v_code, 'note', p_note));
+  return v_code;
+end;
+$$;
+
+create or replace function public.admin_delete_code(p_kind text, p_code text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_code text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+begin
+  if p_kind = 'reward' then delete from public.reward_codes r where r.code = v_code;
+  elsif p_kind = 'transfer' then delete from public.farm_transfers t where t.code = v_code;
+  else raise exception 'bad kind'; end if;
+  perform public.admin_note_log(v_admin, 'delete ' || p_kind || ' code', null, jsonb_build_object('code', v_code));
+end;
+$$;
+
+-- -------------------------------------------------------------------------- admin: feedback, market
+
+create or replace function public.admin_feedback_list(p_status text default null, p_limit integer default 300)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(to_jsonb(f) order by f.created_at desc), '[]'::jsonb)
+            from (select * from public.feedback x where p_status is null or x.status = p_status
+                   order by x.created_at desc limit least(greatest(coalesce(p_limit, 300), 1), 2000)) f);
+end;
+$$;
+
+create or replace function public.admin_feedback_set(p_id uuid, p_status text, p_note text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+begin
+  update public.feedback f set status = coalesce(p_status, f.status), admin_note = coalesce(p_note, f.admin_note) where f.id = p_id;
+  if not found then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'feedback ' || coalesce(p_status, 'note'), null, jsonb_build_object('feedback', p_id));
+end;
+$$;
+
+create or replace function public.admin_listings(p_status text default 'open', p_limit integer default 300)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'rows', (select coalesce(jsonb_agg(to_jsonb(l) order by l.listed_at desc), '[]'::jsonb)
+               from (select * from public.listings x where p_status is null or x.status = p_status
+                      order by x.listed_at desc limit least(greatest(coalesce(p_limit, 300), 1), 2000)) l),
+    'items', (select coalesce(jsonb_agg(jsonb_build_object('item', x.item, 'sold', x.sold, 'qty', x.qty, 'coins', x.coins, 'avg', x.avg) order by x.coins desc), '[]'::jsonb)
+                from (select l.item, count(*) as sold, sum(l.qty) as qty, sum(l.price) as coins, round(avg(l.price::numeric / l.qty), 1) as avg
+                        from public.listings l where l.status = 'sold' and l.sold_at > now() - interval '30 days' group by l.item) x));
+end;
+$$;
+
+-- Take a listing off the market (e.g. a silly price). The seller gets the items back as a developer gift.
+create or replace function public.admin_remove_listing(p_id uuid, p_reason text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  r public.listings;
+begin
+  update public.listings l set status = 'cancelled' where l.id = p_id and l.status = 'open' returning l.* into r;
+  if r.id is null then raise exception 'not open'; end if;
+  insert into public.admin_gifts (user_id, items, message, created_by)
+  values (r.seller_id, jsonb_build_object(r.item, r.qty),
+          left('Your market listing was taken down' || coalesce(': ' || nullif(btrim(p_reason), ''), '.') || ' Here are your items back.', 200), v_admin);
+  perform public.admin_note_log(v_admin, 'remove listing', r.seller_id, jsonb_build_object('listing', p_id, 'item', r.item, 'qty', r.qty, 'price', r.price, 'reason', p_reason));
+end;
+$$;
+
+-- ------------------------------------------------------------------- admin: leaderboards, news, health
+
+create or replace function public.admin_leaderboard(p_kind text, p_limit integer default 50)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(jsonb_build_object('id', p.id, 'name', p.name, 'code', p.code, 'level', p.level, 'total_xp', p.total_xp,
+            'farm_value', p.farm_value, 'charm', p.charm, 'weekly_xp', p.weekly_xp, 'lb_hidden', p.lb_hidden)), '[]'::jsonb)
+            from (select * from public.profiles x
+                   where p_kind <> 'weekly' or x.week_start = (date_trunc('week', now() at time zone 'utc'))::date
+                   order by case when p_kind = 'level' then x.level end desc nulls last,
+                            case when p_kind = 'level' then x.total_xp end desc nulls last,
+                            case when p_kind = 'farmValue' then x.farm_value end desc nulls last,
+                            case when p_kind = 'charm' then x.charm end desc nulls last,
+                            case when p_kind = 'weekly' then x.weekly_xp end desc nulls last
+                   limit least(greatest(coalesce(p_limit, 50), 1), 500)) p);
+end;
+$$;
+
+-- Send a phone notification to every player with notifications on (or only those active in the last
+-- 7/14/30 days). Goes out with the next send run (every 5 minutes), within each device's quiet hours rules.
+create or replace function public.admin_push_all(p_title text, p_body text, p_audience text default 'all')
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  today date := (now() at time zone 'utc')::date;
+  n integer;
+begin
+  if coalesce(btrim(p_title), '') = '' or coalesce(btrim(p_body), '') = '' then raise exception 'empty'; end if;
+  with who as (
+    select distinct s.user_id from public.push_subscriptions s
+     where case coalesce(p_audience, 'all')
+             when 'active7' then exists (select 1 from public.player_days d where d.user_id = s.user_id and d.day > today - 7)
+             when 'active14' then exists (select 1 from public.player_days d where d.user_id = s.user_id and d.day > today - 14)
+             when 'active30' then exists (select 1 from public.player_days d where d.user_id = s.user_id and d.day > today - 30)
+             else true end
+  ), ins as (
+    insert into public.push_schedule (user_id, fire_at, kind, title, body)
+    select w.user_id, now(), 'news', left(btrim(p_title), 80), left(btrim(p_body), 200) from who w
+    returning 1)
+  select count(*) into n from ins;
+  perform public.admin_note_log(v_admin, 'send notification', null, jsonb_build_object('players', n, 'audience', p_audience, 'title', p_title, 'body', p_body));
+  return n;
+end;
+$$;
+
+create or replace function public.admin_push_stats()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'devices', (select count(*) from public.push_subscriptions),
+    'players', (select count(distinct s.user_id) from public.push_subscriptions s),
+    'workingDevices', (select count(*) from public.push_subscriptions s where s.last_ok_at > now() - interval '14 days'),
+    'byStatus', (select coalesce(jsonb_agg(jsonb_build_object('kind', x.kind, 'status', coalesce(x.status, 'waiting'), 'n', x.n)), '[]'::jsonb)
+                   from (select p.kind, p.status, count(*) as n from public.push_schedule p
+                          where p.created_at > now() - interval '3 days' group by p.kind, p.status) x));
+end;
+$$;
+
+create or replace function public.admin_health()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_tables jsonb;
+  v_cron jsonb := '[]'::jsonb;
+  v_runs jsonb := '[]'::jsonb;
+begin
+  perform public.admin_guard();
+  select coalesce(jsonb_agg(jsonb_build_object('table', c.relname, 'rows', c.reltuples::bigint, 'bytes', pg_total_relation_size(c.oid)) order by pg_total_relation_size(c.oid) desc), '[]'::jsonb)
+    into v_tables
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r';
+  if to_regclass('cron.job') is not null then
+    execute 'select coalesce(jsonb_agg(jsonb_build_object(''name'', jobname, ''schedule'', schedule, ''active'', active)), ''[]''::jsonb) from cron.job' into v_cron;
+  end if;
+  if to_regclass('cron.job_run_details') is not null then
+    execute 'select coalesce(jsonb_agg(x), ''[]''::jsonb) from (select jsonb_build_object(''job'', j.jobname, ''status'', r.status, ''start'', r.start_time, ''message'', left(r.return_message, 200)) as x
+               from cron.job_run_details r left join cron.job j on j.jobid = r.jobid
+              where r.start_time > now() - interval ''2 days'' and r.status <> ''succeeded'' order by r.start_time desc limit 30) y' into v_runs;
+  end if;
+  return jsonb_build_object('dbBytes', pg_database_size(current_database()), 'tables', v_tables, 'cron', v_cron, 'cronFailures', v_runs,
+    'users', (select count(*) from auth.users), 'anonymousNoFarm', (select count(*) from auth.users u where u.is_anonymous and not exists (select 1 from public.profiles p where p.id = u.id)),
+    'emptyOld', (select count(*) from auth.users u where u.is_anonymous and u.created_at < now() - interval '30 days' and not exists (select 1 from public.profiles p where p.id = u.id)));
+end;
+$$;
+
+create or replace function public.admin_log_list(p_limit integer default 300)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(to_jsonb(l) || jsonb_build_object('name', (select p.name from public.profiles p where p.id = l.target)) order by l.at desc), '[]'::jsonb)
+            from (select * from public.admin_log x order by x.at desc limit least(greatest(coalesce(p_limit, 300), 1), 2000)) l);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------------- grants and jobs
+
+revoke all on function public.backup_all_farms() from public, anon, authenticated;
+revoke all on function public.admin_guard() from public, anon, authenticated;
+revoke all on function public.admin_note_log(text, text, uuid, jsonb) from public, anon, authenticated;
+revoke all on function public.log_activity(boolean, integer, text, text) from public, anon;
+revoke all on function public.claim_admin_gift(uuid) from public, anon;
+revoke all on function public.submit_feedback(text, text, text, text, text, integer) from public, anon;
+grant execute on function public.log_activity(boolean, integer, text, text) to authenticated;
+grant execute on function public.claim_admin_gift(uuid) to authenticated;
+grant execute on function public.submit_feedback(text, text, text, text, text, integer) to authenticated;
+-- the admin_* functions check admin_guard() themselves; signed-in callers may try them
+do $$
+declare
+  f record;
+begin
+  for f in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public' and (p.proname like 'admin\_%' or p.proname = 'is_admin')
+              and p.proname not in ('admin_guard', 'admin_note_log') loop
+    execute format('revoke all on function %s from public, anon', f.sig);
+    execute format('grant execute on function %s to authenticated', f.sig);
+  end loop;
+end;
+$$;
+
+-- Daily backup of every farm at 03:17 UTC (needs pg_cron, like the notifications). Without pg_cron, use the
+-- dashboard's "Back up all farms now" button.
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.schedule('cozy-backup-farms', '17 3 * * *', 'select public.backup_all_farms()');
+  else
+    raise notice 'Farm backups: pg_cron is not enabled, so the daily backup job was not created. Use the dashboard button instead.';
+  end if;
+end;
+$$;
