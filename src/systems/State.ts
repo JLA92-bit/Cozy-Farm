@@ -12,7 +12,13 @@ export interface CharacterLook {
   pet: string;
 }
 
-export interface QueueEntry { recipe: string; start: number; end: number }
+export interface QueueEntry {
+  recipe: string;
+  start: number;
+  end: number;
+  /** 1.8: made from silver (1) or gold (2) ingredients, so the goods come out at that quality */
+  q?: 1 | 2;
+}
 
 export interface PlacedBuilding {
   uid: number;
@@ -23,11 +29,14 @@ export interface PlacedBuilding {
   level: number;
   buildEnd?: number;
   upgradeEnd?: number;
-  plot?: { crop: string; plantedAt: number; growSec: number } | null;
+  /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest */
+  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean } | null;
   tree?: { readyAt: number };
   animals?: { fedAt: number | null }[];
   queue?: QueueEntry[];
   ready?: string[];
+  /** 1.8: how many of the ready goods (per item) were made from star ingredients, as [silver, gold] */
+  readyStar?: Record<string, [number, number]>;
   /** decor paint colour (a key of PAINTS in systems/Decor) */
   tint?: string;
   /** Farm Sign text */

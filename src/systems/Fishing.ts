@@ -2,6 +2,7 @@ import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from 
 import { game } from './Game';
 import { localDay } from './Progression';
 import type { FishingState } from './State';
+import { rollQuality, type Quality } from './Quality';
 
 /**
  * Fishing at the dock: free casts per day, bait, what bites when, rolling a catch and recording it.
@@ -16,6 +17,8 @@ export interface CatchResult {
   id: string; kind: 'fish' | 'junk'; name: string; icon: string; size: number;
   firstCatch: boolean; record: boolean; prevRecord: number; xp: number;
   coins: number; gems: number; note?: string; line?: string; rarity?: string;
+  /** 1.8: silver (1) or gold (2) catch */
+  quality?: Quality;
 }
 
 export const TIME_ORDER: FishTime[] = ['morning', 'day', 'dusk', 'night'];
@@ -141,7 +144,9 @@ class FishingSystem {
     if (c.kind === 'fish') {
       res.rarity = c.def.rarity;
       res.xp = Math.round(c.def.xp * (record ? 1 + FISHING.recordXpBonus : 1));
-      game.addItem(c.id, 1);
+      // 1.8: a fish can be a silver or gold catch (the catch card shows it)
+      res.quality = rollQuality('fish', c.id);
+      game.addItem(c.id, 1, undefined, res.quality);
       game.incStat('fish_caught');
       game.incStat(`catch_${c.id}`);
       if (c.def.rarity === 'rare') this.syncRare();

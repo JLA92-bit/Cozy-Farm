@@ -4,8 +4,19 @@ import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, plotReady, plotRemaining, treeReady } from './Timers';
 import { speedupCost } from './Buildings';
+import { addRolled, qualityBoosts } from './Quality';
+
+/** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
+export const FERTILISER = 'fertiliser';
+const FERT_BOOST = { silver: 0.1, gold: 0.05 };
+/** true only while a fertilised field is being harvested (the boost reads it) */
+let harvestingFert = false;
+qualityBoosts.push((source) => (source === 'crop' && harvestingFert ? FERT_BOOST : null));
 
 export class FarmingSystem {
+  /** The seed tray's "Fertiliser" toggle: sow each field with one while the barn has some. */
+  useFert = false;
+
   canPlant(b: PlacedBuilding, crop: string): { ok: boolean; reason?: string } {
     const def = CROP[crop];
     if (!def) return { ok: false };
@@ -23,6 +34,13 @@ export class FarmingSystem {
     // Charm speeds growth a little
     const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth)));
     b.plot = { crop, plantedAt: game.now(), growSec };
+    if (this.useFert && game.count(FERTILISER) > 0) {
+      game.addItem(FERTILISER, -1);
+      b.plot.fert = true;
+      game.incStat('fertiliser_used');
+      // the last bag is gone: the toggle switches itself off
+      if (game.count(FERTILISER) <= 0) this.useFert = false;
+    }
     game.incStat('plants_planted');
     game.discover(crop, 'crop');
     game.bus.emit('crop:planted', { b, crop });
@@ -34,7 +52,8 @@ export class FarmingSystem {
     if (!b.plot || !plotReady(b, game.now())) return 0;
     const def = CROP[b.plot.crop];
     const qty = def.yield;
-    game.addItem(def.id, qty, at);
+    harvestingFert = !!b.plot.fert;
+    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; }
     game.addXp(def.xp, at);
     game.incStat('crops_harvested', qty);
     game.incStat(`harvest_${def.id}`, qty);
@@ -51,7 +70,7 @@ export class FarmingSystem {
   harvestTree(b: PlacedBuilding, at?: Vec): number {
     if (!treeReady(b, game.now())) return 0;
     const def = TREE[BUILDING[b.type].tree!];
-    game.addItem(def.item, def.yield, at);
+    addRolled('tree', def.item, def.yield, at);
     game.addXp(def.xp, at);
     game.incStat('fruit_harvested', def.yield);
     game.incStat(`harvest_${def.item}`, def.yield);

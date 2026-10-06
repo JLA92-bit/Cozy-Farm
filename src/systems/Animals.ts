@@ -3,6 +3,7 @@ import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { animalState, isBuilt } from './Timers';
+import { addRolled } from './Quality';
 
 export class AnimalSystem {
   owned(animal: string): number {
@@ -79,7 +80,7 @@ export class AnimalSystem {
       game.bus.emit('animal:collected', { b, index: i, item: def.product });
     });
     if (n) {
-      game.addItem(def.product, n, at);
+      addRolled('animal', def.product, n, at);
       game.addXp(def.xp * n, at);
       game.incStat('animal_products', n);
       game.incStat(`collect_${def.product}`, n);

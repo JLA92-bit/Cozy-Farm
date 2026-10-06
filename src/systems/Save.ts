@@ -79,6 +79,20 @@ function countMap(v: unknown, known: (k: string) => boolean): Record<string, num
  * types or items (e.g. removed from the data files), NaN currencies, duplicate uids. Without this a
  * single bad entry crashes the boot and the player is stuck on the loading screen.
  */
+/** 1.8: star goods waiting in a workshop, never more than the goods actually waiting (undefined when none). */
+function repairReadyStar(v: unknown, ready: string[]): Record<string, [number, number]> | undefined {
+  if (!isObj(v)) return undefined;
+  const out: Record<string, [number, number]> = {};
+  for (const [k, c] of Object.entries(v)) {
+    const have = ready.filter((i) => i === k).length;
+    if (!Array.isArray(c) || !have) continue;
+    const silver = Math.min(have, Math.floor(finite(c[0], 0, 0)));
+    const gold = Math.min(have - silver, Math.floor(finite(c[1], 0, 0)));
+    if (silver || gold) out[k] = [silver, gold];
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 export function sanitize(out: SaveData, base: SaveData): SaveData {
   const dropped: string[] = [];
   const p = out.player;
@@ -106,6 +120,10 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     if (b.animals) b.animals = (Array.isArray(b.animals) ? b.animals : []).filter(isObj).map((a) => ({ fedAt: Number.isFinite(a.fedAt) ? a.fedAt as number : null }));
     if (b.queue) b.queue = (Array.isArray(b.queue) ? b.queue : []).filter((e) => isObj(e) && RECIPE[e.recipe] && Number.isFinite(e.start) && Number.isFinite(e.end));
     if (b.ready) b.ready = strArr(b.ready).filter((i) => ITEMS[i]);
+    // 1.8 star quality: fertilised fields, star-ingredient jobs and the star goods waiting to be collected
+    if (b.plot && 'fert' in b.plot && b.plot.fert !== true) delete b.plot.fert;
+    for (const e of b.queue ?? []) if (e.q !== undefined && e.q !== 1 && e.q !== 2) delete e.q;
+    if ('readyStar' in b) { const rs = repairReadyStar(b.readyStar, b.ready ?? []); if (rs) b.readyStar = rs; else delete b.readyStar; }
     sanitizeDecorFields(b);
     maxUid = Math.max(maxUid, b.uid);
     fixed.push(b);

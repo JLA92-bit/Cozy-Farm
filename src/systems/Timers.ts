@@ -58,8 +58,11 @@ export function settleProduction(b: PlacedBuilding, now: number): void {
   if (!b.queue?.length) return;
   const keep = [];
   for (const e of b.queue) {
-    if (e.end <= now) (b.ready ??= []).push(...Array(RECIPE[e.recipe].out).fill(RECIPE[e.recipe].item));
-    else keep.push(e);
+    if (e.end > now) { keep.push(e); continue; }
+    const r = RECIPE[e.recipe];
+    (b.ready ??= []).push(...Array(r.out).fill(r.item));
+    // 1.8: goods made from star ingredients keep that star until collected
+    if (e.q) { const st = ((b.readyStar ??= {})[r.item] ??= [0, 0]); st[e.q - 1] += r.out; }
   }
   b.queue = keep;
 }
