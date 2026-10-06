@@ -1303,3 +1303,98 @@ $$;
 revoke all on function public.make_farm_transfer(text, text) from public, anon, authenticated;
 revoke all on function public.claim_farm_transfer(text) from public, anon;
 grant execute on function public.claim_farm_transfer(text) to authenticated;
+
+-- ---------------------------------------------------------------------------- reward codes
+-- Support tool: a short code (like K7QM-2XPA) that gives coins, gems and items, e.g. as an apology after
+-- a lost farm. Bigger than player gift codes (500 coins, no gems), so it lives here, where it cannot be
+-- forged. The developer makes one in the SQL Editor:
+--     select public.make_reward_code(20000);                          -- 20,000 coins, one player
+--     select public.make_reward_code(20000, 100, 'Sorry about your farm!');   -- plus 100 gems and a note
+-- and the player types it in Friends > Gift codes. One claim per player; a code works for 30 days and
+-- for max_claims players (default 1). Wrong guesses share the 10-an-hour limit of farm codes.
+
+create table if not exists public.reward_codes (
+  code       text primary key check (code ~ '^[A-Z2-9]{8}$'),
+  coins      integer not null default 0 check (coins between 0 and 1000000),
+  gems       integer not null default 0 check (gems between 0 and 10000),
+  items      jsonb not null default '{}'::jsonb check (jsonb_typeof(items) = 'object'),
+  message    text check (length(message) <= 120),
+  note       text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '30 days',
+  max_claims integer not null default 1,
+  claims     integer not null default 0
+);
+
+create table if not exists public.reward_claims (
+  code    text not null references public.reward_codes (code) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  at      timestamptz not null default now(),
+  primary key (code, user_id)
+);
+
+alter table public.reward_codes enable row level security;
+alter table public.reward_claims enable row level security;
+revoke all on public.reward_codes, public.reward_claims from anon, authenticated, public;
+
+-- Developer only (SQL Editor). Returns the new code as XXXX-XXXX.
+create or replace function public.make_reward_code(p_coins integer, p_gems integer default 0, p_message text default null,
+  p_max_claims integer default 1, p_items jsonb default '{}'::jsonb, p_note text default null)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  abc constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  v_code text;
+  b bytea;
+begin
+  loop
+    b := decode(replace(gen_random_uuid()::text, '-', ''), 'hex');
+    v_code := '';
+    for i in 0..7 loop v_code := v_code || substr(abc, get_byte(b, i) % 32 + 1, 1); end loop;
+    exit when not exists (select 1 from public.reward_codes r where r.code = v_code)
+          and not exists (select 1 from public.farm_transfers t where t.code = v_code);
+  end loop;
+  insert into public.reward_codes (code, coins, gems, items, message, max_claims, note)
+  values (v_code, coalesce(p_coins, 0), coalesce(p_gems, 0), coalesce(p_items, '{}'::jsonb), p_message, greatest(1, coalesce(p_max_claims, 1)), p_note);
+  return substr(v_code, 1, 4) || '-' || substr(v_code, 5, 4);
+end;
+$$;
+
+-- Claim a reward code once. Returns {coins, gems, items, message}, or null when the code is wrong, expired
+-- or used up (null, not an error, so the wrong try is kept). Raises 'already claimed' or 'too many tries'.
+create or replace function public.claim_reward_code(p_code text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_code text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  r public.reward_codes;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if (select count(*) from public.farm_transfer_tries t where t.user_id = uid and t.at > now() - interval '1 hour') >= 10 then
+    raise exception 'too many tries';
+  end if;
+  if exists (select 1 from public.reward_claims c where c.code = v_code and c.user_id = uid) then
+    raise exception 'already claimed';
+  end if;
+  update public.reward_codes rc set claims = rc.claims + 1
+   where rc.code = v_code and rc.expires_at > now() and rc.claims < rc.max_claims
+  returning rc.* into r;
+  if r.code is null then
+    insert into public.farm_transfer_tries (user_id) values (uid);
+    return null;
+  end if;
+  insert into public.reward_claims (code, user_id) values (v_code, uid);
+  return jsonb_build_object('coins', r.coins, 'gems', r.gems, 'items', r.items, 'message', r.message);
+end;
+$$;
+
+revoke all on function public.make_reward_code(integer, integer, text, integer, jsonb, text) from public, anon, authenticated;
+revoke all on function public.claim_reward_code(text) from public, anon;
+grant execute on function public.claim_reward_code(text) to authenticated;

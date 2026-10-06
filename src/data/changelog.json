@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.6.2",
+   "date": "2026-10-06",
+   "title": "Reward codes",
+   "icon": "gift",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "gift",
+     "text": "Got a reward code? Type it in Friends > Gift codes and tap Open"
+    }
+   ]
+  },
+  {
    "version": "1.6.1",
    "date": "2026-10-06",
    "title": "Farm links",

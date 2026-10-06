@@ -1,4 +1,4 @@
-import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats } from './types';
+import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode } from './types';
 import { botFarm } from './BotFarms';
 import { helpKindFor } from './FarmHelp';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
@@ -218,6 +218,10 @@ export class LocalBackend implements OnlineBackend {
 
   async claimFarmTransfer(): Promise<string> {
     throw new Error('Farm codes need online play.');
+  }
+
+  async claimRewardCode(): Promise<RewardCode> {
+    throw new Error('Reward codes need online play.');
   }
 
   async publishFarm(snapshot: FarmSnapshot): Promise<void> {

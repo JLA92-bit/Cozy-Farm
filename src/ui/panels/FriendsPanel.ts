@@ -84,13 +84,16 @@ async function copy(text: string): Promise<boolean> {
 }
 
 /** Rewards burst out of `from` and fly into the coin counter and the barn. */
+/** An 8-letter reward code (like K7QM-2XPA) rather than a long player gift code. */
+const rewardCode = (text: string): boolean => /^[A-Z2-9]{8}$/.test(text.toUpperCase().replace(/[\s-]+/g, ''));
+
 function flyContents(r: DOMRect, c: GiftContents): void {
   const x = r.left + r.width / 2, y = r.top + r.height / 2;
   let delay = 0;
   if (c.coins) {
     ui.feedback.reward(x, y - 10, 'coins', c.coins);
     ui.hud.coinsHeld++;
-    ui.feedback.fly(x, y, 'coin', 'coins', Math.ceil(c.coins / 15), () => { ui.hud.coinsHeld = Math.max(0, ui.hud.coinsHeld - 1); ui.hud.setCoins(game.coins); });
+    ui.feedback.fly(x, y, 'coin', 'coins', Math.min(40, Math.ceil(c.coins / 15)), () => { ui.hud.coinsHeld = Math.max(0, ui.hud.coinsHeld - 1); ui.hud.setCoins(game.coins); });
     delay += 0.12;
   }
   for (const [k, n] of Object.entries(c.items)) {
@@ -275,11 +278,26 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
   const renderCodes = () => {
     p.body.append(h('div', { class: 'social-note' }, icon('gift'), h('div', null, 'Gift codes work with anyone, on any device - no internet friends needed. Each code can be opened once per farm.')));
     p.body.append(h('div', { class: 'section-title' }, 'Got a gift code?'));
-    const input = textInput('Paste a gift code or link', 2000, codeText, 'gift-code-input');
+    const input = textInput('Paste a gift code, link or reward code', 2000, codeText, 'gift-code-input');
     const preview = h('div', { class: 'code-preview' });
-    const openBtn = button([icon('gift'), 'Open'], () => {
+    let claiming = false;
+    const openBtn = button([icon('gift'), 'Open'], async () => {
       const rect = openBtn.getBoundingClientRect();
       const text = input.value;
+      if (rewardCode(text)) {
+        if (claiming) return;
+        claiming = true;
+        try {
+          const got = await social.claimRewardCode(text);
+          flyContents(rect, got);
+          if (got.gems) ui.feedback.reward(rect.left + rect.width / 2, rect.top - 30, 'gems', got.gems);
+          codeText = '';
+          if (input.isConnected) { input.value = ''; updatePreview(); }
+          ui.feedback.toast('Reward claimed!', got.message ? `"${got.message}"` : 'Everything went into your barn.', 'gift');
+        } catch (e) { nope(input, 'Could not claim that code', (e as Error).message); }
+        finally { claiming = false; }
+        return;
+      }
       codeText = '';
       try {
         const got = social.claimCode(text);
@@ -293,6 +311,7 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
       clear(preview);
       openBtn.classList.toggle('disabled', !input.value.trim());
       if (!input.value.trim()) return;
+      if (rewardCode(input.value)) { preview.append(h('div', { class: 'muted' }, 'A reward code. Tap Open to claim it.')); return; }
       const r = social.peekCode(input.value);
       if ('error' in r) { preview.append(h('div', { class: 'muted' }, r.error)); return; }
       preview.append(h('div', { class: 'social-card' }, icon('gift', 'icon big'),

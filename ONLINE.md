@@ -162,6 +162,23 @@ See your codes with `select code, note, claims, expires_at from farm_transfers o
 and remove one early with `delete from farm_transfers where code = 'K7QM2XPA';` (no dash). Expired codes are
 deleted automatically 30 days later. A code holds that player's farm, so only send it to them.
 
+## Reward codes (coins and gems as a thank-you or apology)
+
+Player gift codes are limited to 500 coins and no gems. For more, make a reward code on the server:
+
+1. Run the latest `supabase/schema.sql` once (adds `reward_codes`; safe to re-run).
+2. **SQL Editor**:
+   ```sql
+   select public.make_reward_code(20000);                                    -- 20,000 coins, one player
+   select public.make_reward_code(20000, 100, 'Sorry about your farm!');     -- plus 100 gems and a note
+   select public.make_reward_code(500, 5, 'Thanks for testing!', 15);       -- one code for up to 15 players
+   ```
+   Each returns a code like `K7QM-2XPA`.
+3. The player types it in **Friends > Gift codes** and taps **Open**.
+
+Each player can claim a code once. Codes last 30 days and work for `max_claims` players (default 1). See them
+with `select code, coins, gems, claims, max_claims, note from reward_codes order by created_at desc;`.
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in

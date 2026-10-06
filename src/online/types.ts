@@ -100,6 +100,9 @@ export type OnlineEvent =
   | { type: 'listings' }
   | { type: 'profiles' };
 
+/** What a reward code gives. */
+export interface RewardCode { coins: number; gems: number; items: Record<string, number>; message: string | null }
+
 export interface OnlineBackend {
   /** 'local' = practice mode in this browser only (with demo neighbours); 'supabase' = real online play */
   readonly kind: 'local' | 'supabase';
@@ -143,6 +146,11 @@ export interface OnlineBackend {
    * Rejects with 'not found' (wrong, expired or used up), 'too many tries', or when offline.
    */
   claimFarmTransfer(code: string): Promise<string>;
+  /**
+   * Claim a reward code from the developer (once per player). Rejects with 'not found' (wrong, expired or
+   * used up), 'already claimed', 'too many tries', or when offline.
+   */
+  claimRewardCode(code: string): Promise<RewardCode>;
 
   /**
    * Helping neighbours (Update 5). Help a neighbour's farm once per UTC day (water a field, feed an

@@ -1,7 +1,7 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
-  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow,
+  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode,
 } from './types';
 import { cleanHelp } from './FarmHelp';
 import { setOnlineStatus } from './Status';
@@ -492,6 +492,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   async claimFarmTransfer(code: string): Promise<string> {
     return this.rpc<string>('claim_farm_transfer', { p_code: code });
+  }
+
+  async claimRewardCode(code: string): Promise<RewardCode> {
+    return this.rpc<RewardCode>('claim_reward_code', { p_code: code });
   }
 
   // ------------------------------------------------------------------ helping neighbours

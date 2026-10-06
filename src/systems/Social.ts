@@ -255,6 +255,30 @@ class Social {
     return { ...c, from: d.from, message: d.message };
   }
 
+  /** Claim a reward code from the developer (server checked, once per player) and add it to the farm. */
+  async claimRewardCode(code: string): Promise<GiftContents & { gems: number; message?: string }> {
+    if (online.kind !== 'supabase') throw new Error('Reward codes need online play.');
+    let r;
+    try {
+      r = await online.claimRewardCode(code);
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (msg === 'not found') throw new Error('Check the letters. Codes can also expire or be used up.');
+      if (/already claimed/.test(msg)) throw new Error('You already claimed this reward.');
+      if (/too many tries/.test(msg)) throw new Error('Too many tries. Wait an hour, then try again.');
+      throw new Error('Could not reach the farm server. Check your internet and try again.');
+    }
+    const items: Record<string, number> = {};
+    for (const [k, n] of Object.entries(r.items ?? {})) if (ITEMS[k] && n > 0) items[k] = Math.floor(n);
+    const coins = Math.max(0, Math.floor(r.coins) || 0), gems = Math.max(0, Math.floor(r.gems) || 0);
+    for (const [k, n] of Object.entries(items)) game.addItem(k, n);
+    if (coins) game.addCoins(coins);
+    if (gems) game.addGems(gems);
+    saves.save();
+    this.changed();
+    return { items, coins, gems, message: r.message ?? undefined };
+  }
+
   // ------------------------------------------------------------------ mailbox polling
   /** Fetch the mailbox; toasts for new gifts. Safe to call often (calls are merged). */
   poll(): Promise<void> {
