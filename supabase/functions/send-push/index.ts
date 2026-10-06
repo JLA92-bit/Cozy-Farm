@@ -21,7 +21,7 @@ import webpush from 'npm:web-push@3.6.7';
 interface Row { id: number; user_id: string; kind: string; title: string; body: string; status: string | null }
 interface Sub { id: string; user_id: string; endpoint: string; p256dh: string; auth: string; social: boolean }
 
-const SOCIAL = new Set(['gift', 'market']);
+const SOCIAL = new Set(['gift', 'market', 'help']);
 /** A notification that cannot be delivered within 4 hours (phone off) is dropped by the push service. */
 const TTL_SECONDS = 4 * 3600;
 const CONCURRENCY = 8;
