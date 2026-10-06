@@ -1,6 +1,109 @@
 {
  "releases": [
   {
+   "version": "1.6.0",
+   "date": "2026-10-05",
+   "title": "Pretty Farms",
+   "icon": "sparkle_heart",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "sparkles",
+     "text": "Make your farm yours: paint decorations, write on your Farm Sign and pick from dozens of new pieces"
+    },
+    {
+     "icon": "wood",
+     "text": "13 new path materials and 5 new fence styles - every fence now has a matching gate"
+    },
+    {
+     "icon": "tropical_fish",
+     "text": "16 new fish and the new Mythic tier - can you hook the Kraken?"
+    },
+    {
+     "icon": "camera",
+     "text": "Photo mode: snap your farm in golden light, add a frame and share it"
+    }
+   ],
+   "sections": [
+    {
+     "title": "Decorate your way",
+     "icon": "sparkle_heart",
+     "items": [
+      {
+       "icon": "sparkles",
+       "text": "Tap a decoration to paint it in one of 8 cozy colours - neighbours see your colours when they visit"
+      },
+      {
+       "icon": "wood",
+       "text": "New Farm Sign: write your own farm name on it"
+      },
+      {
+       "icon": "house",
+       "text": "Themed sets: cottage garden, zen garden, seaside with a lighthouse, and a glowing fairy corner"
+      },
+      {
+       "icon": "sparkle_heart",
+       "text": "Fairy lights, bunting, a pinwheel, beehive, rocking chair, duck pond, koi pond and many more"
+      },
+      {
+       "icon": "hammer",
+       "text": "Filter chips in the Build shop make the bigger collection easy to browse"
+      }
+     ]
+    },
+    {
+     "title": "Paths, fences and gates",
+     "icon": "wood",
+     "items": [
+      {
+       "icon": "wood",
+       "text": "13 new paths, from sand and cobblestones to herringbone brick, blossom petals and golden bricks"
+      },
+      {
+       "icon": "wood",
+       "text": "New fences: white picket, bamboo, dry stone wall, low brick wall and wrought iron"
+      },
+      {
+       "icon": "house",
+       "text": "Every fence has a gate that swings open when someone walks through"
+      }
+     ]
+    },
+    {
+     "title": "Fishing",
+     "icon": "fishing_pole",
+     "items": [
+      {
+       "icon": "tropical_fish",
+       "text": "16 new species, from the Sea Snail to the Leafy Sea Dragon"
+      },
+      {
+       "icon": "sparkles",
+       "text": "New Mythic tier after your first legendary catch: the Kraken and the Celestial Koi"
+      },
+      {
+       "icon": "trophy",
+       "text": "New awards and two new Fish Shack recipes"
+      }
+     ]
+    },
+    {
+     "title": "Also new",
+     "icon": "camera",
+     "items": [
+      {
+       "icon": "camera",
+       "text": "Photo mode in Settings: free camera, time of day, frames, share or save"
+      },
+      {
+       "icon": "wood",
+       "text": "The campfire got a cozy makeover"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "version": "1.5.2",
    "date": "2026-10-05",
    "title": "Tidy fences",

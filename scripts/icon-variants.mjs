@@ -13,11 +13,12 @@ export const FISHING_ICONS = {
   fish: 'fish', tropical_fish: 'tropical-fish', blowfish: 'blowfish', crab: 'crab', shrimp: 'shrimp', octopus: 'octopus',
   squid: 'squid', lobster: 'lobster', jellyfish: 'jellyfish', shark: 'shark', fishing_pole: 'fishing-pole', worm: 'worm',
   boot: 'hiking-boot', fish_cake: 'fish-cake-with-swirl', curry: 'curry-rice', water_wave: 'water-wave', bottle: 'bottle-with-popping-cork',
+  oyster: 'oyster', sushi: 'sushi',
 };
 
 /**
  * Variants: `hue` rotates every colour of `base` by that many degrees (with optional saturation/lightness
- * scale); `badge` draws another emoji small in the bottom-right corner.
+ * scale); `flip` mirrors it left-right; `badge` draws another emoji small in the bottom-right corner.
  */
 export const ICON_VARIANTS = {
   fish_green: { base: 'fish', hue: -70, sat: 0.85 },
@@ -25,6 +26,23 @@ export const ICON_VARIANTS = {
   fish_gold: { base: 'fish', hue: -155, sat: 1.1, light: 1.1 },
   seaweed: { base: 'herb', hue: 35, sat: 0.8, light: 0.85 },
   fish_pie: { base: 'pie', badge: 'fish' },
+  // more fish species (u6): a recolour, a mirror (`flip`) or a corner badge keeps every silhouette distinct
+  sea_snail: { base: 'snail', hue: 150, sat: 0.9 },
+  fish_blue: { base: 'fish', hue: 62, sat: 0.95, light: 1.05, flip: true },
+  hermit_crab: { base: 'spiral-shell', badge: 'crab' },
+  rainbow_trout: { base: 'fish', hue: -42, sat: 0.6, light: 1.05, badge: 'rainbow' },
+  snapper: { base: 'tropical-fish', hue: -40, sat: 1.1, flip: true },
+  sea_turtle: { base: 'turtle', hue: 45, sat: 0.95 },
+  lantern_fish: { base: 'fish', hue: 25, sat: 0.9, light: 0.62, badge: 'red-paper-lantern' },
+  coral_grouper: { base: 'tropical-fish', hue: 150, sat: 1.05, badge: 'coral' },
+  moon_koi: { base: 'fish', hue: 0, sat: 0.2, light: 1.3, flip: true, badge: 'crescent-moon' },
+  ghost_ray: { base: 'ghost', badge: 'water-wave' },
+  coelacanth: { base: 'fish', hue: 190, sat: 0.45, light: 0.72, badge: 'hourglass-done' },
+  betta_crown: { base: 'tropical-fish', hue: 110, sat: 1.1, badge: 'crown' },
+  sea_dragon: { base: 'dragon', hue: 55, sat: 0.95, light: 1.05 },
+  kraken: { base: 'octopus', hue: -95, sat: 1.05, light: 0.85, badge: 'sparkles' },
+  celestial_koi: { base: 'fish', hue: 125, sat: 0.9, light: 1.42, flip: true, badge: 'glowing-star' },
+  oyster_chowder: { base: 'pot-of-food', badge: 'oyster' },
 };
 
 function hexToHsl(hex) {
@@ -68,6 +86,7 @@ export function variantSvg(json, v, iconsMap) {
       return hslToHex(hh + v.hue, s * (v.sat ?? 1), l * (v.light ?? 1));
     });
   }
+  if (v.flip) body = `<g transform="translate(${2 * (base.left ?? 0) + w} 0) scale(-1 1)">${body}</g>`;
   if (v.badge) {
     const b = iconOf(json, iconsMap[v.badge] ?? v.badge);
     if (!b) return null;

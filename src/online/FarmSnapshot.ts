@@ -4,6 +4,7 @@ import { createNewGame } from '../systems/NewGame';
 import type { CharacterLook, Obstacle, PlacedBuilding, SaveData } from '../systems/State';
 import { animalState, cropStage, isBuilt, productionState, treeReady } from '../systems/Timers';
 import { CHUNKS, MAP, rotatedSize } from '../world/Grid';
+import { cleanSignText, isFriendlyText, isPaint } from '../systems/Decor';
 
 /**
  * A farm's public "snapshot": just what is needed to draw it for a visiting neighbour (no coins,
@@ -42,6 +43,10 @@ export interface SnapExtra {
   a?: [number, number, number];
   /** production building is busy */
   r?: 1;
+  /** decor paint colour (a PAINTS key) */
+  k?: string;
+  /** farm sign text */
+  s?: string;
 }
 
 /** Hard limits for snapshots read from other players (a real farm is far below these). */
@@ -67,6 +72,8 @@ export function farmSnapshot(state: SaveData, now: number = Date.now()): FarmSna
       x.a = [pb.animals.length, ready, hungry];
     }
     if (def.cat === 'production' && built && productionState(pb, now).running) x.r = 1;
+    if (def.paint && pb.tint) x.k = pb.tint;
+    if (def.sign && pb.text) x.s = pb.text;
     b.push(Object.keys(x).length ? [pb.type, pb.x, pb.z, pb.rot, x] : [pb.type, pb.x, pb.z, pb.rot]);
   }
   const l = state.player.look;
@@ -170,6 +177,9 @@ export function sanitizeSnapshot(raw: unknown, now: number = Date.now()): FarmSn
       if (n) out.a = [n, ready, hungry];
     }
     if (def.cat === 'production' && src.r === 1) out.r = 1;
+    if (def.paint && isPaint(src.k)) out.k = src.k;
+    const text = def.sign ? cleanSignText(src.s) : '';
+    if (text && isFriendlyText(text)) out.s = text;
     b.push(Object.keys(out).length ? [def.id, x, z, rot, out] : [def.id, x, z, rot]);
   }
 
@@ -225,6 +235,8 @@ export function snapshotState(s: FarmSnapshot): SaveData {
     const ex: SnapExtra = e[4] ?? {};
     const def = BUILDING[type];
     const b: PlacedBuilding = { uid: i + 1, type, x, z, rot, level: ex.l ?? 1 };
+    if (ex.k) b.tint = ex.k;
+    if (ex.s) b.text = ex.s;
     if (ex.c) b.buildEnd = at + FAR;
     if (def.id === 'plot') b.plot = ex.p ? { crop: ex.p[0], growSec: GROW_SEC, plantedAt: at - STAGE_PROGRESS[ex.p[1]] * GROW_SEC * 1000 } : null;
     if (def.tree) b.tree = { readyAt: ex.t ? at - 1 : at + FAR };

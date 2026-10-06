@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { geo, PAL, rng, type GeoBuilder } from './Procedural';
 import { assets } from '../core/Assets';
+import { THEMED_PROC } from './models/Themed';
+import { DECOR_PROC } from './models/Decor';
+import { FENCE_MODELS } from './models/Fences';
+import { PATH_MODELS } from './models/Paths';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -60,6 +64,9 @@ function sack(tag: string): THREE.BufferGeometry {
 }
 
 export const PROC: Record<string, () => THREE.BufferGeometry> = {
+  ...THEMED_PROC,
+  ...FENCE_MODELS,
+  ...PATH_MODELS,
   barn: () => {
     const b = geo();
     b.block(3, 0.12, 3, PAL.stoneDark, [0, 0, 0]);
@@ -306,6 +313,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.torus(0.18, 0.05, PAL.red, [-1.38, 0.95, 0.5], [0, Math.PI / 2, 0]);
     return b.build();
   },
+  ...DECOR_PROC,
 };
 
 function penBuilder(ground: string, roof: string, trough: string): THREE.BufferGeometry {

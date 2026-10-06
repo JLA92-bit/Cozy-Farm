@@ -115,6 +115,11 @@ releases?.forEach((r, i) => {
   const fish = read('fish.json');
   const times = Object.keys(fish.times);
   const rarities = Object.keys(fish.rarityChance);
+  // the UI (labels, colours, reveal card) knows these tiers, rarest last
+  const TIERS = ['common', 'uncommon', 'rare', 'legendary', 'mythic'];
+  if (rarities.some((r, i) => TIERS.indexOf(r) < 0 || (i && TIERS.indexOf(r) < TIERS.indexOf(rarities[i - 1])))) err(`fish.json: rarityChance tiers must be ${TIERS.join(', ')} (in that order)`);
+  if (rarities.some((r) => !(fish.rarityChance[r] > 0))) err('fish.json: every rarityChance must be > 0');
+  const fishIcons = new Map();
   if (!items[fish.baitItem]) err(`fish.json: unknown bait item ${fish.baitItem}`);
   if (!(fish.freeCastsPerDay >= 0) || !(fish.level >= 2)) err('fish.json: bad level or freeCastsPerDay');
   const ids = new Set();
@@ -128,6 +133,12 @@ releases?.forEach((r, i) => {
     if (!(f.difficulty >= 1 && f.difficulty <= fish.reel.zone.length)) err(`fish ${f.id}: difficulty out of range`);
     if (!(f.size?.[0] > 0 && f.size[1] >= f.size[0])) err(`fish ${f.id}: bad size range`);
     if (f.level < fish.level) err(`fish ${f.id}: level ${f.level} is below the fishing level ${fish.level}`);
+    // every species needs its own icon (unseen ones show as silhouettes) that really exists on disk
+    const ic = items[f.id]?.icon;
+    if (ic && fishIcons.has(ic)) err(`fish ${f.id}: icon ${ic} is already used by ${fishIcons.get(ic)}`);
+    fishIcons.set(ic, f.id);
+    if (ic && icons?.[ic] && !existsSync(new URL(`../public/assets/${icons[ic]}`, import.meta.url))) err(`fish ${f.id}: icon file ${icons[ic]} is missing`);
+    if (f.rarity === 'mythic' && fish.mythicNeedsLegendary && !fish.species.some((g) => g.rarity === 'legendary' && g.level <= f.level)) err(`fish ${f.id}: mythic needs a legendary fish at or below level ${f.level}`);
   }
   // something always bites at the fishing level, whatever the time of day
   for (const t of times) if (!fish.species.some((f) => f.level <= fish.level && f.times.includes(t))) err(`fish.json: nothing bites at ${t} at level ${fish.level}`);

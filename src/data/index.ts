@@ -36,6 +36,10 @@ export interface BuildingDef {
   size: [number, number]; level: number; cost: number; costStep?: number; freeCount?: number; eventCost?: number; event?: string;
   buildSec?: number; model: string; parts?: string[]; fit: number; charm: number; cap?: string; max?: number;
   tree?: string; animal?: string; upgradeMult?: number; icon?: string; desc?: string; path?: boolean; glow?: number;
+  /** decor: shop filter group (paths, fences, garden, water, lights, ...); paint: model colour players can repaint; sign: shows custom text */
+  group?: string; paint?: string; sign?: boolean;
+  /** fences: joins up with neighbours sharing the same link family; gates are walkable and swing open */
+  link?: string; gate?: boolean;
 }
 export interface LevelDef { level: number; xpToNext: number; coins: number; gems: number }
 export interface Unlock { level?: number; achievement?: string; event?: string; cost?: number; crate?: string; default?: boolean }
@@ -84,13 +88,15 @@ export const TUTORIAL: TutorialStep[] = tutorialJson.steps;
 export const LAND = landJson;
 
 export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
-export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary' | 'mythic';
 export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number }
 export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
 /** Fishing at the dock (fish.json). */
 export const FISHING = fishJson as unknown as {
   level: number; freeCastsPerDay: number; baitItem: string; baitShop: { qty: number; coins: number }; junkChance: number;
   rarityChance: Record<FishRarity, number>; times: Record<FishTime, [number, number]>;
+  /** Mythic fish only bite once the player has caught a legendary one. */
+  mythicNeedsLegendary?: boolean;
   bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
   reel: { zone: number[]; fishSpeed: number[]; fillPerSec: number; drainPerSec: number; start: number; assistZone: number };
   recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];

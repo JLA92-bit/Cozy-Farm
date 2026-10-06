@@ -681,6 +681,20 @@
    "hidden": true
   },
   {
+   "id": "say_cheese",
+   "name": "Say Cheese!",
+   "category": "hidden",
+   "stat": "photos_taken",
+   "tiers": [
+    1,
+    10,
+    50
+   ],
+   "desc": "Take {n} photos in photo mode",
+   "icon": "camera",
+   "hidden": true
+  },
+  {
    "id": "homebody",
    "name": "Homebody",
    "category": "hidden",
@@ -780,8 +794,8 @@
    "stat": "fish_species",
    "tiers": [
     5,
-    9,
-    13
+    15,
+    29
    ],
    "desc": "Catch {n} kinds of fish",
    "icon": "tropical_fish",
@@ -799,6 +813,32 @@
    ],
    "desc": "Catch {n} legendary fish",
    "icon": "fish_gold"
+  },
+  {
+   "id": "rare_finds",
+   "name": "Rare Finds",
+   "category": "collection",
+   "stat": "fish_rare",
+   "tiers": [
+    5,
+    25,
+    100
+   ],
+   "desc": "Catch {n} rare fish",
+   "icon": "lantern_fish"
+  },
+  {
+   "id": "mythic_angler",
+   "name": "Myth of the Deep",
+   "category": "collection",
+   "stat": "fish_mythic",
+   "tiers": [
+    1,
+    3,
+    8
+   ],
+   "desc": "Catch {n} mythic fish",
+   "icon": "kraken"
   },
   {
    "id": "boot_collector",

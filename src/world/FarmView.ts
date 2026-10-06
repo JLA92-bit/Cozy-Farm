@@ -6,12 +6,17 @@ import { game, type Game } from '../systems/Game';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } from './Grid';
 import { PoolSet, type InstancePool } from './InstancePool';
-import { procGeometry } from './ProcModels';
+import { PROC, procGeometry } from './ProcModels';
+import { gateParts } from './models/Fences';
+import { walkers } from './People';
+import { PATH_SPIN } from './models/Paths';
 import { Terrain } from './Terrain';
 import { PlantHints } from './PlantHints';
+import { attachThemed, themedAnimated } from './models/Themed';
 import { constructionVisual, objectFor, tintGeometry, visualFor, type Visual } from './Visuals';
 import { hashString, rng } from './Procedural';
 import { cropStage, plotReady, treeReady, animalState, productionState } from '../systems/Timers';
+import { attachFx, fxKey, hasFx, styledVisual, type DecorFx } from './models/DecorFx';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -81,19 +86,42 @@ export interface BuildingView {
   glow?: THREE.Sprite;
   /** warm pool of light on the ground under lamps at night */
   lightPool?: THREE.Mesh;
+  /** themed decor: moving and night-glowing parts */
+  themed?: (dt: number, t: number, night: number) => void;
   /** chimney smoke: emitter point in the inner model space, and time until the next puff */
   smokeAt?: THREE.Vector3;
   smokeT?: number;
   busy: boolean;
   /** fences: extra half-length arms drawn at corners, T-junctions and crossings */
   links?: { pool: InstancePool; handle: number }[];
+  /** gates: the swinging leaves, how far open they are (0..1) and which side they swing to */
+  gate?: { leaves: { pivot: THREE.Object3D; dir: 1 | -1 }[]; open: number; side: number };
   /** tile the view was last placed on (a move changes b.x/b.z in place) */
   at?: [number, number];
+  /** pretty decor: per-instance extras (flames, bulbs, sign text) and the paint/text they were built for */
+  fx?: DecorFx | null;
+  styleKey?: string;
 }
 
-/** Fences join up with neighbouring fences of the same kind (straight runs turn to follow them, corners get arms). */
-const isLinked = (def: BuildingDef): boolean => def.id.startsWith('fence') && def.size[0] === 1 && def.size[1] === 1;
+/**
+ * Fences and gates join up with neighbours of the same link family (a style's fence and its gate): straight runs
+ * turn to follow them, corners get arms.
+ */
+const isLinked = (def: BuildingDef): boolean => !!def.link && def.size[0] === 1 && def.size[1] === 1;
 const LINK_DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
+/** How far a gate leaf swings open (radians). */
+const GATE_SWING = 1.75;
+/** Half-length arm geometry of a procedural fence style (`proc:<id>_arm`), if it has one. */
+const armVisuals = new Map<string, Visual | null>();
+function armVisual(def: BuildingDef, visual: Visual): Visual | null {
+  let v = armVisuals.get(def.id);
+  if (v === undefined) {
+    const name = def.model.startsWith('proc:') ? `${def.model.slice(5)}_arm` : '';
+    v = name && PROC[name] ? { ...visual, key: `${visual.key}_arm`, geometry: procGeometry(name) } : null;
+    armVisuals.set(def.id, v);
+  }
+  return v;
+}
 /** Whether a model's long side runs along x (after its fit transform), per visual. */
 const runsAlongX = new Map<string, boolean>();
 function alongX(visual: Visual): boolean {
@@ -292,7 +320,7 @@ export class FarmView {
   private isPooled(def: BuildingDef): boolean {
     if (def.parts?.length) return false;
     if (def.cat === 'farm') return true; // plots, trees
-    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow;
+    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow && !def.gate && !themedAnimated(def.model) && !hasFx(def);
   }
 
   async addBuilding(b: PlacedBuilding, animate = false): Promise<void> {
@@ -316,7 +344,12 @@ export class FarmView {
 
   /** Compute the world transform for a building view and (re)attach its visual. */
   place(view: BuildingView): void {
-    const { b, def, visual } = view;
+    const { b, def } = view;
+    const visual = view.visual && styledVisual(view.visual, def, b);
+    // repainted or re-lettered: rebuild the visual from scratch
+    const style = visual ? fxKey(visual, b) : '';
+    if (view.styleKey !== undefined && view.styleKey !== style) this.detachVisual(view);
+    view.styleKey = style;
     view.at = [b.x, b.z];
     const [w, d] = rotatedSize(def.size, b.rot);
     view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
@@ -341,7 +374,9 @@ export class FarmView {
       return;
     }
     if (view.construction) { this.root.remove(view.construction); view.construction = null; }
-    const rotQ = tmpQ.setFromAxisAngle(UP, -b.rot * Math.PI / 2);
+    // scattered paths get a quarter turn per tile (from its position) so big areas don't repeat
+    const spin = def.path && PATH_SPIN.has(def.model.slice(5)) ? ((b.x * 7 + b.z * 13 + ((b.x * b.z) >> 1)) & 3) : 0;
+    const rotQ = tmpQ.setFromAxisAngle(UP, -(b.rot + spin) * Math.PI / 2);
     if (this.isPooled(def) && !view.busy) {
       if (view.obj) { this.root.remove(view.obj); view.obj = null; }
       const mats = isLinked(def) ? this.linkMatrices(view, visual) : null;
@@ -352,16 +387,18 @@ export class FarmView {
       } else view.pool.set(view.handle!, world);
       // extra arms for fence corners / junctions
       const extra = mats ? mats.slice(1) : [];
+      const arm = mats && armVisual(def, visual);
+      const linkPool = arm ? this.pools.pool(`b/${arm.key}`, () => ({ geometry: arm.geometry, material: arm.material, castShadow: arm.castShadow })) : view.pool;
       view.links ??= [];
       while (view.links.length > extra.length) { const l = view.links.pop()!; l.pool.remove(l.handle); }
       extra.forEach((m, i) => {
         const l = view.links![i];
-        if (l) l.pool.set(l.handle, m); else view.links!.push({ pool: view.pool!, handle: view.pool!.add(m) });
+        if (l) l.pool.set(l.handle, m); else view.links!.push({ pool: linkPool, handle: linkPool.add(m) });
       });
     } else {
       this.detachFromPool(view);
       if (!view.obj) {
-        view.obj = objectFor(visual);
+        view.obj = def.gate ? this.gateObject(view, visual) : objectFor(visual);
         view.fan = view.obj.getObjectByName(def.parts?.[0] ?? '__none') ?? undefined;
         if (view.fan) {
           // spin around the axis where the blade assembly is thinnest
@@ -371,10 +408,17 @@ export class FarmView {
           view.fanAxis = sz.x < sz.y && sz.x < sz.z ? 'x' : sz.z < sz.y ? 'z' : 'y';
         }
         this.root.add(view.obj);
+        view.fx = attachFx(view.obj.children[0], b, def, this.g.state.player.name);
         if (def.glow) {
           view.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTex, color: '#ffd27a', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
           view.glow.scale.setScalar(2.2 * def.glow);
-          view.glow.position.y = view.height * 0.85;
+          if (view.fx?.glowY !== undefined) {
+            // low glows (fires, strings of lights) would be cut off by the ground: smaller, drawn over it
+            view.glow.position.y = view.fx.glowY * visual.local.getMaxScaleOnAxis();
+            view.glow.scale.setScalar(1.2 * def.glow);
+            view.glow.material.depthTest = false;
+            view.glow.material.color.set('#ffb36b');
+          } else view.glow.position.y = view.height * 0.85;
           view.obj.add(view.glow);
           view.lightPool = new THREE.Mesh(lightPoolGeometry(), new THREE.MeshBasicMaterial({ map: this.glowTex, color: '#ffc46b', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
           view.lightPool.scale.setScalar(2.6 * def.glow);
@@ -383,12 +427,84 @@ export class FarmView {
           view.lightPool.visible = false;
           view.obj.add(view.lightPool);
         }
+        view.themed = attachThemed(def.model, view.obj, b.uid, view.glow, view.lightPool);
         if (SMOKE[def.id]) view.smokeAt = chimneyPoint(visual.geometry);
       }
       view.obj.position.copy(view.center);
-      view.obj.quaternion.copy(rotQ);
+      if (def.gate) view.obj.quaternion.setFromAxisAngle(UP, this.gateAlongX(b) ? 0 : Math.PI / 2);
+      else view.obj.quaternion.copy(rotQ);
     }
   }
+
+  /** A gate as a frame plus leaves on hinge pivots that `swingGates` opens for passers-by. */
+  private gateObject(view: BuildingView, visual: Visual): THREE.Group {
+    const parts = gateParts(view.def.model.slice(5));
+    if (!parts) return objectFor(visual);
+    const g = new THREE.Group();
+    const inner = new THREE.Group();
+    inner.matrixAutoUpdate = false;
+    inner.matrix.copy(visual.local);
+    g.add(inner);
+    const mesh = (geom: THREE.BufferGeometry) => {
+      const m = new THREE.Mesh(geom, visual.material);
+      m.castShadow = true; m.receiveShadow = true;
+      return m;
+    };
+    inner.add(mesh(parts.frame));
+    const leaves = parts.leaves.map((l) => {
+      const pivot = new THREE.Group();
+      pivot.position.x = l.hinge;
+      pivot.add(mesh(l.geometry));
+      inner.add(pivot);
+      return { pivot, dir: l.dir };
+    });
+    view.gate = { leaves, open: view.gate?.open ?? 0, side: view.gate?.side ?? 1 };
+    this.poseGate(view);
+    return g;
+  }
+
+  /**
+   * Whether a gate runs along world x: along its run, or along the axis with more neighbours when it has some on
+   * both (gates never draw corner arms), or as placed when it stands alone.
+   */
+  private gateAlongX(b: PlacedBuilding): boolean {
+    const [e, w, s, n] = this.linkedNeighbours(b, false);
+    const x = +e + +w, z = +s + +n;
+    return x === z ? b.rot % 2 === 0 : x > z;
+  }
+
+  private poseGate(view: BuildingView): void {
+    const gate = view.gate!;
+    const k = gate.open * gate.open * (3 - 2 * gate.open);
+    for (const l of gate.leaves) l.pivot.rotation.y = -gate.side * l.dir * k * GATE_SWING;
+  }
+
+  /** Gates swing open while someone walks through, away from them, then fall shut. Returns true while moving. */
+  private swingGates(dt: number): boolean {
+    let moving = false;
+    for (const v of this.views.values()) {
+      const gate = v.gate;
+      if (!gate || !v.obj || v.busy || this.hidden.has(v.b.uid)) continue;
+      let near = 0;
+      for (const w of walkers) {
+        const root = w.char.root;
+        if (!root.parent) { if (root.scale.x < 0.05) walkers.delete(w); continue; }
+        const p = v.obj.worldToLocal(tmpV2.copy(root.position));
+        if (Math.abs(p.x) < 0.62 && Math.abs(p.z) < 1.15) { near = p.z || 1; break; }
+      }
+      // pick the swing side while closed, so the gate opens away from whoever is coming
+      if (near && gate.open < 0.05) gate.side = near > 0 ? -1 : 1;
+      const target = near ? 1 : 0;
+      if (gate.open === target) continue;
+      gate.open = target ? Math.min(1, gate.open + dt / 0.35) : Math.max(0, gate.open - dt / 0.6);
+      this.poseGate(v);
+      moving = true;
+    }
+    return moving;
+  }
+
+  /** True while a gate is swinging (keeps the render loop awake). */
+  gatesSwinging = false;
 
   private detachFromPool(view: BuildingView): void {
     if (view.pool && view.handle) { view.pool.remove(view.handle); }
@@ -397,11 +513,19 @@ export class FarmView {
     view.pool = undefined; view.handle = undefined;
   }
 
-  /** The same-kind fence next to `b` in each direction (E, W, S, N), ignoring ones being moved. */
-  private linkedNeighbours(b: PlacedBuilding): boolean[] {
+  /**
+   * The fence or gate of the same link family next to `b` in each direction (E, W, S, N), ignoring ones being
+   * moved. With `gatesFacing`, a neighbouring gate only counts when it runs towards `b` (so a fence beside a gate
+   * does not poke an arm into its side).
+   */
+  private linkedNeighbours(b: PlacedBuilding, gatesFacing = true): boolean[] {
+    const link = BUILDING[b.type].link;
     return LINK_DIRS.map(([dx, dz]) => {
       const n = this.g.buildingAt(b.x + dx, b.z + dz);
-      return !!n && n.uid !== b.uid && n.type === b.type && !this.hidden.has(n.uid) && !(n.buildEnd && n.buildEnd > this.g.now());
+      if (!n || n.uid === b.uid || this.hidden.has(n.uid) || (n.buildEnd && n.buildEnd > this.g.now())) return false;
+      const def = BUILDING[n.type];
+      if (!link || def.link !== link || !isLinked(def)) return false;
+      return !gatesFacing || !def.gate || this.gateAlongX(n) === (dx !== 0);
     });
   }
 
@@ -417,8 +541,19 @@ export class FarmView {
     const turn = (worldX: boolean) => tmpQ2.setFromAxisAngle(UP, worldX === longX ? 0 : Math.PI / 2);
     if (!onX && !onZ) return [new THREE.Matrix4().compose(view.center, tmpQ.setFromAxisAngle(UP, -view.b.rot * Math.PI / 2), tmpS.set(1, 1, 1)).multiply(visual.local)];
     if (onX !== onZ) return [new THREE.Matrix4().compose(view.center, turn(onX), tmpS.set(1, 1, 1)).multiply(visual.local)];
-    const half = longX ? tmpS.set(0.5, 1, 1) : tmpS.set(1, 1, 0.5);
     const out: THREE.Matrix4[] = [];
+    if (armVisual(view.def, visual)) {
+      // styles with their own arm model: centre post plus rails out to +x, turned towards each neighbour (the
+      // full piece itself is hidden)
+      out.push(new THREE.Matrix4().makeScale(0, 0, 0));
+      [e, w, s, n].forEach((has, i) => {
+        if (!has) return;
+        const [dx, dz] = LINK_DIRS[i];
+        out.push(new THREE.Matrix4().compose(view.center, tmpQ2.setFromAxisAngle(UP, Math.atan2(-dz, dx)), tmpS.set(1, 1, 1)).multiply(visual.local));
+      });
+      return out;
+    }
+    const half = longX ? tmpS.set(0.5, 1, 1) : tmpS.set(1, 1, 0.5);
     [e, w, s, n].forEach((has, i) => {
       if (!has) return;
       const [dx, dz] = LINK_DIRS[i];
@@ -429,16 +564,27 @@ export class FarmView {
   }
 
   /** Re-place the fences around a tile after a fence there appeared, disappeared or moved. */
-  private relinkAround(x: number, z: number): void {
+  private relinkAround(x: number, z: number, depth = 0): void {
     for (const [dx, dz] of LINK_DIRS) {
       const n = this.g.buildingAt(x + dx, z + dz);
       const v = n && this.views.get(n.uid);
-      if (v && isLinked(v.def)) this.place(v);
+      if (!v || !isLinked(v.def)) continue;
+      this.place(v);
+      // a gate may have turned, which changes whether the fences beside it reach into it
+      if (v.def.gate && depth === 0) this.relinkAround(n.x, n.z, 1);
     }
   }
   private detachVisual(view: BuildingView): void {
     this.detachFromPool(view);
-    if (view.obj) { this.root.remove(view.obj); view.obj = null; }
+    if (view.obj) {
+      this.root.remove(view.obj);
+      view.obj = null;
+      view.fx?.dispose();
+      view.fx = null;
+      (view.glow?.material as THREE.Material | undefined)?.dispose();
+      (view.lightPool?.material as THREE.Material | undefined)?.dispose();
+      view.glow = view.lightPool = undefined;
+    }
   }
 
   /** Take a building out of its pool into a standalone object (for move mode / animations). */
@@ -826,15 +972,17 @@ export class FarmView {
         const busy = productionState(v.b, this.g.now()).running;
         v.fan.rotation[v.fanAxis ?? 'z'] += dt * (busy ? 2.4 : 0.35);
       }
+      if (v.fx && !this.hidden.has(v.b.uid)) v.fx.update(dt, t, night);
       if (v.glow) {
-        // campfires flicker, lamps hum steadily
-        const flick = v.def.id === 'campfire' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
+        // fires flicker, lamps hum steadily
+        const flick = v.def.id === 'campfire' || v.def.id === 'pumpkin_lanterns' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
         (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9 * flick;
         if (v.lightPool) {
           v.lightPool.visible = night > 0.02;
           (v.lightPool.material as THREE.MeshBasicMaterial).opacity = night * 0.38 * flick;
         }
       }
+      if (v.themed && v.obj) v.themed(dt, t, night);
       if (v.smokeAt && v.obj && !v.busy) this.emitSmoke(v, dt);
       // busy workshops hum: a tiny rhythmic squash while something is being made
       if (v.def.cat === 'production' && v.obj && !v.busy && !gsap.isTweening(v.obj.scale)) {
@@ -842,6 +990,7 @@ export class FarmView {
         v.obj.scale.set(1 - k * 0.5, 1 + k, 1 - k * 0.5);
       }
     }
+    this.gatesSwinging = this.swingGates(dt);
     this.updatePuffs(dt, night);
     this.updateBlobs();
   }
@@ -936,7 +1085,7 @@ export class FarmView {
 
   /** True when something needs per-frame animation (keeps the loop awake). */
   get animating(): boolean {
-    for (const v of this.views.values()) if (v.animals.length || v.fan) return true;
+    for (const v of this.views.values()) if (v.animals.length || v.fan || v.themed || v.fx) return true;
     return false;
   }
 
@@ -961,6 +1110,7 @@ export class FarmView {
     for (const g of this.ownGeometry) g.dispose();
     for (const m of this.ownMaterial) { (m as THREE.MeshLambertMaterial).map?.dispose(); m.dispose(); }
     for (const v of this.views.values()) {
+      v.fx?.dispose();
       (v.glow?.material as THREE.Material | undefined)?.dispose();
       (v.lightPool?.material as THREE.Material | undefined)?.dispose();
     }
