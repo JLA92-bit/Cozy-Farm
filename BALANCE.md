@@ -360,3 +360,33 @@ the Deep (1 / 3 / 10 legendary fish), Myth of the Deep (1 / 3 / 8 mythic fish) a
 **Simulation.** `simulate-economy.mjs` models fishing lightly (free casts every day, bait when orders or the Fish
 Shack want fish, 20 s of attention per cast, success by difficulty). Fishing adds about 0-1 XP per real hour and the
 level curve is unchanged within the simulation's noise; the simulated player buys the Fish Shack within two days of level 8.
+
+## Star quality (1.8, `economy.json` > `quality`)
+
+Every crop, fruit, animal product, fish and workshop good rolls its own quality when it is made (per unit, so a
+field of 3 can give 2 normal + 1 gold). Feed, bait, fertiliser and event tokens never roll. Rewards, gifts,
+crates, market and merchant purchases are always normal. Items finished while the game was closed roll when they
+are collected, exactly like items collected in play.
+
+| | Chance | Barn price | Friendship from a gift |
+| --- | --- | --- | --- |
+| Normal | 85% | 1x | 1x |
+| Silver | 12% | 1.25x | 1.25x |
+| Gold | 3% | 1.5x | 1.5x |
+| Fertilised field | silver 22%, gold 8% | | |
+
+Boosts add to the base chances through `qualityBoosts` (gold is capped at 25% and silver + gold at 60%).
+
+**Why it does not break the economy.** An average rolled item is worth `1 + 0.12 x 0.25 + 0.03 x 0.5 = 1.045x`
+at the barn. Only the barn pays for stars: orders, the truck, the stall and the market pay their usual price and
+take normal items first. Since most income comes from orders and the truck, stars add about 2% to coin income;
+their real job is to make good gifts for villagers.
+
+**Star ingredients.** A workshop job made entirely from silver (or gold) ingredients comes out silver (or gold).
+Ingredients and goods both gain the same 1.25x / 1.5x, so the 1.4-1.5x value of a recipe is unchanged and there is
+nothing to flip; it only turns stars into bigger, better gifts. Jobs made from normal ingredients roll their own
+small chance like any other source.
+
+**Fertiliser.** Feed Mill, level 8: 2 wheat + 1 corn (12 coins of crops) -> 2 bags in 2 min, so about 6 coins a
+bag. A fertilised field adds +10% silver and +5% gold, worth about +5% of that harvest at the barn: break-even on
+the dearer crops, a small loss on wheat. It is a choice for players who want gold gifts, not a money maker.
