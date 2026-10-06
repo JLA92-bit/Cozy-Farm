@@ -1,6 +1,6 @@
 # Google Play launch checklist - Cozy Acres
 
-In order. Tick each box as you go. Details for the Android build are in `android/README.md`, the listing text in
+Current status: `store/play-status.md`. In order. Tick each box as you go. Details for the Android build are in `android/README.md`, the listing text in
 `store/listing.md`, the Data safety answers in `store/data-safety.md`.
 
 ## 0. Before Play Console (can be done now)
