@@ -475,6 +475,19 @@
    "xp": 2
   },
   {
+   "id": "fertiliser",
+   "building": "feed_mill",
+   "level": 8,
+   "in": {
+    "wheat": 2,
+    "corn": 1
+   },
+   "item": "fertiliser",
+   "out": 2,
+   "sec": 120,
+   "xp": 2
+  },
+  {
    "id": "fish_cake",
    "building": "fish_shack",
    "level": 8,

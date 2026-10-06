@@ -1,9 +1,11 @@
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, fmt, clear, priceTag } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL, ECONOMY } from '../../data';
+import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL } from '../../data';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
+import { QUALITY_NAME, qualityPrice, rollsQuality, type Quality } from '../../systems/Quality';
+import { starBadge, starIcon } from '../QualityUI';
 
 const CATS = [
   { id: 'all', label: 'All', icon: 'package' },
@@ -46,12 +48,16 @@ export function openInventory(tab = 'all'): void {
     clear(p.footer);
     p.footer.style.display = 'none';
     if (t === 'stored') { renderStored(p); return; }
-    const items = Object.entries(game.state.inventory)
+    const ids = Object.entries(game.state.inventory)
       .filter(([id, n]) => n > 0 && ITEMS[id] && inCat(id, t))
-      .sort((a, b) => ITEMS[a[0]].sell - ITEMS[b[0]].sell || ITEMS[a[0]].name.localeCompare(ITEMS[b[0]].name));
-    if (selected && !items.some(([id]) => id === selected)) selected = null;
+      .map(([id]) => id)
+      .sort((a, b) => ITEMS[a].sell - ITEMS[b].sell || ITEMS[a].name.localeCompare(ITEMS[b].name));
+    // 1.8: silver and gold get their own tile right after the normal one
+    const items: { id: string; q: Quality; n: number; key: string }[] = [];
+    for (const id of ids) game.qualityCounts(id).forEach((n, q) => { if (n > 0) items.push({ id, q: q as Quality, n, key: `${id}|${q}` }); });
+    if (selected && !items.some((it) => it.key === selected)) selected = null;
     const total = Object.values(game.state.inventory).reduce((s, n) => s + n, 0);
-    const worth = Object.entries(game.state.inventory).reduce((s, [id, n]) => s + (n > 0 && ITEMS[id] ? sellValue(id, n) : 0), 0);
+    const worth = Object.keys(game.state.inventory).reduce((s, id) => s + (ITEMS[id] ? game.qualityCounts(id).reduce((v, n, q) => v + (n > 0 ? qualityPrice(id, q as Quality, n) : 0), 0) : 0), 0);
     p.body.append(h('div', { class: 'barn-summary' },
       h('span', { class: 'pill' }, icon('package'), `${fmt(total)} items`),
       worth ? h('span', { class: 'pill' }, 'Worth ', icon('coin'), fmt(worth)) : null,
@@ -59,13 +65,15 @@ export function openInventory(tab = 'all'): void {
     ));
     if (!items.length) p.body.append(h('div', { class: 'empty-state' }, icon(CATS.find((c) => c.id === t)?.icon ?? 'package'), h('div', null, EMPTY[t] ?? EMPTY.all)));
     const grid = h('div', { class: 'grid tight' });
-    for (const [id, n] of items) {
-      const el = h('div', { class: `card clickable item-card ${selected === id ? 'selected' : ''}` }, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name), h('div', { class: 'count-tag outlined' }, `x${fmt(n)}`));
-      el.addEventListener('click', () => { selected = selected === id ? null : id; audio.play('select'); render(t); });
+    for (const { id, q, n, key } of items) {
+      const el = h('div', { class: `card clickable item-card ${q ? `q-${q === 2 ? 'gold' : 'silver'}` : ''} ${selected === key ? 'selected' : ''}`, 'aria-label': `${q ? `${QUALITY_NAME[q]} ` : ''}${ITEMS[id].name}, ${n}` },
+        q ? starBadge(q) : null, itemIcon(id, 'card-icon'), h('div', { class: 'card-sub' }, ITEMS[id].name), h('div', { class: 'count-tag outlined' }, `x${fmt(n)}`));
+      el.addEventListener('click', () => { selected = selected === key ? null : key; audio.play('select'); render(t); });
       grid.append(el);
     }
     p.body.append(grid);
-    if (selected && game.count(selected) > 0) sellBar(p, selected, () => render(t));
+    const sel = items.find((it) => it.key === selected);
+    if (sel) sellBar(p, sel.id, sel.q, () => render(t));
   };
   p.onTab = render;
   p.tab = tab;
@@ -83,13 +91,20 @@ function holdRepeat(b: HTMLButtonElement, step: () => void): void {
   b.addEventListener('click', (e) => { if (held) { e.stopImmediatePropagation(); held = false; } }, { capture: true });
 }
 
-/** What the barn pays for n of an item (same formula as Game.sellItem). */
-const sellValue = (item: string, n: number): number => Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult);
+/** What the barn pays for n of an item at a quality (same formula as Game.sellItem). */
+const sellValue = (item: string, n: number, q: Quality = 0): number => qualityPrice(item, q, n);
 
-function sellBar(p: Panel, item: string, rerender: () => void): void {
+/** "Normal 10 · Silver 13 · Gold 15", the one being sold outlined. */
+function priceLine(item: string, q: Quality): HTMLElement {
+  return h('div', { class: 'q-prices' }, ...([0, 1, 2] as Quality[]).map((k) => h('span', { class: k === q ? 'on' : '' },
+    k ? starIcon(k) : null, `${QUALITY_NAME[k]} `, icon('coin'), fmt(sellValue(item, 1, k)))));
+}
+
+function sellBar(p: Panel, item: string, quality: Quality, rerender: () => void): void {
   const def = ITEMS[item];
   if (def.sell <= 0) return;
-  const max = () => Math.max(1, game.count(item));
+  const have = () => game.qualityCounts(item)[quality];
+  const max = () => Math.max(1, have());
   let qty = 1;
   const qtyEl = h('span', { class: 'qty-val outlined' }, '1');
   const priceEl = h('span');
@@ -98,7 +113,7 @@ function sellBar(p: Panel, item: string, rerender: () => void): void {
   const all = button('All', () => { qty = qty === max() ? 1 : max(); update(); }, 'small blue');
   const update = () => {
     qtyEl.textContent = String(qty);
-    priceEl.replaceChildren(priceTag(sellValue(item, qty)));
+    priceEl.replaceChildren(priceTag(sellValue(item, qty, quality)));
     minus.classList.toggle('disabled', qty <= 1);
     plus.classList.toggle('disabled', qty >= max());
     all.textContent = qty === max() && max() > 1 ? 'One' : 'All';
@@ -108,12 +123,15 @@ function sellBar(p: Panel, item: string, rerender: () => void): void {
   update();
   p.footer.style.display = '';
   p.footer.append(
-    h('div', { class: 'sell-info' }, itemIcon(item, 'icon big'), h('div', { class: 'grow' }, h('div', { class: 'title' }, def.name, h('span', { class: 'muted' }, `  x${fmt(game.count(item))}`)), h('div', { class: 'muted' }, `${sourceText(item)}${sourceText(item) ? ' · ' : ''}`, icon('coin'), `${fmt(sellValue(item, 1))} each`))),
+    h('div', { class: 'sell-info' }, itemIcon(item, 'icon big'), h('div', { class: 'grow' },
+      h('div', { class: 'title' }, def.name, quality ? starBadge(quality) : null, h('span', { class: 'muted' }, `  x${fmt(have())}`)),
+      h('div', { class: 'muted' }, `${sourceText(item)}${sourceText(item) ? ' · ' : ''}`, icon('coin'), `${fmt(sellValue(item, 1, quality))} each`),
+      rollsQuality(item) ? priceLine(item, quality) : null)),
     h('div', { class: 'qty-stepper' }, minus, qtyEl, plus),
     all,
     button(['Sell', priceEl], () => {
       const r = p.footer.getBoundingClientRect();
-      const coins = game.sellItem(item, qty);
+      const coins = game.sellItem(item, qty, undefined, quality);
       if (coins) ui.feedback.fly(r.left + r.width / 2, r.top, 'coin', 'coins', Math.ceil(coins / 20));
       rerender();
     }, 'small yellow sell-btn'),

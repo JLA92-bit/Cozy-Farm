@@ -55,12 +55,17 @@ function jar(content: string, lid: string = PAL.red): THREE.BufferGeometry {
     .build();
 }
 
-function sack(tag: string): THREE.BufferGeometry {
-  return geo()
+function sack(tag: string, sprout = false): THREE.BufferGeometry {
+  const b = geo()
     .sphere(0.36, '#e8d3a2', [0, 0.33, 0], 1, [1, 1.05, 0.85])
     .cyl(0.12, 0.2, 0.2, '#d8bf88', [0, 0.62, 0], 7)
-    .box(0.3, 0.2, 0.04, tag, [0, 0.35, 0.3])
-    .build();
+    .box(0.3, 0.2, 0.04, tag, [0, 0.35, 0.3]);
+  if (sprout) {
+    b.cyl(0.02, 0.025, 0.2, '#4f9a32', [0, 0.78, 0], 5);
+    b.sphere(0.09, '#6cc24a', [0.08, 0.92, 0], 0, [1.4, 0.5, 0.8]);
+    b.sphere(0.09, '#7fd65a', [-0.08, 0.9, 0], 0, [1.4, 0.5, 0.8]);
+  }
+  return b.build();
 }
 
 export const PROC: Record<string, () => THREE.BufferGeometry> = {
@@ -275,6 +280,8 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   feed_sheep: () => sack('#a8d8ff'),
   feed_pig: () => sack('#ff9fc2'),
   feed_goat: () => sack('#9bd16a'),
+  // 1.8: a brown-tagged sack with a little green sprout on top
+  fertiliser: () => sack('#8a5a2e', true),
   jam_red: () => jar('#e2304a'),
   jam_gold: () => jar('#f2a530', PAL.green),
   jam_purple: () => jar('#7b3fa8', PAL.gold),

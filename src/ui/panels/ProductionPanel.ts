@@ -13,6 +13,9 @@ import type { PlacedBuilding } from '../../systems/State';
 import { sourceText } from './InventoryPanel';
 import './economy.css';
 import { hints } from '../../systems/Hints';
+import { QUALITY_NAME, type Quality } from '../../systems/Quality';
+import { starBadge, starIcon } from '../QualityUI';
+import '../quality.css';
 
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
@@ -71,6 +74,8 @@ export function openProduction(b: PlacedBuilding): void {
   let lastSig = '';
   let cancelAt = -1;
   let cancelTimer = 0;
+  /** 1.8: "Use star ingredients" per recipe for the next job (off unless the player picks it, off again after) */
+  const starPick = new Map<string, Quality>();
 
   const renderQueue = () => {
     const now = game.now();
@@ -85,8 +90,10 @@ export function openProduction(b: PlacedBuilding): void {
     const ready = new Map<string, number>();
     for (const item of b.ready ?? []) ready.set(item, (ready.get(item) ?? 0) + 1);
     for (const [item, n] of ready) {
-      queueEl.append(h('div', { class: 'card clickable done prod-slot', onclick: () => collect() }, itemIcon(item, 'icon'),
-        n > 1 ? h('div', { class: 'count-tag outlined' }, `x${n}`) : null, h('div', { class: 'card-sub' }, 'Collect')));
+      const st = b.readyStar?.[item];
+      const sq: Quality = st?.[1] ? 2 : st?.[0] ? 1 : 0;
+      queueEl.append(h('div', { class: `card clickable done prod-slot ${sq ? `q-${sq === 2 ? 'gold' : 'silver'}` : ''}`, onclick: () => collect() }, itemIcon(item, 'icon'),
+        n > 1 ? h('div', { class: 'count-tag outlined' }, `x${n}`) : null, h('div', { class: 'card-sub' }, 'Collect'), sq ? starBadge(sq) : null));
     }
     for (let i = 0; i < slots; i++) {
       const e = q[i];
@@ -96,7 +103,8 @@ export function openProduction(b: PlacedBuilding): void {
       const pct = running ? Math.min(100, ((now - e.start) / (e.end - e.start)) * 100) : 0;
       // waiting jobs can be taken back (two taps) in case of a mis-tap
       const confirming = !running && cancelAt === i;
-      const slot = h('div', { class: `card prod-slot ${running ? 'running' : 'clickable waiting'} ${confirming ? 'confirm' : ''}` }, itemIcon(r.item, 'icon'),
+      const slot = h('div', { class: `card prod-slot ${running ? 'running' : 'clickable waiting'} ${confirming ? 'confirm' : ''} ${e.q ? `q-${e.q === 2 ? 'gold' : 'silver'}` : ''}`, title: e.q ? `${QUALITY_NAME[e.q]} ingredients: comes out ${QUALITY_NAME[e.q].toLowerCase()}` : undefined }, itemIcon(r.item, 'icon'),
+        e.q && !confirming ? starBadge(e.q) : null,
         r.out > 1 ? h('div', { class: 'count-tag outlined' }, `x${r.out}`) : null,
         confirming ? h('div', { class: 'card-sub prod-cancel' }, 'Cancel?')
           : h('div', { class: 'progress', style: 'width:100%' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, running ? formatTime(e.end - now) : 'Next')));
@@ -122,7 +130,7 @@ export function openProduction(b: PlacedBuilding): void {
       detail.textContent = up ? 'Queue is full. Upgrade for an extra slot!' : 'Queue is full.';
     } else if (detail.dataset.sticky !== '1') detail.textContent = '';
     // recipes depend on stock and queue state; re-render them only when those change
-    const sig = `${q.length}|${ready.size}|${Object.entries(game.state.inventory).join(',')}|${game.state.orders.list.map((o) => o.id + ':' + (o.readyAt <= now)).join(',')}|${game.state.truck?.crates.map((c) => c.filled).join(',') ?? ''}`;
+    const sig = `${q.length}|${ready.size}|${Object.entries(game.state.inventory).join(',')}|${JSON.stringify(game.state.quality)}|${game.state.orders.list.map((o) => o.id + ':' + (o.readyAt <= now)).join(',')}|${game.state.truck?.crates.map((c) => c.filled).join(',') ?? ''}`;
     if (sig !== lastSig) { lastSig = sig; renderRecipes(); }
   };
 
@@ -141,20 +149,37 @@ export function openProduction(b: PlacedBuilding): void {
     const locked = all.filter((r) => game.level < r.level);
     for (const r of [...unlocked, ...locked.slice(0, LOCKED_PREVIEW)]) {
       const isLocked = game.level < r.level;
+      // 1.8: star ingredients, offered only when there are enough silver (or gold) of every ingredient
+      const starOpts = isLocked ? [] : ([1, 2] as const).filter((sq) => production.canUseStar(r.id, sq));
+      let pick: Quality = starPick.get(r.id) ?? 0;
+      if (pick && !starOpts.includes(pick as 1 | 2)) { pick = 0; starPick.delete(r.id); }
       const ingredients = h('div', { class: 'row prod-ings' });
       for (const [item, n] of Object.entries(r.in)) {
-        const have = game.count(item);
+        const have = pick ? game.qualityCounts(item)[pick] : game.count(item);
         const short = have < n && !isLocked;
         ingredients.append(h('span', {
           class: `pill ${short ? 'short clickable' : ''}`,
           title: short ? sourceText(item) : ITEMS[item].name,
           onclick: short ? (e: MouseEvent) => { e.stopPropagation(); goToSource(item); } : undefined,
-        }, itemIcon(item), `${have}/${n}`, short ? icon('magnifier', 'icon tiny') : null));
+        }, pick ? starIcon(pick) : null, itemIcon(item), `${have}/${n}`, short ? icon('magnifier', 'icon tiny') : null));
       }
-      const check = production.canQueue(b, r.id);
-      const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : 'Make', () => {
-        if (!production.queue(b, r.id)) {
-          const c = production.canQueue(b, r.id);
+      let starRow: HTMLElement | null = null;
+      if (starOpts.length) {
+        const seg = h('div', { class: 'segmented', role: 'group', 'aria-label': 'Use star ingredients' });
+        for (const sq of [0, ...starOpts] as Quality[]) {
+          seg.append(h('button', {
+            class: `${pick === sq ? 'active' : ''} ${sq === 2 ? 'gold' : sq === 1 ? 'silver' : ''}`,
+            'aria-pressed': String(pick === sq),
+            onclick: () => { if (sq) starPick.set(r.id, sq); else starPick.delete(r.id); audio.play('select', { volume: 0.6 }); renderRecipes(); },
+          }, sq ? starIcon(sq) : null, sq ? QUALITY_NAME[sq] : 'Off'));
+        }
+        starRow = h('div', { class: 'q-use' }, h('span', { class: 'q-use-label' }, 'Use star ingredients'), seg,
+          pick ? h('div', { class: 'muted', style: 'flex-basis:100%;font-size:13px' }, `Uses ${QUALITY_NAME[pick].toLowerCase()} ingredients: the ${ITEMS[r.item].name} comes out ${QUALITY_NAME[pick].toLowerCase()}.`) : null);
+      }
+      const check = production.canQueue(b, r.id, pick);
+      const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : pick ? [starIcon(pick), 'Make'] : 'Make', () => {
+        if (!production.queue(b, r.id, pick)) {
+          const c = production.canQueue(b, r.id, pick);
           if (c.reason === 'Missing ingredients') {
             const miss = Object.entries(r.in).filter(([i, n]) => game.count(i) < n).map(([i, n]) => `${n - game.count(i)} ${ITEMS[i].name} (${sourceText(i)})`);
             detail.textContent = `Need ${miss.join(', ')}.${hints.coach('produce') ? ' Tap a red item to find it.' : ''}`;
@@ -165,6 +190,8 @@ export function openProduction(b: PlacedBuilding): void {
           return;
         }
         detail.dataset.sticky = '';
+        // a star job is a one-off choice: the next one is normal again unless picked again
+        if (pick) { starPick.delete(r.id); ui.feedback.toast(`${QUALITY_NAME[pick]} ${ITEMS[r.item].name} on the way`, `Made from ${QUALITY_NAME[pick].toLowerCase()} ingredients`, 'star'); }
         game.bus.emit('tutorial', { signal: `produce:${r.id}` });
         renderQueue();
       }, `small ${isLocked ? 'grey' : check.ok ? '' : 'disabled'}`);
@@ -175,13 +202,15 @@ export function openProduction(b: PlacedBuilding): void {
       const tags = h('div', { class: 'row prod-tags' },
         !isLocked && owned ? h('span', { class: 'mini-tag' }, `In barn: ${owned}`) : null,
         !isLocked && need ? h('span', { class: 'mini-tag wanted' }, icon('clipboard', 'icon tiny'), `Wanted x${need}`) : null);
-      recipesEl.append(h('div', { class: `list-item ${isLocked ? 'prod-locked' : ''} ${need && !isLocked ? 'prod-wanted' : ''}` },
+      if (!isLocked && r.item === 'fertiliser' && !game.state.collection['item:fertiliser']) tags.prepend(h('span', { class: 'mini-tag wanted' }, 'New'));
+      recipesEl.append(h('div', { class: `list-item ${isLocked ? 'prod-locked' : ''} ${need && !isLocked ? 'prod-wanted' : ''} ${pick ? 'q-on' : ''}` },
         ic,
         h('div', { class: 'grow' },
           h('div', { class: 'title' }, `${ITEMS[r.item].name}${r.out > 1 ? ` x${r.out}` : ''}`),
           h('div', { class: 'sub' }, `${formatTime(r.sec * 1000)} · sells ${ITEMS[r.item].sell * r.out} · +${r.xp} XP`),
           tags.childElementCount ? tags : null,
-          ingredients),
+          ingredients,
+          starRow),
         make));
     }
     if (locked.length > LOCKED_PREVIEW) recipesEl.append(h('div', { class: 'muted center' }, `${locked.length - LOCKED_PREVIEW} more recipes unlock as you level up.`));
