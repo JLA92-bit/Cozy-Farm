@@ -4,6 +4,7 @@ import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, plotReady, plotRemaining, treeReady } from './Timers';
 import { speedupCost } from './Buildings';
+import { plantGrowthMult } from './Weather';
 
 export class FarmingSystem {
   canPlant(b: PlacedBuilding, crop: string): { ok: boolean; reason?: string } {
@@ -20,8 +21,8 @@ export class FarmingSystem {
     if (!this.canPlant(b, crop).ok) return false;
     const def = CROP[crop];
     game.spend(def.seedCost);
-    // Charm speeds growth a little
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth)));
+    // Charm speeds growth a little; so does a rainy day (1.8 weather)
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult()));
     b.plot = { crop, plantedAt: game.now(), growSec };
     game.incStat('plants_planted');
     game.discover(crop, 'crop');
