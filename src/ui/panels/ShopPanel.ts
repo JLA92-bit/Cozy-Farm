@@ -24,6 +24,8 @@ let lastTab = '';
 const inTab = (b: BuildingDef, tab: string): boolean => {
   if (tab === 'event') return b.event === game.state.event?.id;
   if (b.event) return false;
+  // keepsakes (1.8) are given, never bought
+  if (b.group === 'keepsakes') return false;
   if (tab === 'animal') return b.cat === 'animal';
   if (b.cat !== tab) return false;
   if (b.cat === 'special' && !b.max) return false;
