@@ -22,7 +22,8 @@ export function sourceText(item: string): string {
   if (s.kind === 'animal') return `From ${ANIMAL[s.id].name}s`;
   if (s.kind === 'recipe') return `Made at the ${BUILDING[RECIPE[s.id].building].name}`;
   if (s.kind === 'fish') return 'Caught at the dock';
-  return 'Found during events';
+  // 1.8 daily finds turn up on the farm too
+  return ['seashell', 'petal', 'acorn'].includes(item) ? 'Found on your farm and during events' : 'Found during events';
 }
 
 const EMPTY: Record<string, string> = {
