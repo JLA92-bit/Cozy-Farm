@@ -116,7 +116,7 @@ export async function village18View(host: HTMLElement): Promise<void> {
   upd();
   const send = async () => {
     if (!title.value.trim() || !body.value.trim()) { toast('Write a title and a letter', 'info'); return; }
-    if (/—/.test(title.value + body.value)) { toast('Use " - " instead of a long dash, like the rest of the game', 'info'); return; }
+    if (/\u2014/.test(title.value + body.value)) { toast('Use " - " instead of a long dash, like the rest of the game', 'info'); return; }
     const who = AUD.find(([k]) => k === aud.value)![1];
     if (await modal('Send this letter?', [letterPreview(title.value.trim(), body.value.trim()), h('p', null, `To: ${who}. It arrives in each mailbox the next time the game is opened, once per player, and cannot be taken back.`)],
       [{ label: 'Cancel', value: 'no' }, { label: 'Send letter', value: 'yes', kind: 'primary' }], true) !== 'yes') return;
