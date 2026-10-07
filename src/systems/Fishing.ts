@@ -2,7 +2,7 @@ import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from 
 import { game } from './Game';
 import { localDay } from './Progression';
 import type { FishingState } from './State';
-import { rollQuality, type Quality } from './Quality';
+import { countStars, rollQuality, type Quality } from './Quality';
 
 /**
  * Fishing at the dock: free casts per day, bait, what bites when, rolling a catch and recording it.
@@ -147,6 +147,7 @@ class FishingSystem {
       // 1.8: a fish can be a silver or gold catch (the catch card shows it)
       res.quality = rollQuality('fish', c.id);
       game.addItem(c.id, 1, undefined, res.quality);
+      countStars(res.quality === 1 ? 1 : 0, res.quality === 2 ? 1 : 0);
       game.incStat('fish_caught');
       game.incStat(`catch_${c.id}`);
       if (c.def.rarity === 'rare') this.syncRare();

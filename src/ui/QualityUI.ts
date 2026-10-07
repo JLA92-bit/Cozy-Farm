@@ -56,7 +56,6 @@ export function wireQualityFx(fb: Feedback, fx: Effects, screen: (v: { x: number
       setTimeout(() => game.bus.emit('toast', { title: 'Fertiliser!', sub: 'Turn on Fertiliser in the seed tray when you plant: those fields grow more silver and gold.', icon: 'seedling' }), 700);
     }
     if (!quality) return;
-    game.incStat(quality === 2 ? 'gold_items' : 'silver_items', delta);
     if (hints.firstTime('intro:quality')) {
       setTimeout(() => game.bus.emit('toast', { title: `A ${QUALITY_NAME[quality].toLowerCase()} ${ITEMS[item]?.name ?? 'item'}!`, sub: 'Silver and gold items sell for more and villagers love them.', icon: 'star', style: 'gold' }), 900);
     }

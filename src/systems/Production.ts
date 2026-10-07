@@ -3,7 +3,7 @@ import { buildings, speedupCost } from './Buildings';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, settleProduction } from './Timers';
-import { addRolled, rollsQuality, type Quality } from './Quality';
+import { addRolled, countStars, rollsQuality, type Quality } from './Quality';
 
 export class ProductionSystem {
   recipesFor(type: string): RecipeDef[] {
@@ -83,6 +83,7 @@ export class ProductionSystem {
       addRolled('production', item, n - s - g, at);
       if (s) game.addItem(item, s, at, 1);
       if (g) game.addItem(item, g, at, 2);
+      countStars(s, g);
       const r = RECIPES.find((x) => x.item === item && x.building === b.type);
       xp += Math.round(((r?.xp ?? 1) * n) / (r?.out ?? 1));
     }

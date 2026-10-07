@@ -177,7 +177,7 @@ export function openProduction(b: PlacedBuilding): void {
           pick ? h('div', { class: 'muted', style: 'flex-basis:100%;font-size:13px' }, `Uses ${QUALITY_NAME[pick].toLowerCase()} ingredients: the ${ITEMS[r.item].name} comes out ${QUALITY_NAME[pick].toLowerCase()}.`) : null);
       }
       const check = production.canQueue(b, r.id, pick);
-      const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : pick ? [starIcon(pick), 'Make'] : 'Make', () => {
+      const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : 'Make', () => {
         if (!production.queue(b, r.id, pick)) {
           const c = production.canQueue(b, r.id, pick);
           if (c.reason === 'Missing ingredients') {

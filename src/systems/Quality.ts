@@ -65,10 +65,17 @@ export function rollCounts(source: QualitySource, item: string, n: number, rand:
 export function addRolled(source: QualitySource, item: string, n: number, at?: Vec): [number, number, number] {
   const split = rollCounts(source, item, n);
   split.forEach((k, q) => { if (k > 0) game.addItem(item, k, at, q as Quality); });
+  countStars(split[1], split[2]);
   return split;
 }
 
 /** Sell price of one item at a quality (same formula as game.sellItem). */
 export function qualityPrice(item: string, q: Quality, n = 1): number {
   return Math.round((ITEMS[item]?.sell ?? 0) * n * ECONOMY.barn.sellMult * QUALITY_MULT[q]);
+}
+
+/** Dashboard counters for stars made in play (not refunds or gifts). */
+export function countStars(silver: number, gold: number): void {
+  if (silver > 0) game.incStat('silver_items', silver);
+  if (gold > 0) game.incStat('gold_items', gold);
 }

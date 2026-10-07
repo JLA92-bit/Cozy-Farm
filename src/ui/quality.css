@@ -30,8 +30,8 @@
 /* production: "Use star ingredients" choice under a recipe */
 .q-use { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .q-use .q-use-label { font-family: var(--font-display); font-size: 13px; color: var(--ink-soft); }
-.q-use .segmented { border-width: 2px; border-radius: 10px; }
-.q-use .segmented button { min-width: 64px; min-height: 44px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 0 8px; }
+.q-use .segmented { border-width: 2px; border-radius: 10px; flex: 1 1 100%; max-width: 280px; }
+.q-use .segmented button { flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 0 4px; }
 .q-use .segmented button + button { border-left-width: 2px; }
 .q-use .segmented button.active.silver { background: #c3cfd9; color: var(--ink); -webkit-text-stroke: 0; }
 .q-use .segmented button.active.gold { background: #ffcf3f; color: var(--ink); -webkit-text-stroke: 0; }
