@@ -32,6 +32,8 @@ if (!fs.existsSync(CACHE)) {
 }
 
 function findFile(dir, base) {
+  // with ADD_ONLY only the packs of the models being added need to be downloaded
+  if (process.env.ADD_ONLY && !fs.existsSync(dir)) return null;
   const stack = [dir];
   while (stack.length) {
     const d = stack.pop();
@@ -41,6 +43,7 @@ function findFile(dir, base) {
       else if (e.name === base) return p;
     }
   }
+  if (process.env.ADD_ONLY) return null;
   throw new Error(`not found: ${base} in ${dir}`);
 }
 
@@ -75,6 +78,9 @@ const MODELS = [
   hex('bld/stage_c', 'building_stage_C'),
   hex('bld/scaffolding', 'building_scaffolding'),
   hex('bld/grain', 'building_grain'),
+  // 1.8.5 Village Restoration: the ruined lots of the village square (ADD_ONLY=bld/ruin,bld/dirt adds just these)
+  hex('bld/ruin', 'building_destroyed'),
+  hex('bld/dirt', 'building_dirt'),
   // props
   hex('prop/barrel', 'barrel'),
   hex('prop/crate_big', 'crate_A_big'),
@@ -234,15 +240,19 @@ function ensureDir(p) { fs.mkdirSync(p, { recursive: true }); }
 function kb(p) { return Math.round(fs.statSync(p).size / 1024); }
 
 // ---------------------------------------------------------------- models
+// ADD_ONLY=id,id,... builds just those models and merges them into the existing manifest, so a new model can be
+// added without rebuilding (and re-compressing) everything. Needs the pack in .asset-cache (fetch-assets.sh).
+const ADD_ONLY = process.env.ADD_ONLY ? new Set(process.env.ADD_ONLY.split(',').map((s) => s.trim()).filter(Boolean)) : null;
+
 async function buildModels() {
   await MeshoptEncoder.ready;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder });
   const atlases = {};
   const models = {};
   const modelDir = path.join(OUT, 'models');
-  fs.rmSync(modelDir, { recursive: true, force: true });
+  if (!ADD_ONLY) fs.rmSync(modelDir, { recursive: true, force: true });
   let total = 0;
-  for (const [id, src, atlas, pack] of MODELS) {
+  for (const [id, src, atlas, pack] of MODELS.filter(([id]) => !ADD_ONLY || ADD_ONLY.has(id))) {
     if (!fs.existsSync(src)) throw new Error(`missing source ${src}`);
     const doc = await io.read(src);
     const root = doc.getRoot();
@@ -308,7 +318,7 @@ async function buildModels() {
     };
     if (!models[id].anims.length) delete models[id].anims;
   }
-  console.log(`models: ${MODELS.length} files, ${Math.round(total / 1024)} KB`);
+  console.log(`models: ${Object.keys(models).length} files, ${Math.round(total / 1024)} KB`);
   return { models, atlases };
 }
 
@@ -505,6 +515,16 @@ function buildIcons() {
 }
 
 // ---------------------------------------------------------------- main
+if (ADD_ONLY) {
+  const manifestPath = path.join(OUT, 'manifest.json');
+  const old = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const { models } = await buildModels();
+  for (const id of ADD_ONLY) if (!models[id]) throw new Error(`ADD_ONLY: unknown model ${id}`);
+  Object.assign(old.models, models);
+  fs.writeFileSync(manifestPath, JSON.stringify(old));
+  console.log('manifest updated with', Object.keys(models).join(', '));
+  process.exit(0);
+}
 const { models, atlases } = await buildModels();
 const textures = buildTextures(atlases);
 const audio = buildAudio();
