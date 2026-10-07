@@ -705,7 +705,7 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .hud-bottom > div:first-child { display: none; }
   .hud-menu {
     flex: 1 1 auto; flex-wrap: nowrap; justify-content: space-between; align-items: flex-end; gap: 4px;
-    --dock: min(var(--hud-btn), calc((100vw - var(--safe-left) - var(--safe-right) - 16px - 24px - 8px) / 7));
+    --dock: min(var(--hud-btn), calc((100vw - var(--safe-left) - var(--safe-right) - 16px - 24px - 8px) / 8));
   }
   .hud-menu .hud-btn { width: var(--dock); height: calc(var(--dock) + 2px); min-width: 0; min-height: 0; border-radius: 14px; }
   .hud-menu .hud-btn .icon { width: calc(var(--dock) * .62); height: calc(var(--dock) * .62); }

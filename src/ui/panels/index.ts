@@ -17,3 +17,4 @@ import './MoveFarmPanel';
 import './NeighboursPanel';
 import './FishingPanel';
 import './AdminGiftPanel';
+import './VillagePanel';

@@ -67,6 +67,7 @@ export class HUD {
       ['collection', 'Book', 'books', 'purple'],
       ['achievements', 'Awards', 'trophy', 'yellow'],
       ['quests', 'Quests', 'scroll', 'yellow'],
+      ['village', 'Village', 'hug', 'pink'],
       ['inventory', 'Barn', 'package', 'blue'],
       ['build', 'Build', 'hammer', 'grey'],
       ['shop', 'Shop', 'cart', 'primary'],
