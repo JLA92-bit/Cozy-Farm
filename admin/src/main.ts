@@ -11,6 +11,7 @@ import { marketView } from './views/market';
 import { leaderboardsView } from './views/leaderboards';
 import { notifyView } from './views/notify';
 import { systemView } from './views/system';
+import { village18View } from './views/village18';
 
 type View = (host: HTMLElement, arg?: string) => Promise<void> | void;
 const NAV: { id: string; label: string; icon: string; view: View }[] = [
@@ -23,6 +24,7 @@ const NAV: { id: string; label: string; icon: string; view: View }[] = [
   { id: 'market', label: 'Market', icon: '⚖', view: marketView },
   { id: 'leaderboards', label: 'Leaderboards', icon: '★', view: leaderboardsView },
   { id: 'notify', label: 'Notifications', icon: '🔔', view: notifyView },
+  { id: 'village', label: '1.8 Village', icon: '♥', view: village18View },
   { id: 'system', label: 'System & log', icon: '⚙', view: systemView },
 ];
 
