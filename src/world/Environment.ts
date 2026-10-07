@@ -126,7 +126,7 @@ export class Environment {
     this.motes.renderOrder = 4;
     this.group.add(this.motes);
     // 1.8 rain: short streaks around the camera target, one draw call (fewer on Low graphics)
-    const nr = Math.max(60, Math.round(420 * this.density));
+    const nr = Math.max(90, Math.round(560 * this.density));
     this.rainData = new Float32Array(nr * 3);
     for (let i = 0; i < nr; i++) this.rainData.set([(r() - 0.5) * RAIN_BOX, r() * RAIN_TOP, (r() - 0.5) * RAIN_BOX], i * 3);
     const rg = new THREE.BufferGeometry();
@@ -157,8 +157,8 @@ export class Environment {
     const dawn = p >= 0.88 ? dusk : 0;
     const eve = p < 0.88 ? dusk : 0;
     // 1.8 weather eases in and out over a few seconds
-    this.rainK += ((this.weather === 'rain' ? 1 : 0) - this.rainK) * Math.min(1, dt * 0.8);
-    this.mistK += ((this.weather === 'mist' ? 1 : 0) - this.mistK) * Math.min(1, dt * 0.8);
+    this.rainK += ((this.weather === 'rain' ? 1 : 0) - this.rainK) * Math.min(1, dt * 1.2);
+    this.mistK += ((this.weather === 'mist' ? 1 : 0) - this.mistK) * Math.min(1, dt * 1.2);
     const rainK = this.rainK, mistK = this.mistK;
     this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.8).lerp(this.skyDusk, eve * 0.6).lerp(this.skyDawn, dawn * 0.7);
     if (rainK > 0.001) this.sky.lerp(this.skyRain, rainK * (0.55 - night * 0.3));
@@ -166,13 +166,13 @@ export class Environment {
     const fog = this.scene.fog as THREE.Fog;
     fog.color.copy(this.sky);
     // evening haze: the distance melts into warm peach at dusk and soft blue at night
-    fog.near = 70 - night * 32 - dusk * 18 - rainK * 22 - mistK * 44;
-    fog.far = 160 - night * 50 - dusk * 30 - rainK * 40 - mistK * 82;
+    fog.near = 70 - night * 32 - dusk * 18 - rainK * 30 - mistK * 58;
+    fog.far = 160 - night * 50 - dusk * 30 - rainK * 55 - mistK * 98;
     // soft moonlit blue at night (still readable), warm peach at golden hour; a little greyer when it rains
-    this.hemi.intensity = 1.35 - night * 0.45 - rainK * 0.12;
+    this.hemi.intensity = 1.35 - night * 0.45 - rainK * 0.28;
     this.hemi.color.copy(this.hemiDay).lerp(this.hemiNight, night * 0.9).lerp(this.hemiDusk, dusk * 0.75);
     this.hemi.groundColor.copy(this.groundDay).lerp(this.groundNight, night * 0.85);
-    this.sun.intensity = (2.1 - night * 1.35 + eve * 0.35) * (1 - rainK * 0.45 - mistK * 0.2);
+    this.sun.intensity = (2.1 - night * 1.35 + eve * 0.35) * (1 - rainK * 0.5 - mistK * 0.25);
     this.sun.color.copy(this.sunDay).lerp(this.sunDusk, eve * 0.9).lerp(this.sunDawn, dawn * 0.7).lerp(this.moon, night * 0.85);
     // sun swings across the sky and sinks low at golden hour (long cosy shadows); the moon rides high at night
     const ang = -0.6 + p * 1.2;
@@ -219,13 +219,19 @@ export class Environment {
     }
   }
 
+  /** Show today's weather at once (on boot), instead of easing in. */
+  snapWeather(): void {
+    this.rainK = this.weather === 'rain' ? 1 : 0;
+    this.mistK = this.weather === 'mist' ? 1 : 0;
+  }
+
   /** Rain streaks fall and wrap inside a box that follows the camera target. */
   private updateRain(dt: number, focus: THREE.Vector3): void {
     const rain = this.rain, d = this.rainData;
     if (!rain || !d) return;
     rain.visible = this.rainK > 0.02;
     if (!rain.visible) return;
-    (rain.material as THREE.LineBasicMaterial).opacity = 0.5 * this.rainK;
+    (rain.material as THREE.LineBasicMaterial).opacity = 0.75 * this.rainK;
     const arr = (rain.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;
     for (let i = 0; i < d.length; i += 3) {
       d[i + 1] -= RAIN_SPEED * dt;
@@ -235,7 +241,7 @@ export class Environment {
       const j = i * 2;
       arr[j] = x; arr[j + 1] = d[i + 1]; arr[j + 2] = z;
       // slanted a touch, like a light breeze
-      arr[j + 3] = x - 0.08; arr[j + 4] = d[i + 1] + 0.55; arr[j + 5] = z - 0.04;
+      arr[j + 3] = x - 0.1; arr[j + 4] = d[i + 1] + 0.8; arr[j + 5] = z - 0.05;
     }
     rain.geometry.attributes.position.needsUpdate = true;
   }

@@ -129,6 +129,7 @@ function syncWeather(): void {
   const w = weatherToday();
   ui.scene.env.weather = w;
   if (!weatherEl) {
+    ui.scene.env.snapWeather();
     // a little chip on the level badge's corner: the name row has no room to spare on phones
     const badge = ui.hud.levelEl.parentElement;
     if (!badge) return;
