@@ -360,3 +360,17 @@ the Deep (1 / 3 / 10 legendary fish), Myth of the Deep (1 / 3 / 8 mythic fish) a
 **Simulation.** `simulate-economy.mjs` models fishing lightly (free casts every day, bait when orders or the Fish
 Shack want fish, 20 s of attention per cast, success by difficulty). Fishing adds about 0-1 XP per real hour and the
 level curve is unchanged within the simulation's noise; the simulated player buys the Fish Shack within two days of level 8.
+
+## Daily rhythm (1.8, `src/systems/Daily18.ts`, `src/systems/Weather.ts`)
+
+- **Villager of the day:** one villager a day, a fresh shuffle every six days so everyone visits once per cycle
+  (never the same villager two days running; a villager visits on their birthday). They ask for 2-6 of something
+  the farm can make now (half the time a thing they like): `2 + level / 8 (+0-1)`, x0.7 for goods worth over 60,
+  x0.45 over 150. They pay like an order on the board: 1.8 x value in coins and the order XP, plus 30 friendship.
+  One request a day, so it adds roughly one extra order's worth of income and never competes with the board.
+- **Daily finds:** three a day on free tiles you can walk to: a seashell (1), wild petals (2), acorns (2). They are
+  gift items with no barn value, so they feed friendship, not coins. 40% of days one of them is a villager's lost
+  thing instead: tapping it gives 20 friendship.
+- **Weather:** per local day from the farm seed: sunny 65%, rain 20%, mist 15%, never three rainy days in a row.
+  Rain: crops planted that day grow 5% faster (on top of Charm), and rare, legendary and mythic fish are 1.25x as
+  likely to bite. Mist is only a look. Both are small on purpose: nice to notice, never a reason to wait for rain.
