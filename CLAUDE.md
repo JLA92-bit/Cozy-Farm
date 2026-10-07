@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 7 October 2026 (game version 1.8.0). Owner: Josh Makes Games.
+Last updated: 7 October 2026 (game version 1.8.1). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.8.0 "Village Friends"** (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.8.1** (1.8.0 "Village Friends" + blank-screen fix) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
@@ -106,15 +106,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 6. Known issues
 
-**Pixel 10 Pro white screen (NOT fixed yet - highest priority).** On a Pixel 10 Pro (Tensor G5, Imagination PowerVR GPU) the HUD shows but the 3D canvas is plain white on Medium/High graphics. It works on **Low**. Basic WebGL works (get.webgl.org cube spins). Medium vs Low differ by shadows (on/off), pixelRatio (1.5/1), maxFps and ambientLife, so **shadow mapping is the likely cause**. `detectQuality()` in `src/core/Renderer.ts` picks Medium on that phone. There's no `webglcontextlost` handling yet. Planned fix:
-1. Detect PowerVR/Imagination from `WEBGL_debug_renderer_info` and turn shadows off by default.
-2. Blank-frame check after the first frames: read a pixel straight after `renderer.render()`; if blank, turn shadows off, then fall back to Low and save it.
-3. Add a Shadows on/off toggle in Settings > Graphics.
-4. Report the GPU string and any fallback to feedback/stats (admin dashboard).
-5. Add `webglcontextlost`/`webglcontextrestored` handling.
-6. Check the `onBeforeCompile`/`ShaderMaterial` code in `src/world/Terrain.ts` and `src/world/FarmView.ts` for GLSL strict mobile compilers reject.
-
-Workaround for players meanwhile: **Settings (grey gear) > Graphics > Low**.
+**GPU safety net (added in 1.8.1, needs confirming on a real Pixel 10 Pro).** The Pixel 10 Pro (Imagination PowerVR) showed a white 3D view on Medium/High, probably from shadow maps. Now: `src/core/Renderer.ts` detects PowerVR/Imagination (`WEBGL_debug_renderer_info`) and defaults the new `settings.shadows` to off there; `src/scenes/GpuGuard.ts` reads pixels after the first frames and, if the frame is blank, turns shadows off, then drops to Low and saves it, and handles `webglcontextlost`/`restored`; Settings > Graphics has a Shadows switch. GPU info and fallbacks go to the admin dashboard via `logEvent` (kinds `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back`, `gpu_blank_low`; only when signed in online). If a phone still shows white: Settings > Graphics > Low. The `onBeforeCompile`/`ShaderMaterial` GLSL in `Terrain.ts` and `FarmView.ts` was reviewed and looks valid (no strict-compiler problems found), but it was not tested on PowerVR.
 
 **Other rough edges (not fixed):**
 - Old players get six 2-heart tip letters at once on their first 1.8 boot (head start). Could be spread over days.
@@ -157,7 +149,7 @@ Workaround for players meanwhile: **Settings (grey gear) > Graphics > Low**.
 
 ## 8. Open to-dos
 
-- [ ] **Fix the Pixel 10 white screen** (section 6). Bump to 1.8.1 with a changelog line such as "Fixed a blank screen on some new phones such as the Pixel 10".
+- [ ] **Confirm the 1.8.1 white-screen fix on the Pixel 10 Pro** (section 6). If still white, check the `gpu_info` events for the GPU string.
 - [ ] Make sure the latest `supabase/schema.sql` (1.8 game events, letters, Ask a friend) has been run in Supabase.
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -186,6 +178,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.
 - 2026-10-07: Game 1.8.0 "Village Friends" released (villagers, hearts, letters, perks, mailbox, Ask a friend, silver/gold items, fertiliser, weather, welcome flow). Pixel 10 white screen diagnosed (shadows); fix still to do.
 - 2026-10-06: Game 1.7.0 (admin dashboard, gifts that arrive by themselves, feedback, play statistics).
 - 2026-10-06: Google Play setup: new app `app.joshmakesgames.cozyacres`, minSdk 24, versionCode 4 uploaded, assetlinks with both fingerprints, closed test sent for review.

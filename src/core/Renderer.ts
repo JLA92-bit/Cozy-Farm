@@ -27,6 +27,27 @@ export function detectQuality(): Quality {
   return 'high';
 }
 
+let gpuCache: string | null = null;
+/** The unmasked GPU name (e.g. "ANGLE (Imagination Technologies, PowerVR ...)"), or '' when the browser hides it. */
+export function gpuName(): string {
+  if (gpuCache !== null) return gpuCache;
+  gpuCache = '';
+  try {
+    const c = document.createElement('canvas');
+    const gl = (c.getContext('webgl2') ?? c.getContext('webgl')) as WebGLRenderingContext | null;
+    const ext = gl?.getExtension('WEBGL_debug_renderer_info');
+    if (gl && ext) gpuCache = String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) ?? '');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+  } catch { /* GPU name is only a hint */ }
+  return gpuCache;
+}
+
+/** PowerVR / Imagination GPUs (Pixel 10) show a blank screen with shadow maps, so shadows start off there. */
+export function isPowerVR(): boolean { return /powervr|imagination/i.test(gpuName()); }
+
+/** Shadows default: on, except on GPUs known to break with them. */
+export function detectShadows(): boolean { return !isPowerVR(); }
+
 /** Owns the WebGLRenderer. Re-created when antialias changes (it cannot be toggled at runtime). */
 export class Renderer {
   renderer: THREE.WebGLRenderer;
@@ -34,7 +55,7 @@ export class Renderer {
   private width = 1;
   private height = 1;
 
-  constructor(private canvas: HTMLCanvasElement, public quality: Quality) {
+  constructor(private canvas: HTMLCanvasElement, public quality: Quality, public shadowsPref = true) {
     this.profile = QUALITY[quality];
     this.renderer = this.create();
   }
@@ -49,10 +70,18 @@ export class Renderer {
     });
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.NoToneMapping;
-    r.shadowMap.enabled = this.profile.shadows;
+    r.shadowMap.enabled = this.shadowsOn;
     r.shadowMap.type = THREE.PCFShadowMap;
     r.setPixelRatio(Math.min(this.profile.pixelRatio, window.devicePixelRatio || 1));
     return r;
+  }
+
+  /** Real shadows need a quality that has them and the Shadows switch on. */
+  get shadowsOn(): boolean { return this.profile.shadows && this.shadowsPref; }
+
+  setShadowsPref(on: boolean): void {
+    this.shadowsPref = on;
+    this.renderer.shadowMap.enabled = this.shadowsOn;
   }
 
   setQuality(q: Quality): boolean {
@@ -63,7 +92,7 @@ export class Renderer {
       // antialias needs a new context; the caller reloads the page in this case
       return true;
     }
-    this.renderer.shadowMap.enabled = this.profile.shadows;
+    this.renderer.shadowMap.enabled = this.shadowsOn;
     this.renderer.setPixelRatio(Math.min(this.profile.pixelRatio, window.devicePixelRatio || 1));
     this.resize(this.width, this.height);
     return false;

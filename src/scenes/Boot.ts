@@ -3,6 +3,7 @@ import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
+import { GpuGuard } from './GpuGuard';
 import { settings } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
@@ -113,7 +114,7 @@ export async function boot(): Promise<void> {
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  const renderer = new Renderer(canvas, settings.quality);
+  const renderer = new Renderer(canvas, settings.quality, settings.shadows);
   thumbs.attach(renderer.renderer);
   scene = new FarmScene(canvas, renderer);
   scene.now = () => game.now();
@@ -164,6 +165,7 @@ export async function boot(): Promise<void> {
   // another tab may have started while we were still loading
   if (saves.locked) saves.onTakenOver();
   watchDayAndResume();
+  scene.gpuGuard = new GpuGuard(scene);
   scene.loop.start();
   setProgress(1, 'Welcome!');
   for (const fn of afterBoot) fn();

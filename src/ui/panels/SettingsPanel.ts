@@ -56,7 +56,7 @@ export function openSettings(): void {
           saveSettings(settings);
           seg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
           const needReload = ui.scene.renderer.setQuality(q);
-          ui.scene.env.setShadowMapSize(ui.scene.renderer.profile.shadowMapSize);
+          ui.scene.refreshShadows();
           ui.scene.loop.maxFps = ui.scene.renderer.profile.maxFps >= 60 ? 0 : ui.scene.renderer.profile.maxFps;
           if (needReload) { saves.save(); location.reload(); }
         });
@@ -64,6 +64,12 @@ export function openSettings(): void {
       }
       return seg;
     })()),
+    row('Shadows', toggle(settings.shadows, (v) => {
+      settings.shadows = v;
+      saveSettings(settings);
+      ui.scene.renderer.setShadowsPref(v);
+      ui.scene.refreshShadows();
+    })),
     row('Show FPS', toggle(settings.showFps, (v) => { settings.showFps = v; saveSettings(settings); ui.setFps(v); })),
     hintsRow(),
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),

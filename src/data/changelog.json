@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.8.1",
+   "date": "2026-10-07",
+   "title": "Brighter screens",
+   "icon": "gear",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "gear",
+     "text": "Fixed a blank screen on some new phones such as the Pixel 10"
+    },
+    {
+     "icon": "sparkles",
+     "text": "New Shadows switch in Settings > Graphics"
+    }
+   ]
+  },
+  {
    "version": "1.8.0",
    "date": "2026-10-07",
    "title": "Village Friends",

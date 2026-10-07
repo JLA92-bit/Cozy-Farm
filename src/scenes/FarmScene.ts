@@ -127,11 +127,26 @@ export class FarmScene implements InputHandler {
     if (visit) visit.frame(dt, t);
     else for (const fn of this.frameHooks) fn(dt, t);
     this.renderer.renderer.render(this.scene, this.rig.camera);
+    this.gpuGuard?.afterRender();
     // keep animating while things move; otherwise the loop idles at low fps
     if (this.rig.moving || this.input.active || (!visit && this.farm.hints.visible) || view.gatesSwinging) this.loop.wake(0.3);
     this.lastFrameMs = performance.now() - start;
     this.fpsAcc += dt; this.fpsFrames++;
     if (this.fpsAcc >= 1) { this.fps = this.fpsFrames / this.fpsAcc; this.fpsAcc = 0; this.fpsFrames = 0; }
+  }
+
+  /** Set by Boot: watches the first frames for a blank canvas and context loss. */
+  gpuGuard: { afterRender(): void } | null = null;
+
+  /** Apply the current quality + Shadows switch: shadow map size, and recompile materials for the shadow change. */
+  refreshShadows(): void {
+    this.env.setShadowMapSize(this.renderer.profile.shadowMapSize);
+    this.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+      if (Array.isArray(m)) m.forEach((x) => { x.needsUpdate = true; });
+      else if (m) m.needsUpdate = true;
+    });
+    this.loop.wake(0.5);
   }
 
   get frameMs(): number { return this.lastFrameMs; }
