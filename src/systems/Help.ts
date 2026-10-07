@@ -49,6 +49,8 @@ class HelpSystem {
   /** sends picked while visiting, done once back home: request id -> qty */
   private queued = new Map<string, number>();
   private busy = new Set<string>();
+  /** own older requests were checked once this session (items sent before they expired still arrive) */
+  private checkedOld = false;
 
   get state(): HelpState { return game.state.help; }
   get practice(): boolean { return online.kind === 'local'; }
@@ -300,7 +302,8 @@ class HelpSystem {
     const qty = needOf(closed);
     const coins = qty * hazelUnitPrice(r.item);
     if (qty > 0) {
-      game.addCoins(-coins);
+      // the request is closed now: she brings it even if a few coins were spent meanwhile
+      game.addCoins(-Math.min(coins, game.coins));
       game.addItem(r.item, qty);
       game.incStat('help_hazel');
     }
@@ -328,11 +331,21 @@ class HelpSystem {
     return this.polling;
   }
   private async doPoll(): Promise<void> {
+    // keep the server quiet for players who do not use Ask a friend: own requests are only checked while one
+    // could still be open (plus once a session for late arrivals), friends' only when there are friends
+    const now = Date.now();
+    const asks = Object.values(this.state.asked);
+    const recent = asks.some((t) => now - t < (ASK.expireHours + 2) * 3600e3);
+    const lately = asks.some((t) => now - t < 60 * 864e5);
+    const ids = friendIds();
+    if (!recent && !ids.length && (!lately || this.checkedOld)) { this.loaded = true; this.changed(); return; }
     try {
       await this.connect();
-      if (!visiting.active) await this.collect();
-      this.mine = await online.myHelpRequests();
-      const ids = friendIds();
+      if (recent || !this.checkedOld) {
+        if (!visiting.active) await this.collect();
+        this.mine = await online.myHelpRequests();
+        this.checkedOld = !visiting.active;
+      }
       const list = ids.length ? await online.friendHelpRequests(ids) : [];
       this.friendReqs = list.filter((r) => needOf(r) > 0 && r.requester.id !== online.me()?.id);
       this.announce();
