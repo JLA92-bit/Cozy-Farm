@@ -4,7 +4,7 @@ import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
-import { settings } from '../systems/Settings';
+import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
 import { PROC_DEPENDENCIES } from '../world/ProcModels';
@@ -114,7 +114,7 @@ export async function boot(): Promise<void> {
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  const renderer = new Renderer(canvas, settings.quality, settings.shadows);
+  const renderer = new Renderer(canvas, settings.quality, shadowsWanted());
   thumbs.attach(renderer.renderer);
   scene = new FarmScene(canvas, renderer);
   scene.now = () => game.now();

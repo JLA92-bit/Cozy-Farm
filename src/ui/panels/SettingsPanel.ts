@@ -1,7 +1,7 @@
 import { Panel } from '../Panel';
 import { h, icon, button, clear } from '../dom';
 import { ui } from '../UI';
-import { settings, saveSettings } from '../../systems/Settings';
+import { settings, saveSettings, shadowsWanted } from '../../systems/Settings';
 import { audio, haptics } from '../../systems/Audio';
 import { saves } from '../../systems/Save';
 import { game } from '../../systems/Game';
@@ -53,6 +53,7 @@ export function openSettings(): void {
         const b = h('button', { class: settings.quality === q ? 'active' : '' }, q[0].toUpperCase() + q.slice(1));
         b.addEventListener('click', () => {
           settings.quality = q;
+          ui.scene.gpuGuard?.stop(); // the player's choice wins: no more automatic checks
           saveSettings(settings);
           seg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
           const needReload = ui.scene.renderer.setQuality(q);
@@ -64,8 +65,9 @@ export function openSettings(): void {
       }
       return seg;
     })()),
-    row('Shadows', toggle(settings.shadows, (v) => {
+    row('Shadows', toggle(shadowsWanted(), (v) => {
       settings.shadows = v;
+      ui.scene.gpuGuard?.stop(); // the player's choice wins: no more automatic checks
       saveSettings(settings);
       ui.scene.renderer.setShadowsPref(v);
       ui.scene.refreshShadows();

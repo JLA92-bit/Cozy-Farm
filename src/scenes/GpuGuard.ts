@@ -8,12 +8,14 @@ import { logEvent } from '../online/Events';
 /**
  * Safety net for phones whose GPU draws a blank (white) 3D view, e.g. Pixel 10 (PowerVR) with shadow maps.
  * Right after render() it reads a few pixels; if the whole frame is blank it turns shadows off, then drops to Low,
- * and saves the choice. It also reports the GPU and any fallback (admin dashboard) and handles WebGL context loss.
+ * and saves the choice. It checks once per quality: after it has passed (or the player picks a quality or the
+ * Shadows switch themselves) it never runs again at that quality. It also reports the GPU and any fallback (admin dashboard) and handles WebGL context loss.
  */
 export class GpuGuard {
   private frames = 0;
   private stage: 'early' | 'late' | 'done' = 'early';
   private lost = 0;
+  private userChose = false;
 
   constructor(private scene: FarmScene) {
     const canvas = scene.canvas;
@@ -25,26 +27,48 @@ export class GpuGuard {
     canvas.addEventListener('webglcontextrestored', () => {
       this.report('gpu_context_back', { n: this.lost });
       // after repeated losses, play it safe: no shadows (then Low) so it stops happening
-      if (this.lost >= 2) this.fallback();
+      if (this.lost >= 2 && !this.userChose) this.fallback();
       this.scene.refreshShadows();
-      this.frames = 0; this.stage = 'early';
+      this.frames = 0;
     });
     const r = scene.renderer;
+    if (settings.gpuChecked === r.quality) this.stage = 'done'; // already passed at this quality
     this.report('gpu_info', { gpu: gpuName() || 'hidden', pvr: isPowerVR(), q: r.quality, shadows: r.shadowsOn });
+  }
+
+  /** The player picked a quality or the Shadows switch: keep their choice and stop all automatic checks. */
+  stop(): void {
+    this.userChose = true;
+    this.stage = 'done';
+    this.markChecked();
+  }
+
+  private markChecked(): void {
+    settings.gpuChecked = settings.quality;
+    saveSettings(settings);
   }
 
   /** Called by FarmScene straight after renderer.render(), while the frame can still be read. */
   afterRender(): void {
     if (this.stage === 'done' || document.hidden) return;
+    // wait until the boot screen has gone: the farm is on screen and has been drawn
+    const boot = document.getElementById('boot-screen');
+    if (boot && !boot.classList.contains('hidden')) return;
     this.frames++;
     if (this.stage === 'early' && this.frames === 10) {
-      if (this.isBlank()) { this.frames = 0; if (!this.fallback()) this.stage = 'done'; } // check again after a change
+      if (this.isBlank()) { this.frames = 0; if (!this.fallback()) this.finish('blank at Low'); } // check again after a change
       else { this.stage = 'late'; this.frames = 0; }
     } else if (this.stage === 'late' && this.frames === 60) {
       // one more look a second or two in, in case the blank only shows up later
-      this.stage = 'done';
-      if (this.isBlank() && this.fallback()) { this.stage = 'early'; this.frames = 0; }
+      if (this.isBlank()) { if (this.fallback()) { this.stage = 'early'; this.frames = 0; } else this.finish('blank at Low'); }
+      else this.finish('passed');
     }
+  }
+
+  private finish(result: string): void {
+    this.stage = 'done';
+    this.markChecked();
+    console.info(`[gpu] check ${result}: quality ${settings.quality}, shadows ${this.scene.renderer.shadowsOn ? 'on' : 'off'}`);
   }
 
   /** True when a spread of pixels across the frame are all plain white or fully transparent. */
@@ -69,7 +93,7 @@ export class GpuGuard {
   /** One step down: shadows off, then Low. The choice is saved so the next start is already safe. */
   private fallback(): boolean {
     const r = this.scene.renderer;
-    if (r.shadowsOn || settings.shadows) {
+    if (r.shadowsOn) {
       settings.shadows = false;
       saveSettings(settings);
       r.setShadowsPref(false);

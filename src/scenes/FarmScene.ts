@@ -136,7 +136,7 @@ export class FarmScene implements InputHandler {
   }
 
   /** Set by Boot: watches the first frames for a blank canvas and context loss. */
-  gpuGuard: { afterRender(): void } | null = null;
+  gpuGuard: import('./GpuGuard').GpuGuard | null = null;
 
   /** Apply the current quality + Shadows switch: shadow map size, and recompile materials for the shadow change. */
   refreshShadows(): void {
