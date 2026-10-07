@@ -13,6 +13,7 @@ import { cosmeticUnlocked } from './CharacterPanel';
 import { goToSource } from './ProductionPanel';
 import type { PlacedBuilding } from '../../systems/State';
 import { marketLink } from './MarketPanel';
+import { hasPerk } from '../../systems/Perks';
 import './economy.css';
 
 const NPC_ICONS = ['farmer', 'woman_farmer', 'man_farmer', 'chick', 'dog', 'cat', 'rabbit', 'farmer', 'woman_farmer', 'man_farmer', 'bee', 'smile'];
@@ -313,6 +314,7 @@ export function openMerchant(): void {
       return;
     }
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Rare goods from far away! Tap to look, tap again to buy.'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(v.leavesAt - game.now())}`)));
+    if (hasPerk('hazel_discount')) p.body.append(h('div', { class: 'econ-intro' }, icon('store', 'icon'), h('span', null, "Hazel's friend discount: 10% off everything")));
     const grid = h('div', { class: 'grid' });
     for (const o of merchant.stock()) {
       const bought = merchant.bought(o) || (o.kind === 'cosmetic' && game.state.cosmetics.includes(o.id));
@@ -326,7 +328,7 @@ export function openMerchant(): void {
         buy(o, card);
       });
       append(card, [
-        was > o.price ? h('span', { class: 'deal-tag outlined' }, `-${Math.round((1 - ECONOMY.merchant.discount) * 100)}%`) : null,
+        was > o.price ? h('span', { class: 'deal-tag outlined' }, `-${Math.round((1 - o.price / was) * 100)}%`) : null,
         offerIcon(o), h('div', { class: 'card-title' }, offerName(o)), h('div', { class: 'card-sub' }, offerSub(o)),
         bought ? h('div', { class: 'pill enough' }, 'Bought')
           : h('div', { class: 'row', style: 'gap:4px;flex-wrap:wrap;justify-content:center' },

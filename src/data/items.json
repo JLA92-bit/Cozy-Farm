@@ -253,6 +253,12 @@
    "sell": 340,
    "icon": "cake"
   },
+  "berry_tart": {
+   "name": "Berry Tart",
+   "cat": "goods",
+   "sell": 230,
+   "icon": "berry_tart"
+  },
   "pumpkin_pie": {
    "name": "Pumpkin Pie",
    "cat": "goods",

@@ -8,7 +8,7 @@ import type { PlacedBuilding } from './State';
  */
 
 /** Cosy paint palette. Keys are what gets saved, so never rename one. */
-export const PAINTS: { id: string; name: string; hex: string }[] = [
+export const PAINTS: { id: string; name: string; hex: string; juniper?: boolean }[] = [
   { id: 'rose', name: 'Rose', hex: '#e8655a' },
   { id: 'peach', name: 'Peach', hex: '#f5a05a' },
   { id: 'butter', name: 'Butter', hex: '#f6d04d' },
@@ -17,6 +17,11 @@ export const PAINTS: { id: string; name: string; hex: string }[] = [
   { id: 'lilac', name: 'Lilac', hex: '#a98be3' },
   { id: 'blush', name: 'Blush', hex: '#f4a3c4' },
   { id: 'cream', name: 'Cream', hex: '#f7ecd6' },
+  // 1.8: Juniper's colours, offered once she is a 6-heart friend (always valid in saves and farm snapshots)
+  { id: 'mint', name: 'Mint', hex: '#7fd8be', juniper: true },
+  { id: 'coral', name: 'Coral', hex: '#ff7f6a', juniper: true },
+  { id: 'honey', name: 'Honey', hex: '#e8a838', juniper: true },
+  { id: 'midnight', name: 'Midnight', hex: '#3c4f8f', juniper: true },
 ];
 const PAINT_BY_ID = new Map(PAINTS.map((p) => [p.id, p]));
 

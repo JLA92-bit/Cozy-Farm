@@ -31,6 +31,8 @@ export interface AnimalDef {
 export interface ItemDef { id: string; name: string; cat: string; sell: number; icon: string }
 export interface RecipeDef {
   id: string; building: string; level: number; in: Record<string, number>; item: string; out: number; sec: number; xp: number;
+  /** 1.8: only offered once this villager perk is on (src/systems/Perks.ts) */
+  perk?: string;
 }
 export interface BuildingDef {
   id: string; name: string; cat: 'special' | 'farm' | 'animal' | 'production' | 'decor';
@@ -111,8 +113,32 @@ export interface VillagerDef {
   /** [month 1-12, day] */
   birthday: [number, number];
   perk6: { id: string; text: string };
+  /** where they live (villager page) */
+  home: string;
+  /** card accent colour and theme icon */
+  colour: string; icon: string;
+  /** how they look on the farm and in portraits (COSMETICS ids and colours); scale = size on the farm */
+  look: { body: string; skin: string; hair: string; top: string; bottom: string; hat: string; accessory: string; pet: string };
+  scale: number;
+  /** decor ids given with the 4-heart and 8-heart story moments (buildings.json group "keepsakes") */
+  keepsake: string; portrait: string;
+  /** tap lines on the farm, and the one for their birthday */
+  chat: string[]; birthdayChat: string;
+  /** gift reactions by taste, plus birthday thanks */
+  react: Record<'love' | 'like' | 'neutral' | 'dislike' | 'birthday', string[]>;
+  /** {farmer} = the player's name */
+  letters: Record<'hearts2' | 'perk' | 'best' | 'weekly' | 'birthday', VillagerLetter>;
+  /** Pip's weekly treasure letters */
+  treasure?: VillagerLetter[];
+  /** story moments by heart milestone ("4", "8") */
+  stories: Record<string, { title: string; cards: { icon: string; text: string }[] }>;
+  /** the best-friend weekly gift */
+  weekly: { items: Record<string, number>; coins: number };
 }
-export const VILLAGERS: VillagerDef[] = villagersJson.villagers as VillagerDef[];
+export interface VillagerLetter { title: string; body: string }
+export const VILLAGERS: VillagerDef[] = villagersJson.villagers as unknown as VillagerDef[];
+/** What Pip may send each week (letter attachments). */
+export const PIP_TREASURES = villagersJson.pipTreasures as { items?: Record<string, number>; gems?: number; coins?: number }[];
 export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as Record<string, VillagerDef>;
 export const FRIENDSHIP = villagersJson.friendship;
 

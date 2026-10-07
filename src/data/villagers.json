@@ -1,12 +1,1004 @@
 {
-  "_comment": "1.8 Village Friends. Six named villagers. loves/likes/dislikes are item ids (\"fish\" in likes = any fish). birthday = month/day. perk6 is the 6-heart reward (src/systems/Village.ts). Points: see friendship. All text is a first draft; the 1.8 villagers agent fills look, home, story and letters.",
-  "friendship": { "pointsPerHeart": 100, "maxHearts": 10, "gift": { "love": 40, "like": 20, "neutral": 8, "dislike": -20 }, "birthdayMult": 3, "order": 15, "chat": 5, "milestones": [2, 4, 6, 8, 10] },
+  "_comment": "1.8 Village Friends. Six named villagers. loves/likes/dislikes are item ids (\"fish\" in likes = any fish). birthday = month/day. perk6 is the 6-heart reward. look = how they appear on the farm and in portraits (COSMETICS ids), scale = their size on the farm. Text: chat (tap lines on the farm), react (gift reactions), letters (sent at heart milestones, every week once best friends, the day after a birthday gift; {farmer} = the player's name), stories (4 and 8 hearts, shown as picture cards), weekly (the best-friend gift). Milestones and perks: src/systems/VillageRewards.ts.",
+  "friendship": {
+    "pointsPerHeart": 100,
+    "maxHearts": 10,
+    "gift": {
+      "love": 40,
+      "like": 20,
+      "neutral": 8,
+      "dislike": -20
+    },
+    "birthdayMult": 3,
+    "order": 15,
+    "chat": 5,
+    "milestones": [
+      2,
+      4,
+      6,
+      8,
+      10
+    ],
+    "_comment": "milestones: 2 letter, 4 story + keepsake, 6 perk, 8 story + portrait, 10 best friends (weekly gift)"
+  },
   "villagers": [
-    { "id": "rosa", "name": "Rosa", "role": "The baker", "about": "Warm and always busy. Her bakery smells of berries.", "loves": ["strawberry", "strawberry_cake", "cream", "pancakes"], "likes": ["bread", "egg", "milk", "sugar", "cherry"], "dislikes": ["onion", "pickled_beets"], "birthday": [3, 14], "perk6": { "id": "rosa_tart", "text": "Rosa's berry tart recipe for the Bakery" } },
-    { "id": "tom", "name": "Old Tom", "role": "Retired fisherman", "about": "Full of stories about the one that got away.", "loves": ["sushi_platter", "fish_pie", "seafood_curry", "apple_pie"], "likes": ["fish", "oyster_chowder", "fish_cake"], "dislikes": ["wool", "cotton_fabric"], "birthday": [7, 2], "perk6": { "id": "tom_casts", "text": "Two extra free casts at the pond every day" } },
-    { "id": "juniper", "name": "Juniper", "role": "The artist", "about": "Quiet, kind, and always painting the valley.", "loves": ["petal", "cherry", "grapes", "ice_cream"], "likes": ["strawberry_jam", "grape_jam", "pear", "lemon"], "dislikes": ["sardine", "old_boot"], "birthday": [9, 21], "perk6": { "id": "juniper_paints", "text": "Juniper's paint colours for all your decorations" } },
-    { "id": "pip", "name": "Pip", "role": "A curious child", "about": "Collects shells, feathers and anything shiny.", "loves": ["apple", "pumpkin", "cookie", "seashell"], "likes": ["caramel", "pancakes", "watermelon", "orange"], "dislikes": ["beet", "broccoli"], "birthday": [5, 5], "perk6": { "id": "pip_treasure", "text": "Pip hides a treasure on your farm every week" } },
-    { "id": "hazel", "name": "Hazel", "role": "Runs the village shop", "about": "Knows everyone, and everyone's business.", "loves": ["apple_jam", "cheese", "goat_cheese", "cherry_jam"], "likes": ["butter", "syrup", "scarf", "orange_marmalade"], "dislikes": ["wheat"], "birthday": [11, 30], "perk6": { "id": "hazel_discount", "text": "10% off everything in the travelling merchant's cart" } },
-    { "id": "bram", "name": "Bram", "role": "The blacksmith", "about": "Gruff, but has a soft spot for pie.", "loves": ["corn_bread", "pumpkin_pie", "carrot_cake", "cheese"], "likes": ["bread", "tomato_sauce", "salsa", "milk"], "dislikes": ["petal", "snowflake_token"], "birthday": [1, 18], "perk6": { "id": "bram_workshops", "text": "All your workshops work 5% faster" } }
+    {
+      "id": "rosa",
+      "name": "Rosa",
+      "role": "The baker",
+      "about": "Warm and always busy. Her bakery smells of berries and fresh bread.",
+      "home": "Lives above the bakery on Mill Lane.",
+      "colour": "#ff8fb4",
+      "icon": "bread",
+      "look": {
+        "body": "female-d",
+        "skin": "#f6c9a0",
+        "hair": "#d9473a",
+        "top": "#ff8fb4",
+        "bottom": "#f7f1e3",
+        "hat": "chef",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "scale": 1.4,
+      "loves": [
+        "strawberry",
+        "strawberry_cake",
+        "cream",
+        "pancakes"
+      ],
+      "likes": [
+        "bread",
+        "egg",
+        "milk",
+        "sugar",
+        "cherry"
+      ],
+      "dislikes": [
+        "onion",
+        "pickled_beets"
+      ],
+      "birthday": [
+        3,
+        14
+      ],
+      "perk6": {
+        "id": "rosa_tart",
+        "text": "Rosa's berry tart recipe for the Bakery"
+      },
+      "keepsake": "keepsake_rosa",
+      "portrait": "portrait_rosa",
+      "chat": [
+        "Morning! The first loaves are cooling on the sill.",
+        "Flour on my nose again? Oh, never mind.",
+        "A pinch of sugar makes any day sweeter.",
+        "Your strawberries smell wonderful from the lane!",
+        "I'm trying a new crust. Wish me luck!",
+        "Busy, busy! But never too busy for a hello."
+      ],
+      "birthdayChat": "It's my birthday! I baked my own cake, of course.",
+      "react": {
+        "love": [
+          "Oh! My very favourite! You know me too well.",
+          "Now that is a baker's treasure. Thank you!",
+          "I could hug you! Come here, you."
+        ],
+        "like": [
+          "How lovely, this will go straight into a recipe.",
+          "Thank you, dear. That's very kind.",
+          "Ooh, I can bake something nice with this."
+        ],
+        "neutral": [
+          "Well, isn't that thoughtful. Thank you.",
+          "I'll find a use for it, I'm sure!",
+          "How kind of you to think of me."
+        ],
+        "dislike": [
+          "Oh. Well... it's the thought that counts.",
+          "Hmm, I'm not sure what to do with this one.",
+          "That's kind, but it's not really to my taste."
+        ],
+        "birthday": [
+          "A birthday present? You remembered! Thank you!",
+          "Oh, you've made my birthday extra special."
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "A little tip from the bakery",
+          "body": "Dear {farmer},\n\nThank you for being such a good neighbour. Here is a baker's secret: start a long recipe before bed, and it will be warm and ready by breakfast. Your Bakery never sleeps!\n\nWith flour and hugs,\nRosa"
+        },
+        "perk": {
+          "title": "My berry tart recipe",
+          "body": "Dear {farmer},\n\nYou have been such a dear friend that I want you to have my berry tart recipe. Strawberries, cream and a little wheat for the crust. You will find it in your Bakery now. Don't tell anyone else!\n\nYour friend,\nRosa"
+        },
+        "best": {
+          "title": "Best friends!",
+          "body": "Dear {farmer},\n\nI was thinking today how the whole valley feels warmer since you came. You are my best friend, and I mean it. Every week I will send you something from my oven. Here is the first!\n\nWarmly,\nRosa"
+        },
+        "weekly": {
+          "title": "Fresh from my oven",
+          "body": "Dear {farmer},\n\nI baked a little too much again, so this is for you. Enjoy it while it's warm!\n\nRosa"
+        },
+        "birthday": {
+          "title": "Thank you for my birthday gift",
+          "body": "Dear {farmer},\n\nThank you for remembering my birthday. I put my feet up for a whole hour, can you believe it? It was a lovely day, and you made it lovelier.\n\nWarmly,\nRosa"
+        }
+      },
+      "stories": {
+        "4": {
+          "title": "The first loaf",
+          "cards": [
+            {
+              "icon": "bread",
+              "text": "Rosa invites you into her bakery before sunrise. The ovens are already glowing."
+            },
+            {
+              "icon": "wheat",
+              "text": "\"This was my grandmother's oven,\" she says, patting the old bricks. \"She taught me to bake when I was smaller than Pip.\""
+            },
+            {
+              "icon": "heart",
+              "text": "She hands you a lump of dough. \"Go on, shape it however you like.\" Yours comes out a little lopsided."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"Perfect,\" Rosa laughs. \"The lopsided ones taste best.\" She gives you her old bakery sign to remember the morning."
+            }
+          ]
+        },
+        "8": {
+          "title": "The picnic pie",
+          "cards": [
+            {
+              "icon": "pie",
+              "text": "Rosa is in a flap. The village picnic is tomorrow and her big oven has gone cold."
+            },
+            {
+              "icon": "fire",
+              "text": "Bram comes to fix it, Pip fetches kindling, and you bring fresh strawberries from your farm."
+            },
+            {
+              "icon": "strawberry",
+              "text": "Together you bake the biggest berry pie the valley has ever seen. There is flour everywhere!"
+            },
+            {
+              "icon": "framed",
+              "text": "\"I don't need a fancy oven,\" Rosa says. \"I need friends like you.\" Juniper paints her holding the pie, and Rosa wants you to keep it."
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "strawberry_cake": 2
+        },
+        "coins": 200
+      }
+    },
+    {
+      "id": "tom",
+      "name": "Old Tom",
+      "role": "Retired fisherman",
+      "about": "Full of stories about the one that got away.",
+      "home": "Lives in the blue cottage by the pond.",
+      "colour": "#5aaee0",
+      "icon": "fishing_pole",
+      "look": {
+        "body": "male-e",
+        "skin": "#e8b38a",
+        "hair": "#9aa5b1",
+        "top": "#1f4e9c",
+        "bottom": "#8a5528",
+        "hat": "bucket",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "scale": 1.4,
+      "loves": [
+        "sushi_platter",
+        "fish_pie",
+        "seafood_curry",
+        "apple_pie"
+      ],
+      "likes": [
+        "fish",
+        "oyster_chowder",
+        "fish_cake"
+      ],
+      "dislikes": [
+        "wool",
+        "cotton_fabric"
+      ],
+      "birthday": [
+        7,
+        2
+      ],
+      "perk6": {
+        "id": "tom_casts",
+        "text": "Two extra free casts at the pond every day"
+      },
+      "keepsake": "keepsake_tom",
+      "portrait": "portrait_tom",
+      "chat": [
+        "Did I ever tell you about the one that got away? It was THIS big.",
+        "The pond's calm today. Good fishing weather.",
+        "Sixty years at sea, and I still can't whistle.",
+        "Dusk is when the shy fish come out. Remember that.",
+        "My knees say rain. My knees are usually wrong.",
+        "Pull up a crate and listen. Or don't, I'll talk anyway!"
+      ],
+      "birthdayChat": "Another year older, and the fish still outsmart me. It's my birthday!",
+      "react": {
+        "love": [
+          "Well, shiver me timbers! That's a proper treat.",
+          "Now you're speaking my language! Thank you, friend.",
+          "That takes me right back to the harbour. Lovely."
+        ],
+        "like": [
+          "Ah, that's grand. Thank you kindly.",
+          "A fine gift for an old sailor.",
+          "That'll do nicely with a cup of tea."
+        ],
+        "neutral": [
+          "Hm! Not what I'd catch, but thank you.",
+          "Well now, that's very kind of you.",
+          "I'll put it on my shelf of curious things."
+        ],
+        "dislike": [
+          "Hmm. I might use it to wipe my boots.",
+          "Ah... I'm not one for that, I'm afraid.",
+          "Kind of you, but this old sailor will pass."
+        ],
+        "birthday": [
+          "For my birthday? You've warmed an old heart.",
+          "Well I never! A birthday present! Thank you."
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "Fishing secrets",
+          "body": "Ahoy {farmer},\n\nA tip from an old sailor: some fish only come out at night, and the shy ones like dusk. If the pond is quiet, try again when the sky turns orange.\n\nTight lines,\nOld Tom"
+        },
+        "perk": {
+          "title": "Two more casts",
+          "body": "Ahoy {farmer},\n\nI've had a word with the pond. From now on you get two extra free casts every day. Don't ask me how, a sailor never tells.\n\nYour friend,\nOld Tom"
+        },
+        "best": {
+          "title": "My best mate",
+          "body": "Ahoy {farmer},\n\nI've told a lot of stories in my time, but the best ones lately have you in them. You're my best friend in the valley. I'll send a little something from the harbour every week. Here's the first.\n\nOld Tom"
+        },
+        "weekly": {
+          "title": "From the harbour",
+          "body": "Ahoy {farmer},\n\nThe fishing boats came in heavy this week. I saved you the best of it.\n\nOld Tom"
+        },
+        "birthday": {
+          "title": "Thank you, friend",
+          "body": "Ahoy {farmer},\n\nThank you for the birthday gift. I spent the whole day telling everyone about it. Twice!\n\nOld Tom"
+        }
+      },
+      "stories": {
+        "4": {
+          "title": "The one that got away",
+          "cards": [
+            {
+              "icon": "fishing_pole",
+              "text": "Old Tom waves you over to the dock. \"Sit down, I have a story for you.\""
+            },
+            {
+              "icon": "water_wave",
+              "text": "\"It was a stormy night, and something huge took my line. It pulled my little boat for a whole mile!\""
+            },
+            {
+              "icon": "fish_gold",
+              "text": "\"I held on until dawn. Then, splash! It let go, and all I saw was a flash of gold.\""
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"I never caught it, but I kept my old anchor from that night. I'd like you to have it.\""
+            }
+          ]
+        },
+        "8": {
+          "title": "Message in a bottle",
+          "cards": [
+            {
+              "icon": "bottle",
+              "text": "Tom has found a bottle in the reeds, with a faded note inside."
+            },
+            {
+              "icon": "memo",
+              "text": "It is a note he wrote as a boy: \"I hope whoever finds this has a good friend.\""
+            },
+            {
+              "icon": "hug",
+              "text": "\"Took sixty years to wash back to me,\" he chuckles. \"And now I do.\""
+            },
+            {
+              "icon": "framed",
+              "text": "He asks Juniper to paint him holding the bottle, and gives you the painting to keep."
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "sushi_platter": 2
+        },
+        "coins": 200
+      }
+    },
+    {
+      "id": "juniper",
+      "name": "Juniper",
+      "role": "The artist",
+      "about": "Quiet, kind, and always painting the valley.",
+      "home": "Has a little studio in the old windmill.",
+      "colour": "#a98be3",
+      "icon": "paint",
+      "look": {
+        "body": "female-c",
+        "skin": "#c98a5e",
+        "hair": "#a77bf3",
+        "top": "#2fbfa8",
+        "bottom": "#3b3b45",
+        "hat": "beanie",
+        "accessory": "scarf",
+        "pet": "none"
+      },
+      "scale": 1.4,
+      "loves": [
+        "petal",
+        "cherry",
+        "grapes",
+        "ice_cream"
+      ],
+      "likes": [
+        "strawberry_jam",
+        "grape_jam",
+        "pear",
+        "lemon"
+      ],
+      "dislikes": [
+        "sardine",
+        "old_boot"
+      ],
+      "birthday": [
+        9,
+        21
+      ],
+      "perk6": {
+        "id": "juniper_paints",
+        "text": "Four new paint colours from Juniper for your decorations"
+      },
+      "keepsake": "keepsake_juniper",
+      "portrait": "portrait_juniper",
+      "chat": [
+        "The light on your farm is lovely this time of day.",
+        "I'm mixing a new green. Field green, I think I'll call it.",
+        "Shh... I'm counting the colours in that cloud.",
+        "Everything is prettier when you slow down a little.",
+        "Your flowers would make a beautiful painting.",
+        "I painted your barn yesterday. Only on canvas!"
+      ],
+      "birthdayChat": "It's my birthday today. I'm painting the sky to celebrate.",
+      "react": {
+        "love": [
+          "Oh... it's perfect. I want to paint it.",
+          "You found something beautiful for me. Thank you.",
+          "This makes my heart feel full of colour."
+        ],
+        "like": [
+          "How pretty. Thank you.",
+          "That's lovely, it will brighten my studio.",
+          "Such a nice colour. Thank you!"
+        ],
+        "neutral": [
+          "Thank you. I'll find a quiet spot for it.",
+          "That's thoughtful of you.",
+          "Hmm, what an interesting shape. Thank you."
+        ],
+        "dislike": [
+          "Oh. That smell... thank you, though.",
+          "I don't think I'll paint this one.",
+          "That's kind, but it's not quite for me."
+        ],
+        "birthday": [
+          "A birthday gift... you're so thoughtful.",
+          "This is my favourite birthday in years. Thank you."
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "A painter's tip",
+          "body": "Dear {farmer},\n\nI have noticed how lovely your farm is becoming. Pretty decorations make visitors happy, and the more Charm your farm has, the faster your crops grow. Every little flower helps.\n\nSoftly,\nJuniper"
+        },
+        "perk": {
+          "title": "New colours for you",
+          "body": "Dear {farmer},\n\nI mixed some special paints just for you: Mint, Coral, Honey and Midnight. You can use them on any decoration you can paint. I can't wait to see what you make.\n\nYour friend,\nJuniper"
+        },
+        "best": {
+          "title": "My best friend",
+          "body": "Dear {farmer},\n\nI used to paint alone. Now I paint the things we see together. You are my best friend. Every week I will send you something I love. Here is the first.\n\nJuniper"
+        },
+        "weekly": {
+          "title": "Something pretty",
+          "body": "Dear {farmer},\n\nI saw this and thought of you.\n\nJuniper"
+        },
+        "birthday": {
+          "title": "Thank you",
+          "body": "Dear {farmer},\n\nThank you for my birthday gift. I painted a little picture of it, so I will always remember.\n\nJuniper"
+        }
+      },
+      "stories": {
+        "4": {
+          "title": "The missing colour",
+          "cards": [
+            {
+              "icon": "paint",
+              "text": "Juniper sits by her easel, frowning at a painting of the valley. \"Something is missing.\""
+            },
+            {
+              "icon": "sunrise",
+              "text": "You walk with her up the hill above your farm as the sun comes up."
+            },
+            {
+              "icon": "sunflower",
+              "text": "\"Oh! It's the gold on the fields. Your fields!\" She paints fast, humming happily."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "She gives you her spare easel, with a little painting of your farm still on it."
+            }
+          ]
+        },
+        "8": {
+          "title": "The gallery",
+          "cards": [
+            {
+              "icon": "framed",
+              "text": "Juniper is nervous. For the first time, she is showing her paintings in the village hall."
+            },
+            {
+              "icon": "hug",
+              "text": "Everyone comes. Rosa brings tarts, Pip brings a frame made of shells, Bram fixes the wobbly stand."
+            },
+            {
+              "icon": "sparkles",
+              "text": "The painting of your farm gets the biggest smiles of the night."
+            },
+            {
+              "icon": "framed",
+              "text": "Afterwards she gives you her self-portrait. \"So you remember who painted your farm first.\""
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "ice_cream": 2
+        },
+        "coins": 200
+      }
+    },
+    {
+      "id": "pip",
+      "name": "Pip",
+      "role": "A curious child",
+      "about": "Collects shells, feathers and anything shiny.",
+      "home": "Lives with their gran next to Hazel's shop.",
+      "colour": "#ffc93c",
+      "icon": "shell",
+      "look": {
+        "body": "male-a",
+        "skin": "#ffe0c2",
+        "hair": "#e8c06a",
+        "top": "#ffc93c",
+        "bottom": "#3fa9f5",
+        "hat": "cap",
+        "accessory": "backpack",
+        "pet": "dog"
+      },
+      "scale": 1.05,
+      "loves": [
+        "apple",
+        "pumpkin",
+        "cookie",
+        "seashell"
+      ],
+      "likes": [
+        "caramel",
+        "pancakes",
+        "watermelon",
+        "orange"
+      ],
+      "dislikes": [
+        "beet",
+        "broccoli"
+      ],
+      "birthday": [
+        5,
+        5
+      ],
+      "perk6": {
+        "id": "pip_treasure",
+        "text": "A treasure from Pip every Monday"
+      },
+      "keepsake": "keepsake_pip",
+      "portrait": "portrait_pip",
+      "chat": [
+        "I found a shiny rock! Wanna see? ...Oh, it's gone.",
+        "Did you know chickens can fly? Well, a little bit.",
+        "I'm a treasure hunter. Shhh, it's a secret!",
+        "Can I ride the tractor? Please? Pleeease?",
+        "I counted all your fields. Then I lost count.",
+        "Rosa gave me a cookie. Do you have a cookie?"
+      ],
+      "birthdayChat": "IT'S MY BIRTHDAY! I'm going to have SO much cake!",
+      "react": {
+        "love": [
+          "WOW! For me? This is the best day ever!",
+          "Yes yes yes! I love it!",
+          "I'm going to keep it forever and ever!"
+        ],
+        "like": [
+          "Cool! Thank you!",
+          "Ooh, nice! Thanks!",
+          "I like it! Can I have two?"
+        ],
+        "neutral": [
+          "Huh. What is it? Thanks!",
+          "Okay! I'll put it in my treasure box.",
+          "Thanks! I think?"
+        ],
+        "dislike": [
+          "Eww! Do I have to eat it?",
+          "Bleh! No thank you...",
+          "Um... can I give it to Bram?"
+        ],
+        "birthday": [
+          "A birthday present! You're the best!",
+          "This is the best birthday EVER!"
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "A secret tip",
+          "body": "Dear {farmer},\n\nGuess what! When you clear rocks and bushes on your farm, there is treasure hiding under them. I checked. Don't tell the grown-ups!\n\nYour friend,\nPip"
+        },
+        "perk": {
+          "title": "TREASURE!",
+          "body": "Dear {farmer},\n\nYou are my best treasure hunting buddy, so every Monday I will send you a treasure I found. Here is the first one! It was VERY hard to find.\n\nPip"
+        },
+        "best": {
+          "title": "BEST FRIENDS!!!",
+          "body": "Dear {farmer},\n\nYou are my best friend in the whole world. I drew you a picture but I spilled juice on it, so here is a present instead. I will send you one every week!\n\nPip"
+        },
+        "weekly": {
+          "title": "A present!",
+          "body": "Dear {farmer},\n\nThis is for you because you are my best friend. Every week!\n\nPip"
+        },
+        "birthday": {
+          "title": "THANK YOU",
+          "body": "Dear {farmer},\n\nThank you for my birthday present! I showed it to everyone. Even the chickens.\n\nPip"
+        }
+      },
+      "treasure": [
+        {
+          "title": "This week's treasure",
+          "body": "Dear {farmer},\n\nI found this behind the mill! Finders keepers, and I'm giving it to you.\n\nPip"
+        },
+        {
+          "title": "Treasure from the pond",
+          "body": "Dear {farmer},\n\nI dug this up near the pond. It was a bit muddy but I cleaned it. Mostly.\n\nPip"
+        },
+        {
+          "title": "A crow helped!",
+          "body": "Dear {farmer},\n\nA crow showed me where this was. Crows are very clever.\n\nPip"
+        },
+        {
+          "title": "Real treasure",
+          "body": "Dear {farmer},\n\nOld Tom says this is a real treasure. I think so too! It's for you.\n\nPip"
+        }
+      ],
+      "stories": {
+        "4": {
+          "title": "The treasure map",
+          "cards": [
+            {
+              "icon": "map",
+              "text": "Pip runs up, waving a crumpled paper. \"A treasure map! I found it. Then I drew on it a bit.\""
+            },
+            {
+              "icon": "magnifier",
+              "text": "You follow the map past the barn, around the pond, and three times round the old tree."
+            },
+            {
+              "icon": "shell",
+              "text": "Under a big rock you find a tin full of shells, buttons and one very shiny marble."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"It's my treasure box,\" Pip whispers. \"Now you need a treasure chest too!\""
+            }
+          ]
+        },
+        "8": {
+          "title": "Lost and found",
+          "cards": [
+            {
+              "icon": "dog",
+              "text": "Pip's puppy has wandered off, and Pip is trying very hard to be brave."
+            },
+            {
+              "icon": "magnifier",
+              "text": "You search the fields together, calling and whistling, until the sun is low."
+            },
+            {
+              "icon": "hug",
+              "text": "A little bark from your hay pile! The puppy is fast asleep in the warm hay."
+            },
+            {
+              "icon": "framed",
+              "text": "Pip gives you a portrait Juniper helped paint: Pip, the puppy and a very big smile."
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "cookie": 3,
+          "apple": 5
+        },
+        "coins": 100
+      }
+    },
+    {
+      "id": "hazel",
+      "name": "Hazel",
+      "role": "Runs the village shop",
+      "about": "Runs the village shop. Knows everyone, and everyone's business.",
+      "home": "Lives behind the counter of the village shop.",
+      "colour": "#86c06a",
+      "icon": "store",
+      "look": {
+        "body": "female-e",
+        "skin": "#7a4b2c",
+        "hair": "#9aa5b1",
+        "top": "#a77bf3",
+        "bottom": "#3b3b45",
+        "hat": "none",
+        "accessory": "glasses",
+        "pet": "none"
+      },
+      "scale": 1.4,
+      "loves": [
+        "apple_jam",
+        "cheese",
+        "goat_cheese",
+        "cherry_jam"
+      ],
+      "likes": [
+        "butter",
+        "syrup",
+        "scarf",
+        "orange_marmalade"
+      ],
+      "dislikes": [
+        "wheat"
+      ],
+      "birthday": [
+        11,
+        30
+      ],
+      "perk6": {
+        "id": "hazel_discount",
+        "text": "10% off everything in the travelling merchant's cart"
+      },
+      "keepsake": "keepsake_hazel",
+      "portrait": "portrait_hazel",
+      "chat": [
+        "Have you heard? Rosa is trying a new crust. Very hush hush.",
+        "Shop's quiet today. Perfect time for a chat.",
+        "I know everyone in this valley. And everyone's business!",
+        "Prices are up at the market and down at the stall. Funny old world.",
+        "Bram says he doesn't like pie. Bram fibs.",
+        "A good shopkeeper knows what you need. You need a rest!"
+      ],
+      "birthdayChat": "It's my birthday! Don't tell anyone. Well, tell everyone.",
+      "react": {
+        "love": [
+          "Oh, you clever thing! How did you know?",
+          "Now this is quality. Thank you, dear.",
+          "I'll put this in the window for everyone to see!"
+        ],
+        "like": [
+          "Very nice. You have good taste.",
+          "Thank you! I can always use one of these.",
+          "How kind. I'll tell everyone you're a treasure."
+        ],
+        "neutral": [
+          "Well! I'll find a shelf for it.",
+          "Thank you, dear. Every little helps.",
+          "Hmm, I might sell this. Only joking!"
+        ],
+        "dislike": [
+          "Oh. I have plenty of these already, dear.",
+          "Hmm. Not one of my favourites, I'm afraid.",
+          "Thank you... I'll pass it on to someone who'll love it."
+        ],
+        "birthday": [
+          "A birthday gift! I'll tell the whole valley!",
+          "You remembered my birthday! Nobody ever remembers."
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "Shop talk",
+          "body": "Dear {farmer},\n\nA little shop secret: the travelling merchant brings decorations at a big discount, and his stock changes every visit. Keep an eye out for that cart!\n\nHazel"
+        },
+        "perk": {
+          "title": "A friend's discount",
+          "body": "Dear {farmer},\n\nI had a word with the travelling merchant. He owes me a favour or three. From now on, you get 10% off everything in his cart. Friends look after friends.\n\nHazel"
+        },
+        "best": {
+          "title": "Best friends, officially",
+          "body": "Dear {farmer},\n\nI know everyone in the valley, but you're the one I'm gladdest to know. Best friends! I'll send a little something from the shop every week. Here's the first.\n\nHazel"
+        },
+        "weekly": {
+          "title": "From the shop",
+          "body": "Dear {farmer},\n\nThis came in fresh at the shop and I put it aside for you. Don't tell the others.\n\nHazel"
+        },
+        "birthday": {
+          "title": "You remembered!",
+          "body": "Dear {farmer},\n\nThank you for my birthday present. I told everyone who came into the shop. That's a lot of people!\n\nHazel"
+        }
+      },
+      "stories": {
+        "4": {
+          "title": "Behind the counter",
+          "cards": [
+            {
+              "icon": "store",
+              "text": "Hazel asks you to mind the shop while she fetches a delivery. \"Just smile and weigh things!\""
+            },
+            {
+              "icon": "bags",
+              "text": "Pip wants exactly one sweet. Tom wants a very long chat. Rosa needs flour, quickly!"
+            },
+            {
+              "icon": "smile",
+              "text": "When Hazel comes back, everyone is happy and the till is right to the coin."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"A natural!\" she beams, and gives you her grandmother's old shop scale."
+            }
+          ]
+        },
+        "8": {
+          "title": "The surprise party",
+          "cards": [
+            {
+              "icon": "party",
+              "text": "Hazel knows every secret in the valley, but the village kept one from her: a party, just for her."
+            },
+            {
+              "icon": "cake",
+              "text": "You helped plan it. Rosa baked, Juniper drew the banners and Bram built the tables."
+            },
+            {
+              "icon": "hug",
+              "text": "For once, Hazel has nothing to say. Then she laughs and laughs."
+            },
+            {
+              "icon": "framed",
+              "text": "She gives you a portrait of herself in her party hat. \"So you never forget my face. Or my hat.\""
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "cheese": 3
+        },
+        "coins": 300
+      }
+    },
+    {
+      "id": "bram",
+      "name": "Bram",
+      "role": "The blacksmith",
+      "about": "Gruff, but has a soft spot for pie.",
+      "home": "Works at the forge by the old bridge.",
+      "colour": "#e58a4e",
+      "icon": "hammer",
+      "look": {
+        "body": "male-d",
+        "skin": "#a26a43",
+        "hair": "#2b2622",
+        "top": "#8a5528",
+        "bottom": "#3b3b45",
+        "hat": "none",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "scale": 1.45,
+      "loves": [
+        "corn_bread",
+        "pumpkin_pie",
+        "carrot_cake",
+        "cheese"
+      ],
+      "likes": [
+        "bread",
+        "tomato_sauce",
+        "salsa",
+        "milk"
+      ],
+      "dislikes": [
+        "petal",
+        "snowflake_token"
+      ],
+      "birthday": [
+        1,
+        18
+      ],
+      "perk6": {
+        "id": "bram_workshops",
+        "text": "All your workshops work 5% faster"
+      },
+      "keepsake": "keepsake_bram",
+      "portrait": "portrait_bram",
+      "chat": [
+        "Hmph. Hello.",
+        "Your hoe needs sharpening. I can tell from here.",
+        "Hot iron, cool head. That's the trick.",
+        "...Is that pie I smell? No reason.",
+        "Strong fences, good farm. Yours are fine.",
+        "Work hard, rest well. Good farm, this."
+      ],
+      "birthdayChat": "It's my birthday. Don't make a fuss. ...A small fuss is fine.",
+      "react": {
+        "love": [
+          "...You brought me this? Thank you. Really.",
+          "Hmph. That's... very good. Thanks.",
+          "Now this is worth a break from the forge."
+        ],
+        "like": [
+          "Good. Thanks.",
+          "Hm. Useful. Thank you.",
+          "That'll keep me going till supper."
+        ],
+        "neutral": [
+          "Hm. Thanks.",
+          "Not sure what I'd do with it. Thanks, though.",
+          "I'll put it by the forge."
+        ],
+        "dislike": [
+          "Hmph. Not for me.",
+          "What am I meant to do with this?",
+          "...No. But thanks for trying."
+        ],
+        "birthday": [
+          "For my birthday? ...Thank you. Really.",
+          "Hmph. Nobody's done that in years. Thanks."
+        ]
+      },
+      "letters": {
+        "hearts2": {
+          "title": "Workshop advice",
+          "body": "{farmer},\n\nA word of advice. Upgrade your workshops. Each level adds a space in the queue, so they keep working while you sleep. Good tools, good work.\n\nBram"
+        },
+        "perk": {
+          "title": "Sharpened tools",
+          "body": "{farmer},\n\nI sharpened the tools in your workshops and oiled every hinge. They work faster now. Five per cent. I measured.\n\nBram"
+        },
+        "best": {
+          "title": "Friends",
+          "body": "{farmer},\n\nNot good with words. You're my best friend. That's it.\n\n...I'll send something every week. Here's the first.\n\nBram"
+        },
+        "weekly": {
+          "title": "For you",
+          "body": "{farmer},\n\nMade too much. Or bought too much. Anyway, here.\n\nBram"
+        },
+        "birthday": {
+          "title": "Thanks",
+          "body": "{farmer},\n\nThanks for the birthday gift. I put it on the shelf over the forge, where I can see it.\n\nBram"
+        }
+      },
+      "stories": {
+        "4": {
+          "title": "The cracked bell",
+          "cards": [
+            {
+              "icon": "bell",
+              "text": "The village bell has cracked, and Bram has been at his forge all night."
+            },
+            {
+              "icon": "fire",
+              "text": "He lets you work the bellows. \"Steady. Steady. Good.\" Sparks fly like fireflies."
+            },
+            {
+              "icon": "hammer",
+              "text": "By morning a new bell rings out over the valley, clear and bright."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "Bram looks at his old anvil, then at you. \"Got a new one. You take this. You earned it.\""
+            }
+          ]
+        },
+        "8": {
+          "title": "Pie day",
+          "cards": [
+            {
+              "icon": "pie",
+              "text": "You find Bram outside the bakery, staring at a pie in the window."
+            },
+            {
+              "icon": "smile",
+              "text": "\"Rosa's last pumpkin pie,\" he mutters. \"Pip wants it too.\""
+            },
+            {
+              "icon": "hug",
+              "text": "You buy it and cut it in three: one for Bram, one for Pip, one for you. Bram almost smiles. Almost."
+            },
+            {
+              "icon": "framed",
+              "text": "Next day a portrait arrives: Bram, with pie crumbs in his beard. \"Juniper made me. Keep it.\""
+            }
+          ]
+        }
+      },
+      "weekly": {
+        "items": {
+          "pumpkin_pie": 1,
+          "carrot_cake": 1
+        },
+        "coins": 200
+      }
+    }
+  ],
+  "pipTreasures": [
+    {
+      "items": {
+        "truffle": 3
+      }
+    },
+    {
+      "items": {
+        "caramel": 2
+      }
+    },
+    {
+      "items": {
+        "pearl_oyster": 2
+      }
+    },
+    {
+      "gems": 3
+    },
+    {
+      "items": {
+        "orange_marmalade": 1
+      }
+    },
+    {
+      "items": {
+        "goat_cheese": 2
+      }
+    },
+    {
+      "items": {
+        "sweater": 1
+      }
+    },
+    {
+      "gems": 2,
+      "items": {
+        "cookie": 2
+      }
+    }
   ]
 }

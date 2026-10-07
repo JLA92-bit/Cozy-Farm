@@ -43,6 +43,8 @@ export const ICON_VARIANTS = {
   kraken: { base: 'octopus', hue: -95, sat: 1.05, light: 0.85, badge: 'sparkles' },
   celestial_koi: { base: 'fish', hue: 125, sat: 0.9, light: 1.42, flip: true, badge: 'glowing-star' },
   oyster_chowder: { base: 'pot-of-food', badge: 'oyster' },
+  // 1.8: Rosa's berry tart (her 6-heart recipe)
+  berry_tart: { base: 'pie', badge: 'strawberry' },
 };
 
 function hexToHsl(hex) {
