@@ -145,7 +145,7 @@ export function openMail(arg?: { letter?: number }): void {
     open = null;
     const list = lettersNewestFirst();
     const unread = list.filter((x) => !x.read).length, gifts = list.filter(waiting).length;
-    p.body.append(h('div', { class: 'mail-summary' },
+    if (list.length) p.body.append(h('div', { class: 'mail-summary' },
       h('span', { class: 'pill' }, icon('mailbox'), `${list.length} ${list.length === 1 ? 'letter' : 'letters'}`),
       unread ? h('span', { class: 'pill unread-pill' }, `${unread} new`) : null,
       gifts ? h('span', { class: 'pill' }, icon('gift'), `${gifts} to collect`) : null));
@@ -157,7 +157,7 @@ export function openMail(arg?: { letter?: number }): void {
         button('Open', () => { p.close(); ui.open('friends', { tab: 'mail' }); }, 'green small')));
     }
     if (!list.length) {
-      p.body.append(h('div', { class: 'empty-state' }, icon('mailbox'), h('div', null, 'No letters yet.'), h('div', { class: 'muted' }, 'Villagers write when they visit, on birthdays and when you become friends.')));
+      p.body.append(h('div', { class: 'empty-state' }, icon('mailbox'), h('div', null, 'Your mailbox is empty.'), h('div', { class: 'muted' }, 'Villagers write when they visit, on birthdays and when you become friends.')));
     } else {
       const box = h('div', { class: 'list' });
       for (const x of list) box.append(letterRow(x, () => { open = x.id; render(); }));

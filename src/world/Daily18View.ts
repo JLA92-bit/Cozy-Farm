@@ -15,7 +15,7 @@ import type { FarmScene } from '../scenes/FarmScene';
 const FLAG_UP = 0;
 const FLAG_DOWN = -Math.PI / 2;
 const MAILBOX_SCALE = 1.25;
-const FIND_SCALE = 1.7;
+const FIND_SCALE = 2;
 
 interface FindView { id: string; obj: THREE.Group; glint: THREE.Sprite; phase: number; x: number; z: number }
 
