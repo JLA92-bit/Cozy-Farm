@@ -5,11 +5,13 @@ import { restoration } from '../systems/Restoration';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { SQUARE, SquareView } from '../world/SquareView';
+import { SquareGate } from '../world/SquareGate';
 import { Panel } from '../ui/Panel';
 import { tutorial } from '../ui/Tutorial';
 import { ui } from '../ui/UI';
 import { button, h, icon } from '../ui/dom';
 import { assets } from '../core/Assets';
+import { audio } from '../systems/Audio';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import type { DragKind, Pointer } from '../core/Input';
 import type { FarmScene, WorldHandler } from './FarmScene';
@@ -54,6 +56,21 @@ export function initSquare(scene: FarmScene, interaction: Interaction): void {
     if (inSquare) void leaveSquare(true);
   });
   scene.onFrame((dt) => frame(dt));
+  // the signpost and boat on the farm's east beach: the way over
+  const gate = new SquareGate(scene);
+  gate.onTap = () => { audio.play('pop', { volume: 0.6 }); void enterSquare(); };
+  const prevPick = ui.extraPick;
+  ui.extraPick = (ray) => gate.pick(ray) ?? prevPick?.(ray) ?? null;
+  // a little "!" over the signpost while there is something to give to a bundle
+  let givable = 0;
+  scene.onTick(() => { givable = game.level >= 10 ? restoration.givable() : 0; });
+  game.bus.on('item', () => { givable = game.level >= 10 ? restoration.givable() : 0; });
+  scene.onFrame(() => {
+    const show = !inSquare && !scene.visit && gate.group.visible && givable > 0;
+    ui.world.setBubble('square-gate', show ? gate.bubbleAt : null, () =>
+      h('div', { class: 'visit-bubble', role: 'button', 'aria-label': 'Village square: something to give', onclick: (e: MouseEvent) => { e.stopPropagation(); void enterSquare(); } }, h('span', { class: 'bang' }, '!'), icon('house')),
+      `gate:${givable}`);
+  });
   // a room that finishes while you are looking at it: bounce, sparkle
   game.bus.on('restoration:room', ({ room }) => {
     view?.refresh();
@@ -65,7 +82,7 @@ export function initSquare(scene: FarmScene, interaction: Interaction): void {
     restoration.markSeen(room);
   });
   game.bus.on('restoration:changed', () => { view?.refresh(); updateLabels(); });
-  Object.assign(window as unknown as Record<string, unknown>, { __square: { enter: enterSquare, leave: () => leaveSquare(), get active() { return inSquare; }, get view() { return view; } } });
+  Object.assign(window as unknown as Record<string, unknown>, { __square: { enter: enterSquare, leave: () => leaveSquare(), get active() { return inSquare; }, get view() { return view; }, gate } });
 }
 
 async function loadView(): Promise<SquareView> {

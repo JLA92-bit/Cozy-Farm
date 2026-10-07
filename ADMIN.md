@@ -34,6 +34,7 @@ Keep two-step verification on that Google account: it is the key to the dashboar
 | **Market** | Open listings (take one down: the seller gets the items back as a gift) and best sellers. |
 | **Leaderboards** | All four boards with a Hide/Show switch per player. |
 | **Notifications** | Send a phone notification to everyone with notifications on, or only recent players. |
+| **1.8.5 Square** | Which village square rooms and bundles players finish, how many players reached skill level 5 and 10 in each skill, and which skill perks players choose. |
 | **1.8 Village** | The 1.8 welcome funnel (players who reached each step, for farms from before 1.8 and for new farms at level 3), the head start, gifts and hearts per villager, gift reactions (loved / liked / disliked), how many players finish the daily villager visit, Ask a friend and mailbox activity, and **Send a letter to everyone** (with preview). |
 | **Requests** | Ask a friend (1.8): open and filled requests, what friends sent and when Hazel stepped in. |
 | **System & log** | Database size against the free plan, table sizes, scheduled jobs and failures, removing old empty accounts, and the admin log. |
@@ -66,6 +67,12 @@ Keep two-step verification on that Google account: it is the key to the dashboar
   taste, points, birthday), `hearts` (villager, hearts, reason), `visit` (villager), and from counters `help_ask`,
   `help_send`, `help_arrived`, `help_hazel`, `visit_give`, `find_collect`, `find_return`. Only with real online play
   (never in practice mode). The 1.8 Village page reads them; numbers start from the day 1.8.0 went live.
+  1.8.5 adds `skill_level` (skill, level), `skill_perk` (skill, perk), `skills_headstart`, `bundle_done` (room, bundle,
+  level) and `room_done` (room, level, rooms), read by the **1.8.5 Square** page: which rooms and bundles players
+  finish, how far each skill has grown and which perks players pick. It needs the `1.8.5 skills and village
+  restoration` section of `supabase/schema.sql` (run the whole file, it is safe to re-run). The game also reports
+  `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back` and `gpu_blank_low` (1.8.1) when a phone's
+  graphics need a fallback.
 - **Daily backups** run at 03:17 UTC when pg_cron is enabled (System & log shows the job). Unchanged farms are skipped,
   backups are kept 60 days (the newest per player always).
 

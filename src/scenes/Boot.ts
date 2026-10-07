@@ -150,9 +150,10 @@ export async function boot(): Promise<void> {
   const visitors = new Visitors(scene, merchantSpot);
   visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
+  const squarePick = ui.extraPick; // the way to the village square (set by initSquare)
   ui.extraPick = (ray) => {
     if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
-    return villagers.pick(ray) ?? player.pick(ray);
+    return villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
   };
   scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 

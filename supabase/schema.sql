@@ -3074,3 +3074,60 @@ grant execute on function public.claim_admin_letter(uuid) to authenticated;
 -- the admin_* functions check admin_guard() themselves; signed-in callers may try them
 grant execute on function public.admin_letter_all(text, text, text) to authenticated;
 grant execute on function public.admin_v18_overview(integer) to authenticated;
+
+-- ===== 1.8.5 skills and village restoration =====
+-- Nothing new is stored by this release: the game writes small named moments with log_event() (skill_level,
+-- skill_perk, skills_headstart, bundle_done, room_done), kept 180 days like the other 1.8 events. This adds one
+-- read-only dashboard function that summarises them. Safe to re-run.
+
+-- Dashboard "1.8.5 Square and Skills": which rooms and bundles players finish, how far the skills have grown and
+-- which perks players choose. Room and bundle counts are all time; the rest is the chosen window.
+create or replace function public.admin_v185_overview(p_days integer default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 30), 1), 180);
+  v_from timestamptz := now() - make_interval(days => v_days);
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'generatedAt', now(),
+    'days', v_days,
+    'rooms', (select coalesce(jsonb_agg(jsonb_build_object('room', x.room, 'players', x.n) order by x.n desc, x.room), '[]'::jsonb) from (
+        select e.detail ->> 'room' as room, count(distinct e.user_id) as n
+          from public.player_events e
+         where e.kind = 'room_done' and e.detail ->> 'room' ~ '^[a-z0-9_]{1,30}$'
+         group by 1) x),
+    'bundles', (select coalesce(jsonb_agg(jsonb_build_object('room', x.room, 'bundle', x.bundle, 'players', x.n) order by x.room, x.n desc), '[]'::jsonb) from (
+        select e.detail ->> 'room' as room, e.detail ->> 'bundle' as bundle, count(distinct e.user_id) as n
+          from public.player_events e
+         where e.kind = 'bundle_done' and e.detail ->> 'room' ~ '^[a-z0-9_]{1,30}$' and e.detail ->> 'bundle' ~ '^[a-z0-9_]{1,30}$'
+         group by 1, 2) x),
+    'bundlePlayers', (select count(distinct e.user_id) from public.player_events e where e.kind = 'bundle_done'),
+    -- players per skill who reached level 5 and level 10 (the highest level each player reported)
+    'skills', (select coalesce(jsonb_agg(jsonb_build_object('skill', m.skill, 'players', m.players, 'level5', m.l5, 'level10', m.l10, 'top', m.top) order by m.skill), '[]'::jsonb) from (
+        select s.skill, count(*) as players, count(*) filter (where s.lvl >= 5) as l5, count(*) filter (where s.lvl >= 10) as l10, max(s.lvl) as top
+          from (select e.user_id, e.detail ->> 'skill' as skill, max((e.detail ->> 'level')::integer) as lvl
+                  from public.player_events e
+                 where e.kind = 'skill_level' and jsonb_typeof(e.detail -> 'level') = 'number' and e.detail ->> 'skill' ~ '^[a-z]{1,20}$'
+                 group by 1, 2) s
+         group by 1) m),
+    'perks', (select coalesce(jsonb_agg(jsonb_build_object('skill', x.skill, 'perk', x.perk, 'players', x.n) order by x.skill, x.n desc), '[]'::jsonb) from (
+        select e.detail ->> 'skill' as skill, e.detail ->> 'perk' as perk, count(distinct e.user_id) as n
+          from public.player_events e
+         where e.kind = 'skill_perk' and e.detail ->> 'skill' ~ '^[a-z]{1,20}$' and e.detail ->> 'perk' ~ '^[a-z0-9_]{1,30}$'
+         group by 1, 2) x),
+    'headStart', (select count(distinct e.user_id) from public.player_events e where e.kind = 'skills_headstart'),
+    'recent', (select jsonb_build_object('roomsDone', count(*) filter (where e.kind = 'room_done'), 'bundlesDone', count(*) filter (where e.kind = 'bundle_done'),
+                       'levelUps', count(*) filter (where e.kind = 'skill_level'), 'players', count(distinct e.user_id))
+                 from public.player_events e where e.at > v_from and e.kind in ('room_done', 'bundle_done', 'skill_level')));
+end;
+$$;
+
+revoke all on function public.admin_v185_overview(integer) from public, anon;
+-- the admin_* functions check admin_guard() themselves; signed-in callers may try them
+grant execute on function public.admin_v185_overview(integer) to authenticated;

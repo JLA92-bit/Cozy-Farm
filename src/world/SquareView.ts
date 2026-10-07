@@ -6,6 +6,7 @@ import { restoration } from '../systems/Restoration';
 import { Character } from './Character';
 import { PAL, geo, rng } from './Procedural';
 import { objectFor, visualFor } from './Visuals';
+import { boatGeometry, jettyGeometry } from './models/square';
 
 /**
  * The village square (1.8.5 Village Restoration): a little island of its own in the same sea, a day's walk across
@@ -231,30 +232,6 @@ function boardGeometry(color: string): THREE.BufferGeometry {
   // little feet so it sits in the stone
   b.block(0.34, 0.08, 0.34, PAL.stoneDark, [-0.62, 0, 0]);
   b.block(0.34, 0.08, 0.34, PAL.stoneDark, [0.62, 0, 0]);
-  return b.build();
-}
-
-/** A rowing boat for the jetty. */
-function boatGeometry(): THREE.BufferGeometry {
-  return geo()
-    .box(0.9, 0.24, 1.9, PAL.woodDark, [0, 0.05, 0])
-    .box(0.74, 0.06, 1.7, PAL.wood, [0, 0.19, 0])
-    .box(0.94, 0.08, 1.94, PAL.white, [0, 0.22, 0])
-    .box(0.8, 0.05, 0.22, PAL.woodLight, [0, 0.3, -0.2])
-    .build();
-}
-
-/** The little wooden jetty: planks over the water, posts every other plank. */
-function jettyGeometry(): THREE.BufferGeometry {
-  const b = geo();
-  const planks = 8, step = 0.9;
-  for (let k = 0; k < planks; k++) {
-    const z = -k * step;
-    b.block(1.5, 0.1, 0.8, k % 2 ? PAL.wood : PAL.woodLight, [0, -CLIFF_H + 0.7, z]);
-    if (k % 2 === 0) for (const sx of [-0.7, 0.7]) b.block(0.16, 1.0, 0.16, PAL.woodDark, [sx, -CLIFF_H - 0.1, z]);
-  }
-  b.block(0.14, 0.55, 0.14, PAL.woodDark, [0.7, -CLIFF_H + 0.75, -planks * step + 0.5]);
-  b.cyl(0.1, 0.1, 0.06, '#e2d3b0', [0.7, -CLIFF_H + 1.3, -planks * step + 0.5], 6);
   return b.build();
 }
 
