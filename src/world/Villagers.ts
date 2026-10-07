@@ -89,6 +89,9 @@ export class Villagers {
     try {
       // 1.8: the six named villagers, each with their own look; never two of the same person at once
       const here = new Set(this.list.map((x) => x.id));
+      // the villager of the day waiting at the farmhouse (mail agent's Daily18) is not also out walking
+      const td = game.state.village.today;
+      if (td.visitor && td.day === localDay(game.now()) && !td.visitorDone) here.add(td.visitor);
       const free = VILLAGERS.filter((x) => !here.has(x.id));
       if (!free.length) return;
       const who = pick(free);
