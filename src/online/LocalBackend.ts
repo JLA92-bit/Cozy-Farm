@@ -555,6 +555,8 @@ export class LocalBackend implements OnlineBackend {
     const bots = new Map(this.read().profiles.filter((p) => p.bot).map((p) => [p.id, p]));
     const pool = ASK.practice.items.filter((i) => this.knownItems(i));
     if (!pool.length) return;
+    // different things from different neighbours
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     this.writeAsk((d) => {
       const now = this.now();
       todo.forEach((b, i) => {
@@ -562,7 +564,7 @@ export class LocalBackend implements OnlineBackend {
         d.botAsked[b] = day;
         if (!bot) return;
         const [lo, hi] = ASK.practice.qty;
-        const item = pool[(Math.floor(Math.random() * pool.length) + i) % pool.length];
+        const item = pool[i % pool.length];
         d.reqs.push({
           id: `hr${d.seq++}`, requester: { id: bot.id, name: bot.name }, item, qty: lo + Math.floor(Math.random() * (hi - lo + 1)), filled: 0,
           reason: (['order', 'recipe', 'truck'] as HelpReason[])[i % 3], createdAt: now - i * 60000, expiresAt: now + ASK.expireHours * 3600e3,

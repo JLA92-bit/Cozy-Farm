@@ -8,6 +8,7 @@ import { codesView } from './views/codes';
 import { backupsView } from './views/backups';
 import { feedbackView } from './views/feedback';
 import { marketView } from './views/market';
+import { requestsView } from './views/requests';
 import { leaderboardsView } from './views/leaderboards';
 import { notifyView } from './views/notify';
 import { systemView } from './views/system';
@@ -21,6 +22,7 @@ const NAV: { id: string; label: string; icon: string; view: View }[] = [
   { id: 'backups', label: 'Backups', icon: '⤓', view: backupsView },
   { id: 'feedback', label: 'Feedback', icon: '✉', view: feedbackView },
   { id: 'market', label: 'Market', icon: '⚖', view: marketView },
+  { id: 'requests', label: 'Requests', icon: '♡', view: requestsView },
   { id: 'leaderboards', label: 'Leaderboards', icon: '★', view: leaderboardsView },
   { id: 'notify', label: 'Notifications', icon: '🔔', view: notifyView },
   { id: 'system', label: 'System & log', icon: '⚙', view: systemView },

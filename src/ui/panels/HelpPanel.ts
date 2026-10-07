@@ -83,6 +83,7 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
 
   const render = () => {
     if (!p.overlay.isConnected && p.body.childElementCount) return;
+    last = sig();
     clear(p.body);
     clear(p.footer);
     p.footer.style.display = '';
@@ -179,7 +180,15 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
     } else p.footer.append(button('Lovely!', () => p.close(), 'green'));
   };
 
-  const off = help.onChange(() => { if (p.overlay.isConnected && !sending) render(); });
+  // re-draw only when something shown here changed (never under the player's finger for nothing)
+  const sig = () => { const r = help.latestFor(item); return JSON.stringify([r?.id, r?.status, r?.filled, help.canAsk(item), social.state.friends.length, help.hazelOffers().map((x) => x.id)]); };
+  let last = sig();
+  const off = help.onChange(() => {
+    const now = sig();
+    if (now === last) return;
+    last = now;
+    if (p.overlay.isConnected && !sending) render();
+  });
   p.onClose = () => { off(); clearTimeout(armed); };
   render();
   p.open();
@@ -215,6 +224,7 @@ export function askButton(item: string, missing: number, reason: HelpReason): HT
 
 // ------------------------------------------------------------------ Requests strip (Friends)
 
+let stripOpen = false;
 /** "Friends need a hand": each friend's open request with a one-tap Send. Null when there is nothing to show. */
 export function requestsStrip(): HTMLElement | null {
   if (!help.available) return null;
@@ -225,8 +235,17 @@ export function requestsStrip(): HTMLElement | null {
   if (list.length) {
     box.append(h('div', { class: 'section-title help-strip-title' }, icon('hug'), `Friends need a hand (${list.length})`));
     const rows = h('div', { class: 'list' });
-    for (const r of list) rows.append(requestRow(r));
+    const FIRST = 3;
+    for (const r of list.slice(0, stripOpen ? list.length : FIRST)) rows.append(requestRow(r));
     box.append(rows);
+    if (!stripOpen && list.length > FIRST) {
+      box.append(button(`Show ${list.length - FIRST} more`, () => {
+        stripOpen = true;
+        for (const r of list.slice(FIRST)) rows.append(requestRow(r));
+        more.remove();
+      }, 'small blue help-more'));
+    }
+    const more = box.lastElementChild as HTMLElement;
     const left = help.rewardsLeft();
     box.append(h('div', { class: 'muted help-fine' }, left ? `Each send pays a thank-you in coins (${left} more today).` : 'Thank-you coins are used up today, but your friends still love the help!'));
   }
@@ -378,9 +397,15 @@ export function autoHelpSection(): HTMLElement {
     audio.play('select');
     sync();
   });
-  const st = stepper(s.reserve, 0, 500, (v) => { if (v !== s.reserve) help.setReserve(v); }, 'item to keep');
-  const big = (d: number) => button(d > 0 ? '+10' : '-10', () => st.set(s.reserve + d), 'small grey help-qty-btn wide-step');
-  keepRow.append(h('span', { class: 'help-label' }, 'Keep at least'), big(-10), st.el, big(10), h('span', { class: 'help-label' }, 'of each item'));
+  const keepText = h('div', { class: 'help-label' });
+  const st = stepper(s.reserve, 0, 500, (v) => {
+    if (v !== s.reserve) help.setReserve(v);
+    keepText.textContent = `Keep at least ${v} of each item for yourself`;
+  }, 'item to keep');
+  const big = (d: number) => button(d > 0 ? '+10' : '-10', () => st.set(s.reserve + d), 'small grey help-qty-btn wide-step', { 'aria-label': d > 0 ? 'Keep 10 more' : 'Keep 10 fewer' });
+  st.el.prepend(big(-10));
+  st.el.append(big(10));
+  keepRow.append(keepText, st.el);
   sync();
   return h('div', { class: 'setting-row stack help-auto' },
     h('div', { class: 'row between', style: 'width:100%' }, h('label', null, 'Auto-help friends'), t),

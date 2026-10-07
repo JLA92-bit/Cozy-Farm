@@ -73,7 +73,10 @@ export function openOrders(): void {
         const have = game.count(l.item);
         lines.append(h('div', { class: 'row between order-line' },
           h('span', { class: 'row', style: 'gap:4px;min-width:0' }, itemIcon(l.item), h('span', { class: 'card-sub order-item-name' }, ITEMS[l.item].name)),
-          h('span', { class: 'row order-need' }, needPill(l.item, have, l.qty), have < l.qty ? askButton(l.item, l.qty - have, 'order') : null)));
+          needPill(l.item, have, l.qty)));
+        // 1.8: ask friends for what is missing
+        const ask = have < l.qty ? askButton(l.item, l.qty - have, 'order') : null;
+        if (ask) lines.append(h('div', { class: 'order-ask' }, ask));
       }
       const skipping = confirmSkip === o.id;
       const skipBtn = h('button', {
