@@ -81,6 +81,8 @@ const MODELS = [
   // 1.8.5 Village Restoration: the ruined lots of the village square (ADD_ONLY=bld/ruin,bld/dirt adds just these)
   hex('bld/ruin', 'building_destroyed'),
   hex('bld/dirt', 'building_dirt'),
+  // the Village Kitchen (a workshop unlocked by rebuilding the Kitchen)
+  hex('bld/kitchen', 'building_home_B_blue'),
   // props
   hex('prop/barrel', 'barrel'),
   hex('prop/crate_big', 'crate_A_big'),

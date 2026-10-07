@@ -53,12 +53,17 @@
       ]
     },
     {
-      "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "juniper", "opensAt": 22, "soon": true,
-      "about": "The village kitchen is a pile of bricks. It will be rebuilt in a later update.",
+      "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "juniper", "opensAt": 22,
+      "about": "The village kitchen is a pile of bricks and cold ovens. Bring the good things you make and the whole valley will eat well again.",
       "rebuilds": "The village kitchen",
-      "reward": { "id": "kitchen_workshop", "text": "A new workshop: the Village Kitchen." },
-      "letter": { "title": "", "body": "" },
-      "bundles": []
+      "reward": { "id": "kitchen_workshop", "text": "A new workshop, the Village Kitchen, with eight hearty recipes. Build it from the Shop." },
+      "letter": { "title": "The kitchen is warm again!", "body": "Dear {farmer},\n\nI painted the walls myself, a soft yellow like morning butter, and the ovens are lit at last.\n\nYou can build a Village Kitchen on your own farm now: look for it in the Shop, under the workshops. It cooks proper meals, pizza, pasta, dumplings and a roast that makes the whole room go quiet.\n\nWith paint on my fingers,\nJuniper" },
+      "bundles": [
+        { "id": "baker", "name": "Baker's Table", "icon": "bread", "wants": { "bread": 12, "corn_bread": 8, "cookie": 8 } },
+        { "id": "dairy", "name": "Dairy Counter", "icon": "cheese", "wants": { "cheese": 6, "butter": 8, "cream": 8, "ice_cream": 4 } },
+        { "id": "sweet", "name": "Sweet Shelf", "icon": "cake", "wants": { "carrot_cake": 4, "pancakes": 3, "strawberry_cake": 2, "apple_pie": 2 } },
+        { "id": "silver", "name": "Silver Spoon", "icon": "star", "minStar": 1, "wants": { "cookie": 4, "apple_pie": 2, "pumpkin_pie": 2 } }
+      ]
     },
     {
       "id": "workshop", "name": "The Workshop", "icon": "hammer", "color": "grey", "villager": "bram", "opensAt": 28, "soon": true,

@@ -661,6 +661,54 @@
    "sell": 260,
    "icon": "oyster_chowder"
   },
+  "garden_pizza": {
+   "name": "Garden Pizza",
+   "cat": "goods",
+   "sell": 430,
+   "icon": "pizza"
+  },
+  "pumpkin_pasta": {
+   "name": "Pumpkin Pasta",
+   "cat": "goods",
+   "sell": 480,
+   "icon": "spaghetti"
+  },
+  "veggie_dumplings": {
+   "name": "Veggie Dumplings",
+   "cat": "goods",
+   "sell": 300,
+   "icon": "dumpling"
+  },
+  "harvest_bento": {
+   "name": "Harvest Bento",
+   "cat": "goods",
+   "sell": 330,
+   "icon": "bento"
+  },
+  "cheese_fondue": {
+   "name": "Cheese Fondue",
+   "cat": "goods",
+   "sell": 1400,
+   "icon": "fondue"
+  },
+  "stuffed_peppers": {
+   "name": "Stuffed Peppers",
+   "cat": "goods",
+   "sell": 880,
+   "icon": "stuffed_flatbread"
+  },
+  "roast_dinner": {
+   "name": "Sunday Roast",
+   "cat": "goods",
+   "sell": 1000,
+   "icon": "roast"
+  },
+  "market_tacos": {
+   "name": "Market Tacos",
+   "cat": "goods",
+   "sell": 975,
+   "icon": "taco"
+  },
   "anchovy": {
    "name": "Anchovy",
    "cat": "fish",

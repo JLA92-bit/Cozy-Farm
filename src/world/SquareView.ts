@@ -535,6 +535,20 @@ export class SquareView {
         l.position.set(x, lift, 1.7);
         g.add(l);
       }
+    } else if (id === 'kitchen') {
+      // the village kitchen: a warm timber house with a chimney, tables out front and crates of food
+      const kitchen = await modelObject('bld/kitchen', LOT_W * 0.84);
+      kitchen.position.set(-0.4, lift, -0.4);
+      g.add(kitchen);
+      for (const [mid, w, x, z, r] of [['prop/stall_bench', 1.3, 1.9, 1.7, 0.2], ['prop/barrel', 0.55, -2.2, 1.7, 0.7], ['prop/crate_big', 0.55, 2.4, 0.2, 0.4], ['prop/sack', 0.7, -1.4, 2.1, 0.3], ['prop/crate_small', 0.5, 0.2, 2.2, 0.9]] as const) {
+        const p = await modelObject(mid, w);
+        p.position.set(x, lift, z);
+        p.rotation.y = r;
+        g.add(p);
+      }
+      const l = await tallObject('prop/lantern', 2.3);
+      l.position.set(-2.6, lift, 0.5);
+      g.add(l);
     } else if (id === 'pier') {
       // Old Tom's fish shack with a boat drawn up beside it, nets and barrels
       const shack = await buildingObject('fish_shack', LOT_W * 0.9);

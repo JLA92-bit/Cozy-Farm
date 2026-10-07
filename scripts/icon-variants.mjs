@@ -16,6 +16,9 @@ export const FISHING_ICONS = {
   oyster: 'oyster', sushi: 'sushi',
   // 1.8.5 the Pier: sea creatures with a picture of their own
   seal: 'seal', dolphin: 'dolphin', whale: 'spouting-whale',
+  // 1.8.5 the Village Kitchen dishes
+  pizza: 'pizza', spaghetti: 'spaghetti', dumpling: 'dumpling', bento: 'bento-box', fondue: 'fondue',
+  stuffed_flatbread: 'stuffed-flatbread', roast: 'poultry-leg', taco: 'taco',
 };
 
 /**

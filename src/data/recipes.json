@@ -570,6 +570,14 @@
    "out": 1,
    "sec": 2400,
    "xp": 16
-  }
- ]
+  },
+    {"id": "garden_pizza", "building": "village_kitchen", "level": 22, "in": {"wheat": 4, "tomato": 2, "cheese": 1}, "item": "garden_pizza", "out": 1, "sec": 1800, "xp": 24},
+    {"id": "pumpkin_pasta", "building": "village_kitchen", "level": 24, "in": {"pumpkin": 2, "cream": 1, "butter": 1}, "item": "pumpkin_pasta", "out": 1, "sec": 2100, "xp": 26},
+    {"id": "veggie_dumplings", "building": "village_kitchen", "level": 26, "in": {"cabbage": 2, "onion": 1, "wheat": 3}, "item": "veggie_dumplings", "out": 1, "sec": 1500, "xp": 20},
+    {"id": "harvest_bento", "building": "village_kitchen", "level": 28, "in": {"carrot": 2, "egg": 2, "broccoli": 1, "bread": 1}, "item": "harvest_bento", "out": 1, "sec": 2400, "xp": 30},
+    {"id": "cheese_fondue", "building": "village_kitchen", "level": 30, "in": {"cheese": 2, "goat_cheese": 1, "bread": 2}, "item": "cheese_fondue", "out": 1, "sec": 3600, "xp": 60},
+    {"id": "stuffed_peppers", "building": "village_kitchen", "level": 33, "in": {"pepper": 3, "cheese": 1, "onion": 1}, "item": "stuffed_peppers", "out": 1, "sec": 3000, "xp": 45},
+    {"id": "roast_dinner", "building": "village_kitchen", "level": 36, "in": {"truffle": 2, "onion": 2, "beet": 2, "butter": 1}, "item": "roast_dinner", "out": 1, "sec": 4200, "xp": 55},
+    {"id": "market_tacos", "building": "village_kitchen", "level": 40, "in": {"pepper": 2, "tomato": 2, "cheese": 1, "cauliflower": 1}, "item": "market_tacos", "out": 1, "sec": 3300, "xp": 52}
+  ]
 }

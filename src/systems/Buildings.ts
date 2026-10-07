@@ -4,6 +4,7 @@ import type { PlacedBuilding } from './State';
 import { isBuilt, isUpgrading, settleProduction } from './Timers';
 import { farmhouseGainsText, nextCapRaise, type CapKey } from './Caps';
 import { breederSpaces, headChefSlots } from './SkillEffects';
+import { roomDone } from './RestorationEffects';
 
 export type BuyCheck = { ok: true } | { ok: false; reason: string };
 
@@ -28,6 +29,7 @@ export class BuildingSystem {
       if (game.state.event?.id !== def.event) return { ok: false, reason: 'Event item' };
       if (game.state.event.tokens < eventCostOf(def)) return { ok: false, reason: 'Not enough tokens' };
     } else if (game.level < def.level) return { ok: false, reason: `Unlocks at level ${def.level}` };
+    if (def.room && !roomDone(def.room)) return { ok: false, reason: 'Rebuild it in the village square' };
     if (game.capUsage(def) >= game.capFor(def)) {
       if (def.max) return { ok: false, reason: 'Already built' };
       const raise = nextCapRaise(def.cap as CapKey);

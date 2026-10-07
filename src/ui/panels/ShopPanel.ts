@@ -1,3 +1,4 @@
+import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
 import { h, icon, priceTag, clear } from '../dom';
 import { ui } from '../UI';
@@ -98,7 +99,9 @@ function render(p: Panel, tab: string): void {
 }
 
 function card(p: Panel, def: BuildingDef): HTMLElement {
-  const locked = !def.event && game.level < def.level;
+  // 1.8.5: some workshops only open once their room of the village square is rebuilt
+  const needsRoom = !!def.room && !roomDone(def.room);
+  const locked = !def.event && (game.level < def.level || needsRoom);
   const cap = game.capFor(def);
   const used = game.capUsage(def);
   const check = buildings.canBuy(def.id);
@@ -112,11 +115,12 @@ function card(p: Panel, def: BuildingDef): HTMLElement {
   // full, but a bigger Farmhouse makes room: point the way instead of a dead end
   const growable = full && !def.max && !!def.cap && !!nextCapRaise(def.cap as CapKey);
   const sub: (HTMLElement | string)[] = [];
-  if (locked) sub.push(`Level ${def.level}`);
+  if (needsRoom) sub.push('Rebuild it in the village square');
+  else if (locked) sub.push(`Level ${def.level}`);
   else if (cap !== Infinity) sub.push(`${used} / ${cap}`);
   if (def.charm && def.cat === 'decor') sub.push(`+${def.charm} charm`);
   const el = h('div', { class: `card clickable shop-card ${locked ? 'locked' : ''} ${full && !stored ? 'maxed' : ''}` },
-    locked ? h('div', { class: 'lock-tag' }, icon('lock'), `Lv ${def.level}`) : null,
+    locked ? h('div', { class: 'lock-tag' }, icon('lock'), needsRoom ? 'Village' : `Lv ${def.level}`) : null,
     !locked && isNew(def) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
     thumb,
     h('div', { class: 'card-title' }, def.name),

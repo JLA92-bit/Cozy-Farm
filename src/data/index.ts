@@ -43,6 +43,8 @@ export interface BuildingDef {
   tree?: string; animal?: string; upgradeMult?: number; icon?: string; desc?: string; path?: boolean; glow?: number;
   /** decor: shop filter group (paths, fences, garden, water, lights, ...); paint: model colour players can repaint; sign: shows custom text */
   group?: string; paint?: string; sign?: boolean;
+  /** 1.8.5: only for sale once this room of the village square is rebuilt (restoration.json) */
+  room?: string;
   /** fences: joins up with neighbours sharing the same link family; gates are walkable and swing open */
   link?: string; gate?: boolean;
 }
