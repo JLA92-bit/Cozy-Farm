@@ -100,7 +100,7 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
   const renderAsk = () => {
     p.body.append(head());
     const friends = social.state.friends.length;
-    if (help.practice) p.body.append(h('div', { class: 'social-note' }, icon('info'), h('div', null, h('b', null, 'Practice mode. '), 'Demo neighbours on your friends list answer after a minute or two.')));
+    if (help.practice && friends) p.body.append(h('div', { class: 'social-note' }, icon('info'), h('div', null, h('b', null, 'Practice mode. '), 'Demo neighbours on your friends list answer after a minute or two.')));
     const block = help.canAsk(item);
     if (!friends) {
       p.body.append(h('div', { class: 'help-empty' }, icon('hug', 'icon big'),
@@ -434,7 +434,8 @@ function visitBubble(ownerId: string, banner: HTMLElement): void {
     }, `small ${help.isQueued(r.id) ? 'grey' : 'green'}`, { 'aria-label': `Send ${r.requester.name} ${qty} ${itemName(r.item)} when you are back home` });
     el.append(b);
   }
-  (banner.querySelector('.visit-title') ?? banner).append(el);
+  banner.classList.add('has-help');
+  banner.append(el);
 }
 visitBannerHooks.push(visitBubble);
 

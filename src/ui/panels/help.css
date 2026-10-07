@@ -108,3 +108,7 @@
 .order-ask { display: flex; justify-content: flex-end; margin: -2px 0 2px; }
 .order-need { gap: 4px; flex-wrap: wrap; justify-content: center; }
 .btn.small.help-more { display: flex; margin: 8px auto 2px; min-height: 44px; }
+.visit-banner.has-help { flex-wrap: wrap; }
+.visit-banner.has-help .visit-title { flex: 1 1 0; }
+.visit-banner.has-help .help-visit { flex: 1 1 100%; margin-top: 4px; }
+#ui-root.visiting:has(.visit-banner.has-help) .toast-stack { top: calc(var(--safe-top) + 250px); }
