@@ -16,7 +16,7 @@
 
 .letter-row { cursor: pointer; position: relative; }
 .letter-row:active { transform: scale(.98); }
-.letter-row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-body); font-weight: 500; font-size: 17px; }
+.letter-row .title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; line-height: 1.2; font-family: var(--font-body); font-weight: 500; font-size: 17px; }
 .letter-row.unread { background: #fffbe8; }
 .letter-row.unread .title { font-family: var(--font-display); font-weight: normal; }
 .letter-row .sub { font-size: 14px; }

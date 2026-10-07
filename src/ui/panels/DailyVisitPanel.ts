@@ -80,6 +80,8 @@ export function openVisit(): void {
 }
 
 function give(p: Panel): void {
+  if (p.footer.dataset.given) return; // a double tap while the card closes
+  p.footer.dataset.given = '1';
   const r = daily18.give();
   if (!r) { audio.play('error'); return; }
   const btn = p.footer.querySelector('.btn');
