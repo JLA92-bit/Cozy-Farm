@@ -158,3 +158,4 @@
 
 /* the welcome sits above passing toasts (quests finished while away...) so they never cover the letter */
 .overlay:has(> .w18-panel) { z-index: 85; }
+.w18-place { white-space: nowrap; flex: 0 0 auto; }

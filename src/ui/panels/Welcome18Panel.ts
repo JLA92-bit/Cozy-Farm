@@ -345,11 +345,11 @@ class Flow {
     const basket = welcome18.ensureBasket();
     const opts = welcome18.giftOptions(id);
     const canGive = village.canGift(id);
-    const loves = VILLAGER[id].loves.filter((x) => ITEMS[x]).map((x) => ITEMS[x].name.toLowerCase());
+    const loves = VILLAGER[id].loves.filter((x) => ITEMS[x]).map((x) => ITEMS[x].name);
     const hasVillage = ui.has('village');
     const card = h('div', { class: 'w18-card w18-gift' },
       h('div', { class: 'w18-gift-hero' }, villagerPortrait(id, 'big'),
-        h('div', { class: 'w18-speech' }, `Oh, hello! I do love ${loves.slice(0, 2).join(' and ')}.`)),
+        h('div', { class: 'w18-speech' }, loves.length ? `Oh, hello! My favourite? ${loves[0]}, every time.` : 'Oh, hello! How lovely to see you.')),
       h('div', { class: 'w18-vname' }, `Give ${vname(id)} something she loves`),
       h('p', { class: 'w18-vabout' }, `Gifts fill a villager's hearts. One gift each a day.${welcome18.replay ? '' : ` Your first one earns ${W18.giftCoins} coins.`}`));
     if (basket || game.state.welcome18.basket) {
@@ -388,7 +388,7 @@ class Flow {
     const placed = s.buildings.some((b) => b.type === W18.sign);
     const sign = h('div', { class: 'w18-gain sign' }, icon(`building:${W18.sign}`, 'w18-sign-thumb'),
       h('div', { class: 'grow' }, h('div', { class: 'title' }, BUILDING[W18.sign].name), h('div', { class: 'sub' }, placed ? 'On your farm. Thank you for being here!' : 'Waiting in your storage. Thank you for being here!')),
-      stored > 0 ? button('Place it', () => this.placeSign(), 'small green') : null);
+      stored > 0 ? button('Place it', () => this.placeSign(), 'small green w18-place') : null);
     return h('div', { class: 'w18-card w18-summary' },
       h('div', { class: 'w18-sum-title' }, 'Your farm in 1.8'),
       h('div', { class: 'w18-sum-sec' }, icon('check'), 'You kept everything'),
