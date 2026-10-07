@@ -22,14 +22,15 @@ import './mail.css';
  */
 
 /** Things counted as a heap rather than one by one ("some milk", not "3 milks"). */
-const HEAPS = new Set(['wheat', 'corn', 'sugarcane', 'cotton', 'milk', 'goat_milk', 'wool', 'cream', 'butter', 'cheese', 'goat_cheese', 'sugar', 'syrup', 'caramel', 'ice_cream', 'yarn', 'cotton_fabric', 'marmalade', 'tomato_sauce', 'salsa', 'pickled_beets', 'bread', 'corn_bread', 'seafood_curry', 'oyster_chowder', 'seaweed', 'bait', 'grapes', 'cherry', 'cookie', 'pancakes', 'wool_socks', 'truffle']);
+const HEAPS = new Set(['wheat', 'corn', 'sugarcane', 'cotton', 'milk', 'goat_milk', 'wool', 'cream', 'butter', 'cheese', 'goat_cheese', 'sugar', 'syrup', 'caramel', 'ice_cream', 'yarn', 'cotton_fabric', 'marmalade', 'tomato_sauce', 'salsa', 'pickled_beets', 'bread', 'corn_bread', 'seafood_curry', 'oyster_chowder', 'seaweed', 'bait']);
 
 /** "Could you spare 3 eggs?" in plain words. */
 export function askLine(item: string, qty: number): string {
   const def = ITEMS[item];
   const name = (def?.name ?? item).toLowerCase();
   if (!def || HEAPS.has(item) || def.cat === 'fish' || def.cat === 'feed' || item.endsWith('_jam')) return `Could you spare some ${name}? ${qty} would be perfect.`;
-  const plural = /[^aeiou]y$/.test(name) ? `${name.slice(0, -1)}ies` : /(o|s|sh|ch|x)$/.test(name) ? `${name}es` : `${name}s`;
+  // names like "Cherries" and "Wool Socks" are plural already
+  const plural = name.endsWith('s') ? name : /[^aeiou]y$/.test(name) ? `${name.slice(0, -1)}ies` : /(o|s|sh|ch|x)$/.test(name) ? `${name}es` : `${name}s`;
   return `Could you spare ${qty} ${plural}?`;
 }
 
@@ -49,7 +50,7 @@ export function openVisit(): void {
   const v = VILLAGER[id];
   if (!q || !v) return;
   card?.close();
-  const p = new Panel({ title: `${v.name} is visiting`, icon: 'house', color: 'green', size: 'small', wallet: true });
+  const p = new Panel({ title: `${v.name} is visiting`, icon: 'house', color: 'green', size: 'small' });
   card = p;
   p.onClose = () => { if (card === p) card = null; };
   const have = game.count(q.item);
@@ -128,10 +129,11 @@ function syncWeather(): void {
   const w = weatherToday();
   ui.scene.env.weather = w;
   if (!weatherEl) {
-    const row = ui.hud.charmEl.parentElement;
-    if (!row) return;
+    // a little chip on the level badge's corner: the name row has no room to spare on phones
+    const badge = ui.hud.levelEl.parentElement;
+    if (!badge) return;
     weatherEl = h('span', { class: 'weather-pill', role: 'button', onclick: (e: MouseEvent) => { e.stopPropagation(); weatherToast(); } });
-    row.append(weatherEl);
+    badge.append(weatherEl);
   }
   if (w !== shownWeather) {
     shownWeather = w;

@@ -97,12 +97,13 @@
 .visit-footer { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .visit-footer .btn { flex: 1 1 140px; min-height: 52px; font-size: 18px; }
 
-/* weather chip next to the charm pill */
+/* weather chip on the corner of the level badge (with a bigger invisible tap area) */
 .weather-pill {
-  display: inline-flex; align-items: center; justify-content: center; margin-left: 4px; width: 30px; height: 26px; border-radius: 12px;
-  background: rgba(255,255,255,.85); border: 2px solid var(--outline); pointer-events: auto; cursor: pointer; vertical-align: middle;
+  position: absolute; right: -10px; bottom: -8px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+  border-radius: 50%; background: #fff; border: 3px solid var(--outline); box-shadow: 0 2px 0 var(--outline); cursor: pointer; z-index: 3;
 }
-.weather-pill .icon { width: 20px; height: 20px; }
+.weather-pill::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; }
+.weather-pill .icon { width: 22px; height: 22px; }
 .weather-pill.rain { background: #d6e8ff; }
 .weather-pill.mist { background: #eef2f4; }
 
@@ -119,13 +120,15 @@
 .cal-day.blank { background: transparent; border-color: transparent; }
 .cal-day .n { font-family: var(--font-display); font-size: 15px; line-height: 1.1; }
 .cal-day.sat { background: #fff8e3; }
-.cal-day.event { background: #eaf6ff; }
+.cal-day.event { background: #eef7ff; }
 .cal-day.today { border: 3px solid var(--btn-red); background: #fff1ef; }
 .cal-day .sender-badge { border-width: 2px; }
 .cal-day .mk { width: 20px; height: 20px; }
 .cal-day .tag { font-size: 10px; line-height: 1; color: var(--ink-soft); }
 .cal-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 2px 4px; font-size: 13px; color: var(--ink-soft); }
 .cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.cal-legend .mk { width: 22px; height: 22px; }
+.cal-legend .sender-badge { border-width: 2px; }
 .cal-legend .sw { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #e2d2ad; display: inline-block; }
 .cal-today { display: flex; gap: 10px; align-items: center; }
 .cal-today .icon.big { width: 52px; height: 52px; flex: 0 0 52px; }

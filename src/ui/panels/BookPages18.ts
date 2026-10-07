@@ -77,16 +77,16 @@ function renderCalendar(p: Panel): void {
       h('span', { class: 'n' }, String(d)));
     if (bday.length) cell.append(senderBadge(bday[0].id, 24));
     else if (isToday) cell.append(icon(WEATHER[weatherToday()].icon, 'mk'));
-    else if (sat) cell.append(icon('store', 'mk'));
+    else if (sat) cell.append(icon('basket', 'mk'));
     else if (ev && (d === 1 || inEvent(ev.start, ev.start, m + 1, d))) cell.append(icon(ev.icon, 'mk'));
     grid.append(cell);
   }
   p.body.append(grid);
   p.body.append(h('div', { class: 'cal-legend' },
     h('span', null, h('i', { class: 'sw', style: 'border:3px solid var(--btn-red);background:#fff1ef' }), 'Today'),
-    h('span', null, icon('store', 'mk'), 'Saturday: village market day'),
+    h('span', null, icon('basket', 'mk'), 'Saturday: village market day'),
     monthEvents.length ? h('span', null, h('i', { class: 'sw', style: 'background:#eaf6ff' }), 'Event') : null,
-    h('span', null, icon('heart', 'mk'), 'Portrait: a birthday')));
+    h('span', null, senderBadge('pip', 22), 'Face: a villager\'s birthday')));
 
   const list = h('div', { class: 'list cal-list' });
   // today (only on this month's page)
