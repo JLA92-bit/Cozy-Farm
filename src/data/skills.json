@@ -22,7 +22,12 @@
     "fishmongerSell": 1.25,
     "batchCookChance": 0.15,
     "chefSell": 1.1,
-    "gourmetGold": 0.05
+    "gourmetGold": 0.05,
+    "craftExtraPerLevel": 0.03,
+    "thriftyCrafting": 0.25,
+    "sturdyRange": 1,
+    "goldenTouch": 2,
+    "tinkererFeeds": 2
   },
   "skills": [
     {
@@ -90,6 +95,23 @@
         "10": [
           { "id": "head_chef", "name": "Head Chef", "icon": "crown", "text": "An extra queue place in every workshop" },
           { "id": "gourmet", "name": "Gourmet", "icon": "sparkles", "text": "More gold goods" }
+        ]
+      }
+    },
+    {
+      "id": "crafting", "name": "Crafting", "icon": "hammer_wrench", "color": "grey",
+      "about": "Opens when Bram's Workshop is rebuilt in the village square. Grows with everything you craft at his forge.",
+      "grows": "Crafting at Bram's forge",
+      "xp": { "crafts_made": 80 },
+      "perLevel": "A better chance that a craft makes an extra one",
+      "perks": {
+        "5": [
+          { "id": "thrifty_smith", "name": "Thrifty Smith", "icon": "coin", "text": "Crafts use a quarter fewer materials" },
+          { "id": "sturdy_tools", "name": "Sturdy Tools", "icon": "toolbox", "text": "Sprinklers and auto-feeders reach one tile further" }
+        ],
+        "10": [
+          { "id": "golden_touch", "name": "Golden Touch", "icon": "sparkles", "text": "Quality fertiliser is twice as strong" },
+          { "id": "tinkerer", "name": "Tinkerer", "icon": "gear", "text": "Auto-feeders feed twice as many animals" }
         ]
       }
     }

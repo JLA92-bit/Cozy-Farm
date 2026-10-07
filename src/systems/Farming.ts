@@ -7,17 +7,28 @@ import { speedupCost } from './Buildings';
 import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
 import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
-import { RESTORATION } from '../data';
+import { RESTORATION, HELPERS } from '../data';
+import { craftFertMult, sprinklerGrowMult } from './HelperEffects';
 
 /** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
 export const FERTILISER = 'fertiliser';
 /** 1.8.5 Rosa's rare seeds (Pantry): sown like fertiliser, with a bigger boost. */
 export const RARE_SEED = 'rare_seed';
+/** 1.8.5 Quality fertiliser (made at Bram's forge): used before plain fertiliser while the toggle is on. */
+export const QUALITY_FERT = 'quality_fertiliser';
+/** Fertiliser of either kind in the barn. */
+export const fertStock = (): number => game.count(FERTILISER) + game.count(QUALITY_FERT);
 const FERT_BOOST = { silver: 0.1, gold: 0.05 };
 /** true only while a fertilised field is being harvested (the boost reads it) */
 let harvestingFert = false;
 let harvestingRare = false;
+let harvestingQFert = false;
 qualityBoosts.push((source) => (source === 'crop' && harvestingFert ? FERT_BOOST : null));
+qualityBoosts.push((source) => {
+  if (source !== 'crop' || !harvestingQFert) return null;
+  const m = craftFertMult();
+  return { silver: HELPERS.qualityFertiliser.silver * m, gold: HELPERS.qualityFertiliser.gold * m };
+});
 qualityBoosts.push((source) => (source === 'crop' && harvestingRare ? RESTORATION.rewards.rareSeedBoost : null));
 
 export class FarmingSystem {
@@ -41,14 +52,16 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult()));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b)));
     b.plot = { crop, plantedAt: game.now(), growSec };
-    if (this.useFert && game.count(FERTILISER) > 0) {
-      game.addItem(FERTILISER, -1);
+    if (this.useFert && fertStock() > 0) {
+      const q = game.count(QUALITY_FERT) > 0;
+      game.addItem(q ? QUALITY_FERT : FERTILISER, -1);
       b.plot.fert = true;
+      if (q) b.plot.qfert = true;
       game.incStat('fertiliser_used');
       // the last bag is gone: the toggle switches itself off
-      if (game.count(FERTILISER) <= 0) this.useFert = false;
+      if (fertStock() <= 0) this.useFert = false;
     }
     if (this.useRare && game.count(RARE_SEED) > 0) {
       game.addItem(RARE_SEED, -1);
@@ -69,9 +82,10 @@ export class FarmingSystem {
     // 1.8.5 skills: Big Harvest sometimes doubles the crop, Seed Saver sometimes gives the seed money back
     const double = Math.random() < bigHarvestChance();
     const qty = def.yield * (double ? 2 : 1);
-    harvestingFert = !!b.plot.fert;
+    harvestingFert = !!b.plot.fert && !b.plot.qfert;
+    harvestingQFert = !!b.plot.qfert;
     harvestingRare = !!b.plot.rare;
-    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; harvestingRare = false; }
+    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; harvestingQFert = false; harvestingRare = false; }
     game.addXp(def.xp, at);
     if (double) game.bus.emit('toast', { title: 'Big Harvest!', sub: 'A double crop', icon: 'basket' });
     if (Math.random() < seedSaverChance()) { game.addCoins(def.seedCost, at); game.bus.emit('toast', { title: 'Seed Saver', sub: `Your seed money came back (${def.seedCost})`, icon: 'seed' }); }

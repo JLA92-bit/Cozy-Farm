@@ -9,7 +9,7 @@ import { Effects } from '../world/Effects';
 import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND } from '../data';
 import { game } from '../systems/Game';
 import { buildings, speedupCost } from '../systems/Buildings';
-import { farming, FERTILISER, RARE_SEED } from '../systems/Farming';
+import { farming, FERTILISER, fertStock, RARE_SEED } from '../systems/Farming';
 import { land } from '../systems/Land';
 import { audio, haptics } from '../systems/Audio';
 import { hints } from '../systems/Hints';
@@ -229,7 +229,7 @@ class UIManager {
     const render = (sel: string | null) => {
       clear(tray);
       // 1.8: with fertiliser in the barn, a toggle comes first: every field sown while it is on uses one
-      if (game.count(FERTILISER) > 0 || farming.useFert) tray.append(this.fertTile());
+      if (fertStock() > 0 || farming.useFert) tray.append(this.fertTile());
       // 1.8.5: Rosa's rare seeds work the same way
       if (game.count(RARE_SEED) > 0 || farming.useRare) tray.append(this.rareTile());
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
@@ -353,7 +353,7 @@ class UIManager {
     const el = h('div', { class: 'tray-item fert-toggle', role: 'switch', dataset: { fert: '1' } },
       itemIcon(FERTILISER), h('div', null, 'Fertiliser'), h('div', { class: 'fert-state outlined' }), h('div', { class: 'thave outlined', title: 'In your barn' }));
     el.addEventListener('click', () => {
-      if (!farming.useFert && game.count(FERTILISER) <= 0) { this.feedback.toast('No fertiliser left', 'Make more at the Feed Mill', 'seedling'); audio.play('error'); return; }
+      if (!farming.useFert && fertStock() <= 0) { this.feedback.toast('No fertiliser left', 'Make more at the Feed Mill', 'seedling'); audio.play('error'); return; }
       farming.useFert = !farming.useFert;
       audio.play('select', { volume: 0.6 });
       if (farming.useFert) this.feedback.toast('Fertiliser on', 'Each field you sow now uses one: more silver and gold at harvest', 'seedling');
@@ -365,7 +365,7 @@ class UIManager {
   private syncFertTile(tray: HTMLElement | null): void {
     const el = tray?.querySelector<HTMLElement>('.fert-toggle');
     if (!el) return;
-    const have = game.count(FERTILISER);
+    const have = fertStock();
     el.classList.toggle('on', farming.useFert);
     el.setAttribute('aria-checked', String(farming.useFert));
     el.setAttribute('aria-label', `Plant with fertiliser: ${farming.useFert ? 'on' : 'off'}, ${have} in the barn`);
@@ -492,7 +492,7 @@ class UIManager {
       timerEnd = now + plotRemaining(b, now);
       growTotal = b.plot.growSec * 1000;
       rows.push(h('div', { class: 'row' }, itemIcon(b.plot.crop), h('div', { class: 'card-sub' }, `${CROP[b.plot.crop].name} growing`)));
-      if (b.plot.fert) rows.push(h('div', { class: 'row' }, itemIcon('fertiliser'), h('div', { class: 'card-sub' }, 'Fertilised: more silver and gold')));
+      if (b.plot.fert) rows.push(h('div', { class: 'row' }, itemIcon(b.plot.qfert ? 'quality_fertiliser' : 'fertiliser'), h('div', { class: 'card-sub' }, b.plot.qfert ? 'Rich fertiliser: lots more silver and gold' : 'Fertilised: more silver and gold')));
       speedCost = farming.speedupCost(b);
       speedFn = () => farming.speedup(b);
     } else if (def.tree && b.tree && !treeReady(b, now)) {

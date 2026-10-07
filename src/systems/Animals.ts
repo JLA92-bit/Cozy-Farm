@@ -50,12 +50,12 @@ export class AnimalSystem {
   }
 
   /** Feed every hungry animal in a home that we have feed for. Returns how many were fed. */
-  feedAll(b: PlacedBuilding): number {
+  feedAll(b: PlacedBuilding, max = Infinity): number {
     const def = ANIMAL[BUILDING[b.type].animal!];
     const now = game.now();
     let fed = 0;
     (b.animals ?? []).forEach((a, i) => {
-      if (animalState(b, i, now) !== 'hungry' || game.count(def.feed) <= 0) return;
+      if (fed >= max || animalState(b, i, now) !== 'hungry' || game.count(def.feed) <= 0) return;
       game.addItem(def.feed, -1);
       a.fedAt = now;
       fed++;

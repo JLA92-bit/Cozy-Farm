@@ -25,6 +25,8 @@ let lastTab = '';
 const inTab = (b: BuildingDef, tab: string): boolean => {
   if (tab === 'event') return b.event === game.state.event?.id;
   if (b.event || b.group === 'keepsakes') return false; // keepsakes are villager gifts (1.8), never sold
+  // 1.8.5 crafted helpers show up once the player has made one (they are never bought)
+  if (b.craft && !game.state.storage[b.id] && !game.ownedCount(b.id)) return false;
   if (tab === 'animal') return b.cat === 'animal';
   if (b.cat !== tab) return false;
   if (b.cat === 'special' && !b.max) return false;
@@ -54,7 +56,7 @@ export function openShop(tab?: string): void {
 /** Decor filter chip picked last this session ('' = all). */
 let lastGroup = '';
 /** Nicer chip names for some groups; any other group shows as its id with a capital letter. */
-const GROUP_LABEL: Record<string, string> = { rustic: 'Farmyard', landmarks: 'Big builds' };
+const GROUP_LABEL: Record<string, string> = { rustic: 'Farmyard', landmarks: 'Big builds', helpers: 'Helpers' };
 const groupLabel = (g: string): string => GROUP_LABEL[g] ?? g.charAt(0).toUpperCase() + g.slice(1).replace(/_/g, ' ');
 
 /** Filter chips for the decor groups in the list (straight from the data, in the order they first appear). */

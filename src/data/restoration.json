@@ -66,12 +66,17 @@
       ]
     },
     {
-      "id": "workshop", "name": "The Workshop", "icon": "hammer", "color": "grey", "villager": "bram", "opensAt": 28, "soon": true,
-      "about": "Bram's forge is cold and rusty. It will be rebuilt in a later update.",
+      "id": "workshop", "name": "The Workshop", "icon": "hammer", "color": "grey", "villager": "bram", "opensAt": 28,
+      "about": "Bram's forge is cold and rusty, and the bellows have split. Bring what a good workshop is made of and he will light it again.",
       "rebuilds": "Bram's forge",
-      "reward": { "id": "workshop_crafting", "text": "Crafting and crafted helpers." },
-      "letter": { "title": "", "body": "" },
-      "bundles": []
+      "reward": { "id": "workshop_crafting", "text": "Bram's forge opens: craft sprinklers, auto-feeders and quality fertiliser, and the Crafting skill begins." },
+      "letter": { "title": "The forge is lit!", "body": "Dear {farmer},\n\nShe roars again. I had forgotten how good it sounds.\n\nOpen the Workshop in the village square and you can make things at my forge: sprinklers that make nearby crops grow faster, auto-feeders that look after hungry animals, and a rich fertiliser. The more you craft, the better you get, and that is a skill of its own now.\n\nGood iron, good friends,\nBram" },
+      "bundles": [
+        { "id": "mill", "name": "Bakery and Mill", "icon": "bread", "wants": { "bread": 15, "corn_bread": 10, "sugar": 12 } },
+        { "id": "loom", "name": "Dairy and Loom", "icon": "cheese", "wants": { "cheese": 10, "butter": 10, "cotton_fabric": 8, "sweater": 3 } },
+        { "id": "jam", "name": "Jam and Sauce", "icon": "strawberry", "wants": { "strawberry_jam": 6, "tomato_sauce": 6, "apple_jam": 4, "salsa": 4 } },
+        { "id": "sea", "name": "Sea Kitchen", "icon": "fish", "wants": { "fish_cake": 4, "fish_pie": 3, "seafood_curry": 2, "sushi_platter": 2 } }
+      ]
     },
     {
       "id": "treasury", "name": "The Treasury", "icon": "coin", "color": "yellow", "villager": "hazel", "opensAt": 32,

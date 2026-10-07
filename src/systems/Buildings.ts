@@ -24,6 +24,7 @@ export class BuildingSystem {
   /** Can the player buy another one of these right now? */
   canBuy(type: string): BuyCheck {
     const def = BUILDING[type];
+    if (def.craft) return { ok: false, reason: "Made at Bram's forge" };
     if (def.cat === 'special' && def.cost === 0 && !def.max) return { ok: false, reason: 'Already built' };
     if (def.event) {
       if (game.state.event?.id !== def.event) return { ok: false, reason: 'Event item' };

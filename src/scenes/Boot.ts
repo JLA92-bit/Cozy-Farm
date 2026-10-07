@@ -6,6 +6,7 @@ import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
 import { skills } from '../systems/Skills';
 import { restoration } from '../systems/Restoration';
+import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
@@ -157,7 +158,7 @@ export async function boot(): Promise<void> {
     if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
     return villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
   };
-  scene.onTick((now) => { buildings.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
+  scene.onTick((now) => { buildings.tick(now); crafting.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 
   saves.startAutosave();
   saves.onTakenOver = () => {

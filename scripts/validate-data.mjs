@@ -188,7 +188,7 @@ releases?.forEach((r, i) => {
   if (!v.friendship?.pointsPerHeart || !Array.isArray(v.friendship.milestones)) err('villagers.json: friendship settings missing');
 }
 
-// 1.8.5 skills: four skills, an XP ladder, two perks at each perk level, real icons, numbers for every perk
+// 1.8.5 skills: five skills, an XP ladder, two perks at each perk level, real icons, numbers for every perk
 {
   const s = read('skills.json');
   const ids = new Set();
@@ -213,7 +213,7 @@ releases?.forEach((r, i) => {
       }
     }
   }
-  if (ids.size !== 4) err('skills.json: expected the four skills (farming, animals, fishing, cooking)');
+  if (ids.size !== 5) err('skills.json: expected the five skills (farming, animals, fishing, cooking, crafting)');
   for (const [k, v] of Object.entries(s.values ?? {})) if (typeof v !== 'number' || !Number.isFinite(v)) err(`skills.json: value ${k} must be a number`);
   if (/\u2014|\u2013/.test(JSON.stringify(s))) err('skills.json: no em or en dashes in text');
 }

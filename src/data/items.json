@@ -709,6 +709,12 @@
    "sell": 975,
    "icon": "taco"
   },
+  "quality_fertiliser": {
+   "name": "Quality Fertiliser",
+   "cat": "feed",
+   "sell": 14,
+   "icon": "model:proc/fertiliser_q"
+  },
   "anchovy": {
    "name": "Anchovy",
    "cat": "fish",

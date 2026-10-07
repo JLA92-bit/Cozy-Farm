@@ -549,6 +549,20 @@ export class SquareView {
       const l = await tallObject('prop/lantern', 2.3);
       l.position.set(-2.6, lift, 0.5);
       g.add(l);
+    } else if (id === 'workshop') {
+      // Bram's forge: the blacksmith's house, a cart of iron and lumber, barrels and a lantern by the door
+      const forge = await modelObject('bld/blacksmith', LOT_W * 0.86);
+      forge.position.set(-0.5, lift, -0.5);
+      g.add(forge);
+      for (const [mid, w, x, z, r] of [['prop/cart', 1.5, 2.2, 1.6, 0.5], ['prop/lumber', 0.9, 2.5, -0.4, 0.4], ['prop/barrel', 0.55, -2.3, 1.7, 0.5], ['prop/bucket', 0.4, -1.5, 2.1, 0.3], ['prop/wheelbarrow', 1.0, 0.4, 2.3, -0.3], ['prop/crate_small', 0.5, -2.6, 0.5, 0.2]] as const) {
+        const p = await modelObject(mid, w);
+        p.position.set(x, lift, z);
+        p.rotation.y = r;
+        g.add(p);
+      }
+      const l = await tallObject('prop/lantern', 2.3);
+      l.position.set(1.2, lift, 2.1);
+      g.add(l);
     } else if (id === 'pier') {
       // Old Tom's fish shack with a boat drawn up beside it, nets and barrels
       const shack = await buildingObject('fish_shack', LOT_W * 0.9);

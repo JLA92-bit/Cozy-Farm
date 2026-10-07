@@ -1,0 +1,28 @@
+{
+  "_comment": "1.8.5 Crafting at Bram's forge (the rebuilt Workshop in the village square). A recipe costs coins and/or items. kind 'building' puts the crafted helper into storage (place it from Shop > Decor > Helpers); kind 'item' adds it to the barn. The Crafting skill (skills.json) can make an extra one or use fewer materials. Numbers for the helpers' effects are in `helpers`.",
+  "helpers": {
+    "sprinklerGrowMult": 0.88,
+    "sprinklerRange": 3,
+    "autoFeederRange": 6,
+    "autoFeederEverySec": 20,
+    "autoFeederPerTick": 2,
+    "qualityFertiliser": { "silver": 0.25, "gold": 0.12 }
+  },
+  "recipes": [
+    {
+      "id": "sprinkler", "name": "Sprinkler", "icon": "droplet", "kind": "building", "out": "sprinkler", "qty": 1, "coins": 600,
+      "in": { "cotton_fabric": 2, "sugar": 4 },
+      "about": "Waters the fields around it: crops you sow near it grow 12% faster."
+    },
+    {
+      "id": "auto_feeder", "name": "Auto-Feeder", "icon": "nest", "kind": "building", "out": "auto_feeder", "qty": 1, "coins": 2500,
+      "in": { "cotton_fabric": 6, "cheese": 2 },
+      "about": "Feeds the hungry animals in the homes around it, using feed from your barn."
+    },
+    {
+      "id": "quality_fertiliser", "name": "Quality Fertiliser", "icon": "sparkles", "kind": "item", "out": "quality_fertiliser", "qty": 2, "coins": 0,
+      "in": { "fertiliser": 2, "syrup": 1 },
+      "about": "A rich blend. Sow a field with it for a big chance of silver and gold."
+    }
+  ]
+}

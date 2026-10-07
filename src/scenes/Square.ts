@@ -40,7 +40,7 @@ const tmp2 = new THREE.Vector2();
 
 /** Models the square needs, loaded on the first visit (not at boot). */
 const MODELS = [
-  'bld/ruin', 'bld/dirt', 'bld/kitchen', 'bld/stage_a', 'bld/stage_b', 'bld/stage_c', 'bld/scaffolding', 'bld/market', 'bld/tower', 'bld/home_b', 'bld/grain',
+  'bld/ruin', 'bld/dirt', 'bld/kitchen', 'bld/blacksmith', 'prop/cart', 'bld/stage_a', 'bld/stage_b', 'bld/stage_c', 'bld/scaffolding', 'bld/market', 'bld/tower', 'bld/home_b', 'bld/grain',
   'prop/fountain', 'prop/lantern', 'prop/bench', 'prop/barrel', 'prop/crate_big', 'prop/crate_small', 'prop/sack', 'prop/wheelbarrow', 'prop/lumber', 'prop/stones',
   'prop/fence_wood', 'prop/banner_red', 'prop/banner_green', 'nat/rock_small', 'nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat',
   'nat/tree_simple', 'nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'nat/bush', 'nat/grass_large', 'pet/cow', 'pet/pig', 'pet/chick',

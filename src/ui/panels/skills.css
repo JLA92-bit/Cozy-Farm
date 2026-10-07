@@ -10,6 +10,7 @@
 .sk-card.blue { --sk: #3fa9f5; }
 .sk-card.yellow { --sk: #ffc93c; }
 .sk-card.green { --sk: #6cc644; }
+.sk-card.grey { --sk: #9aa3ab; }
 .sk-head { display: flex; align-items: center; gap: 12px; }
 .sk-head .grow { flex: 1 1 auto; min-width: 0; }
 .sk-name { font-family: var(--font-display); font-size: 21px; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

@@ -32,7 +32,7 @@ export interface PlacedBuilding {
   buildEnd?: number;
   upgradeEnd?: number;
   /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest. rare (1.8.5): sown with Rosa's rare seeds, a bigger boost */
-  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; rare?: boolean } | null;
+  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; qfert?: boolean; rare?: boolean } | null;
   tree?: { readyAt: number };
   animals?: { fedAt: number | null }[];
   queue?: QueueEntry[];

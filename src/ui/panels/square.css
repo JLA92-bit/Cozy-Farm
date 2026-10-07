@@ -77,3 +77,9 @@
   .sq-sub { display: none; }
   .sq-label { min-width: 84px; padding: 3px 6px 4px; }
 }
+
+.sq-forge { margin: 8px 0 12px; }
+.sq-needs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.sq-need { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 800; color: #b64a3a; }
+.sq-need.ok { color: #3b8a2a; }
+.sq-need img, .sq-need svg { width: 20px; height: 20px; }

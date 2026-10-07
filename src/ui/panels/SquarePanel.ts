@@ -1,9 +1,10 @@
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear, fmt, priceTag } from '../dom';
 import { ui } from '../UI';
-import { ITEMS, RESTORATION, ROOM, type BundleDef, type RoomDef } from '../../data';
+import { CRAFT_RECIPES, ITEMS, RESTORATION, ROOM, type BundleDef, type RoomDef } from '../../data';
 import { game } from '../../systems/Game';
 import { restoration } from '../../systems/Restoration';
+import { crafting, craftNeeds } from '../../systems/Crafting';
 import { isMarketDay } from '../../systems/RestorationEffects';
 import { audio, haptics } from '../../systems/Audio';
 import { enterSquare, refreshSquare } from '../../scenes/Square';
@@ -54,6 +55,24 @@ function bundleCard(room: RoomDef, b: BundleDef, interactive: boolean, rerender:
 }
 
 /** Rosa's stall, once the Pantry is rebuilt. */
+/** Bram's forge (Workshop room): the crafting recipes. */
+function forge(rerender: () => void): HTMLElement {
+  const wrap = h('div', { class: 'sq-forge' }, h('div', { class: 'sq-bundle-name' }, "Bram's forge"));
+  const chance = Math.round(crafting.chanceExtra() * 100);
+  wrap.append(h('div', { class: 'sq-bundle-sub' }, chance ? `${chance}% chance that a craft makes an extra one.` : 'Craft helpers for the farm. The Crafting skill grows as you make things.'));
+  for (const r of CRAFT_RECIPES) {
+    const ok = crafting.canCraft(r).ok;
+    const needs = Object.entries(craftNeeds(r)).map(([id, n]) => h('span', { class: `sq-need${game.count(id) >= n ? ' ok' : ''}` }, itemIcon(id), `${game.count(id)} / ${n}`));
+    wrap.append(h('div', { class: 'sq-stall' }, icon(r.icon),
+      h('div', { class: 'grow' }, h('div', { class: 'sq-bundle-name' }, r.qty > 1 ? `${r.name} x${r.qty}` : r.name), h('div', { class: 'sq-bundle-sub' }, r.about), h('div', { class: 'sq-needs' }, ...needs)),
+      button(r.coins ? [icon('hammer'), priceTag(r.coins)] : [icon('hammer'), 'Craft'], () => {
+        if (r.coins && !ui.needCoins(r.coins)) return;
+        if (crafting.craft(r.id)) { audio.play('reward'); rerender(); }
+      }, ok ? 'small green' : 'small grey', { 'aria-label': `Craft ${r.name}` })));
+  }
+  return wrap;
+}
+
 function seedStall(rerender: () => void): HTMLElement {
   const left = restoration.seedsLeftToday(), price = RESTORATION.rewards.rareSeedPrice;
   const buy = button([icon('seedling'), priceTag(price)], () => {
@@ -80,6 +99,7 @@ export function openRoom(roomId: string): void {
     p.body.append(h('div', { class: `sq-reward${fin ? ' on' : ''}` }, icon(fin ? 'sparkles' : 'lock'),
       h('div', { class: 'grow' }, h('div', { class: 'sq-reward-title' }, fin ? 'Rebuilt: the village thanks you' : `When it is rebuilt: ${room.rebuilds}`), h('div', { class: 'sq-reward-text' }, room.reward.text))));
     if (fin && room.id === 'pantry') p.body.append(seedStall(render));
+    if (fin && room.id === 'workshop') p.body.append(forge(render));
     if (fin && room.id === 'treasury') {
       p.body.append(h('div', { class: 'sq-reward on' }, icon('calendar'), h('div', { class: 'grow' },
         h('div', { class: 'sq-reward-title' }, isMarketDay() ? 'It is market day!' : 'Market day is every Saturday'),

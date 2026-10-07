@@ -3,6 +3,7 @@ import cropsJson from './crops.json';
 import villagersJson from './villagers.json';
 import skillsJson from './skills.json';
 import restorationJson from './restoration.json';
+import craftingJson from './crafting.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -45,6 +46,8 @@ export interface BuildingDef {
   group?: string; paint?: string; sign?: boolean;
   /** 1.8.5: only for sale once this room of the village square is rebuilt (restoration.json) */
   room?: string;
+  /** 1.8.5: made at Bram's forge (crafting.json), never bought: it arrives in storage and is placed from there */
+  craft?: boolean;
   /** fences: joins up with neighbours sharing the same link family; gates are walkable and swing open */
   link?: string; gate?: boolean;
 }
@@ -147,7 +150,7 @@ export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as R
 export const FRIENDSHIP = villagersJson.friendship;
 
 /** 1.8.5 Skills (skills.json). */
-export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking';
+export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking' | 'crafting';
 export interface SkillPerkDef { id: string; name: string; icon: string; text: string }
 export interface SkillDef {
   id: SkillId; name: string; icon: string; color: string; about: string; grows: string;
@@ -163,6 +166,11 @@ export const SKILL_XP_LEVELS = skillsJson.xpLevels as number[];
 export const SKILL_PERK_LEVELS = skillsJson.perkLevels as number[];
 export const SKILL_HEADSTART_MAX = skillsJson.headStartMaxLevel as number;
 export const SKILL_VALUES = skillsJson.values;
+
+/** 1.8.5 Crafting at Bram's forge (crafting.json). */
+export interface CraftRecipe { id: string; name: string; icon: string; kind: 'building' | 'item'; out: string; qty: number; coins: number; in: Record<string, number>; about: string }
+export const CRAFT_RECIPES = craftingJson.recipes as unknown as CraftRecipe[];
+export const HELPERS = craftingJson.helpers;
 
 /** 1.8.5 Village Restoration (restoration.json). */
 export interface BundleDef { id: string; name: string; icon: string; wants: Record<string, number>; minStar?: 1 | 2 }

@@ -7,6 +7,7 @@ import { FENCE_MODELS } from './models/Fences';
 import { PATH_MODELS } from './models/Paths';
 import { KEEPSAKE_PROC } from './models/keepsakes';
 import { FOUNDING_PROC } from './models/FoundingSign';
+import { HELPER_PROC } from './models/helpers';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -285,6 +286,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   feed_goat: () => sack('#9bd16a'),
   // 1.8: a brown-tagged sack with a little green sprout on top
   fertiliser: () => sack('#8a5a2e', true),
+  fertiliser_q: () => sack('#d99a16', true),
   jam_red: () => jar('#e2304a'),
   jam_gold: () => jar('#f2a530', PAL.green),
   jam_purple: () => jar('#7b3fa8', PAL.gold),
@@ -325,6 +327,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   },
   ...DECOR_PROC,
   ...KEEPSAKE_PROC,
+  ...HELPER_PROC,
 };
 
 function penBuilder(ground: string, roof: string, trough: string): THREE.BufferGeometry {
