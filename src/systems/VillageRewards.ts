@@ -57,7 +57,11 @@ const isBirthdayDay = (v: VillagerDef, day: string): boolean => { const [, m, d]
 
 class VillageRewards {
   /** Has the player met this villager (chatted, gifted, filled an order or had a visit)? */
-  met(id: string): boolean { return !!game.state.village.friends[id]; }
+  met(id: string): boolean {
+    // a record alone is not enough: looking at someone's card creates one (Village.friend)
+    const f = game.state.village.friends[id];
+    return !!f && (f.points > 0 || f.gifts > 0 || !!f.chatDay || f.rewards.length > 0);
+  }
 
   /** The next milestone not reached yet, or null at 10 hearts. */
   next(id: string): number | null {

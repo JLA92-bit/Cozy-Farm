@@ -110,7 +110,6 @@ interface Reaction { r: GiftResult; line: string; before: number }
 export function openVillager(id: string, opts: { gift?: boolean; standalone?: boolean } = {}): void {
   const v = VILLAGER[id];
   if (!v) return;
-  village.friend(id); // opening their page counts as meeting them
   const p = new Panel({ title: v.name, color: 'pink', size: 'medium' });
   p.panel.classList.add('v-page');
   p.panel.style.setProperty('--vc', v.colour);

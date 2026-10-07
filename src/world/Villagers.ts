@@ -11,6 +11,7 @@ import { arrivalLine, greeting, isNight, leavingLine, pick, reactionTo, tapLine 
 import { speech } from '../ui/Speech';
 import { ui } from '../ui/UI';
 import { village } from '../systems/Village';
+import { villageRewards } from '../systems/VillageRewards';
 import { localDay } from '../systems/Progression';
 import { saves } from '../systems/Save';
 import type { FarmScene } from '../scenes/FarmScene';
@@ -259,7 +260,7 @@ export class Villagers {
   /** Tap to chat: their name over a line in their voice, and once a day a little friendship. */
   private chat(v: Villager): void {
     const def = VILLAGER[v.id];
-    const firstMeet = !game.state.village.friends[v.id];
+    const firstMeet = !villageRewards.met(v.id);
     const birthday = village.isBirthday(v.id);
     speech.say(v.w.char.root, { ...tapLine(def, this.night(), firstMeet, birthday), name: def.name, prio: 2, dur: 4 });
     const f = village.friend(v.id);
