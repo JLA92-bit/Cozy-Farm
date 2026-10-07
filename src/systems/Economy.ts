@@ -9,6 +9,7 @@ import { rng, hashString } from '../world/Procedural';
 import { isBuilt } from './Timers';
 import { HAZEL_PRICE_MULT, hasPerk } from './Perks';
 import { recipeAvailable } from './Production';
+import { marketOrderMult, marketStallMult, truckPayMult } from './RestorationEffects';
 import { village } from './Village';
 
 // ======================================================================== obtainable items
@@ -124,6 +125,9 @@ export class OrderSystem {
     return { id, lines, coins, xp, gems, readyAt, npc: Math.floor(r() * 12) };
   }
 
+  /** Coins an order pays today (village market day, once the Treasury is rebuilt, adds a little). */
+  payout(o: Order): number { return Math.round(o.coins * marketOrderMult()); }
+
   canComplete(o: Order): boolean { return o.readyAt <= game.now() && o.lines.every((l) => game.count(l.item) >= l.qty); }
 
   complete(orderId: number, at?: Vec): boolean {
@@ -132,14 +136,14 @@ export class OrderSystem {
     if (idx < 0 || !this.canComplete(list[idx])) return false;
     const o = list[idx];
     for (const l of o.lines) game.addItem(l.item, -l.qty);
-    game.addCoins(o.coins, at);
+    game.addCoins(this.payout(o), at);
     game.addXp(o.xp, at);
     if (o.gems) game.addGems(o.gems, at);
     game.incStat('orders_completed');
     // 1.8: the villager who signed the order is pleased
     village.addPoints(orderVillager(o), FRIENDSHIP.order, 'order');
     list[idx] = this.generate(game.now() + ECONOMY.orders.refillSec * 1000);
-    game.bus.emit('order:completed', { orderId, coins: o.coins, xp: o.xp });
+    game.bus.emit('order:completed', { orderId, coins: this.payout(o), xp: o.xp });
     game.bus.emit('orders:changed', {});
     game.bus.emit('tutorial', { signal: 'order_completed' });
     game.bus.emit('sfx', { name: 'coins2' });
@@ -190,7 +194,7 @@ export class TruckSystem {
       const value = ITEMS[item].sell;
       // fish are caught one cast at a time, so their crates are half size
       const qty = Math.max(2, Math.round((value > 150 ? 2 : value > 60 ? 4 : 7) * ECONOMY.truck.qtyMult * (0.7 + r() * 0.6) * (ITEMS[item].cat === 'fish' ? 0.5 : 1)));
-      crates.push({ item, qty, coins: Math.round(value * qty * ECONOMY.truck.coinMult), xp: itemXp(item) * qty, filled: false });
+      crates.push({ item, qty, coins: Math.round(value * qty * ECONOMY.truck.coinMult * truckPayMult()), xp: itemXp(item) * qty, filled: false });
     }
     const bonus = Math.round(crates.reduce((s, c) => s + c.coins, 0) * ECONOMY.truck.bonusMult);
     game.state.truck = { crates, arrivesAt: now, leavesAt: now + ECONOMY.truck.durationSec * 1000, bonusCoins: bonus };
@@ -265,7 +269,7 @@ export class StallSystem {
   collect(i: number, at?: Vec): number {
     const slot = this.ensureSlots()[i];
     if (!slot || !this.sold(slot)) return 0;
-    const coins = slot.price;
+    const coins = Math.round(slot.price * marketStallMult());
     game.addCoins(coins, at);
     game.incStat('stall_sales', slot.qty);
     Object.assign(slot, { item: null, qty: 0, price: 0, listedAt: 0, soldAt: null, buyDelay: 0 });

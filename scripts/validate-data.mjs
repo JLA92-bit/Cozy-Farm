@@ -218,6 +218,40 @@ releases?.forEach((r, i) => {
   if (/\u2014|\u2013/.test(JSON.stringify(s))) err('skills.json: no em or en dashes in text');
 }
 
+// 1.8.5 restoration: unique rooms, real villagers, items and icons, bundles only in rooms that are open, numbers set
+{
+  const r = read('restoration.json');
+  const villagers = new Set(read('villagers.json').villagers.map((v) => v.id));
+  const seen = new Set();
+  for (const room of r.rooms ?? []) {
+    if (seen.has(room.id)) err(`room ${room.id}: duplicate id`);
+    seen.add(room.id);
+    if (!villagers.has(room.villager)) err(`room ${room.id}: unknown villager ${room.villager}`);
+    if (icons && !icons[room.icon]) err(`room ${room.id}: unknown icon ${room.icon}`);
+    if (!room.name || !room.about || !room.rebuilds || !room.reward?.text) err(`room ${room.id}: needs name, about, rebuilds and a reward text`);
+    if (!(room.opensAt >= 1 && room.opensAt <= levels.maxLevel)) err(`room ${room.id}: bad opensAt`);
+    if (room.soon && room.bundles.length) err(`room ${room.id}: a room that opens later has no bundles yet`);
+    if (!room.soon && !room.bundles.length) err(`room ${room.id}: needs bundles`);
+    if (!room.soon && (!room.letter?.title || !room.letter?.body)) err(`room ${room.id}: needs a letter`);
+    const bseen = new Set();
+    for (const b of room.bundles) {
+      if (bseen.has(b.id)) err(`room ${room.id}: duplicate bundle ${b.id}`);
+      bseen.add(b.id);
+      if (icons && !icons[b.icon]) err(`bundle ${room.id}/${b.id}: unknown icon ${b.icon}`);
+      if (!Object.keys(b.wants ?? {}).length) err(`bundle ${room.id}/${b.id}: wants nothing`);
+      for (const [it, n] of Object.entries(b.wants ?? {})) {
+        if (it !== 'coins' && !items[it]) err(`bundle ${room.id}/${b.id}: unknown item ${it}`);
+        if (!(Number.isInteger(n) && n > 0)) err(`bundle ${room.id}/${b.id}: ${it} needs a whole number above 0`);
+      }
+      if (b.minStar !== undefined && b.minStar !== 1 && b.minStar !== 2) err(`bundle ${room.id}/${b.id}: minStar must be 1 or 2`);
+    }
+  }
+  for (const k of ['rareSeedPrice', 'rareSeedsPerDay', 'truckMult', 'animalTimeMult']) if (typeof r.rewards?.[k] !== 'number') err(`restoration.json: rewards.${k} must be a number`);
+  if (!(r.market?.dayOfWeek >= 0 && r.market?.dayOfWeek <= 6)) err('restoration.json: market.dayOfWeek must be 0-6');
+  if (!items.rare_seed) err('items.json: rare_seed is missing (Rosa sells it)');
+  if (/\u2014|\u2013/.test(JSON.stringify(r))) err('restoration.json: no em or en dashes in text');
+}
+
 // 1.8 Village Guide: every src/data/guide-*.json has pages with an id, a title, an icon and some paragraphs
 {
   const ids = new Set();

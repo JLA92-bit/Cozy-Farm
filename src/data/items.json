@@ -625,6 +625,12 @@
    "sell": 4,
    "icon": "model:proc/fertiliser"
   },
+  "rare_seed": {
+   "name": "Rare Seeds",
+   "cat": "feed",
+   "sell": 5,
+   "icon": "seedling"
+  },
   "fish_cake": {
    "name": "Fish Cake",
    "cat": "goods",

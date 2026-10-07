@@ -109,7 +109,7 @@ export function openOrders(): void {
           orderSigner(o),
           skipBtn),
         lines,
-        h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(o.coins)), h('span', { class: 'pill' }, icon('xp'), `${o.xp}`), o.gems ? h('span', { class: 'pill' }, icon('gem'), `${o.gems}`) : null),
+        h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(orders.payout(o))), h('span', { class: 'pill' }, icon('xp'), `${o.xp}`), o.gems ? h('span', { class: 'pill' }, icon('gem'), `${o.gems}`) : null),
       );
       card.append(button(ok ? 'Deliver' : 'Need items', () => {
         if (!orders.complete(o.id)) {
@@ -118,7 +118,7 @@ export function openOrders(): void {
           audio.play('error');
           return;
         }
-        flyFrom(card, { coins: o.coins, xp: o.xp, gems: o.gems });
+        flyFrom(card, { coins: orders.payout(o), xp: o.xp, gems: o.gems });
         const cr = card.getBoundingClientRect();
         ui.feedback.floatText(cr.left + 20, cr.top + 10, `+${FRIENDSHIP.order} ${VILLAGER[orderVillager(o)].name}`, 'heart', '#ffd1dc', 0.25);
         haptics.buzz([10, 30, 10]);

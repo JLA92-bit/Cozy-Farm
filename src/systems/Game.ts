@@ -18,6 +18,10 @@ export interface GameEvents extends Record<string, unknown> {
   item: { item: string; delta: number; total: number; at?: Vec; quality?: 0 | 1 | 2 };
   /** 1.8: friendship changed (src/systems/Village.ts) */
   'village:points': { id: string; delta: number; points: number; hearts: number; reason: string };
+  /** 1.8.5: a bundle in the village square got items, or was filled (src/systems/Restoration.ts) */
+  'restoration:changed': { room: string; bundle?: string };
+  /** 1.8.5: every bundle of a room is full, so the room is rebuilt */
+  'restoration:room': { room: string };
   /** 1.8: a letter arrived (src/systems/Mail.ts) */
   'mail': { id: number };
   stat: { stat: string; value: number; delta: number };

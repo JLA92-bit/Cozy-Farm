@@ -96,7 +96,8 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
       for (const [bundle, items] of Object.entries(bundles)) given[room][bundle] = countMap(items, (k) => !!ITEMS[k]);
     }
   }
-  return { given, done: strArr(v.done), seen: strArr(v.seen) };
+  const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
+  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);
@@ -160,6 +161,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     if (b.ready) b.ready = strArr(b.ready).filter((i) => ITEMS[i]);
     // 1.8 star quality: fertilised fields, star-ingredient jobs and the star goods waiting to be collected
     if (b.plot && 'fert' in b.plot && b.plot.fert !== true) delete b.plot.fert;
+    if (b.plot && 'rare' in b.plot && b.plot.rare !== true) delete b.plot.rare;
     for (const e of b.queue ?? []) if (e.q !== undefined && e.q !== 1 && e.q !== 2) delete e.q;
     for (const e of b.queue ?? []) if (e.dbl !== true) delete e.dbl;
     if ('readyStar' in b) { const rs = repairReadyStar(b.readyStar, b.ready ?? []); if (rs) b.readyStar = rs; else delete b.readyStar; }

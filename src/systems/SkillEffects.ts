@@ -7,6 +7,7 @@ import { game } from './Game';
 import { qualityBoosts } from './Quality';
 import { ITEMS, SKILL_VALUES as V, SKILL_XP_LEVELS, type SkillId } from '../data';
 import type { SkillsState } from './State';
+import { roomDone } from './RestorationEffects';
 import { animalTimeMultOf, hasPerkIn, levelForXp, levelOf } from './SkillMath';
 
 export const MAX_SKILL_LEVEL = SKILL_XP_LEVELS.length;
@@ -30,7 +31,7 @@ export const seedSaverChance = (): number => (hasSkillPerk('seed_saver') ? V.see
 
 // ---------------------------------------------------------------- animals
 /** Animals take this much of their time to make a product (1% sooner per Animals level above the first). */
-export const animalTimeMult = (): number => animalTimeMultOf(game.state?.skills);
+export const animalTimeMult = (): number => animalTimeMultOf(game.state?.skills, roomDone('barn'));
 /** Chance that a collected animal stays fed for another round (Happy Herd). */
 export const happyHerdChance = (): number => (hasSkillPerk('happy_herd') ? V.happyHerdChance : 0);
 /** Extra animal places in every home (Breeder). */

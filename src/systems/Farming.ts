@@ -7,17 +7,24 @@ import { speedupCost } from './Buildings';
 import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
 import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
+import { RESTORATION } from '../data';
 
 /** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
 export const FERTILISER = 'fertiliser';
+/** 1.8.5 Rosa's rare seeds (Pantry): sown like fertiliser, with a bigger boost. */
+export const RARE_SEED = 'rare_seed';
 const FERT_BOOST = { silver: 0.1, gold: 0.05 };
 /** true only while a fertilised field is being harvested (the boost reads it) */
 let harvestingFert = false;
+let harvestingRare = false;
 qualityBoosts.push((source) => (source === 'crop' && harvestingFert ? FERT_BOOST : null));
+qualityBoosts.push((source) => (source === 'crop' && harvestingRare ? RESTORATION.rewards.rareSeedBoost : null));
 
 export class FarmingSystem {
   /** The seed tray's "Fertiliser" toggle: sow each field with one while the barn has some. */
   useFert = false;
+  /** The seed tray's "Rare seeds" toggle (1.8.5): sow each field with one while the barn has some. */
+  useRare = false;
 
   canPlant(b: PlacedBuilding, crop: string): { ok: boolean; reason?: string } {
     const def = CROP[crop];
@@ -43,6 +50,12 @@ export class FarmingSystem {
       // the last bag is gone: the toggle switches itself off
       if (game.count(FERTILISER) <= 0) this.useFert = false;
     }
+    if (this.useRare && game.count(RARE_SEED) > 0) {
+      game.addItem(RARE_SEED, -1);
+      b.plot.rare = true;
+      game.incStat('rare_seeds_used');
+      if (game.count(RARE_SEED) <= 0) this.useRare = false;
+    }
     game.incStat('plants_planted');
     game.discover(crop, 'crop');
     game.bus.emit('crop:planted', { b, crop });
@@ -57,7 +70,8 @@ export class FarmingSystem {
     const double = Math.random() < bigHarvestChance();
     const qty = def.yield * (double ? 2 : 1);
     harvestingFert = !!b.plot.fert;
-    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; }
+    harvestingRare = !!b.plot.rare;
+    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; harvestingRare = false; }
     game.addXp(def.xp, at);
     if (double) game.bus.emit('toast', { title: 'Big Harvest!', sub: 'A double crop', icon: 'basket' });
     if (Math.random() < seedSaverChance()) { game.addCoins(def.seedCost, at); game.bus.emit('toast', { title: 'Seed Saver', sub: `Your seed money came back (${def.seedCost})`, icon: 'seed' }); }

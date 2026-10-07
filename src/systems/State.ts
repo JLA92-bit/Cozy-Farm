@@ -31,8 +31,8 @@ export interface PlacedBuilding {
   level: number;
   buildEnd?: number;
   upgradeEnd?: number;
-  /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest */
-  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean } | null;
+  /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest. rare (1.8.5): sown with Rosa's rare seeds, a bigger boost */
+  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; rare?: boolean } | null;
   tree?: { readyAt: number };
   animals?: { fedAt: number | null }[];
   queue?: QueueEntry[];
@@ -147,6 +147,8 @@ export interface RestorationState {
   done: string[];
   /** room ids whose rebuilt celebration was shown */
   seen?: string[];
+  /** Rosa's rare seeds bought on a local day (src/systems/Restoration.ts) */
+  seeds?: { day: string; bought: number };
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

@@ -2,6 +2,7 @@
 import cropsJson from './crops.json';
 import villagersJson from './villagers.json';
 import skillsJson from './skills.json';
+import restorationJson from './restoration.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -160,6 +161,18 @@ export const SKILL_XP_LEVELS = skillsJson.xpLevels as number[];
 export const SKILL_PERK_LEVELS = skillsJson.perkLevels as number[];
 export const SKILL_HEADSTART_MAX = skillsJson.headStartMaxLevel as number;
 export const SKILL_VALUES = skillsJson.values;
+
+/** 1.8.5 Village Restoration (restoration.json). */
+export interface BundleDef { id: string; name: string; icon: string; wants: Record<string, number>; minStar?: 1 | 2 }
+export interface RoomDef {
+  id: string; name: string; icon: string; color: string; villager: string; opensAt: number; soon?: boolean;
+  about: string; rebuilds: string; reward: { id: string; text: string };
+  letter: { title: string; body: string };
+  bundles: BundleDef[];
+}
+export const ROOMS = restorationJson.rooms as unknown as RoomDef[];
+export const ROOM = Object.fromEntries(ROOMS.map((r) => [r.id, r])) as Record<string, RoomDef>;
+export const RESTORATION = { market: restorationJson.market, rewards: restorationJson.rewards };
 
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;

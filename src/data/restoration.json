@@ -1,0 +1,79 @@
+{
+  "_comment": "1.8.5 Village Restoration. The old village square has six lots. Each room has bundles: short shopping lists the player fills with items (or coins) whenever they like; partly filled bundles keep what was given. When every bundle in a room is full the room is rebuilt and its reward turns on for good. A bundle's wants map an item id to a count; 'coins' is coins. minStar 1 or 2 asks for silver or gold items. Rooms with soon: true are shown as ruins that open in a later update (no bundles yet). villager signs the letter that arrives when the room is finished. Code: src/systems/Restoration.ts, src/systems/RestorationEffects.ts, the square scene src/world/SquareView.ts.",
+  "market": {
+    "dayOfWeek": 6,
+    "ordersCoinMult": 1.1,
+    "stallMult": 1.1
+  },
+  "rewards": {
+    "truckMult": 1.15,
+    "animalTimeMult": 0.9,
+    "rareSeedPrice": 60,
+    "rareSeedsPerDay": 3,
+    "rareSeedBoost": { "silver": 0.35, "gold": 0.12 }
+  },
+  "rooms": [
+    {
+      "id": "pantry", "name": "The Pantry", "icon": "basket", "color": "pink", "villager": "rosa", "opensAt": 10,
+      "about": "Rosa's old shop front is boarded up. Fill her baskets and the Pantry opens again.",
+      "rebuilds": "Rosa's shop front",
+      "reward": { "id": "pantry_seeds", "text": "Rosa sells rare seeds every day. Plant one for a better chance of silver and gold crops." },
+      "letter": { "title": "The Pantry is open!", "body": "Dear {farmer},\n\nI can hardly believe it. The Pantry has its shop front back, and the first thing I did was put the kettle on.\n\nI have set aside some rare seeds for you. You will find them at my stall in the village square, a few every day. Plant one in a field and the harvest should be something special.\n\nWith flour on my apron and love in my heart,\nRosa" },
+      "bundles": [
+        { "id": "spring", "name": "Spring Basket", "icon": "strawberry", "wants": { "strawberry": 12, "carrot": 12, "turnip": 10 } },
+        { "id": "summer", "name": "Summer Basket", "icon": "tomato", "wants": { "tomato": 14, "corn": 14, "sugarcane": 10 } },
+        { "id": "autumn", "name": "Autumn Basket", "icon": "pumpkin", "wants": { "pumpkin": 12, "cabbage": 10, "cotton": 8 } },
+        { "id": "feast", "name": "Harvest Feast", "icon": "wheat", "wants": { "wheat": 30, "corn": 20, "sugarcane": 20 } }
+      ]
+    },
+    {
+      "id": "barn", "name": "The Barn Room", "icon": "cow", "color": "yellow", "villager": "pip", "opensAt": 15,
+      "about": "The old animal shelter has lost its roof. Bring what your animals make and it will be rebuilt.",
+      "rebuilds": "The animal shelter",
+      "reward": { "id": "barn_speed", "text": "All your animals make their products 10% sooner." },
+      "letter": { "title": "The shelter has a roof!", "body": "Dear {farmer},\n\nThe animal shelter is finished and it is the BEST. There is straw everywhere and I have named all the sparrows.\n\nI asked the animals on your farm and they say thank you. They are going to work a bit faster for you from now on. Their words, not mine.\n\nYour friend,\nPip" },
+      "bundles": [
+        { "id": "eggs", "name": "Egg Basket", "icon": "egg", "wants": { "egg": 24 } },
+        { "id": "milk", "name": "Milk Churns", "icon": "milk", "wants": { "milk": 16 } },
+        { "id": "wool", "name": "Wool Bales", "icon": "yarn", "wants": { "wool": 12 } },
+        { "id": "feast", "name": "Farmyard Feast", "icon": "goat", "wants": { "truffle": 6, "goat_milk": 6, "egg": 10 } }
+      ]
+    },
+    {
+      "id": "pier", "name": "The Pier", "icon": "fishing_pole", "color": "blue", "villager": "tom", "opensAt": 18, "soon": true,
+      "about": "Old Tom's fishing pier has fallen into the sea. It will be rebuilt in a later update.",
+      "rebuilds": "The fishing pier",
+      "reward": { "id": "pier_spot", "text": "A second fishing spot with new fish." },
+      "letter": { "title": "", "body": "" },
+      "bundles": []
+    },
+    {
+      "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "rosa", "opensAt": 22, "soon": true,
+      "about": "The village kitchen is a pile of bricks. It will be rebuilt in a later update.",
+      "rebuilds": "The village kitchen",
+      "reward": { "id": "kitchen_workshop", "text": "A new workshop: the Village Kitchen." },
+      "letter": { "title": "", "body": "" },
+      "bundles": []
+    },
+    {
+      "id": "workshop", "name": "The Workshop", "icon": "hammer", "color": "grey", "villager": "bram", "opensAt": 28, "soon": true,
+      "about": "Bram's forge is cold and rusty. It will be rebuilt in a later update.",
+      "rebuilds": "Bram's forge",
+      "reward": { "id": "workshop_crafting", "text": "Crafting and crafted helpers." },
+      "letter": { "title": "", "body": "" },
+      "bundles": []
+    },
+    {
+      "id": "treasury", "name": "The Treasury", "icon": "coin", "color": "yellow", "villager": "hazel", "opensAt": 32,
+      "about": "The town hall and its clock stopped long ago. Fill the treasury and the village gets its heart back.",
+      "rebuilds": "The town hall and clock",
+      "reward": { "id": "treasury_trucks", "text": "Delivery trucks pay 15% more, and every Saturday is village market day: orders and your roadside stall pay 10% more." },
+      "letter": { "title": "The clock is ticking again!", "body": "Dear {farmer},\n\nListen. Can you hear that? The town hall clock is ticking again, for the first time in years.\n\nFrom now on the delivery trucks will pay you a little more, and every Saturday we hold a proper village market day: your orders and your roadside stall will pay 10% more. I may have had something to do with that.\n\nWith great thanks,\nHazel" },
+      "bundles": [
+        { "id": "first", "name": "First Chest", "icon": "coin", "wants": { "coins": 10000 } },
+        { "id": "second", "name": "Second Chest", "icon": "coin", "wants": { "coins": 25000 } },
+        { "id": "third", "name": "Third Chest", "icon": "gem", "wants": { "coins": 50000 } }
+      ]
+    }
+  ]
+}

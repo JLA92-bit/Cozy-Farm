@@ -9,7 +9,7 @@ import { Effects } from '../world/Effects';
 import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND } from '../data';
 import { game } from '../systems/Game';
 import { buildings, speedupCost } from '../systems/Buildings';
-import { farming, FERTILISER } from '../systems/Farming';
+import { farming, FERTILISER, RARE_SEED } from '../systems/Farming';
 import { land } from '../systems/Land';
 import { audio, haptics } from '../systems/Audio';
 import { hints } from '../systems/Hints';
@@ -230,6 +230,8 @@ class UIManager {
       clear(tray);
       // 1.8: with fertiliser in the barn, a toggle comes first: every field sown while it is on uses one
       if (game.count(FERTILISER) > 0 || farming.useFert) tray.append(this.fertTile());
+      // 1.8.5: Rosa's rare seeds work the same way
+      if (game.count(RARE_SEED) > 0 || farming.useRare) tray.append(this.rareTile());
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
@@ -269,6 +271,7 @@ class UIManager {
       requestAnimationFrame(() => {
         queued = false;
         this.syncFertTile(tray);
+        this.syncRareTile(tray);
         tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked)').forEach((el) => {
           const c = CROP[el.dataset.crop ?? ''];
           if (!c) return;
@@ -316,6 +319,33 @@ class UIManager {
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
+  }
+
+  /** The seed tray's rare seeds toggle tile (1.8.5, once Rosa sells them). */
+  private rareTile(): HTMLElement {
+    const el = h('div', { class: 'tray-item fert-toggle rare-toggle', role: 'switch', dataset: { rare: '1' } },
+      itemIcon(RARE_SEED), h('div', null, 'Rare seeds'), h('div', { class: 'fert-state outlined' }), h('div', { class: 'thave outlined', title: 'In your barn' }));
+    el.addEventListener('click', () => {
+      if (!farming.useRare && game.count(RARE_SEED) <= 0) { this.feedback.toast('No rare seeds left', 'Rosa sells more in the village square', 'seedling'); audio.play('error'); return; }
+      farming.useRare = !farming.useRare;
+      audio.play('select', { volume: 0.6 });
+      if (farming.useRare) this.feedback.toast('Rare seeds on', 'Each field you sow now uses one: a much better chance of silver and gold', 'seedling');
+      this.syncRareTile(el.parentElement);
+    });
+    queueMicrotask(() => this.syncRareTile(el.parentElement));
+    return el;
+  }
+  private syncRareTile(tray: HTMLElement | null): void {
+    const el = tray?.querySelector<HTMLElement>('.rare-toggle');
+    if (!el) return;
+    const have = game.count(RARE_SEED);
+    el.classList.toggle('on', farming.useRare);
+    el.setAttribute('aria-checked', String(farming.useRare));
+    el.setAttribute('aria-label', `Plant with rare seeds: ${farming.useRare ? 'on' : 'off'}, ${have} in the barn`);
+    el.querySelector('.fert-state')!.textContent = farming.useRare ? 'On' : 'Off';
+    const tag = el.querySelector<HTMLElement>('.thave')!;
+    tag.textContent = String(have);
+    tag.style.display = have ? '' : 'none';
   }
 
   /** The seed tray's fertiliser toggle tile (1.8). */
