@@ -1,0 +1,50 @@
+{
+  "_comment": "1.8 Village Guide pages for the mailbox, daily visits, finds and weather (mail agent). Each page: id, title, icon (assets/icons), paragraphs, optional pictures (icon keys, item ids or villager ids). Shown in Book > Village Guide.",
+  "pages": [
+    {
+      "id": "mailbox",
+      "title": "Your mailbox",
+      "icon": "mailbox",
+      "pictures": ["mailbox", "gift"],
+      "paragraphs": [
+        "The blue mailbox stands by your farmhouse. When its red flag is up, a letter is waiting.",
+        "Tap the mailbox, or the Mail button at the side of the screen, to read your letters. Some letters carry a gift: tap Collect to add it to your farm.",
+        "Letters stay in your mailbox so you can read them again. Use Delete read letters to tidy up. Your letters are also in the Book, on the Letters page."
+      ]
+    },
+    {
+      "id": "visits",
+      "title": "Daily visits",
+      "icon": "house",
+      "pictures": ["rosa", "tom", "juniper", "pip", "hazel", "bram"],
+      "paragraphs": [
+        "Every day one villager walks over to your farm. They wait by your farmhouse with a red ! above their head, and send you a note in the morning.",
+        "Tap them to see what they would like, for example 3 eggs. Give it to them for coins, XP and 30 friendship points.",
+        "Busy? Tap Not now. They wait until the end of the day. If you are short of something, Ask friends can help.",
+        "Everyone takes a turn, so you meet all six villagers every week. On a villager's birthday, they come to see you."
+      ]
+    },
+    {
+      "id": "finds",
+      "title": "Daily finds",
+      "icon": "sparkles",
+      "pictures": ["shell", "blossom", "acorn"],
+      "paragraphs": [
+        "Every morning a few little things turn up on your farm: a seashell, wild petals or acorns. Look for a twinkle in the grass and tap to pick them up.",
+        "Finds make lovely gifts. Pip adores seashells and Juniper loves petals.",
+        "Now and then a villager drops something on your farm. Tap it and it goes straight back to them, with 20 friendship points as a thank-you."
+      ]
+    },
+    {
+      "id": "weather",
+      "title": "Weather",
+      "icon": "sun",
+      "pictures": ["sun", "rain", "mist"],
+      "paragraphs": [
+        "Each day is sunny, rainy or misty. The small icon next to your Charm shows today's weather. Tap it to see what it does.",
+        "Rain waters your fields: crops you plant on a rainy day grow 5% faster. Rare fish bite a little more often in the rain too.",
+        "It never rains three days in a row. The Calendar in your Book shows today's weather and tomorrow's."
+      ]
+    }
+  ]
+}

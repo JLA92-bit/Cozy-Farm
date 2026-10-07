@@ -15,6 +15,7 @@ import { formatTime } from '../../systems/Timers';
 import { runGoalAction } from '../GoalActions';
 import { land } from '../../systems/Land';
 import { CHUNK } from '../../world/Grid';
+import { BOOK18_TABS, book18Badge, renderBook18 } from './BookPages18';
 
 // ======================================================================== shared juice
 const plural = (n: number, one: string, many = `${one}s`) => `${fmt(n)} ${n === 1 ? one : many}`;
@@ -513,15 +514,20 @@ export function newDiscoveries(): number {
 
 export function openCollection(tab?: string): void {
   const groups = [...BOOK_PAGES];
-  const p = new Panel({ title: 'Collection Book', icon: 'books', color: 'purple', tabs: groups.map((g) => ({ id: g, label: g })) });
+  // 1.8: Calendar, Letters and the Village Guide follow the collection pages (BookPages18.ts)
+  const p = new Panel({ title: 'Collection Book', icon: 'books', color: 'purple', tabs: [...groups.map((g) => ({ id: g, label: g })), ...BOOK18_TABS] });
   const all = book.entries();
   const since = game.state.seen.collectionSeenAt ?? 0;
   const isNew = (key: string) => (game.state.collection[key] ?? 0) > since;
-  const badges = () => { for (const g of groups) tabBadge(p, g, all.filter((e) => e.group === g && isNew(e.key)).length + (book.claimable(g) ? 1 : 0)); };
+  const badges = () => {
+    for (const g of groups) tabBadge(p, g, all.filter((e) => e.group === g && isNew(e.key)).length + (book.claimable(g) ? 1 : 0));
+    for (const t of BOOK18_TABS) tabBadge(p, t.id, book18Badge(t.id));
+  };
   badges();
   const totalFound = all.filter((e) => game.state.collection[e.key]).length;
   const render = (g: string) => {
     clear(p.body);
+    if (renderBook18(g, p)) return;
     const list = all.filter((e) => e.group === g);
     const { found, total } = book.progress(g);
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px;gap:8px' },
@@ -565,7 +571,7 @@ export function openCollection(tab?: string): void {
   };
   p.onTab = render;
   // open on the page with a reward waiting, else the one with something new
-  const start = tab && groups.includes(tab as typeof groups[number]) ? tab
+  const start = tab && (groups.includes(tab as typeof groups[number]) || BOOK18_TABS.some((t) => t.id === tab)) ? tab
     : groups.find((g) => book.claimable(g)) ?? groups.find((g) => all.some((e) => e.group === g && isNew(e.key)));
   if (start) p.tab = start;
   // everything is "seen" once the book has been opened

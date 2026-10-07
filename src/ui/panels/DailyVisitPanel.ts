@@ -183,3 +183,4 @@ function init(): void {
   syncWeather();
 }
 ui.onTick(() => init());
+ui.register('visit18', () => openVisit());
