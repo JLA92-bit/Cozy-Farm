@@ -882,6 +882,33 @@
    "gauge": true
   },
   {
+   "id": "village_hero",
+   "name": "Village Hero",
+   "category": "building",
+   "stat": "rooms_rebuilt",
+   "tiers": [
+    1,
+    3,
+    6
+   ],
+   "desc": "Rebuild {n} rooms of the village square",
+   "icon": "house",
+   "gauge": true
+  },
+  {
+   "id": "master_crafter",
+   "name": "Master Crafter",
+   "category": "production",
+   "stat": "crafts_made",
+   "tiers": [
+    1,
+    10,
+    40
+   ],
+   "desc": "Craft {n} things at Bram's forge",
+   "icon": "hammer"
+  },
+  {
    "id": "boot_collector",
    "name": "One Boot, Two Boots",
    "category": "hidden",

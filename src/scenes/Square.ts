@@ -83,6 +83,15 @@ export function initSquare(scene: FarmScene, interaction: Interaction): void {
     if (at) { ui.effects.levelUp(at.clone().setY(1.5)); ui.effects.ring(at, 6); scene.rig.shake(0.2, 0.4); }
     restoration.markSeen(room);
   });
+  // the village festival: confetti round the golden statue
+  game.bus.on('restoration:festival', () => {
+    view?.refresh();
+    if (!inSquare || !view) return;
+    const at = view.festivalSpot();
+    if (!at) return;
+    for (let i = 0; i < 5; i++) setTimeout(() => { ui.effects.levelUp(at.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, 1.5 + Math.random(), (Math.random() - 0.5) * 6))); ui.effects.ring(at, 4 + i); }, i * 450);
+    scene.rig.shake(0.25, 0.6);
+  });
   game.bus.on('restoration:changed', () => { view?.refresh(); updateLabels(); });
   Object.assign(window as unknown as Record<string, unknown>, { __square: { enter: enterSquare, leave: () => leaveSquare(), get active() { return inSquare; }, get view() { return view; }, gate } });
 }
@@ -229,7 +238,7 @@ function makeBanner(): HTMLElement {
   return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Village Square'),
-      h('div', { class: 'visit-sub' }, h('span', { class: 'sq-progress' }, icon('sparkle_heart'), `${done} of ${ROOMS.length} rooms rebuilt`))),
+      h('div', { class: 'visit-sub' }, h('span', { class: 'sq-progress' }, icon('sparkle_heart'), restoration.festivalOn() ? 'Village Hero: all rooms rebuilt' : `${done} of ${ROOMS.length} rooms rebuilt`))),
     home);
 }
 
@@ -250,7 +259,7 @@ function updateLabels(): void {
   if (!inSquare) return;
   const done = restoration.roomsDone();
   const prog = banner?.querySelector('.sq-progress');
-  if (prog) prog.lastChild!.textContent = `${done} of ${ROOMS.length} rooms rebuilt`;
+  if (prog) prog.lastChild!.textContent = restoration.festivalOn() ? 'Village Hero: all rooms rebuilt' : `${done} of ${ROOMS.length} rooms rebuilt`;
   for (const room of ROOMS) {
     const l = labels.get(room.id);
     if (!l) continue;

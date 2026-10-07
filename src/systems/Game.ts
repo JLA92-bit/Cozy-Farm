@@ -22,6 +22,7 @@ export interface GameEvents extends Record<string, unknown> {
   'restoration:changed': { room: string; bundle?: string };
   /** 1.8.5: every bundle of a room is full, so the room is rebuilt */
   'restoration:room': { room: string };
+  'restoration:festival': Record<string, never>;
   /** 1.8: a letter arrived (src/systems/Mail.ts) */
   'mail': { id: number };
   stat: { stat: string; value: number; delta: number };

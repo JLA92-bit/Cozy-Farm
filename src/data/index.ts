@@ -182,7 +182,7 @@ export interface RoomDef {
 }
 export const ROOMS = restorationJson.rooms as unknown as RoomDef[];
 export const ROOM = Object.fromEntries(ROOMS.map((r) => [r.id, r])) as Record<string, RoomDef>;
-export const RESTORATION = { market: restorationJson.market, rewards: restorationJson.rewards };
+export const RESTORATION = { market: restorationJson.market, rewards: restorationJson.rewards, festival: restorationJson.festival };
 
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;

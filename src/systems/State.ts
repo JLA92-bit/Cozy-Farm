@@ -151,6 +151,8 @@ export interface RestorationState {
   intro?: number;
   /** Rosa's rare seeds bought on a local day (src/systems/Restoration.ts) */
   seeds?: { day: string; bought: number };
+  /** when every room was rebuilt and the village festival began (ms); the golden statue and bunting stay for good */
+  festival?: number;
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

@@ -8,6 +8,7 @@ import { PATH_MODELS } from './models/Paths';
 import { KEEPSAKE_PROC } from './models/keepsakes';
 import { FOUNDING_PROC } from './models/FoundingSign';
 import { HELPER_PROC } from './models/helpers';
+import { FESTIVAL_PROC } from './models/festival';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -328,6 +329,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...DECOR_PROC,
   ...KEEPSAKE_PROC,
   ...HELPER_PROC,
+  ...FESTIVAL_PROC,
 };
 
 function penBuilder(ground: string, roof: string, trough: string): THREE.BufferGeometry {

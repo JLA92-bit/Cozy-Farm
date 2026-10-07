@@ -141,7 +141,26 @@ class RestorationSystem {
     game.bus.emit('toast', { title: `${r.name} is rebuilt!`, sub: r.reward.text, icon: r.icon });
     game.bus.emit('sfx', { name: 'levelup' });
     logEvent('room_done', { room, level: game.level, rooms: this.roomsDone() });
+    if (ROOMS.every((x) => st.done.includes(x.id))) this.startFestival();
   }
+
+  /** Every room is rebuilt: the village festival. A golden statue for the farm, a letter with a reward, bunting in the square. Once. */
+  private startFestival(): void {
+    const st = this.st;
+    if (st.festival) return;
+    st.festival = game.now();
+    game.state.storage.hero_statue = (game.state.storage.hero_statue ?? 0) + 1;
+    game.discover('hero_statue', 'building');
+    const farmer = game.state.player.name;
+    const f = RESTORATION.festival;
+    mail.send('hazel', f.title, f.body.split('{farmer}').join(farmer), { coins: f.coins, gems: f.gems });
+    game.incStat('festivals');
+    game.bus.emit('restoration:festival', {});
+    game.bus.emit('toast', { title: 'The Village Festival!', sub: 'Every room is rebuilt. A golden statue is waiting in your storage.', icon: 'sparkles' });
+    logEvent('festival', { level: game.level });
+  }
+
+  festivalOn(): boolean { return !!game.state.restoration?.festival; }
 
   /** Rosa's rare seeds (Pantry): how many can still be bought today. */
   seedsLeftToday(): number {

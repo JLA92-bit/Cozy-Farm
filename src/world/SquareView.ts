@@ -8,6 +8,7 @@ import { Character } from './Character';
 import { PAL, geo, rng } from './Procedural';
 import { objectFor, visualFor } from './Visuals';
 import { boatGeometry, jettyGeometry } from './models/square';
+import { buntingGeometry, heroStatueGeometry } from './models/festival';
 
 /**
  * The village square (1.8.5 Village Restoration): a little island of its own in the same sea, a day's walk across
@@ -292,6 +293,9 @@ export class SquareView {
   private animals: { root: THREE.Group; mixer: THREE.AnimationMixer; idle: THREE.AnimationAction | null; walk: THREE.AnimationAction | null; home: THREE.Vector3; target: THREE.Vector3; wait: number; speed: number; lot: string; moving: boolean }[] = [];
   private hands: { hour: THREE.Object3D; minute: THREE.Object3D }[] = [];
   private boat: THREE.Mesh | null = null;
+  /** the village festival (all rooms rebuilt): golden statue and bunting, shown from then on */
+  private festival = new THREE.Group();
+  private statue: THREE.Mesh | null = null;
   private raycaster = new THREE.Raycaster();
   private t = 0;
   private built = false;
@@ -326,6 +330,7 @@ export class SquareView {
     this.layout('arc', true);
 
     await this.scatter();
+    this.buildFestival();
     await this.buildVillagers();
     this.refresh();
   }
@@ -708,8 +713,32 @@ export class SquareView {
 
   // ---------------------------------------------------------------------------------------- state
 
+  /** Golden statue on the plaza and bunting between the plaza lanterns (hidden until the festival). */
+  private buildFestival(): void {
+    const f = this.festival;
+    f.visible = false;
+    const statue = new THREE.Mesh(heroStatueGeometry(), assets.vertexMaterial);
+    const a = Math.PI * 1.75;
+    statue.position.set(Math.cos(a) * 3.5, 0.15, Math.sin(a) * 3.5);
+    statue.scale.setScalar(1.7);
+    statue.castShadow = true;
+    f.add(statue);
+    this.statue = statue;
+    const r = R_PLAZA + 0.1;
+    const geos: THREE.BufferGeometry[] = [];
+    for (let k = 0; k < 6; k++) {
+      const a0 = (k / 6) * Math.PI * 2 + 0.5, a1 = ((k + 1) / 6) * Math.PI * 2 + 0.5;
+      geos.push(buntingGeometry(Math.cos(a0) * r, Math.sin(a0) * r, Math.cos(a1) * r, Math.sin(a1) * r, 2.05, 0.35, 7, k));
+    }
+    const bunting = new THREE.Mesh(mergeGeometries(geos, false), assets.vertexMaterial);
+    bunting.position.y = 0.14;
+    f.add(bunting);
+    this.group.add(f);
+  }
+
   /** Show each lot in the stage its room has reached. */
   refresh(): void {
+    this.festival.visible = restoration.festivalOn();
     for (const lot of this.lots.values()) {
       const stage = restoration.stage(lot.info.id);
       if (stage === lot.stage) continue;
@@ -723,6 +752,9 @@ export class SquareView {
   }
 
   /** The room just finished: bounce it. */
+  /** The festival just began: where to celebrate (the statue). */
+  festivalSpot(): THREE.Vector3 | null { return this.statue ? this.statue.getWorldPosition(new THREE.Vector3()) : null; }
+
   bounce(id: string): void {
     const lot = this.lots.get(id);
     if (!lot) return;
@@ -758,6 +790,7 @@ export class SquareView {
     if (this.disposed) return;
     this.t += dt;
     for (const c of this.characters) c.char.update(dt);
+    if (this.statue && this.festival.visible) this.statue.rotation.y = Math.sin(this.t * 0.6) * 0.45;
     // the animals amble about their yard
     for (const a of this.animals) {
       if (!a.root.visible) continue;

@@ -12,6 +12,11 @@
     "rareSeedsPerDay": 3,
     "rareSeedBoost": { "silver": 0.35, "gold": 0.12 }
   },
+  "festival": {
+    "coins": 20000, "gems": 100,
+    "title": "The Village Festival!",
+    "body": "Dear {farmer},\n\nDo you see it? Every lot in the square has a roof, a fire or a clock again. Old Tom has the whole village singing, Rosa has baked a cake the size of a cart, and Pip has hung bunting on everything that stands still.\n\nThe whole valley wants to say thank you. There is a golden statue in the square with your name on it, as far as I am concerned, and another waiting in your storage for your own farm. I have tucked a little thank-you in with this letter.\n\nYou are the Village Hero. Please come to the festival.\n\nWith all my love,\nHazel"
+  },
   "rooms": [
     {
       "id": "pantry", "name": "The Pantry", "icon": "basket", "color": "pink", "villager": "rosa", "opensAt": 10,
