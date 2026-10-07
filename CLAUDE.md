@@ -22,7 +22,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
-**1.8.5 added:** four skills (Farming, Animals, Fishing, Cooking; level 1-10, 16 perks, head start for old farms; `src/systems/Skills.ts`, `SkillEffects.ts`, `skills.json`, Me > Skills) and Village Restoration (an island village square across the water with six lots; Pantry, Barn Room and Treasury can be rebuilt with bundles, the other three are ruins marked `soon`; `src/systems/Restoration.ts`, `RestorationEffects.ts`, `restoration.json`, 3D scene `src/world/SquareView.ts` + `src/scenes/Square.ts`, room screens `SquarePanel.ts`, the signpost/jetty on the farm's east beach `SquareGate.ts`). Rewards: Rosa's rare seeds (new item `rare_seed`, seed tray toggle), animals 10% faster, trucks +15%, Saturday market day (orders and stall +10%). Dashboard page "1.8.5 Square". Design: `PLAN-1.8.5.md`, balance: `BALANCE.md`.
+**1.8.5 added:** five skills (Farming, Animals, Fishing, Cooking, and Crafting once the Workshop is rebuilt; level 1-10, 20 perks, head start for old farms; `src/systems/Skills.ts`, `SkillEffects.ts`, `skills.json`, Me > Skills) and Village Restoration (an island village square across the water with six lots, all rebuilt with bundles: Pantry, Barn Room, Pier, Kitchen, Workshop, Treasury; `src/systems/Restoration.ts`, `RestorationEffects.ts`, `restoration.json`, 3D scene `src/world/SquareView.ts` + `src/scenes/Square.ts`, room screens `SquarePanel.ts`, the signpost/jetty on the farm's east beach `SquareGate.ts`). Rewards: Rosa's rare seeds (new item `rare_seed`, seed tray toggle), animals 10% faster, trucks +15%, Saturday market day (orders and stall +10%), the Pier (second fishing spot on the west beach, `FishSpots.ts`, `FarmPier.ts`, nine fish with `spot: "pier"`), the Village Kitchen workshop (`building.room`, 8 recipes), Bram's forge crafting (`crafting.json`, `Crafting.ts`, `HelperEffects.ts`: sprinkler, auto-feeder, quality fertiliser) and, when all six rooms are done, the village festival (golden Village Hero statue, bunting, Hazel's letter; `restoration.festival`). Dashboard page "1.8.5 Square". Design: `PLAN-1.8.5.md`, balance: `BALANCE.md`.
 
 **1.8.0 added:** six villagers (Rosa, Old Tom, Juniper, Pip, Hazel, Bram) with hearts, daily gifts, letters, keepsakes and perks; silver/gold starred items; a mailbox with daily visits and finds; Ask a friend; fertiliser; weather; new Book pages (Calendar, Letters, Village Guide); and a one-off welcome flow with a head start for pre-1.8 farmers.
 
@@ -112,7 +112,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 **GPU safety net (added in 1.8.1, confirmed working on a Pixel 10 Pro by Josh).** The Pixel 10 Pro (Imagination PowerVR) showed a white 3D view on Medium/High, probably from shadow maps. Now: `src/core/Renderer.ts` detects PowerVR/Imagination (`WEBGL_debug_renderer_info`) and treats an unset `settings.shadows` as off there (a player's own choice always wins); `src/scenes/GpuGuard.ts` reads pixels once the boot screen is gone and, if 9 spread-out pixels are all white or transparent, turns shadows off, then drops to Low and saves it (it checks once per quality: `settings.gpuChecked`; picking a quality or the Shadows switch stops it for good), and handles `webglcontextlost`/`restored`; Settings > Graphics has a Shadows switch. GPU info and fallbacks go to the admin dashboard via `logEvent` (kinds `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back`, `gpu_blank_low`; only when signed in online). If a phone still shows white: Settings > Graphics > Low. The `onBeforeCompile`/`ShaderMaterial` GLSL in `Terrain.ts` and `FarmView.ts` was reviewed and looks valid (no strict-compiler problems found), but it was not tested on PowerVR.
 
 **Other rough edges (not fixed):**
-- 1.8.5: the Pier, Kitchen and Workshop rooms are ruins marked `soon` (no bundles yet). Skills and the square were tested in headless Chromium, not yet on real phones.
+- 1.8.5: skills, the square, Pier, Kitchen, Workshop and festival were tested in headless Chromium, not yet on real phones. The welcome flow was not extended for them.
 - 1.8.5: the dashboard page "1.8.5 Square" needs the `1.8.5 skills and village restoration` section of `supabase/schema.sql` run in Supabase.
 - Market day is every Saturday in the player's local time (not a server calendar).
 - Old players get six 2-heart tip letters at once on their first 1.8 boot (head start). Could be spread over days.
@@ -156,7 +156,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 ## 8. Open to-dos
 
 - [ ] **Review and push 1.8.5** (built and committed locally; nothing is pushed until Josh says "yes push"). Run the whole `supabase/schema.sql` in Supabase afterwards for the new dashboard page.
-- [ ] 1.8.6: the Pier (second fishing spot), Kitchen (new workshop) and Workshop (Crafting skill, crafted helpers) rooms, then the village festival. After that the new content from the 1.8 design brief (Beehive, Juice press, Kiln, Ducks, Horses, Blueberry, Peas, Lavender, mastery plaques).
+- [ ] 1.8.6: the new content from the 1.8 design brief (Beehive, Juice press, Kiln, Ducks, Horses, Blueberry, Peas, Lavender, mastery plaques).
 - [ ] Make sure the latest `supabase/schema.sql` (1.8 game events, letters, Ask a friend) has been run in Supabase.
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -185,6 +185,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-07: 1.8.5 second half built locally: Pier, Kitchen, Workshop (Crafting skill, helpers), village festival. Still not pushed.
 - 2026-10-07: Game 1.8.5 "The Village Square" built and committed locally (skills, village restoration with a 3D square, rare seeds, market day, dashboard page). Not pushed until Josh approves.
 - 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.
 - 2026-10-07: Game 1.8.0 "Village Friends" released (villagers, hearts, letters, perks, mailbox, Ask a friend, silver/gold items, fertiliser, weather, welcome flow). Pixel 10 white screen diagnosed (shadows); fix still to do.

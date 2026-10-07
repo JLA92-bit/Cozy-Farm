@@ -7,7 +7,7 @@
    "paragraphs": [
     "Across the water from your farm, the old village square has fallen into ruin. Rowing over is easy: tap the signpost or the little boat on your farm's east beach, or open Village and tap Go.",
     "The square has six lots, one for each room of the old village. A room is rebuilt when you have filled all of its bundles. You can rebuild them in any order, whenever you like.",
-    "Tap a lot or the board in front of it to see what it needs. Rooms open at a level: the Pantry at 10, the Barn Room at 15, the Treasury at 32. The Pier, the Kitchen and the Workshop open in a later update."
+    "Tap a lot or the board in front of it to see what it needs. Rooms open at a level: the Pantry at 10, the Barn Room at 15, the Pier at 18, the Kitchen at 22, the Workshop at 28 and the Treasury at 32."
    ]
   },
   {
@@ -27,6 +27,9 @@
    "paragraphs": [
     "The Pantry: Rosa sells rare seeds at her stall in the square, a few every day. Switch them on in the seed tray when you plant, and the harvest has a much better chance of being silver or gold.",
     "The Barn Room: all your animals make their products 10% sooner, for good.",
+    "The Pier: Old Tom's jetty on your west beach becomes a second fishing spot, with nine fish you cannot catch anywhere else.",
+    "The Kitchen: you can build the Village Kitchen from the Shop. It cooks eight hearty meals, like pizza, pasta and a roast dinner.",
+    "The Workshop: Bram's forge opens in the square. Craft sprinklers (crops nearby grow faster), auto-feeders (they feed hungry animals nearby) and quality fertiliser. Crafted helpers are placed from the Shop, under Decor, Helpers.",
     "The Treasury: delivery trucks always pay 15% more, and every Saturday is village market day: your orders and your roadside stall pay 10% more. Look for the basket on the Calendar."
    ]
   }

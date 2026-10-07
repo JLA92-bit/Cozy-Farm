@@ -9,7 +9,7 @@
    "highlights": [
     {
      "icon": "house",
-     "text": "Row over to the old village square and rebuild it room by room: the Pantry, the Barn Room and the Treasury"
+     "text": "Row over to the old village square and rebuild all six rooms: the Pantry, Barn Room, Pier, Kitchen, Workshop and Treasury"
     },
     {
      "icon": "basket",
@@ -17,11 +17,11 @@
     },
     {
      "icon": "sparkles",
-     "text": "Four skills grow as you play: Farming, Animals, Fishing and Cooking. Choose a perk at levels 5 and 10"
+     "text": "Skills grow as you play: Farming, Animals, Fishing and Cooking, and Crafting once Bram's forge is lit. Choose a perk at levels 5 and 10"
     },
     {
      "icon": "seedling",
-     "text": "Rebuilt rooms help your farm for good: rare seeds from Rosa, faster animals, better trucks and a Saturday market day"
+     "text": "Rebuilt rooms help your farm for good: rare seeds, faster animals, a second fishing spot, new workshops, crafted helpers, better trucks and a Saturday market day"
     }
    ],
    "sections": [
@@ -43,7 +43,25 @@
       },
       {
        "icon": "calendar",
-       "text": "The Pier, the Kitchen and the Workshop open in a later update"
+       "text": "Rebuild every room and the whole valley throws a festival: a golden statue, bunting, and a thank-you from Hazel"
+      }
+     ]
+    },
+    {
+     "title": "The other three rooms",
+     "icon": "hammer",
+     "items": [
+      {
+       "icon": "fish",
+       "text": "The Pier (level 18): Old Tom's jetty on your west beach is a second fishing spot with nine new fish"
+      },
+      {
+       "icon": "pie",
+       "text": "The Kitchen (level 22): build the Village Kitchen workshop for eight hearty meals, from pizza to a roast dinner"
+      },
+      {
+       "icon": "hammer",
+       "text": "The Workshop (level 28): craft sprinklers, auto-feeders and quality fertiliser at Bram's forge, and grow the Crafting skill"
       }
      ]
     },

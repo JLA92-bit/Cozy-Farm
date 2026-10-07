@@ -407,7 +407,7 @@ the dearer crops, a small loss on wheat. It is a choice for players who want gol
 
 ## Skills (1.8.5, `src/data/skills.json`, `src/systems/Skills.ts`, `src/systems/SkillEffects.ts`)
 
-Four skills level 1-10 from the game's own stat counters. Level 1 is the plain game (every level above it adds its
+Five skills (Crafting opens with the Workshop) level 1-10 from the game's own stat counters. Level 1 is the plain game (every level above it adds its
 bonus), so a fresh farm plays exactly as before. XP: Farming 1 per crop or fruit harvested, Animals 1 per product,
 Fishing 8 per fish landed, Cooking 1 per good made. Total XP to reach level 2, 3 ... 10: 50, 150, 400, 1,000,
 2,000, 3,500, 6,000, 10,000, 16,000 (`xpLevels`). Rough pace: level 5 after about 1,000 harvests (two to three
@@ -434,10 +434,9 @@ income or play time jumping when players reach level 5 or 10, lower the numbers 
 
 ## Village Restoration (1.8.5, `src/data/restoration.json`, `src/systems/Restoration.ts`)
 
-The old village square has six rooms; 1.8.5 ships three (Pantry, Barn Room, Treasury). Each room has 3-4 bundles
+The old village square has six rooms (Pantry, Barn Room, Pier, Kitchen, Workshop, Treasury). Each room has 3-4 bundles
 (shopping lists of items or coins). Partly filled bundles keep what was given and every bundle filled adds 30
-friendship with the room's villager. Rooms open at a level (Pantry 10, Barn Room 15, Treasury 32; the other three
-are marked `soon`). Bundle contents ask for what a farm at the opening level already makes in bulk, so giving uses
+friendship with the room's villager. Rooms open at a level (Pantry 10, Barn Room 15, Pier 18, Kitchen 22, Workshop 28, Treasury 32). Bundle contents ask for what a farm at the opening level already makes in bulk, so giving uses
 up spare stock rather than competing with orders or the truck (normal items go first):
 
 - **Pantry** (4 bundles, 12-30 of cheap crops each, about 360 crops in all). Reward: Rosa's rare seeds, 3 a day at
@@ -449,6 +448,19 @@ up spare stock rather than competing with orders or the truck (normal items go f
 - **Treasury** (3 bundles: 10,000 + 25,000 + 50,000 coins, a coin sink for rich level-32 farms). Reward: trucks
   pay 15% more (crate coins and the bonus), and Saturdays are village market day: orders pay +10% coins and the
   roadside stall +10%. About one day in seven, so roughly +1.5% on those two income streams over a week.
+
+- **Pier** (nine fish species only the Pier gives, fish.json `spot: "pier"`; it uses the same free daily casts as the
+  dock). Fish sell for the same kind of money as the dock's, so it adds variety and collection, not income.
+- **Kitchen** (Village Kitchen workshop, 8 recipes in recipes.json, building `village_kitchen`, only for sale after
+  the room is rebuilt). Recipes are priced like the other level 20-30 goods.
+- **Workshop** (Bram's forge, crafting.json): a sprinkler (600 coins + cotton fabric and sugar) makes crops sown within
+  3 tiles grow 12% faster (they do not stack); an auto-feeder (2,500 coins + cotton fabric and cheese) feeds 2 hungry
+  animals every 20 seconds in homes within 6 tiles, paid for with feed from the barn (so it saves taps, not feed);
+  quality fertiliser (2 plain fertiliser + 1 syrup makes 2) gives +25% silver and +12% gold, used before plain
+  fertiliser. The Crafting skill (XP 80 per craft, so level 2 after one craft) gives +3% per level above 1 chance
+  of an extra craft. Perks: Thrifty Smith, Sturdy Tools, Golden Touch, Tinkerer.
+- **Festival:** when all six rooms are done, once: 20,000 coins and 100 gems in Hazel's letter, and a Village Hero
+  statue (decor, 25 charm) in storage. The square gets the statue and bunting for good.
 
 Everything here is data: change the numbers in `restoration.json` (bundles, `rewards`, `market`) and the validator
 checks them. The first thing to watch on the dashboard (1.8.5 Square page) is how many players finish the first

@@ -15,12 +15,13 @@ interface V185 {
 }
 
 const ROOMS: Record<string, string> = { pantry: 'The Pantry', barn: 'The Barn Room', pier: 'The Pier', kitchen: 'The Kitchen', workshop: 'The Workshop', treasury: 'The Treasury' };
-const SKILLS: Record<string, string> = { farming: 'Farming', animals: 'Animals', fishing: 'Fishing', cooking: 'Cooking' };
+const SKILLS: Record<string, string> = { farming: 'Farming', animals: 'Animals', fishing: 'Fishing', cooking: 'Cooking', crafting: 'Crafting' };
 const PERKS: Record<string, string> = {
   quick_grower: 'Quick Grower', big_harvest: 'Big Harvest', master_farmer: 'Master Farmer', seed_saver: 'Seed Saver',
   happy_herd: 'Happy Herd', prize_animals: 'Prize Animals', shepherd: 'Shepherd', breeder: 'Breeder',
   patient_angler: 'Patient Angler', quick_cast: 'Quick Cast', legend_hunter: 'Legend Hunter', fishmonger: 'Fishmonger',
   batch_cook: 'Batch Cook', chef: 'Chef', head_chef: 'Head Chef', gourmet: 'Gourmet',
+  thrifty_smith: 'Thrifty Smith', sturdy_tools: 'Sturdy Tools', golden_touch: 'Golden Touch', tinkerer: 'Tinkerer',
 };
 
 function tile(label: string, value: string, sub = ''): HTMLElement {

@@ -5,8 +5,8 @@
    "title": "Skills",
    "icon": "sparkles",
    "paragraphs": [
-    "You now have four skills: Farming, Animals, Fishing and Cooking. They grow by themselves while you play, so there is nothing extra to do.",
-    "Harvesting crops and fruit grows Farming. Collecting eggs, milk and wool grows Animals. Landing fish grows Fishing. Finishing goods in your workshops grows Cooking.",
+    "You now have skills: Farming, Animals, Fishing and Cooking, and a fifth, Crafting, once Bram's Workshop is rebuilt in the village square. They grow by themselves while you play, so there is nothing extra to do.",
+    "Harvesting crops and fruit grows Farming. Collecting eggs, milk and wool grows Animals. Landing fish grows Fishing. Finishing goods in your workshops grows Cooking. Crafting things at Bram's forge grows Crafting.",
     "Every skill goes from level 1 to level 10. Open Me, then the Skills tab, to see how far each one has come.",
     "If you played before skills arrived, everything you already did counts, and you start up to level 5."
    ]
@@ -16,7 +16,7 @@
    "title": "Levels and perks",
    "icon": "star",
    "paragraphs": [
-    "Each level gives a small bonus. Farming gives a little more chance of gold crops. Animals make their products a little sooner. Fishing widens the green zone when you reel in. Cooking makes your workshops a little faster.",
+    "Each level gives a small bonus. Farming gives a little more chance of gold crops. Animals make their products a little sooner. Fishing widens the green zone when you reel in. Cooking makes your workshops a little faster. Crafting gives a chance that a craft makes an extra one.",
     "At levels 5 and 10 you choose one of two perks for that skill. Your choice stays for good, so pick the one that suits your farm. A gold tag on the Me button shows when a choice is waiting.",
     "Perks stack with everything else: fertiliser, villager gifts and the village restoration all work together with your skills."
    ]

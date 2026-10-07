@@ -1,6 +1,6 @@
 # Cozy Acres 1.8.5 plan
 
-**Status (7 Oct 2026): built and committed locally, not pushed.** Decisions from Josh: split approved (1.8.5 = Skills + Pantry, Barn Room, Treasury; 1.8.6 = Pier, Kitchen, Workshop, Crafting, festival); the square is a real 3D place built from the game's own KayKit and Kenney models (no placeholder boxes); all 16 skill perks are built; market day as suggested; the Pixel 10 fix is confirmed so Skills did not wait for it.
+**Status (7 Oct 2026): built and committed locally, not pushed. The second half (Pier, Kitchen, Workshop, Crafting, festival) was folded into 1.8.5 at Josh's request.** Decisions from Josh: split approved (1.8.5 = Skills + Pantry, Barn Room, Treasury; 1.8.6 = Pier, Kitchen, Workshop, Crafting, festival); the square is a real 3D place built from the game's own KayKit and Kenney models (no placeholder boxes); all 16 skill perks are built; market day as suggested; the Pixel 10 fix is confirmed so Skills did not wait for it.
 
 **What differs from the draft below:**
 - **Market day** pays +10% on orders and the roadside stall (every Saturday) instead of adding an extra order, because an extra order slot would have become permanent on the board.
