@@ -6,7 +6,7 @@
  *   6 hearts  their perk (src/systems/Perks.ts) and a letter about it
  *   8 hearts  a second story moment, then a framed portrait
  *   10 hearts best friends: a letter with a gift, and another gift letter every 7 days
- * Plus: a birthday gift earns a thank-you letter the next day, and Pip's perk sends a treasure every Monday.
+ * Plus: a birthday gift earns a thank-you letter the next day (whoever gave it), and Pip's perk sends a treasure every Monday.
  * Story moments and keepsakes are recorded in `friend.stories`, so a closed game never loses one.
  */
 import { BUILDING, FRIENDSHIP, PIP_TREASURES, VILLAGER, VILLAGERS, type VillagerDef, type VillagerLetter } from '../data';
@@ -51,6 +51,9 @@ export function mondayOf(now: number): string {
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return localDay(d.getTime());
 }
+
+/** Is this local day (YYYY-MM-DD) the villager's birthday? */
+const isBirthdayDay = (v: VillagerDef, day: string): boolean => { const [, m, d] = day.split('-').map(Number); return m === v.birthday[0] && d === v.birthday[1]; };
 
 class VillageRewards {
   /** Has the player met this villager (chatted, gifted, filled an order or had a visit)? */
@@ -139,7 +142,11 @@ class VillageRewards {
     for (const v of VILLAGERS) {
       const f: FriendshipState | undefined = game.state.village.friends[v.id];
       if (!f) continue;
-      if (f.bdayThanks && f.bdayThanks !== today) { delete f.bdayThanks; this.send(v, v.letters.birthday); }
+      // a gift on their birthday is thanked by letter on a later day (once per birthday gift)
+      if (f.giftDay && f.giftDay !== today && f.bdayThanks !== f.giftDay && isBirthdayDay(v, f.giftDay)) {
+        f.bdayThanks = f.giftDay;
+        this.send(v, v.letters.birthday);
+      }
       if (f.rewards.includes(10) && (!f.weeklyDay || daysBetween(f.weeklyDay, today) >= WEEK_DAYS)) {
         f.weeklyDay = today;
         this.send(v, v.letters.weekly, this.weeklyAttach(v));
@@ -160,9 +167,7 @@ class VillageRewards {
   start(): void {
     if (this.started) return;
     this.started = true;
-    game.bus.on('village:points', ({ id, reason }) => {
-      // a birthday gift is thanked by letter the next day (whoever gave it: the Village screen or the 1.8 welcome)
-      if (reason === 'gift' && village.isBirthday(id)) village.friend(id).bdayThanks = localDay(game.now());
+    game.bus.on('village:points', ({ id }) => {
       this.check(id);
       this.gauges();
     });

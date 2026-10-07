@@ -125,7 +125,7 @@ export interface FriendshipState {
   known: string[];
   /** 1.8 villagers (optional): story moments already shown (4, 8); each gave its keepsake */
   stories?: number[];
-  /** local day of a birthday gift whose thank-you letter is still to come (the next day) */
+  /** local day of the last birthday gift that was thanked by letter (sent the day after the gift) */
   bdayThanks?: string;
   /** local day of the last best-friend weekly gift letter */
   weeklyDay?: string;
