@@ -4,7 +4,9 @@
 #ui-root.squaring > :not(.sq-keep):not(.overlay):not(.toast-stack):not(.float-layer):not(.speech-layer):not(.world-ui):not(.visit-wipe) { display: none !important; }
 #ui-root.squaring .toast-stack { top: calc(var(--safe-top) + 112px); }
 
-.sq-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sq-layer { position: absolute; inset: 0; overflow: hidden; z-index: 30; }
+/* taps go through the labels to the lots in the 3D view */
+.sq-layer, .sq-layer * { pointer-events: none !important; }
 .sq-label {
   position: absolute; left: 0; top: 0; min-width: 118px; max-width: 168px; padding: 4px 9px 5px; text-align: center;
   background: #fff6df; border: 3px solid var(--outline); border-radius: 13px; box-shadow: 0 3px 0 var(--outline);

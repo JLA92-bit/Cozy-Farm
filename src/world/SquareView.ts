@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import gsap from 'gsap';
 import { assets } from '../core/Assets';
 import { ROOMS, VILLAGER, type RoomDef } from '../data';
@@ -103,6 +104,54 @@ async function buildingObject(type: string, width: number): Promise<THREE.Object
   const size = box.getSize(new THREE.Vector3());
   o.scale.setScalar(width / Math.max(size.x, size.z));
   return o;
+}
+
+/**
+ * Fold every plain mesh under `parent` into one mesh per material (positions baked relative to `parent`). The square
+ * has a lot of small static things (trees, flowers, fences, crates): drawn one by one they would cost hundreds of
+ * draw calls on a phone, merged they cost a handful. Anything that moves or is animated is added after this call.
+ */
+function mergeStatic(parent: THREE.Object3D): void {
+  parent.updateWorldMatrix(true, true);
+  const inv = new THREE.Matrix4().copy(parent.matrixWorld).invert();
+  const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
+  const meshes: THREE.Mesh[] = [];
+  parent.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || Array.isArray(m.material)) return;
+    // pieces that move (clock hands) are marked and stay as they are
+    for (let a: THREE.Object3D | null = m; a && a !== parent; a = a.parent) if (a.userData.keep) return;
+    meshes.push(m);
+  });
+  if (meshes.length < 2) return;
+  for (const m of meshes) {
+    let g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld));
+    const n = g.attributes.position.count;
+    if (!g.attributes.color) g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+    if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2));
+    for (const name of Object.keys(g.attributes)) if (!['position', 'normal', 'color', 'uv'].includes(name)) g.deleteAttribute(name);
+    if (!g.attributes.normal) g.computeVertexNormals();
+    const list = byMat.get(m.material as THREE.Material) ?? [];
+    list.push(g);
+    byMat.set(m.material as THREE.Material, list);
+  }
+  const made: THREE.Mesh[] = [];
+  try {
+    for (const [mat, list] of byMat) {
+      const merged = mergeGeometries(list, false);
+      if (!merged) throw new Error('merge failed');
+      const mesh = new THREE.Mesh(merged, mat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      made.push(mesh);
+    }
+  } catch (e) {
+    console.warn('[square] could not merge, drawing the pieces one by one', e);
+    return;
+  }
+  for (const m of meshes) m.parent?.remove(m);
+  for (const m of made) parent.add(m);
 }
 
 function noise(seed: number, cells = 24): (x: number, z: number) => number {
@@ -320,6 +369,7 @@ export class SquareView {
       p.rotation.y = x * 2;
       ruin.add(p);
     }
+    mergeStatic(ruin);
 
     // stages: A planks and stone, B a frame, C nearly done (scaffolding)
     for (const [key, id, w] of [['a', 'bld/stage_a', 0.7], ['b', 'bld/stage_b', 0.78], ['c', 'bld/stage_c', 0.82]] as const) {
@@ -340,6 +390,7 @@ export class SquareView {
       wb.position.set(1.8, 0.17, 1.4);
       wb.rotation.y = -0.6;
       st.add(crate, wb);
+      mergeStatic(st);
     }
 
     // finished rooms
@@ -448,6 +499,7 @@ export class SquareView {
       f2.position.set(2.4, lift, 3.3);
       f2.rotation.y = Math.PI / 2;
       g.add(f2);
+      mergeStatic(g);
       await this.animalsFor('barn', g);
     } else if (id === 'treasury') {
       const hall = await modelObject('bld/home_b', LOT_W * 0.78);
@@ -466,6 +518,7 @@ export class SquareView {
         clock.rotation.y = Math.atan2(dir.x, dir.y);
         const face = new THREE.Mesh(geo().cyl(0.4, 0.4, 0.07, '#fff6e8', [0, 0, 0], 20, [Math.PI / 2, 0, 0]).cyl(0.44, 0.44, 0.05, PAL.gold, [0, 0, -0.012], 20, [Math.PI / 2, 0, 0]).build(), assets.vertexMaterial);
         const hour = new THREE.Group(), minute = new THREE.Group();
+        hour.userData.keep = true; minute.userData.keep = true;
         hour.add(new THREE.Mesh(geo().box(0.05, 0.22, 0.03, PAL.black, [0, 0.11, 0.05]).build(), assets.vertexMaterial));
         minute.add(new THREE.Mesh(geo().box(0.035, 0.32, 0.03, PAL.black, [0, 0.16, 0.07]).build(), assets.vertexMaterial));
         clock.add(face, hour, minute);
@@ -487,6 +540,7 @@ export class SquareView {
       m.position.y = lift;
       g.add(m);
     }
+    if (id !== 'barn') mergeStatic(g);
     return g;
   }
 
@@ -520,7 +574,9 @@ export class SquareView {
   }
 
   private async scatter(): Promise<void> {
-    const g = this.group, r = rng(5150);
+    const scenery = new THREE.Group();
+    this.group.add(scenery);
+    const g = scenery, r = rng(5150);
     const [icx, icz] = at(0, IC_SY);
     // lanterns between the lots and round the plaza
     for (let k = 0; k < 6; k++) {
@@ -561,19 +617,22 @@ export class SquareView {
       g.add(f);
     }
 
+    mergeStatic(scenery);
+
     // the jetty and a boat: the way home
     const jx = icx + Math.cos(jetty) * (R_ISLAND - 0.2), jz = icz + Math.sin(jetty) * (R_ISLAND - 0.2);
+    const g2 = this.group;
     const jet = new THREE.Mesh(jettyGeometry(), assets.vertexMaterial);
     jet.position.set(jx, 0, jz);
     jet.rotation.y = Math.atan2(-Math.cos(jetty), -Math.sin(jetty)) + Math.PI;
     jet.receiveShadow = true;
-    g.add(jet);
+    g2.add(jet);
     const boat = new THREE.Mesh(boatGeometry(), assets.vertexMaterial);
     const out = new THREE.Vector2(Math.cos(jetty), Math.sin(jetty));
     boat.position.set(jx + out.x * 8.4 - out.y * 1.3, -CLIFF_H + 0.4, jz + out.y * 8.4 + out.x * 1.3);
     boat.rotation.y = -jetty + Math.PI / 2;
     boat.castShadow = true;
-    g.add(boat);
+    g2.add(boat);
     this.boat = boat;
   }
 
