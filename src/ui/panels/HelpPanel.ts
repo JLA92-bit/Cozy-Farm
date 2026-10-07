@@ -212,14 +212,15 @@ function myList(list: HelpRequest[], after: () => void): HTMLElement {
  * A small "Ask" button for an item the player is short of (null when asking is not possible here). With an
  * open request it shows the progress instead ("2/5"), and opens it.
  */
-export function askButton(item: string, missing: number, reason: HelpReason): HTMLElement | null {
+export function askButton(item: string, missing: number, reason: HelpReason, showItem = false): HTMLElement | null {
   if (!help.available || !askable(item) || missing <= 0 || visiting.active) return null;
   const r = help.openFor(item);
   const open = (e?: Event) => { e?.stopPropagation(); ui.open('help', { item, qty: Math.min(ASK.maxQty, missing), reason }); };
   if (r) {
     return button([icon('hug'), h('span', { class: 'live' }, `${r.filled}/${r.qty}`)], () => open(), 'small blue help-ask asked', { 'aria-label': `Asked friends for ${itemName(item)}: ${r.filled} of ${r.qty} arrived` });
   }
-  return button([icon('hug'), h('span', null, 'Ask')], () => open(), 'small pink-btn help-ask', { 'aria-label': `Ask friends for ${itemName(item)}` });
+  // next to several ingredients the item's own icon says which one this asks for
+  return button([showItem ? itemIcon(item) : icon('hug'), h('span', null, 'Ask')], () => open(), 'small pink-btn help-ask', { 'aria-label': `Ask friends for ${itemName(item)}` });
 }
 
 // ------------------------------------------------------------------ Requests strip (Friends)
@@ -424,10 +425,10 @@ function visitBubble(ownerId: string, banner: HTMLElement): void {
   const el = h('div', { class: 'help-visit visit-keep' }, itemIcon(r.item, 'icon item'),
     h('div', { class: 'grow' }, h('b', null, `${r.requester.name} needs ${need} ${itemName(r.item)}`), h('br'), have ? `You have ${fmt(have)}` : 'You have none right now'));
   if (qty > 0) {
-    const b = button(help.isQueued(r.id) ? [icon('check'), 'At home'] : [icon('gift'), `Send ${qty}`], () => {
+    const b = button(help.isQueued(r.id) ? [icon('check'), 'Sends at home'] : [icon('gift'), `Send ${qty}`], () => {
       if (help.isQueued(r.id)) return;
       help.queue(r, qty);
-      b.replaceChildren(icon('check'), 'At home');
+      b.replaceChildren(icon('check'), 'Sends at home');
       b.classList.replace('green', 'grey');
       audio.play('select');
       ui.feedback.toast(`We will send ${qty} ${itemName(r.item)}`, 'As soon as you are back home.', 'hug');

@@ -151,7 +151,7 @@ export function openProduction(b: PlacedBuilding): void {
           title: short ? sourceText(item) : ITEMS[item].name,
           onclick: short ? (e: MouseEvent) => { e.stopPropagation(); goToSource(item); } : undefined,
         }, itemIcon(item), `${have}/${n}`, short ? icon('magnifier', 'icon tiny') : null));
-        if (short) ingredients.append(...[askButton(item, n - have, 'recipe')].filter((x): x is HTMLElement => !!x));
+        if (short) ingredients.append(...[askButton(item, n - have, 'recipe', true)].filter((x): x is HTMLElement => !!x));
       }
       const check = production.canQueue(b, r.id);
       const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : 'Make', () => {
