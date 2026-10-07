@@ -522,9 +522,8 @@ class Flow {
       const isOpen = Panel.isOpen;
       if (isOpen !== open) {
         open = isOpen;
-        row.replaceChildren(
-          button('Later', () => { this.hideCoach(); this.later(); }, 'small grey'),
-          isOpen ? null as unknown as HTMLElement : button([icon('house'), 'Open the Village'], () => ui.open('village', { villager: W18.giftVillager }), 'small green'));
+        row.replaceChildren(button('Later', () => { this.hideCoach(); this.later(); }, 'small grey'));
+        if (!isOpen) row.append(button([icon('house'), 'Open the Village'], () => ui.open('village', { villager: W18.giftVillager }), 'small green'));
         text.textContent = isOpen ? `Give ${vname(W18.giftVillager)} something she loves. Tap Gift, then pick one of her favourites.` : `The Village is where ${vname(W18.giftVillager)} lives. Open it to give her a gift.`;
       }
       const target = isOpen ? this.giftButton() : null;
