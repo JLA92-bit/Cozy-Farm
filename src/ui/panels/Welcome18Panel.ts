@@ -591,9 +591,13 @@ class Flow {
   private later(): void {
     if (this.ended) return;
     this.ended = true;
-    this.cleanup();
+    // before cleanup(), which clears the replay flag
+    const replay = welcome18.replay;
     welcome18.later(this.variant);
-    if (!welcome18.replay) resumable = this.variant;
+    this.cleanup();
+    if (!replay) resumable = this.variant;
+    // the third Later: it will not come back by itself, so say where it lives
+    if (!replay && game.state.welcome18.done) ui.feedback.toast('No problem!', 'The 1.8 welcome is in Settings whenever you like', 'sparkle_heart');
     this.opts.onClose?.();
   }
 

@@ -198,6 +198,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   w.headStart = !!w.headStart;
   if (w.short !== true) delete w.short;
   if (w.basket !== true) delete w.basket;
+  if (typeof w.later !== 'number' || !Number.isInteger(w.later) || w.later < 1) delete w.later; else w.later = Math.min(w.later, 99);
   if (typeof w.letter !== 'number' || !Number.isInteger(w.letter) || w.letter < 1) delete w.letter;
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;

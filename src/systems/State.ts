@@ -151,6 +151,8 @@ export interface Welcome18State {
   letter?: number;
   /** Hazel's basket of strawberries for the first gift was given */
   basket?: boolean;
+  /** times the player chose "Later"; after 3 the welcome stops coming back by itself (Settings can replay it) */
+  later?: number;
 }
 
 export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }

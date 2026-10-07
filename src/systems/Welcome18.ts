@@ -38,6 +38,8 @@ export const W18 = {
   /** new farms meet the villagers once the first-day tutorial is well behind them */
   shortLevel: 3,
   sign: 'founding_sign',
+  /** after this many "Later"s the welcome stops coming back by itself */
+  maxLater: 3,
 };
 
 /** Hazel's welcome letter (full welcome) and her hello to a new farmer (short intro). */
@@ -175,8 +177,21 @@ class Welcome18System {
     logEvent('welcome_done', { variant });
   }
 
+  /**
+   * "Later": the welcome comes back next time. After the third Later it counts as done, so it never nags and
+   * never holds back what waits for it (villager story moments wait for welcome18.done).
+   */
   later(variant: W18Variant): void {
-    if (!this.replay) logEvent('welcome_later', { step: W18_STEPS[variant][this.stepIndex(variant)], variant });
+    if (this.replay) return;
+    const w = this.w;
+    w.later = (w.later ?? 0) + 1;
+    logEvent('welcome_later', { step: W18_STEPS[variant][this.stepIndex(variant)], variant, n: w.later });
+    if (w.later >= W18.maxLater) {
+      w.done = true;
+      delete w.short;
+      logEvent('welcome_gave_up', { step: W18_STEPS[variant][this.stepIndex(variant)], variant });
+    }
+    saves.save();
   }
 
   /** Short names for the six villagers ("Rosa, Old Tom, ... and Bram"). */
