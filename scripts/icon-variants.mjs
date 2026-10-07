@@ -14,6 +14,8 @@ export const FISHING_ICONS = {
   squid: 'squid', lobster: 'lobster', jellyfish: 'jellyfish', shark: 'shark', fishing_pole: 'fishing-pole', worm: 'worm',
   boot: 'hiking-boot', fish_cake: 'fish-cake-with-swirl', curry: 'curry-rice', water_wave: 'water-wave', bottle: 'bottle-with-popping-cork',
   oyster: 'oyster', sushi: 'sushi',
+  // 1.8.5 the Pier: sea creatures with a picture of their own
+  seal: 'seal', dolphin: 'dolphin', whale: 'spouting-whale',
 };
 
 /**
@@ -45,6 +47,13 @@ export const ICON_VARIANTS = {
   oyster_chowder: { base: 'pot-of-food', badge: 'oyster' },
   // 1.8: Rosa's berry tart (her 6-heart recipe)
   berry_tart: { base: 'pie', badge: 'strawberry' },
+  // 1.8.5 Old Tom's Pier: the second fishing spot
+  anchovy: { base: 'fish', hue: -110, sat: 0.55, light: 0.85 },
+  flounder: { base: 'fish', hue: 40, sat: 0.55, light: 0.8, flip: true },
+  sea_bass: { base: 'fish', hue: 195, sat: 0.8, light: 0.85, flip: true },
+  spider_crab: { base: 'crab', hue: -25, sat: 0.9, light: 0.95 },
+  tuna: { base: 'fish', hue: 225, sat: 1.1, light: 0.7 },
+  golden_crab: { base: 'crab', hue: 45, sat: 1.2, light: 1.15, badge: 'sparkles' },
 };
 
 function hexToHsl(hex) {

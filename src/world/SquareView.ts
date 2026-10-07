@@ -535,6 +535,25 @@ export class SquareView {
         l.position.set(x, lift, 1.7);
         g.add(l);
       }
+    } else if (id === 'pier') {
+      // Old Tom's fish shack with a boat drawn up beside it, nets and barrels
+      const shack = await buildingObject('fish_shack', LOT_W * 0.9);
+      shack.position.set(-0.5, lift, -0.5);
+      g.add(shack);
+      const boat = new THREE.Mesh(boatGeometry(), assets.vertexMaterial);
+      boat.position.set(2.2, lift + 0.2, 0.9);
+      boat.rotation.y = 0.5;
+      boat.castShadow = true;
+      g.add(boat);
+      for (const [mid, w, x, z, r] of [['prop/barrel', 0.6, -2.3, 1.6, 0.3], ['prop/barrel', 0.55, -1.7, 1.9, 1.1], ['prop/crate_big', 0.6, 0.4, 2.1, 0.5], ['prop/lumber', 0.9, 2.3, 2.2, 0.8], ['prop/bucket', 0.4, -0.5, 2.2, 0]] as const) {
+        const p = await modelObject(mid, w);
+        p.position.set(x, lift, z);
+        p.rotation.y = r;
+        g.add(p);
+      }
+      const l = await tallObject('prop/lantern', 2.3);
+      l.position.set(-2.6, lift, 0.4);
+      g.add(l);
     } else {
       const m = await modelObject('bld/home_b', LOT_W * 0.8);
       m.position.y = lift;

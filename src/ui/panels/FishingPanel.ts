@@ -15,6 +15,8 @@ import { visiting } from '../../systems/Visiting';
 import { fishing, isRareTier, sizeText, RARITY_LABEL, TIME_ICON, TIME_LABEL, type Catch, type CatchResult } from '../../systems/Fishing';
 import { FishingView } from '../../world/FishingView';
 import { DOCK } from '../../world/Terrain';
+import { PIER, SPOTS, type FishSpotId } from '../../world/FishSpots';
+import { roomDone } from '../../systems/RestorationEffects';
 import { worldToTile } from '../../world/Grid';
 import { walkable } from '../../world/People';
 import { player } from '../../scenes/Player';
@@ -68,6 +70,11 @@ class FishingController {
     new THREE.Vector3(DOCK.x - 1.1, DOCK.waterY - 0.3, DOCK.z0 - (DOCK.planks - 1) * DOCK.step - 0.8),
     new THREE.Vector3(DOCK.x + 2.6, DOCK.deckY + 1.6, DOCK.z0 + 0.6),
   );
+  /** Old Tom's Pier on the west beach (1.8.5): the planks and the air above them */
+  private pierBox = new THREE.Box3(
+    new THREE.Vector3(PIER.x0 - PIER.planks * PIER.step - 0.8, PIER.waterY - 0.3, PIER.z - 1.2),
+    new THREE.Vector3(PIER.x0 + 0.6, PIER.deckTop + 1.6, PIER.z + 1.2),
+  );
   // overlay parts
   private prompt!: HTMLElement;
   private sub!: HTMLElement;
@@ -94,7 +101,8 @@ class FishingController {
     fishing.phase = () => scene.env.phase(game.now());
     scene.onFrame((dt, t) => this.frame(dt, t));
     const prev = ui.extraPick;
-    ui.extraPick = (ray) => (ray.intersectsBox(this.dockBox) ? () => this.tapDock() : null) ?? prev?.(ray) ?? null;
+    ui.extraPick = (ray) => (ray.intersectsBox(this.dockBox) ? () => this.tapDock() : null)
+      ?? (roomDone('pier') && ray.intersectsBox(this.pierBox) ? () => this.tapPier() : null) ?? prev?.(ray) ?? null;
   }
 
   private tapDock(): void {
@@ -103,12 +111,22 @@ class FishingController {
       audio.play('error');
       return;
     }
-    this.open();
+    this.open('dock');
+  }
+
+  private tapPier(): void {
+    if (!fishing.unlocked) {
+      ui.feedback.toast("Old Tom's Pier", `Fishing opens at level ${FISHING.level}`, 'fishing_pole');
+      audio.play('error');
+      return;
+    }
+    this.open('pier');
   }
 
   // ------------------------------------------------------------------ enter / leave
-  open(): void {
+  open(spotId: FishSpotId = 'dock'): void {
     if (this.el || visiting.active || !this.view) return;
+    if (spotId === 'pier' && !roomDone('pier')) return;
     if (!fishing.unlocked) { ui.feedback.toast(`Fishing opens at level ${FISHING.level}`, undefined, 'lock'); return; }
     fishing.syncRare();
     Panel.closeAll();
@@ -126,15 +144,20 @@ class FishingController {
     this.savedRot = w.char.root.rotation.y;
     player.busy = true;
     ui.effects.dust(this.tmp.copy(w.char.root.position).setY(0.2), 8, 0.6);
-    this.view.enter(w.char);
+    fishing.spot = spotId;
+    this.view.enter(w.char, SPOTS[spotId]);
     ui.effects.dust(this.tmp.copy(this.view.seat).setY(this.view.seat.y + 0.2), 8, 0.6);
-    rig.bounds.min.y = DOCK.z0 - 12;
+    // let the camera follow the farmer out to the end of the planks
+    if (spotId === 'dock') rig.bounds.min.y = DOCK.z0 - 12; else rig.bounds.min.x = PIER.x0 - PIER.planks * PIER.step - 6;
     const portrait = window.innerHeight > window.innerWidth;
     // frame the farmer and the bobber in the upper part of the screen, above the controls
     rig.focus(this.view.seat.x + (portrait ? 0.3 : 0.9), this.view.seat.z + (portrait ? 0.5 : 1.3), portrait ? 21 : 17, 0.9);
     this.build();
     this.setStep('idle');
     audio.play('whoosh', { volume: 0.5 });
+    if (spotId === 'pier' && hints.firstTime('intro:pier')) {
+      setTimeout(() => ui.feedback.toast("Old Tom's Pier", 'Nine new kinds of fish bite here, from anchovies to a baby whale.', 'fishing_pole'), 700);
+    }
     if (hints.firstTime('intro:fishing')) {
       setTimeout(() => ui.feedback.toast('Gone fishing!', 'Tap to cast. When the bobber dips, tap again, then hold to keep the fish in the green.', 'fishing_pole'), 700);
     }
@@ -164,6 +187,7 @@ class FishingController {
     ui.effects.dust(this.tmp.copy(w.char.root.position).setY(0.2), 8, 0.6);
     const rig = ui.scene.rig;
     rig.bounds.min.copy(this.savedBoundsMin);
+    fishing.spot = 'dock';
     rig.focus(this.savedTarget.x, this.savedTarget.z, this.savedDist, 0.8);
     audio.play('close', { volume: 0.5 });
     ui.hud.refresh();

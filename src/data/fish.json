@@ -1,5 +1,5 @@
 {
-  "_comment": "Fishing at the dock. Item names, sell prices and icons live in items.json. times = when a species bites (morning/day/dusk/night on the 24 min day/night clock). difficulty 1-5 sets the reel zone size, how lively the fish is and the bite window. size = [min, max] in cm. rarity picks a tier first (rarityChance), then a species in that tier. Mythic fish only bite once a legendary fish has been caught (mythicNeedsLegendary). See BALANCE.md > Fishing.",
+  "_comment": "Fishing at the dock. Item names, sell prices and icons live in items.json. times = when a species bites (morning/day/dusk/night on the 24 min day/night clock). difficulty 1-5 sets the reel zone size, how lively the fish is and the bite window. size = [min, max] in cm. rarity picks a tier first (rarityChance), then a species in that tier. Mythic fish only bite once a legendary fish has been caught (mythicNeedsLegendary). See BALANCE.md > Fishing. 1.8.5: a species with spot \"pier\" only bites at Old Tom's Pier (the second fishing spot on the farm's west beach, unlocked by rebuilding the Pier in the village square); the others bite at the dock.",
   "level": 7,
   "freeCastsPerDay": 5,
   "baitItem": "bait",
@@ -47,7 +47,16 @@
     { "id": "crown_betta", "rarity": "legendary", "level": 36, "times": ["day", "dusk"], "difficulty": 5, "size": [5, 9], "xp": 60 },
     { "id": "kraken", "rarity": "mythic", "level": 40, "times": ["night"], "difficulty": 5, "size": [400, 1200], "xp": 140 },
     { "id": "sea_dragon", "rarity": "legendary", "level": 42, "times": ["morning", "dusk"], "difficulty": 5, "size": [20, 45], "xp": 70 },
-    { "id": "celestial_koi", "rarity": "mythic", "level": 46, "times": ["morning"], "difficulty": 5, "size": [60, 120], "xp": 160 }
+    { "id": "celestial_koi", "rarity": "mythic", "level": 46, "times": ["morning"], "difficulty": 5, "size": [60, 120], "xp": 160 },
+    { "id": "anchovy", "rarity": "common", "level": 18, "times": ["morning", "day", "dusk", "night"], "difficulty": 1, "size": [8, 18], "xp": 4, "spot": "pier" },
+    { "id": "flounder", "rarity": "common", "level": 19, "times": ["morning", "day"], "difficulty": 2, "size": [20, 45], "xp": 6, "spot": "pier" },
+    { "id": "sea_bass", "rarity": "uncommon", "level": 20, "times": ["dusk", "night"], "difficulty": 3, "size": [40, 90], "xp": 9, "spot": "pier" },
+    { "id": "spider_crab", "rarity": "uncommon", "level": 21, "times": ["day", "dusk"], "difficulty": 3, "size": [15, 40], "xp": 9, "spot": "pier" },
+    { "id": "tuna", "rarity": "uncommon", "level": 23, "times": ["morning", "day"], "difficulty": 3, "size": [60, 150], "xp": 10, "spot": "pier" },
+    { "id": "curious_seal", "rarity": "rare", "level": 24, "times": ["day"], "difficulty": 3, "size": [90, 150], "xp": 16, "spot": "pier" },
+    { "id": "dolphin", "rarity": "rare", "level": 27, "times": ["morning"], "difficulty": 4, "size": [150, 250], "xp": 20, "spot": "pier" },
+    { "id": "golden_crab", "rarity": "legendary", "level": 33, "times": ["night"], "difficulty": 5, "size": [20, 40], "xp": 55, "spot": "pier" },
+    { "id": "baby_whale", "rarity": "legendary", "level": 36, "times": ["dusk"], "difficulty": 5, "size": [300, 500], "xp": 65, "spot": "pier" }
   ],
   "junk": [
     { "id": "old_boot", "weight": 5, "xp": 1, "size": [24, 32], "lines": ["Just my size. Nope.", "Someone lost a boot!", "Squelch."] },

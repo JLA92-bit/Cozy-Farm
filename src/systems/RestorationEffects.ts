@@ -22,5 +22,7 @@ export function isMarketDay(now = game.now()): boolean { return roomDone('treasu
 export const marketOrderMult = (): number => (isMarketDay() ? R.market.ordersCoinMult : 1);
 /** Market day: the roadside stall pays a little more. */
 export const marketStallMult = (): number => (isMarketDay() ? R.market.stallMult : 1);
+/** Pier: Old Tom's Pier, the second fishing spot, is open on the farm's west beach. */
+export const pierOpen = (): boolean => roomDone('pier');
 /** Pantry: Rosa sells rare seeds. */
 export const pantryOpen = (): boolean => roomDone('pantry');

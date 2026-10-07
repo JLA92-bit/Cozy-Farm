@@ -40,12 +40,17 @@
       ]
     },
     {
-      "id": "pier", "name": "The Pier", "icon": "fishing_pole", "color": "blue", "villager": "tom", "opensAt": 18, "soon": true,
-      "about": "Old Tom's fishing pier has fallen into the sea. It will be rebuilt in a later update.",
-      "rebuilds": "The fishing pier",
-      "reward": { "id": "pier_spot", "text": "A second fishing spot with new fish." },
-      "letter": { "title": "", "body": "" },
-      "bundles": []
+      "id": "pier", "name": "The Pier", "icon": "fishing_pole", "color": "blue", "villager": "tom", "opensAt": 18,
+      "about": "Old Tom's fishing pier has fallen into the sea. Bring him a good catch and he will build it again, right on your farm's west beach.",
+      "rebuilds": "Old Tom's fishing pier",
+      "reward": { "id": "pier_spot", "text": "Old Tom's Pier opens on your farm's west beach: a second fishing spot with nine new kinds of fish." },
+      "letter": { "title": "The pier is open!", "body": "Dear {farmer},\n\nWell, I never. The pier is standing again, and it is a beauty. I could not rest until I had a pier on your farm too, so I built one on the west beach. Look for the lantern.\n\nThe fish out there are different from the ones at your dock. I have seen a dolphin, and I swear I saw a baby whale on a quiet dusk. Take your rod and be patient.\n\nYours on the water,\nOld Tom" },
+      "bundles": [
+        { "id": "morning", "name": "Morning Catch", "icon": "fish", "wants": { "sardine": 12, "mackerel": 10, "shrimp": 10 } },
+        { "id": "shell", "name": "Shellfish Basket", "icon": "crab", "wants": { "crab": 8, "lobster": 4, "pearl_oyster": 6, "hermit_crab": 4 } },
+        { "id": "favourites", "name": "Tom's Favourites", "icon": "tropical_fish", "wants": { "salmon": 6, "squid": 6, "pufferfish": 6, "clownfish": 6 } },
+        { "id": "rare", "name": "Rare Haul", "icon": "jellyfish", "wants": { "moon_jelly": 3, "octopus": 3, "lantern_fish": 2 } }
+      ]
     },
     {
       "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "juniper", "opensAt": 22, "soon": true,

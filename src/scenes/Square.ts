@@ -6,6 +6,7 @@ import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { SQUARE, SquareView } from '../world/SquareView';
 import { SquareGate } from '../world/SquareGate';
+import { FarmPier } from '../world/FarmPier';
 import { Panel } from '../ui/Panel';
 import { tutorial } from '../ui/Tutorial';
 import { ui } from '../ui/UI';
@@ -58,6 +59,7 @@ export function initSquare(scene: FarmScene, interaction: Interaction): void {
   scene.onFrame((dt) => frame(dt));
   // the signpost and boat on the farm's east beach: the way over
   const gate = new SquareGate(scene);
+  new FarmPier(scene); // Old Tom's Pier on the west beach, once the Pier room is rebuilt
   gate.onTap = () => { audio.play('pop', { volume: 0.6 }); void enterSquare(); };
   const prevPick = ui.extraPick;
   ui.extraPick = (ray) => gate.pick(ray) ?? prevPick?.(ray) ?? null;

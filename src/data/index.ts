@@ -94,7 +94,7 @@ export const LAND = landJson;
 
 export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
 export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary' | 'mythic';
-export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number }
+export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number; /** where it bites: the dock (default) or Old Tom's Pier (1.8.5) */ spot?: 'dock' | 'pier' }
 export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
 /** Fishing at the dock (fish.json). */
 export const FISHING = fishJson as unknown as {

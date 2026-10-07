@@ -660,6 +660,60 @@
    "cat": "goods",
    "sell": 260,
    "icon": "oyster_chowder"
+  },
+  "anchovy": {
+   "name": "Anchovy",
+   "cat": "fish",
+   "sell": 10,
+   "icon": "anchovy"
+  },
+  "flounder": {
+   "name": "Flounder",
+   "cat": "fish",
+   "sell": 24,
+   "icon": "flounder"
+  },
+  "sea_bass": {
+   "name": "Sea Bass",
+   "cat": "fish",
+   "sell": 48,
+   "icon": "sea_bass"
+  },
+  "spider_crab": {
+   "name": "Spider Crab",
+   "cat": "fish",
+   "sell": 44,
+   "icon": "spider_crab"
+  },
+  "tuna": {
+   "name": "Bluefin Tuna",
+   "cat": "fish",
+   "sell": 62,
+   "icon": "tuna"
+  },
+  "curious_seal": {
+   "name": "Curious Seal",
+   "cat": "fish",
+   "sell": 115,
+   "icon": "seal"
+  },
+  "dolphin": {
+   "name": "Friendly Dolphin",
+   "cat": "fish",
+   "sell": 155,
+   "icon": "dolphin"
+  },
+  "golden_crab": {
+   "name": "Golden Crab",
+   "cat": "fish",
+   "sell": 310,
+   "icon": "golden_crab"
+  },
+  "baby_whale": {
+   "name": "Baby Whale",
+   "cat": "fish",
+   "sell": 430,
+   "icon": "whale"
   }
  }
 }

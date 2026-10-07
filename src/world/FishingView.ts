@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { assets, assetUrl, iconPath } from '../core/Assets';
 import { geo, PAL } from './Procedural';
-import { DOCK } from './Terrain';
+import { SPOTS, type FishSpot } from './FishSpots';
 import type { Character } from './Character';
 
 export type BobberPhase = 'hidden' | 'cast' | 'wait' | 'nibble' | 'bite' | 'reel' | 'land';
@@ -17,7 +17,9 @@ const LINE_POINTS = 14;
 export class FishingView {
   readonly group = new THREE.Group();
   /** Where the farmer sits (dock end) and the default spot the bobber lands. */
-  readonly seat = new THREE.Vector3(DOCK.x - 0.25, DOCK.deckY + 0.04, DOCK.z0 - (DOCK.planks - 1) * DOCK.step + 0.05);
+  readonly seat = SPOTS.dock.seat.clone();
+  /** the fishing spot in use: where the line is cast, which way the farmer faces and the sea level */
+  private place: FishSpot = SPOTS.dock;
   readonly spot = new THREE.Vector3();
   private rod: THREE.Mesh;
   private tip = new THREE.Object3D();
@@ -86,18 +88,20 @@ export class FishingView {
   }
 
   /** Seat the farmer on the dock end with the rod and show the scene. */
-  enter(char: Character): void {
+  enter(char: Character, place: FishSpot = SPOTS.dock): void {
     this.char = char;
+    this.place = place;
+    this.seat.copy(place.seat);
     const r = char.root;
     r.position.copy(this.seat);
-    r.rotation.set(0, Math.PI, 0); // facing the open sea
+    r.rotation.set(0, place.yaw, 0); // facing the open sea
     if (char.pet) char.pet.visible = false;
     char.play('sit', 0.25);
     // held in the right hand, angled up and out over the water
     this.rod.position.set(-0.32, 0.62, 0.2);
     this.rod.rotation.set(-0.72, 0.12, 0);
     r.add(this.rod);
-    this.spot.set(this.seat.x - 0.4, DOCK.waterY, this.seat.z - 3.4);
+    this.castPoint(this.spot, 0, 3.4);
     this.group.visible = true;
     this.setPhase('hidden');
   }
@@ -120,7 +124,7 @@ export class FishingView {
   setPhase(p: BobberPhase): void {
     if (p === 'cast') {
       this.tipWorld(this.castFrom);
-      this.spot.set(this.seat.x - 0.4 + (Math.random() - 0.5) * 1.4, DOCK.waterY, this.seat.z - 3.1 - Math.random() * 0.9);
+      this.castPoint(this.spot, (Math.random() - 0.5) * 1.4, 3.1 + Math.random() * 0.9);
       this.castK = 0;
       this.reelIn = 0;
       this.pull = 0;
@@ -128,6 +132,13 @@ export class FishingView {
     if (p === 'bite' || (p === 'wait' && this.phase === 'cast')) this.splashRing(p === 'bite' ? 1.1 : 0.7);
     this.phase = p;
     this.phaseT = 0;
+  }
+
+  /** A point on the water: `ahead` in front of the seat and `side` to the left of the line (the dock casts along -z). */
+  private castPoint(out: THREE.Vector3, side: number, ahead: number): THREE.Vector3 {
+    const p = this.place;
+    // sideways is the line turned a quarter: for the dock (casting along -z) it is the x axis
+    return out.set(this.seat.x + p.dx * ahead + (-p.dz) * (side - 0.4), p.waterY, this.seat.z + p.dz * ahead + p.dx * (side - 0.4));
   }
 
   /** World position of the bobber (for splashes and effects). */
@@ -198,7 +209,7 @@ export class FishingView {
       else if (p === 'land') { dip = 0; sag = 0.25; }
       // reeling draws the bobber towards the dock
       const k = p === 'reel' ? this.reelIn * 0.55 : 0;
-      b.set(this.spot.x + side + (this.seat.x - this.spot.x) * k, DOCK.waterY + 0.03 + bobY + dip, this.spot.z + (this.seat.z - this.spot.z) * k);
+      b.set(this.spot.x + (-this.place.dz) * side + (this.seat.x - this.spot.x) * k, this.place.waterY + 0.03 + bobY + dip, this.spot.z + this.place.dx * side + (this.seat.z - this.spot.z) * k);
       if (p === 'wait' || p === 'nibble') sag = 0.4;
     }
     this.bobber.position.copy(b);
@@ -222,7 +233,7 @@ export class FishingView {
       const size = (this.ripple.userData.size as number) ?? 1;
       const s = 0.15 + this.rippleT * size;
       this.ripple.scale.set(s, 1, s);
-      this.ripple.position.set(b.x, DOCK.waterY + 0.02, b.z);
+      this.ripple.position.set(b.x, this.place.waterY + 0.02, b.z);
       this.rippleMat.opacity = 0.7 * (1 - this.rippleT);
     } else if ((p === 'wait' || p === 'reel') && Math.random() < dt * (p === 'reel' ? 2.5 : 0.35)) this.splashRing(p === 'reel' ? 0.6 : 0.45);
     this.ripple.visible = this.rippleT < 1;

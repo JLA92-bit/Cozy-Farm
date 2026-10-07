@@ -51,6 +51,8 @@ export function sizeText(cm: number): string {
 }
 
 class FishingSystem {
+  /** Where the farmer is fishing right now (set by the fishing screen): species bite only at their own spot. */
+  spot: 'dock' | 'pier' = 'dock';
   /** Day/night phase provider (set by the dock scene). */
   phase: () => number = () => 0.3;
 
@@ -103,7 +105,7 @@ class FishingSystem {
   /** Species that can bite right now (level and time of day; mythic ones once awake). */
   biting(time = this.time): FishDef[] {
     const awake = this.mythicAwake;
-    return FISHING.species.filter((f) => f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
+    return FISHING.species.filter((f) => (f.spot ?? 'dock') === this.spot && f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
   }
 
   /** What is on the hook this cast. */
@@ -193,6 +195,7 @@ class FishingSystem {
   whenText(id: string): string {
     const f = FISH[id];
     if (!f) return 'Fished up at the dock';
+    if (f.spot === 'pier') return `At Old Tom's Pier, ${f.times.length === TIME_ORDER.length ? 'any time' : f.times.map((t) => TIME_LABEL[t].toLowerCase()).join(', ')}, from level ${f.level}`;
     const when = f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', ');
     if (f.level > game.level) return `${when}, from level ${f.level}`;
     return f.rarity === 'mythic' && !this.mythicAwake ? `${when}, after a legendary catch` : when;
