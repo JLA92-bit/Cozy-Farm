@@ -1,5 +1,5 @@
 import {
-  ANIMALS, BUILDINGS, COSMETICS, CROPS, ECONOMY, ITEMS, ITEM_LEVEL, LEVEL_DATA, RECIPES, TREES, itemXp,
+  ANIMALS, BUILDINGS, COSMETICS, CROPS, ECONOMY, FRIENDSHIP, ITEMS, ITEM_LEVEL, LEVEL_DATA, RECIPES, TREES, VILLAGERS, itemXp,
 } from '../data';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
@@ -9,6 +9,7 @@ import { rng, hashString } from '../world/Procedural';
 import { isBuilt } from './Timers';
 import { HAZEL_PRICE_MULT, hasPerk } from './Perks';
 import { recipeAvailable } from './Production';
+import { village } from './Village';
 
 // ======================================================================== obtainable items
 /** Extra sources of obtainable items from features outside this file (e.g. fish from the dock). */
@@ -65,6 +66,11 @@ function maxQty(): number {
 }
 
 // ======================================================================== order board
+/** 1.8: the villager who signed an order. Orders keep their old `npc` number (0-11), so old saves map too. */
+export function orderVillager(o: Order): string {
+  return VILLAGERS[(Math.abs(Math.floor(o.npc)) || 0) % VILLAGERS.length].id;
+}
+
 export class OrderSystem {
   slots(): number {
     let n = 3;
@@ -130,6 +136,8 @@ export class OrderSystem {
     game.addXp(o.xp, at);
     if (o.gems) game.addGems(o.gems, at);
     game.incStat('orders_completed');
+    // 1.8: the villager who signed the order is pleased
+    village.addPoints(orderVillager(o), FRIENDSHIP.order, 'order');
     list[idx] = this.generate(game.now() + ECONOMY.orders.refillSec * 1000);
     game.bus.emit('order:completed', { orderId, coins: o.coins, xp: o.xp });
     game.bus.emit('orders:changed', {});

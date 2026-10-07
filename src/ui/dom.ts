@@ -42,7 +42,7 @@ export function icon(key: string, cls = 'icon'): HTMLImageElement {
 }
 
 export function setIcon(img: HTMLImageElement, key: string): void {
-  if (key.startsWith('model:') || key.startsWith('building:') || key.startsWith('avatar:')) {
+  if (key.startsWith('model:') || key.startsWith('building:') || key.startsWith('avatar:') || key.startsWith('villager:')) {
     img.src = TRANSPARENT;
     void thumbs.get(key).then((url) => { if (url) img.src = url; });
   } else {

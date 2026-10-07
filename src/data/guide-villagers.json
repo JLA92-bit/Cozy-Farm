@@ -1,0 +1,30 @@
+{
+  "pages": [
+    {
+      "id": "village_friends",
+      "title": "Village Friends",
+      "icon": "hug",
+      "paragraphs": [
+        "Six villagers live in the valley: Rosa the baker, Old Tom the fisherman, Juniper the artist, little Pip, Hazel from the village shop and Bram the blacksmith.",
+        "Tap the Village button at the bottom of the screen to see them all. Each card shows how many hearts you have with that villager, out of 10.",
+        "There are three ways to make friends. Give each villager one gift a day. Chat with them when they visit your farm: tap them once a day for a little friendship. And fill their orders: every order on the Order Board is signed by one of them.",
+        "Every villager loves some things, likes others and dislikes a few. A loved gift gives 40 friendship, a liked one 20, anything else 8, and a disliked one takes 20 away. Silver star gifts give 25% more and gold star gifts 50% more.",
+        "What they love starts as a question mark. Each gift you give shows you how they feel about it, and their page remembers it for you.",
+        "Birthdays are special: on a villager's birthday a gift counts three times, and they write to thank you the next day. You can see every birthday on their page."
+      ]
+    },
+    {
+      "id": "hearts_rewards",
+      "title": "Hearts and rewards",
+      "icon": "heart",
+      "paragraphs": [
+        "100 friendship makes one heart. Friendship never goes down while you are away, so play at your own pace.",
+        "At 2 hearts the villager writes you a letter with a useful tip.",
+        "At 4 hearts they share a story with you, the next time you are relaxing on your farm, and give you a keepsake decoration. Find it in the Barn, under Stored, and place it anywhere.",
+        "At 6 hearts you get their special gift: Rosa's berry tart recipe, two extra free casts from Old Tom, four new paint colours from Juniper, a treasure from Pip every Monday, 10% off at the travelling merchant from Hazel, or workshops that work 5% faster thanks to Bram.",
+        "At 8 hearts there is a second story and a framed portrait of them for your farm.",
+        "At 10 hearts you are best friends. Their card gets a gold frame, and they send you a present every week."
+      ]
+    }
+  ]
+}
