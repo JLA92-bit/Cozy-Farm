@@ -34,6 +34,8 @@ Keep two-step verification on that Google account: it is the key to the dashboar
 | **Market** | Open listings (take one down: the seller gets the items back as a gift) and best sellers. |
 | **Leaderboards** | All four boards with a Hide/Show switch per player. |
 | **Notifications** | Send a phone notification to everyone with notifications on, or only recent players. |
+| **1.8 Village** | The 1.8 welcome funnel (players who reached each step, for farms from before 1.8 and for new farms at level 3), the head start, gifts and hearts per villager, gift reactions (loved / liked / disliked), how many players finish the daily villager visit, Ask a friend and mailbox activity, and **Send a letter to everyone** (with preview). |
+| **Requests** | Ask a friend (1.8): open and filled requests, what friends sent and when Hazel stepped in. |
 | **System & log** | Database size against the free plan, table sizes, scheduled jobs and failures, removing old empty accounts, and the admin log. |
 
 ## Restoring a player's farm
@@ -52,11 +54,23 @@ Keep two-step verification on that Google account: it is the key to the dashboar
   Land plots open next to their farm (later plots cost the same as if bought). Cancel any gift until it is picked up.
 - **Play statistics** are sent by the game from version 1.7.0 (sessions, minutes while the game is visible, version,
   platform). Older days show only "last seen".
+- **Letters to everyone** (1.8, page 1.8 Village): write a title and a letter (a blank line starts a new paragraph),
+  pick who gets it (everyone, played this week / 2 weeks / month, Google players), check the preview and send. It is
+  queued for every matching player that exists now and lands in their in-game mailbox, signed by the Cozy Acres team,
+  the next time the game checks for gifts (on opening and every 5 minutes). Each player gets it exactly once; the
+  page shows how many have picked it up. It cannot be taken back, so read it twice. No long dashes, please: the game
+  uses " - ".
+- **Game events** (1.8): the game logs small named moments (`player_events`, at most 200 a day per player, kept 180
+  days): `welcome_start`, `welcome_step` (step, variant), `welcome_gift`, `welcome_done`, `welcome_later`,
+  `welcome_skip_gift`, `welcome_find`, `welcome_basket`, `headstart` (orders, points, hearts), `gift` (villager,
+  taste, points, birthday), `hearts` (villager, hearts, reason), `visit` (villager), and from counters `help_ask`,
+  `help_send`, `help_arrived`, `help_hazel`, `visit_give`, `find_collect`, `find_return`. Only with real online play
+  (never in practice mode). The 1.8 Village page reads them; numbers start from the day 1.8.0 went live.
 - **Daily backups** run at 03:17 UTC when pg_cron is enabled (System & log shows the job). Unchanged farms are skipped,
   backups are kept 60 days (the newest per player always).
 
 ## Privacy
 
-The dashboard shows personal data (Google emails, feedback, play times). Do not share screenshots of it or the
+The dashboard shows personal data (Google emails, feedback, play times, game events). Do not share screenshots of it or the
 "Download everything" file. All of it is covered by the privacy policy and is deleted when a player deletes their
 online account (everything is linked to the account with `on delete cascade`).
