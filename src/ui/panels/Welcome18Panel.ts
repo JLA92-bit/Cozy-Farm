@@ -75,7 +75,7 @@ const vname = (id: string) => VILLAGER[id]?.name ?? id;
 /** Where each new thing lives on screen. Buttons other 1.8 parts add are found by their panel id. */
 interface Target { label: string; icon: string; sel?: string; world?: 'order_board' }
 const TARGETS: Record<string, Target> = {
-  village: { label: 'Village', icon: 'house', sel: '[data-hud="village"], [data-side="village"]' },
+  village: { label: 'Village', icon: 'hug', sel: '[data-hud="village"], [data-side="village"]' },
   quality: { label: 'Barn', icon: 'hut', sel: '[data-hud="inventory"]' },
   mail: { label: 'Mail', icon: 'mailbox', sel: '[data-hud="mail"], [data-side="mail"], [data-side="mailbox"]' },
   help: { label: 'Order Board', icon: 'clipboard', world: 'order_board' },

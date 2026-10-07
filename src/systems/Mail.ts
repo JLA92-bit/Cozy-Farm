@@ -7,6 +7,7 @@ import { game } from './Game';
 import { saves } from './Save';
 import { ITEMS } from '../data';
 import type { Letter } from './State';
+import { logEvent } from '../online/Events';
 
 const KEEP = 200;
 
@@ -23,7 +24,7 @@ export class MailSystem {
     saves.save();
     return l;
   }
-  markRead(id: number): void { const l = this.letters.find((x) => x.id === id); if (l && !l.read) { l.read = true; saves.save(); } }
+  markRead(id: number): void { const l = this.letters.find((x) => x.id === id); if (l && !l.read) { l.read = true; saves.save(); logEvent('mail_open', { from: l.from }); } }
   /** Collect what a letter carries, once. Returns what was added, or null. */
   claim(id: number): Letter['attach'] | null {
     const l = this.letters.find((x) => x.id === id);
@@ -35,6 +36,7 @@ export class MailSystem {
     if (a.gems) game.addGems(a.gems);
     for (const [k, n] of Object.entries(a.items ?? {})) if (ITEMS[k] && n > 0) game.addItem(k, n);
     saves.save();
+    logEvent('mail_collect', { from: l.from, coins: a.coins ?? 0, gems: a.gems ?? 0, items: Object.keys(a.items ?? {}).length });
     return a;
   }
 }

@@ -7,6 +7,7 @@ import { visiting } from './Visiting';
 import { requestedCount } from './Economy';
 import { social } from './Social';
 import { online } from '../online/Online';
+import { logEvent } from '../online/Events';
 import { ensureOnline } from '../online/Profile';
 import { ASK, askable, hazelUnitPrice, helperReward, isOpen, needOf } from '../online/AskHelp';
 import type { HelpFill, HelpReason, HelpRequest } from '../online/types';
@@ -123,6 +124,7 @@ class HelpSystem {
       await this.connect();
       const r = await online.cancelHelp(id);
       this.mine = this.mine.map((x) => (x.id === id ? r : x));
+      logEvent('help_cancel', { item: r.item, filled: r.filled, qty: r.qty });
     } catch (e) {
       if ((e as Error).message !== 'not open') throw new Error('Could not reach the village. Try again in a moment.');
     }
@@ -210,6 +212,7 @@ class HelpSystem {
   isQueued(id: string): boolean { return this.queued.has(id); }
 
   setAuto(on: boolean): void {
+    if (this.state.auto !== on) logEvent(on ? 'help_auto_on' : 'help_auto_off', { reserve: this.state.reserve });
     this.state.auto = on;
     saves.save();
     this.changed();

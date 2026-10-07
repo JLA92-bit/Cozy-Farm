@@ -56,7 +56,7 @@ export function portrait(v: VillagerDef, size: 'small' | 'big' = 'small'): HTMLE
 
 function giftState(v: VillagerDef): HTMLElement {
   if (!village.canGift(v.id)) return h('div', { class: 'v-gifted' }, icon('check'), 'Gift given today');
-  return button([icon('gift'), village.isBirthday(v.id) ? 'Birthday gift' : 'Give a gift'], () => openVillager(v.id, { gift: true }), 'small v-gift-btn');
+  return button([icon('gift'), village.isBirthday(v.id) ? 'Birthday gift' : 'Give a gift'], () => openVillager(v.id, { gift: true }), 'small v-gift-btn', { dataset: { welcome: 'gift' } });
 }
 
 let villageOpen = 0;
@@ -194,7 +194,7 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
       p.body.append(row);
     }
     // footer: the gift button
-    if (village.canGift(id)) p.footer.append(button([icon('gift'), village.isBirthday(id) ? 'Give a birthday gift' : 'Give a gift'], () => openGiftPicker(id, onGiven), 'v-gift-main'));
+    if (village.canGift(id)) p.footer.append(button([icon('gift'), village.isBirthday(id) ? 'Give a birthday gift' : 'Give a gift'], () => openGiftPicker(id, onGiven), 'v-gift-main', { dataset: { welcome: 'gift' } }));
     else p.footer.append(h('div', { class: 'v-gifted big' }, icon('check'), `Gift given today. Come back tomorrow for another!`));
     if (opts.standalone && !villageOpen) p.footer.append(button([icon('hug'), 'Everyone'], () => { p.close(); openVillage(); }, 'small blue'));
     return pic;
