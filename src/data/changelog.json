@@ -1,6 +1,69 @@
 {
  "releases": [
   {
+   "version": "1.8.5",
+   "date": "2026-10-07",
+   "title": "The Village Square",
+   "icon": "house",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "house",
+     "text": "Row over to the old village square and rebuild it room by room: the Pantry, the Barn Room and the Treasury"
+    },
+    {
+     "icon": "basket",
+     "text": "Fill each room's bundles with crops, animal goods or coins. A friend can send what you are missing"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Four skills grow as you play: Farming, Animals, Fishing and Cooking. Choose a perk at levels 5 and 10"
+    },
+    {
+     "icon": "seedling",
+     "text": "Rebuilt rooms help your farm for good: rare seeds from Rosa, faster animals, better trucks and a Saturday market day"
+    }
+   ],
+   "sections": [
+    {
+     "title": "The village square",
+     "icon": "house",
+     "items": [
+      {
+       "icon": "house",
+       "text": "Look for the signpost and little boat on your farm's east beach, or open Village and tap Go"
+      },
+      {
+       "icon": "hammer",
+       "text": "Watch each room change as you give: a ruin, bare ground, a frame, then a finished building with a celebration"
+      },
+      {
+       "icon": "heart",
+       "text": "Every bundle you fill brings you closer to the villager who owns that room, and a finished room brings a letter"
+      },
+      {
+       "icon": "calendar",
+       "text": "The Pier, the Kitchen and the Workshop open in a later update"
+      }
+     ]
+    },
+    {
+     "title": "Skills",
+     "icon": "star",
+     "items": [
+      {
+       "icon": "star",
+       "text": "Find them in Me > Skills. If you played before, what you already did counts and you start up to level 5"
+      },
+      {
+       "icon": "seedling",
+       "text": "Each skill has two perks at level 5 and two at level 10: pick the ones that suit your farm"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "version": "1.8.1",
    "date": "2026-10-07",
    "title": "Brighter screens",

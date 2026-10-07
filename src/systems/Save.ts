@@ -97,7 +97,7 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
     }
   }
   const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
-  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds };
+  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);

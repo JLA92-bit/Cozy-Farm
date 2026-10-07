@@ -1,3 +1,4 @@
+import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear } from '../dom';
 import { ui } from '../UI';
@@ -84,7 +85,7 @@ function renderCalendar(p: Panel): void {
   p.body.append(grid);
   p.body.append(h('div', { class: 'cal-legend' },
     h('span', null, h('i', { class: 'sw', style: 'border:3px solid var(--btn-red);background:#fff1ef' }), 'Today'),
-    h('span', null, icon('basket', 'mk'), 'Saturday: village market day'),
+    h('span', null, icon('basket', 'mk'), roomDone('treasury') ? 'Saturday: village market day, orders and your stall pay 10% more' : 'Saturday: village market day (opens when the Treasury is rebuilt)'),
     monthEvents.length ? h('span', null, h('i', { class: 'sw', style: 'background:#eaf6ff' }), 'Event') : null,
     h('span', null, senderBadge('pip', 22), 'Face: a villager\'s birthday')));
 
@@ -140,7 +141,7 @@ function renderLetters(p: Panel): void {
 interface GuidePage { id: string; title: string; icon: string; paragraphs: string[]; pictures?: string[] }
 
 /** Order of the guide files in the Book; anything else follows alphabetically. */
-const GUIDE_ORDER = ['villagers', 'mail', 'quality', 'help', 'skills'];
+const GUIDE_ORDER = ['villagers', 'mail', 'quality', 'help', 'skills', 'restoration'];
 const files = import.meta.glob('../../data/guide-*.json', { eager: true, import: 'default' }) as Record<string, { pages?: unknown }>;
 
 /** Every guide page from every guide file, checked, in Book order. Works with any number of files. */

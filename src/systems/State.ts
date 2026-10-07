@@ -147,6 +147,8 @@ export interface RestorationState {
   done: string[];
   /** room ids whose rebuilt celebration was shown */
   seen?: string[];
+  /** mail id of Hazel's letter about the old village square (sent once, from level 5) */
+  intro?: number;
   /** Rosa's rare seeds bought on a local day (src/systems/Restoration.ts) */
   seeds?: { day: string; bought: number };
 }

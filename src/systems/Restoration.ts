@@ -162,6 +162,23 @@ class RestorationSystem {
     return true;
   }
 
+  /** Hazel's letter about the old village square, once, when the farm is settled (level 5). */
+  private introLetter(): void {
+    const st = this.st;
+    if (st.intro !== undefined || game.level < 5 || !game.state.tutorial.done || !game.state.player.created) return;
+    const l = mail.send('hazel', 'The old village square',
+      `Dear ${game.state.player.name},\n\nHave you seen the old village square, across the water? It used to be the heart of the valley, and now it is just ruins and weeds.\n\nThe six rooms could be rebuilt, if we all pitch in. Look for the signpost and the little boat on your east beach, or open Village and tap Go. Each room asks for a few of the things you grow and make, and when a room is finished, everyone in the valley is better off.\n\nNo rush at all. It will be there whenever you are ready.\n\nWith love,\nHazel`);
+    st.intro = l.id;
+    saves.save();
+    logEvent('square_intro', { level: game.level });
+  }
+
+  /** Start listening (once, after the farm is loaded). */
+  init(): void {
+    this.introLetter();
+    game.bus.on('levelup', () => this.introLetter());
+  }
+
   /** The room's finished celebration has been shown (so it plays once). */
   markSeen(room: string): void { const st = this.st; if (!(st.seen ??= []).includes(room)) { st.seen.push(room); saves.save(); } }
   wasSeen(room: string): boolean { return !!this.st.seen?.includes(room); }

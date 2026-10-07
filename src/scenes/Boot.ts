@@ -5,6 +5,7 @@ import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
 import { skills } from '../systems/Skills';
+import { restoration } from '../systems/Restoration';
 import { initSquare } from './Square';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
@@ -114,6 +115,7 @@ export async function boot(): Promise<void> {
   const { data, fresh } = saves.load();
   game.load(data);
   skills.init();
+  restoration.init();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;

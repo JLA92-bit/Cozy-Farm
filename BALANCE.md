@@ -431,3 +431,25 @@ What the money-relevant numbers do at the top (all in `values`, tunable without 
 
 Everything is a choice between two perks, so two farms at the same level play differently. If the dashboard shows
 income or play time jumping when players reach level 5 or 10, lower the numbers in `values`; no code change needed.
+
+## Village Restoration (1.8.5, `src/data/restoration.json`, `src/systems/Restoration.ts`)
+
+The old village square has six rooms; 1.8.5 ships three (Pantry, Barn Room, Treasury). Each room has 3-4 bundles
+(shopping lists of items or coins). Partly filled bundles keep what was given and every bundle filled adds 30
+friendship with the room's villager. Rooms open at a level (Pantry 10, Barn Room 15, Treasury 32; the other three
+are marked `soon`). Bundle contents ask for what a farm at the opening level already makes in bulk, so giving uses
+up spare stock rather than competing with orders or the truck (normal items go first):
+
+- **Pantry** (4 bundles, 12-30 of cheap crops each, about 360 crops in all). Reward: Rosa's rare seeds, 3 a day at
+  60 coins. A rare seed adds +35% silver and +12% gold to that field (same idea as fertiliser, stronger). Worth
+  about +20% of that harvest at the barn, which on one field of a 40-50 coin crop is a few coins, so 60 coins is a
+  small net cost: it is for players who want gold gifts and bundles, not a money maker.
+- **Barn Room** (4 bundles: 24 eggs, 16 milk, 12 wool, 6 truffles + 6 goat milk + 10 eggs). Reward: all animals make
+  products 10% sooner (multiplies with the Animals skill; at the top about -19% time, +23% output per animal).
+- **Treasury** (3 bundles: 10,000 + 25,000 + 50,000 coins, a coin sink for rich level-32 farms). Reward: trucks
+  pay 15% more (crate coins and the bonus), and Saturdays are village market day: orders pay +10% coins and the
+  roadside stall +10%. About one day in seven, so roughly +1.5% on those two income streams over a week.
+
+Everything here is data: change the numbers in `restoration.json` (bundles, `rewards`, `market`) and the validator
+checks them. The first thing to watch on the dashboard (1.8.5 Square page) is how many players finish the first
+bundle of each room and how long the Treasury takes.

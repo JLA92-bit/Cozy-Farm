@@ -1,0 +1,34 @@
+{
+ "pages": [
+  {
+   "id": "restoration-square",
+   "title": "The village square",
+   "icon": "house",
+   "paragraphs": [
+    "Across the water from your farm, the old village square has fallen into ruin. Rowing over is easy: tap the signpost or the little boat on your farm's east beach, or open Village and tap Go.",
+    "The square has six lots, one for each room of the old village. A room is rebuilt when you have filled all of its bundles. You can rebuild them in any order, whenever you like.",
+    "Tap a lot or the board in front of it to see what it needs. Rooms open at a level: the Pantry at 10, the Barn Room at 15, the Treasury at 32. The Pier, the Kitchen and the Workshop open in a later update."
+   ]
+  },
+  {
+   "id": "restoration-bundles",
+   "title": "Bundles",
+   "icon": "basket",
+   "paragraphs": [
+    "A bundle is a short shopping list: a few kinds of crops, animal goods, or coins. Give what you have, and the bundle keeps it. Nothing is ever lost, and you can finish a bundle over several days.",
+    "Short of something? Tap Ask beside it and your friends can send it to you. Villagers like to see their rooms rebuilt: every bundle you fill brings you closer to the villager who owns it.",
+    "Watch the square change as you give. A ruin turns to bare ground, then a frame goes up, and when the last bundle is full the room is rebuilt with a little celebration and a letter from the villager."
+   ]
+  },
+  {
+   "id": "restoration-rewards",
+   "title": "What rebuilt rooms give",
+   "icon": "sparkles",
+   "paragraphs": [
+    "The Pantry: Rosa sells rare seeds at her stall in the square, a few every day. Switch them on in the seed tray when you plant, and the harvest has a much better chance of being silver or gold.",
+    "The Barn Room: all your animals make their products 10% sooner, for good.",
+    "The Treasury: delivery trucks always pay 15% more, and every Saturday is village market day: your orders and your roadside stall pay 10% more. Look for the basket on the Calendar."
+   ]
+  }
+ ]
+}
