@@ -16,6 +16,8 @@ import type { PlayerProfile, PublicLook } from '../../online/types';
 import './friends.css';
 import { neighbours } from '../../systems/Neighbours';
 import { renderVisitors } from './NeighboursPanel';
+import { help } from '../../systems/Help';
+import { requestsStrip } from './HelpPanel';
 
 type Tab = 'friends' | 'mail' | 'codes' | 'visitors';
 
@@ -145,7 +147,7 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
 
   // ---------------- friends tab
   const renderFriends = () => {
-    p.body.append(...[practiceNote()].filter(Boolean) as HTMLElement[]);
+    p.body.append(...[practiceNote(), requestsStrip()].filter(Boolean) as HTMLElement[]);
     // your code
     const codeEl = h('div', { class: 'friend-code outlined' }, me ? me.code : social.error ? '---' : '...');
     const shareBtn = button([icon('hug'), 'Share'], async () => {
@@ -367,12 +369,22 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     else updateMailTab();
   });
   const offHelp = neighbours.onChange(() => { if (p.overlay.isConnected && p.tab === 'visitors') render(p.tab); });
-  p.onClose = () => { off(); offHelp(); };
+  // friends' requests (Ask a friend) change the strip at the top of the Friends tab
+  let askSig = '';
+  const offAsk = help.onChange(() => {
+    const sig = JSON.stringify([help.friendReqs.map((r) => [r.id, r.filled]), help.openMine().map((r) => [r.id, r.filled])]);
+    if (sig === askSig) return;
+    askSig = sig;
+    const typing = document.activeElement instanceof HTMLInputElement && p.body.contains(document.activeElement);
+    if (p.overlay.isConnected && p.tab === 'friends' && !typing) { const top = p.body.scrollTop; render(p.tab); p.body.scrollTop = top; }
+  });
+  p.onClose = () => { off(); offHelp(); offAsk(); };
   p.onTab = render;
   p.tab = opts.tab ?? (social.mailCount ? 'mail' : 'friends');
   p.open();
   void load();
   void neighbours.poll();
+  void help.poll();
 }
 
 function limitsRow(): HTMLElement {
@@ -516,7 +528,7 @@ function showCode(code: string): void {
 // ------------------------------------------------------------------ wiring
 
 ui.register('friends', (arg) => openFriends(arg as { tab?: Tab; code?: string } | undefined));
-sideEntries.push(() => (social.available ? { id: 'friends', icon: social.mailCount ? 'mailbox' : 'hug', label: social.mailCount ? 'Mail' : 'Friends', color: 'green', badge: social.mailCount > 0 } : null));
+sideEntries.push(() => (social.available ? { id: 'friends', icon: social.mailCount ? 'mailbox' : 'hug', label: social.mailCount ? 'Mail' : 'Friends', color: 'green', badge: social.mailCount > 0 || help.friendReqs.length > 0 } : null));
 
 let started = false;
 let badgeAt = 0;

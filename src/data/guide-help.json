@@ -1,0 +1,26 @@
+{
+  "pages": [
+    {
+      "id": "ask-a-friend",
+      "title": "Ask a friend",
+      "icon": "hug",
+      "paragraphs": [
+        "Short of something? Tap the pink Ask button next to a missing item in an order, the workshop or the truck. Choose how many you need (up to 10) and tap Ask friends.",
+        "Your friends see what you need at the top of their Friends screen and can send it with one tap. Whatever they send goes straight into your barn by itself, with a little thank-you card.",
+        "You can have 3 requests open at a time, and ask for the same item once every 8 hours. A request stays open for 24 hours.",
+        "Friends who send help get a thank-you in coins from the village for their first 10 sends each day.",
+        "If your friends are busy, Hazel from the village shop can bring the rest after 2 hours, for a fair price plus a little extra. You can always say no thanks and keep waiting."
+      ]
+    },
+    {
+      "id": "auto-help",
+      "title": "Auto-help",
+      "icon": "sparkle_heart",
+      "paragraphs": [
+        "Switch on Auto-help in Settings and your farm helps your friends by itself while the game is open: when a friend asks for something you have spare, it is sent for you.",
+        "Auto-help always keeps what your own orders and the truck need, and at least the amount you choose of every item (20 to start with). Change it in Settings with Keep at least.",
+        "Each day you get a letter in your mailbox saying what Auto-help shared and with whom. The thank-you coins are yours, just as if you had sent it yourself."
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import { cosmeticUnlocked } from './CharacterPanel';
 import { goToSource } from './ProductionPanel';
 import type { PlacedBuilding } from '../../systems/State';
 import { marketLink } from './MarketPanel';
+import { askButton } from './HelpPanel';
 import './economy.css';
 
 const NPC_ICONS = ['farmer', 'woman_farmer', 'man_farmer', 'chick', 'dog', 'cat', 'rabbit', 'farmer', 'woman_farmer', 'man_farmer', 'bee', 'smile'];
@@ -72,7 +73,7 @@ export function openOrders(): void {
         const have = game.count(l.item);
         lines.append(h('div', { class: 'row between order-line' },
           h('span', { class: 'row', style: 'gap:4px;min-width:0' }, itemIcon(l.item), h('span', { class: 'card-sub order-item-name' }, ITEMS[l.item].name)),
-          needPill(l.item, have, l.qty)));
+          h('span', { class: 'row order-need' }, needPill(l.item, have, l.qty), have < l.qty ? askButton(l.item, l.qty - have, 'order') : null)));
       }
       const skipping = confirmSkip === o.id;
       const skipBtn = h('button', {
@@ -149,7 +150,7 @@ export function openTruck(): void {
       append(card, [icon(c.filled ? 'check' : 'package', 'icon'),
         h('div', { class: c.filled ? '' : 'clickable', onclick: c.filled ? undefined : () => goToSource(c.item) }, itemIcon(c.item, 'card-icon')),
         h('div', { class: 'card-sub' }, `${ITEMS[c.item].name}`),
-        c.filled ? h('span', { class: 'pill enough' }, 'Loaded') : needPill(c.item, have, c.qty),
+        c.filled ? h('span', { class: 'pill enough' }, 'Loaded') : h('span', { class: 'row order-need' }, needPill(c.item, have, c.qty), have < c.qty ? askButton(c.item, c.qty - have, 'truck') : null),
         c.filled ? null : h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(c.coins)), h('span', { class: 'pill' }, icon('xp'), fmt(c.xp))),
         c.filled ? null : button(have >= c.qty ? 'Load' : `Need ${c.qty - have}`, () => {
           if (!truck.fill(i)) { goToSource(c.item); audio.play('error'); return; }

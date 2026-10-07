@@ -90,6 +90,9 @@ export function initVisit(scene: FarmScene, interaction: Interaction): void {
 
 export function isVisiting(): boolean { return !!cur; }
 
+/** Extras on the visit banner (1.8 Ask a friend shows what this friend is asking for). Called once per visit. */
+export const visitBannerHooks: ((ownerId: string, banner: HTMLElement) => void)[] = [];
+
 /** "Granny Mae's", "Old Toms'". */
 export function possessive(name: string): string { return /s$/i.test(name) ? `${name}'` : `${name}'s`; }
 
@@ -209,6 +212,7 @@ async function enter(scene: FarmScene, snap: FarmSnapshot, ownerId: string): Pro
   scene.env.sun.castShadow = false;
   ui.root.classList.add('visiting');
   ui.root.append(a.banner, layer);
+  for (const fn of visitBannerHooks) { try { fn(ownerId, a.banner); } catch (e) { console.warn('[visit] banner extra', e); } }
   try { history.pushState({ cozyVisit: true }, ''); } catch { /* sandboxed */ }
 
   await view.build();

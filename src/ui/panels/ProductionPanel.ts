@@ -13,6 +13,7 @@ import type { PlacedBuilding } from '../../systems/State';
 import { sourceText } from './InventoryPanel';
 import './economy.css';
 import { hints } from '../../systems/Hints';
+import { askButton } from './HelpPanel';
 
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
@@ -150,6 +151,7 @@ export function openProduction(b: PlacedBuilding): void {
           title: short ? sourceText(item) : ITEMS[item].name,
           onclick: short ? (e: MouseEvent) => { e.stopPropagation(); goToSource(item); } : undefined,
         }, itemIcon(item), `${have}/${n}`, short ? icon('magnifier', 'icon tiny') : null));
+        if (short) ingredients.append(...[askButton(item, n - have, 'recipe')].filter((x): x is HTMLElement => !!x));
       }
       const check = production.canQueue(b, r.id);
       const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : 'Make', () => {
