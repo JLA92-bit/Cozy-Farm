@@ -180,7 +180,7 @@ class Flow {
   /** the panel is closing to show something else, not because the player chose Later */
   private handOff = false;
   private ended = false;
-  private gift: { taste: string; coins: number } | null = null;
+  private gift: { taste: string; coins: number; points: number } | null = null;
   private offGift: (() => void) | null = null;
   private coach: HTMLElement | null = null;
   private coachTimer = 0;
@@ -339,7 +339,9 @@ class Flow {
         h('div', { class: 'w18-gift-hero' }, villagerPortrait(id, 'big'), h('span', { class: 'w18-gift-burst', 'aria-hidden': 'true' }, icon('sparkle_heart'))),
         h('div', { class: 'w18-vname' }, word),
         h('p', { class: 'w18-vabout' }, 'A gift a day keeps a friendship growing. Come back tomorrow and try someone new!'),
-        h('div', { class: 'w18-rewards' }, heartsPill(id),
+        h('div', { class: 'w18-rewards' },
+          this.gift.points > 0 ? h('span', { class: 'w18-hearts' }, icon('heart'), h('span', null, `+${this.gift.points} friendship`)) : null,
+          village.hearts(id) > 0 ? heartsPill(id) : null,
           this.gift.coins ? h('span', { class: 'w18-reward' }, icon('coin'), `+${this.gift.coins} coins`) : null));
     }
     const basket = welcome18.ensureBasket();
@@ -442,10 +444,10 @@ class Flow {
     });
   }
 
-  private onGift(_points: number, taste: string): void {
+  private onGift(points: number, taste: string): void {
     if (this.gift || this.ended) return;
     const coins = welcome18.rewardGift(this.variant);
-    this.gift = { taste, coins };
+    this.gift = { taste, coins, points };
     this.offGift?.(); this.offGift = null;
     // the saved step already moved on (a reload resumes after the gift); this session shows the thank-you first
     if (this.coach) { this.coachSuccess(); return; }
