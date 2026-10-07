@@ -185,7 +185,7 @@
       "colour": "#5aaee0",
       "icon": "fishing_pole",
       "look": {
-        "body": "male-e",
+        "body": "male-b",
         "skin": "#e8b38a",
         "hair": "#9aa5b1",
         "top": "#1f4e9c",
@@ -490,7 +490,7 @@
       "colour": "#ffc93c",
       "icon": "shell",
       "look": {
-        "body": "male-a",
+        "body": "female-a",
         "skin": "#ffe0c2",
         "hair": "#e8c06a",
         "top": "#ffc93c",
@@ -499,7 +499,7 @@
         "accessory": "backpack",
         "pet": "dog"
       },
-      "scale": 1.05,
+      "scale": 1.2,
       "loves": [
         "apple",
         "pumpkin",
@@ -814,7 +814,7 @@
       "colour": "#e58a4e",
       "icon": "hammer",
       "look": {
-        "body": "male-d",
+        "body": "male-f",
         "skin": "#a26a43",
         "hair": "#2b2622",
         "top": "#8a5528",

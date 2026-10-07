@@ -196,7 +196,7 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
     }
     // footer: the gift button
     if (village.canGift(id)) p.footer.append(button([icon('gift'), village.isBirthday(id) ? 'Give a birthday gift' : 'Give a gift'], () => openGiftPicker(id, onGiven), 'v-gift-main'));
-    else p.footer.append(h('div', { class: 'v-gifted big' }, icon('check'), `Gift given today. ${v.name} will love another tomorrow!`));
+    else p.footer.append(h('div', { class: 'v-gifted big' }, icon('check'), `Gift given today. Come back tomorrow for another!`));
     if (opts.standalone && !villageOpen) p.footer.append(button([icon('hug'), 'Everyone'], () => { p.close(); openVillage(); }, 'small blue'));
     return pic;
   };
