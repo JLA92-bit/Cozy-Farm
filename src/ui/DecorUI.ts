@@ -56,7 +56,8 @@ function paintRow(b: PlacedBuilding): HTMLElement {
     });
   };
   sync();
-  return h('div', { class: 'paint-box' }, h('div', { class: 'paint-label' }, icon('paint'), 'Paint'), row);
+  const gift = paints.some((p) => p.juniper) ? h('div', { class: 'paint-gift' }, "The last colours are Juniper's gift") : null;
+  return h('div', { class: 'paint-box' }, h('div', { class: 'paint-label' }, icon('paint'), 'Paint'), row, gift);
 }
 
 /** Small panel to write the sign's text, with a live wooden preview. */

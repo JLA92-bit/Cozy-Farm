@@ -207,3 +207,6 @@
   .v-hearts.big .v-heart { width: 17px; height: 17px; }
   .v-taste-label { flex-basis: 64px; }
 }
+
+/* Juniper's paint colours (6-heart perk) in the decor paint row */
+.paint-gift { margin-top: 4px; font-size: 12px; color: var(--ink-soft); text-align: center; }
