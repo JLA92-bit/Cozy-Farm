@@ -61,6 +61,13 @@ function heartsPill(id: string): HTMLElement {
   return h('span', { class: 'w18-hearts' }, icon('heart'), h('span', null, `${n} ${n === 1 ? 'heart' : 'hearts'}`));
 }
 
+/** Hearts once there is one, before that the friendship points, so a new friendship never reads "0 hearts". */
+function friendPill(id: string): HTMLElement {
+  if (village.hearts(id) > 0) return heartsPill(id);
+  const pts = village.points(id);
+  return h('span', { class: 'w18-hearts' }, icon('heart'), h('span', null, pts > 0 ? `+${pts} friendship` : 'New friend'));
+}
+
 const vname = (id: string) => VILLAGER[id]?.name ?? id;
 
 // ------------------------------------------------------------------------------------------- "find it here"
@@ -116,7 +123,10 @@ class Pointer {
     // keep the speech box away from the target
     this.box.classList.toggle('top', p.y > innerHeight * 0.5);
   }
+  private ended = false;
   end(): void {
+    if (this.ended) return;
+    this.ended = true;
     cancelAnimationFrame(this.raf);
     this.tween.kill();
     this.catcher.remove(); this.ring.remove(); this.hand.remove(); this.box.remove();
@@ -180,6 +190,8 @@ class Flow {
   /** the panel is closing to show something else, not because the player chose Later */
   private handOff = false;
   private ended = false;
+  private lastGo = 0;
+  private pointer: Pointer | null = null;
   private gift: { taste: string; coins: number; points: number } | null = null;
   private offGift: (() => void) | null = null;
   private coach: HTMLElement | null = null;
@@ -269,6 +281,10 @@ class Flow {
   }
 
   private go(i: number, dir: number): void {
+    // a double tap on Next must not skip a card
+    const t = performance.now();
+    if (t - this.lastGo < 350) return;
+    this.lastGo = t;
     this.i = Math.max(0, Math.min(this.steps.length - 1, i));
     welcome18.setStep(this.variant, this.i);
     if (this.steps[this.i] === 'villagers') this.vi = dir < 0 ? VILLAGERS.length - 1 : 0;
@@ -314,7 +330,7 @@ class Flow {
         h('div', { class: 'w18-vname' }, v.name),
         h('div', { class: 'w18-vrole' }, v.role),
         h('p', { class: 'w18-vabout' }, v.about),
-        h('div', { class: 'w18-vrow' }, heartsPill(v.id)),
+        h('div', { class: 'w18-vrow' }, friendPill(v.id)),
         loves.length ? h('div', { class: 'w18-vloves' }, h('span', { class: 'w18-vloves-word' }, 'Loves'), ...loves.map((x) => h('span', { class: 'w18-chip' }, itemIcon(x), ITEMS[x].name))) : null),
       strip);
   }
@@ -396,8 +412,8 @@ class Flow {
       h('div', { class: 'w18-sum-sec' }, icon('check'), 'You kept everything'),
       h('div', { class: 'w18-kept' }, ...kept.map(([ic, t]) => h('div', { class: 'w18-kept-row' }, icon(ic), h('span', null, t), h('span', { class: 'w18-tick' }, 'Kept')))),
       h('div', { class: 'w18-sum-sec' }, icon('sparkle_heart'), 'New for you'),
-      h('div', { class: 'w18-friends' }, ...VILLAGERS.map((v) => h('div', { class: 'w18-friend' }, villagerPortrait(v.id, 'small'), h('span', { class: 'w18-friend-name' }, v.name.replace(/^Old /, '')), heartsPill(v.id)))),
-      h('div', { class: 'muted w18-sum-note' }, 'A head start from all the orders you filled before.'),
+      h('div', { class: 'w18-friends' }, ...VILLAGERS.map((v) => h('div', { class: 'w18-friend' }, villagerPortrait(v.id, 'small'), h('span', { class: 'w18-friend-name' }, v.name.replace(/^Old /, '')), friendPill(v.id)))),
+      h('div', { class: 'muted w18-sum-note' }, welcome18.headStartPoints() > 0 ? 'A head start from all the orders you filled before.' : 'Visit them and bring gifts to grow your friendships.'),
       sign,
       h('div', { class: 'w18-sum-sec' }, icon('light_bulb'), 'Try next'),
       h('div', { class: 'w18-next-list' },
@@ -431,7 +447,7 @@ class Flow {
     logEvent('welcome_find', { target: t.label });
     p.overlay.style.visibility = 'hidden';
     const text = t.world ? 'Ask buttons show up on orders here when something is missing.' : `Here it is! Tap ${t.label} any time.`;
-    new Pointer(where, text, () => { if (this.p === p) p.overlay.style.visibility = ''; });
+    this.pointer = new Pointer(where, text, () => { this.pointer = null; if (this.p === p) p.overlay.style.visibility = ''; });
   }
 
   // ---------------------------------------------------------------- the first gift
@@ -599,6 +615,7 @@ class Flow {
   }
 
   private cleanup(): void {
+    this.pointer?.end();
     this.offGift?.(); this.offGift = null;
     this.hideCoach();
     welcome18.running = false;
@@ -612,7 +629,10 @@ class Flow {
 /** Open the welcome now (from boot, the level 3 check, the side button or Settings > Replay). */
 export function openWelcome18(opts: FlowOpts = {}): boolean {
   if (flow || visiting.active) return false;
-  const variant = opts.replay ? 'full' : welcome18.pending();
+  // a replay while the real welcome is still waiting runs the real one (with its rewards)
+  const pending = welcome18.pending();
+  if (pending && opts.replay) opts = { ...opts, replay: false };
+  const variant = opts.replay ? 'full' : pending;
   if (!variant) return false;
   flow = new Flow(variant, opts);
   flow.start();
