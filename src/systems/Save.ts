@@ -175,6 +175,9 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   if (typeof td.day !== 'string') td.day = '';
   if (typeof td.visitor !== 'string') td.visitor = '';
   td.visitorDone = !!td.visitorDone;
+  // today's visitor request (mail agent): dropped if broken, a fresh one is made on the next tick
+  const rq = td.request as unknown;
+  if (rq !== undefined && !(isObj(rq) && ITEMS[rq.item as string] && [rq.qty, rq.coins, rq.xp].every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0) && (rq.qty as number) >= 1)) delete td.request;
   td.finds = Array.isArray(td.finds) ? td.finds.filter((f) => isObj(f) && typeof f.id === 'string' && !!ITEMS[f.item as string] && Number.isFinite(f.x) && Number.isFinite(f.z)) : [];
   const q: SaveData['quality'] = {};
   for (const [k, v] of Object.entries(out.quality)) {
@@ -187,6 +190,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   out.quality = q;
   const mail = out.mail;
   mail.letters = Array.isArray(mail.letters) ? mail.letters.filter((l) => isObj(l) && typeof l.id === 'number' && typeof l.title === 'string' && typeof l.body === 'string').slice(-200) : [];
+  for (const l of mail.letters) if (l.kind !== undefined && l.kind !== 'note') delete l.kind;
   mail.nextId = Math.max(Math.floor(finite(mail.nextId, 1, 1)), ...mail.letters.map((l) => l.id + 1));
   const hp = out.help;
   hp.auto = !!hp.auto;

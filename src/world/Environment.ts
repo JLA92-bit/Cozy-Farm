@@ -42,6 +42,14 @@ export class Environment {
   private pollenCol = new THREE.Color('#fffbe6');
   readonly sky = new THREE.Color();
   timeOffset = 0;
+  /** 1.8 weather: what today looks like ('sunny', 'rain', 'mist'), eased in over a few seconds. */
+  weather = 'sunny';
+  private rainK = 0;
+  private mistK = 0;
+  private rain?: THREE.LineSegments;
+  private rainData?: Float32Array;
+  private skyRain = new THREE.Color('#8d9caf');
+  private skyMist = new THREE.Color('#dfe7ea');
 
   constructor(private scene: THREE.Scene, shadowMapSize: number, private density: number) {
     this.hemi = new THREE.HemisphereLight('#fffaf0', '#7da35a', 1.35);
@@ -117,6 +125,17 @@ export class Environment {
     this.motes = new THREE.Points(mg, this.moteMat);
     this.motes.renderOrder = 4;
     this.group.add(this.motes);
+    // 1.8 rain: short streaks around the camera target, one draw call (fewer on Low graphics)
+    const nr = Math.max(60, Math.round(420 * this.density));
+    this.rainData = new Float32Array(nr * 3);
+    for (let i = 0; i < nr; i++) this.rainData.set([(r() - 0.5) * RAIN_BOX, r() * RAIN_TOP, (r() - 0.5) * RAIN_BOX], i * 3);
+    const rg = new THREE.BufferGeometry();
+    rg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(nr * 6), 3));
+    this.rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: '#dff1ff', transparent: true, opacity: 0, depthWrite: false }));
+    this.rain.frustumCulled = false;
+    this.rain.visible = false;
+    this.rain.renderOrder = 4;
+    this.group.add(this.rain);
   }
 
   /** Day phase 0..1 from the wall clock, so the cycle continues between sessions. */
@@ -137,17 +156,23 @@ export class Environment {
     this.light = 1 - night * 0.3;
     const dawn = p >= 0.88 ? dusk : 0;
     const eve = p < 0.88 ? dusk : 0;
+    // 1.8 weather eases in and out over a few seconds
+    this.rainK += ((this.weather === 'rain' ? 1 : 0) - this.rainK) * Math.min(1, dt * 0.8);
+    this.mistK += ((this.weather === 'mist' ? 1 : 0) - this.mistK) * Math.min(1, dt * 0.8);
+    const rainK = this.rainK, mistK = this.mistK;
     this.sky.copy(this.skyDay).lerp(this.skyNight, night * 0.8).lerp(this.skyDusk, eve * 0.6).lerp(this.skyDawn, dawn * 0.7);
+    if (rainK > 0.001) this.sky.lerp(this.skyRain, rainK * (0.55 - night * 0.3));
+    if (mistK > 0.001) this.sky.lerp(this.skyMist, mistK * (0.5 - night * 0.3));
     const fog = this.scene.fog as THREE.Fog;
     fog.color.copy(this.sky);
     // evening haze: the distance melts into warm peach at dusk and soft blue at night
-    fog.near = 70 - night * 32 - dusk * 18;
-    fog.far = 160 - night * 50 - dusk * 30;
-    // soft moonlit blue at night (still readable), warm peach at golden hour
-    this.hemi.intensity = 1.35 - night * 0.45;
+    fog.near = 70 - night * 32 - dusk * 18 - rainK * 22 - mistK * 44;
+    fog.far = 160 - night * 50 - dusk * 30 - rainK * 40 - mistK * 82;
+    // soft moonlit blue at night (still readable), warm peach at golden hour; a little greyer when it rains
+    this.hemi.intensity = 1.35 - night * 0.45 - rainK * 0.12;
     this.hemi.color.copy(this.hemiDay).lerp(this.hemiNight, night * 0.9).lerp(this.hemiDusk, dusk * 0.75);
     this.hemi.groundColor.copy(this.groundDay).lerp(this.groundNight, night * 0.85);
-    this.sun.intensity = 2.1 - night * 1.35 + eve * 0.35;
+    this.sun.intensity = (2.1 - night * 1.35 + eve * 0.35) * (1 - rainK * 0.45 - mistK * 0.2);
     this.sun.color.copy(this.sunDay).lerp(this.sunDusk, eve * 0.9).lerp(this.sunDawn, dawn * 0.7).lerp(this.moon, night * 0.85);
     // sun swings across the sky and sinks low at golden hour (long cosy shadows); the moon rides high at night
     const ang = -0.6 + p * 1.2;
@@ -160,6 +185,7 @@ export class Environment {
       c.obj.position.set(Math.cos(c.a) * c.r, c.y + Math.sin(t * 0.2 + c.r) * 0.3, Math.sin(c.a) * c.r);
     }
     this.updateMotes(t, night);
+    this.updateRain(dt, focus);
     // ---- birds: flap and glide, wrapping around the island
     if (this.birds) {
       for (let i = 0; i < this.birdData.length; i++) {
@@ -193,6 +219,27 @@ export class Environment {
     }
   }
 
+  /** Rain streaks fall and wrap inside a box that follows the camera target. */
+  private updateRain(dt: number, focus: THREE.Vector3): void {
+    const rain = this.rain, d = this.rainData;
+    if (!rain || !d) return;
+    rain.visible = this.rainK > 0.02;
+    if (!rain.visible) return;
+    (rain.material as THREE.LineBasicMaterial).opacity = 0.5 * this.rainK;
+    const arr = (rain.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;
+    for (let i = 0; i < d.length; i += 3) {
+      d[i + 1] -= RAIN_SPEED * dt;
+      if (d[i + 1] < 0) d[i + 1] += RAIN_TOP;
+      // drops stay around the camera target as it pans
+      const x = d[i] + focus.x, z = d[i + 2] + focus.z;
+      const j = i * 2;
+      arr[j] = x; arr[j + 1] = d[i + 1]; arr[j + 2] = z;
+      // slanted a touch, like a light breeze
+      arr[j + 3] = x - 0.08; arr[j + 4] = d[i + 1] + 0.55; arr[j + 5] = z - 0.04;
+    }
+    rain.geometry.attributes.position.needsUpdate = true;
+  }
+
   private updateMotes(t: number, night: number): void {
     if (!this.motes || !this.moteMat) return;
     const isNight = night > 0.45 ? 1 : 0;
@@ -219,6 +266,11 @@ export class Environment {
     this.motes.geometry.attributes.position.needsUpdate = true;
   }
 }
+
+/** Rain box around the camera target (world units), drop height and fall speed (units / s). */
+const RAIN_BOX = 30;
+const RAIN_TOP = 14;
+const RAIN_SPEED = 13;
 
 /** Small soft round dot used by the motes (canvas texture, made once). */
 function glowDot(): THREE.Texture {
