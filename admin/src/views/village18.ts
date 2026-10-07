@@ -67,7 +67,12 @@ export async function village18View(host: HTMLElement): Promise<void> {
         const n = o.funnel.find((f) => f.variant === variant && f.step === k)?.players ?? 0;
         return { label, value: n };
       });
-      return chartCard(title, sub, (el) => hbars(el, pts), pts, 'Players');
+      // like hbars, but the share is of the first step (how many are still with us), not of the total
+      const first = Math.max(1, pts[0]?.value ?? 0);
+      return chartCard(title, sub, (el) => el.append(h('div', { class: 'hbars' }, pts.map((d) => h('div', { class: 'hbar-row', title: `${d.value} players` },
+        h('span', { class: 'hbar-label' }, d.label),
+        h('span', { class: 'hbar-track' }, h('span', { class: 'hbar-fill', style: { width: `${Math.max(1, (d.value / first) * 100)}%` } })),
+        h('span', { class: 'hbar-value' }, num(d.value), h('span', { class: 'muted' }, ` ${pct(d.value, pts[0]?.value ?? 0)}`)))))), pts, 'Players');
     };
     const vPts: Point[] = o.villagers.map((v) => ({ label: NAMES[v.villager] ?? v.villager, value: v.gifts, tip: `${v.gifts} gifts (${v.loved} loved, ${v.liked} liked, ${v.disliked} disliked) from ${v.givers} players` }));
     const hPts: Point[] = o.villagers.map((v) => ({ label: NAMES[v.villager] ?? v.villager, value: v.hearts, tip: `${v.hearts} hearts in all, ${v.friends} players with at least 1 heart` })).sort((a, b) => b.value - a.value);
@@ -82,9 +87,9 @@ export async function village18View(host: HTMLElement): Promise<void> {
       h('div', { class: 'grid-2' },
         chartCard('Daily villager visit done', '% of players who played that day', (el) => bars(el, visitPts, { fmt: (n) => `${n}%` }), visitPts, '% done'),
         h('section', { class: 'card' }, h('h3', null, 'Gift reactions'),
-          o.villagers.length ? h('table', { class: 'table compact' },
+          o.villagers.length ? h('div', { class: 'table-wrap' }, h('table', { class: 'table compact' },
             h('thead', null, h('tr', null, h('th', null, 'Villager'), h('th', { class: 'r' }, 'Loved'), h('th', { class: 'r' }, 'Liked'), h('th', { class: 'r' }, 'Disliked'), h('th', { class: 'r' }, 'Givers'))),
-            h('tbody', null, o.villagers.map((v) => h('tr', null, h('td', null, NAMES[v.villager] ?? v.villager), h('td', { class: 'r' }, num(v.loved)), h('td', { class: 'r' }, num(v.liked)), h('td', { class: 'r' }, num(v.disliked)), h('td', { class: 'r' }, num(v.givers))))))
+            h('tbody', null, o.villagers.map((v) => h('tr', null, h('td', null, NAMES[v.villager] ?? v.villager), h('td', { class: 'r' }, num(v.loved)), h('td', { class: 'r' }, num(v.liked)), h('td', { class: 'r' }, num(v.disliked)), h('td', { class: 'r' }, num(v.givers)))))))
             : h('p', { class: 'muted' }, 'No gifts yet.'),
           h('h3', { style: { marginTop: '16px' } }, 'Ask a friend and mailbox'),
           o.activity.length ? h('table', { class: 'table compact' }, h('tbody', null, o.activity.map((a) => h('tr', null,
