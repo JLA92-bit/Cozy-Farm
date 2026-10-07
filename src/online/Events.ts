@@ -47,8 +47,7 @@ let wired = false;
 
 /**
  * Listen for the 1.8 moments the dashboard counts: gifts to villagers (villager, taste), hearts gained, daily
- * villager visits done, and Ask a friend activity (any new stat starting with "help", "ask" or "request"). The welcome logs its
- * own steps. Listening keeps the other 1.8 systems free of dashboard code.
+ * villager visits done, and the Ask a friend and mailbox counters in STAT_EVENTS. The welcome logs its own steps. Listening keeps the other 1.8 systems free of dashboard code.
  */
 export function wireEventLog(isBirthday: (id: string) => boolean): void {
   if (wired) return;
@@ -60,7 +59,21 @@ export function wireEventLog(isBirthday: (id: string) => boolean): void {
     if (hearts > before) logEvent('hearts', { villager: id, hearts, reason: reason.slice(0, 20) });
   });
   game.bus.on('stat', ({ stat, value, delta }) => {
-    // help_received is older (neighbours helping on your farm, Update 5), not Ask a friend
-    if (delta > 0 && /^(help|ask|request)/.test(stat) && stat !== 'help_received') logEvent('help', { stat, value });
+    const kind = STAT_EVENTS[stat];
+    if (kind && delta > 0) logEvent(kind, { n: delta, total: value });
   });
 }
+
+/**
+ * 1.8 counters (kept by the help and mail parts with game.incStat) that become dashboard events. help_received
+ * also counts neighbours helping on your farm (Update 5), so help_arrived is an upper bound for Ask a friend.
+ */
+const STAT_EVENTS: Record<string, string> = {
+  help_asked: 'help_ask',
+  help_sent: 'help_send',
+  help_received: 'help_arrived',
+  help_hazel: 'help_hazel',
+  visitor_requests: 'visit_give',
+  daily_finds: 'find_collect',
+  lost_items_returned: 'find_return',
+};

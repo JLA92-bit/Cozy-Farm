@@ -2639,9 +2639,11 @@ begin
                  from (select pd.day, count(*) as n from public.player_days pd where pd.day > today - v_days group by 1) d
                  left join (select (e.at at time zone 'utc')::date as day, count(distinct e.user_id) as n from public.player_events e
                              where e.kind = 'visit' and e.at > v_from group by 1) vv on vv.day = d.day),
-    'help', (select coalesce(jsonb_agg(jsonb_build_object('stat', h.stat, 'n', h.n, 'players', h.p) order by h.n desc), '[]'::jsonb)
-               from (select e.detail ->> 'stat' as stat, count(*) as n, count(distinct e.user_id) as p from public.player_events e
-                      where e.kind = 'help' and e.at > v_from group by 1) h),
+    -- Ask a friend and mailbox moments (one event per counter step: help_ask, help_send, visit_give, find_collect...)
+    'activity', (select coalesce(jsonb_agg(jsonb_build_object('kind', a.kind, 'n', a.n, 'players', a.p) order by a.n desc), '[]'::jsonb)
+               from (select e.kind, count(*) as n, count(distinct e.user_id) as p from public.player_events e
+                      where e.at > v_from and (e.kind like 'help\_%' or e.kind in ('visit_give', 'find_collect', 'find_return', 'mail_open', 'mail_collect'))
+                      group by 1) a),
     'letters', (select coalesce(jsonb_agg(jsonb_build_object('id', l.id, 'title', l.title, 'body', l.body, 'audience', l.audience, 'recipients', l.recipients,
                    'delivered', (select count(*) from public.admin_letter_inbox i where i.letter_id = l.id and i.delivered_at is not null),
                    'created_at', l.created_at, 'created_by', l.created_by) order by l.created_at desc), '[]'::jsonb)
