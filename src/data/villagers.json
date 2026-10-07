@@ -657,8 +657,8 @@
       "id": "hazel",
       "name": "Hazel",
       "role": "Runs the village shop",
-      "about": "Runs the village shop. Knows everyone, and everyone's business.",
-      "home": "Lives behind the counter of the village shop.",
+      "about": "Knows everyone in the valley, and everyone's business.",
+      "home": "Lives in the little flat above her shop.",
       "colour": "#86c06a",
       "icon": "store",
       "look": {
