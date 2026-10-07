@@ -19,6 +19,7 @@ import { BUILDING, ITEMS, VILLAGER, VILLAGERS } from '../../data';
 import { APP_VERSION, compareVersions } from '../../systems/Version';
 import { openWhatsNew, refreshWhatsNewDot } from './WhatsNewPanel';
 import { tutorial } from '../Tutorial';
+import { thumbs } from '../../world/Thumbs';
 import { sideEntries } from '../SideBar';
 import { logEvent, tasteFromPoints, wireEventLog } from '../../online/Events';
 import type { Letter } from '../../systems/State';
@@ -33,7 +34,7 @@ const LOOKS: Record<string, Look> = {
   rosa: { body: 'female-a', skin: '#f6c9a0', hair: '#d9473a', top: '#ff8fb4', bottom: '#f7f1e3', hat: 'chef' },
   tom: { body: 'male-c', skin: '#e8b38a', hair: '#9aa5b1', top: '#1f4e9c', bottom: '#8a5528', hat: 'bucket' },
   juniper: { body: 'female-d', skin: '#c98a5e', hair: '#a77bf3', top: '#2fbfa8', bottom: '#3b3b45', hat: 'flower_crown' },
-  pip: { body: 'male-e', skin: '#ffe0c2', hair: '#c98a4b', top: '#ffc93c', bottom: '#3fa9f5', hat: 'cap' },
+  pip: { body: 'male-a', skin: '#ffe0c2', hair: '#c98a4b', top: '#ffc93c', bottom: '#3fa9f5', hat: 'cap' },
   hazel: { body: 'female-e', skin: '#7a4b2c', hair: '#f2e2b0', top: '#6cc644', bottom: '#8a5528', hat: 'none' },
   bram: { body: 'male-f', skin: '#a26a43', hair: '#2b2622', top: '#3b3b45', bottom: '#c0582b', hat: 'none' },
 };
@@ -47,8 +48,11 @@ function lookOf(id: string): Look {
 
 /** A round villager portrait (their 3D farmer, posed), with a soft colour behind it. */
 export function villagerPortrait(id: string, size: 'big' | 'mid' | 'small' = 'mid'): HTMLElement {
-  return h('span', { class: `w18-portrait ${size}`, style: { background: BG[id] ?? '#fff1d6' }, 'aria-hidden': 'true' },
-    icon(`look:${JSON.stringify(lookOf(id))}`, 'w18-portrait-img'));
+  const img = h('img', { class: 'w18-portrait-img', alt: '', draggable: 'false' });
+  img.style.visibility = 'hidden';
+  // setIcon has no 'look:' keys; the thumbnail renderer does (as for leaderboard farmers)
+  void thumbs.get(`look:${JSON.stringify(lookOf(id))}`).then((url) => { if (url) { img.src = url; img.style.visibility = ''; } });
+  return h('span', { class: `w18-portrait ${size}`, style: { background: BG[id] ?? '#fff1d6' }, 'aria-hidden': 'true' }, img);
 }
 
 /** "3 hearts" with a heart icon: never colour alone. */
@@ -233,7 +237,7 @@ class Flow {
   }
 
   private footer(step: W18Step): HTMLElement[] {
-    const later = button('Later', () => this.p?.close(), 'small grey w18-later', { 'aria-label': 'Later: carry on with this next time' });
+    const later = button('Later', () => this.p?.close(), 'small grey w18-later', { 'aria-label': 'Later, carry on another time' });
     const back = this.i > 0 && !(step === 'gift' && this.gift) ? button('Back', () => this.back(), 'small blue w18-back') : null;
     const next = (label: string, fn = () => this.next(), ic = 'check') => button([h('span', null, label), icon(ic)], fn, 'green w18-next');
     const last = this.i === this.steps.length - 1;
@@ -241,7 +245,7 @@ class Flow {
       case 'letter': return [later, next('Meet the villagers', undefined, 'hug')];
       case 'villagers': {
         const lastV = this.vi >= VILLAGERS.length - 1;
-        return [later, back, next(lastV ? (this.variant === 'short' ? 'First gift' : "What's new") : `Next: ${vname(VILLAGERS[this.vi + 1].id)}`, () => {
+        return [later, back, next(lastV ? (this.variant === 'short' ? 'First gift' : "What's new") : 'Next', () => {
           if (lastV) this.next();
           else { this.vi++; this.render(1); audio.play('page', { volume: 0.5 }); }
         }, lastV ? 'sparkles' : 'hug')].filter(Boolean) as HTMLElement[];
@@ -249,7 +253,7 @@ class Flow {
       case 'gift':
         if (this.gift) return [next(last ? 'Done' : 'Your farm in 1.8', () => (last ? this.done() : this.next()), last ? 'check' : 'house')];
         return [later, back, button('Skip', () => this.skipGift(), 'small grey')].filter(Boolean) as HTMLElement[];
-      case 'summary': return [button([icon('books'), 'All the changes'], () => this.allChanges(), 'small blue'), next('Start playing', () => this.done(), 'seedling')];
+      case 'summary': return [button("What's new", () => this.allChanges(), 'small blue w18-back', { 'aria-label': "What's new: every change in 1.8" }), next("Let's play!", () => this.done(), 'seedling')];
       default: return [later, back, next('Next', undefined, 'sparkles')].filter(Boolean) as HTMLElement[];
     }
   }
@@ -378,8 +382,8 @@ class Flow {
       ['coin', `${fmt(s.player.coins)} coins and ${fmt(s.player.gems)} gems`],
       ['package', `${fmt(items)} things in your barn`],
       ['house', `${fmt(s.buildings.length)} buildings, fields and decorations`],
-      ['hug', `${fmt(s.social.friends.length)} ${s.social.friends.length === 1 ? 'friend' : 'friends'}`],
     ];
+    if (s.social.friends.length) kept.push(['hug', `${fmt(s.social.friends.length)} ${s.social.friends.length === 1 ? 'friend' : 'friends'}`]);
     const stored = s.storage[W18.sign] ?? 0;
     const placed = s.buildings.some((b) => b.type === W18.sign);
     const sign = h('div', { class: 'w18-gain sign' }, icon(`building:${W18.sign}`, 'w18-sign-thumb'),
@@ -611,6 +615,16 @@ export function openWelcome18(opts: FlowOpts = {}): boolean {
   flow = new Flow(variant, opts);
   flow.start();
   return true;
+}
+
+/** Boot: open once the first toasts (quests done while away...) have faded, so they do not cover the letter. */
+export function openWelcome18Soon(opts: FlowOpts, maxWait = 6000): void {
+  const t0 = performance.now();
+  const go = () => {
+    if (document.querySelector('.toast-stack')?.childElementCount && performance.now() - t0 < maxWait) { setTimeout(go, 300); return; }
+    if (!openWelcome18(opts)) opts.onClose?.();
+  };
+  go();
 }
 
 /** Nothing else on screen: no panel, no tutorial, no building or fishing mode, not visiting. */

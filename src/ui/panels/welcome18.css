@@ -155,3 +155,6 @@
   .w18-portrait.big { width: 112px; height: 112px; }
   .w18-later { padding: 4px 8px; }
 }
+
+/* the welcome sits above passing toasts (quests finished while away...) so they never cover the letter */
+.overlay:has(> .w18-panel) { z-index: 85; }

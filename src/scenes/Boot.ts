@@ -15,7 +15,7 @@ import '../ui/panels';
 import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
 import { openWhatsNew, shouldShowWhatsNew, refreshWhatsNewDot } from '../ui/panels/WhatsNewPanel';
-import { bootWelcome18, openWelcome18, startWelcome18WhenCalm, welcome18Due } from '../ui/panels/Welcome18Panel';
+import { bootWelcome18, openWelcome18Soon, startWelcome18WhenCalm, welcome18Due } from '../ui/panels/Welcome18Panel';
 import { updateBubbles } from '../ui/Bubbles';
 import { player } from './Player';
 import { orders, truck, merchant } from '../systems/Economy';
@@ -185,7 +185,7 @@ export async function boot(): Promise<void> {
   // after an update: the What's new page first, then the usual welcome back / daily reward. The 1.8 welcome
   // takes What's new's place once for farms from before 1.8 (and gives the head start).
   const welcome18Now = bootWelcome18(fresh);
-  if (welcome18Now) setTimeout(() => { if (!openWelcome18({ onClose: () => greet(250) })) greet(0); }, 600);
+  if (welcome18Now) setTimeout(() => openWelcome18Soon({ onClose: () => greet(250) }), 600);
   else if (shouldShowWhatsNew()) setTimeout(() => openWhatsNew({ sinceLast: true, onClose: () => greet(250) }), 600);
   else greet(600);
   // a new farm already at level 3: its short village intro follows once the greetings are closed
