@@ -41,6 +41,9 @@ functions (for example version 1.4.0 "Visiting" adds the `farm_snapshots` table 
 function). Running the whole file again only adds what is missing; players' data is kept.
 The "Helping neighbours" update adds the `farm_help` table and the `help_farm`, `like_farm`,
 `farm_help_status` and `claim_farm_help` functions, so run it again for that too.
+Version 1.8.0 "Village Friends" adds Ask a friend (`help_requests`, `help_fills`, `help_watch` and their functions,
+push kind `help`), the game event log (`player_events` and `log_event`) and letters to every player
+(`admin_letters`, `admin_letter_inbox`, `my_admin_letters`, `claim_admin_letter`), so run it again for 1.8 as well.
 
 ## 4. Copy the project URL and anon key into GitHub
 
@@ -133,7 +136,9 @@ their farm appears.
 - In the game: **Settings > Online play > Delete my online account** (two confirmations). It calls
   `delete_my_account()`, which deletes the player's sign-in (`auth.users`), public profile and friend code,
   cloud save, farm snapshot, their own market listings, every gift they sent or received and all neighbour
-  help and likes they gave or got (`farm_help`, through the profile cascade). Listings they bought from
+  help and likes they gave or got (`farm_help`, through the profile cascade). From 1.8 their Ask a friend
+  requests and fills, game events (`player_events`) and letter deliveries (`admin_letter_inbox`) go too
+  (`on delete cascade` from `auth.users`). Listings they bought from
   other players stay for the seller, with the buyer's name replaced by "A farmer". The farm on the device is
   not touched. This is the in-app account deletion Google Play asks for.
 - By email: players can also ask at `joshmakesgames92@gmail.com`. Find them by friend code in **Table
@@ -226,6 +231,15 @@ with `select code, coins, gems, claims, max_claims, note from reward_codes order
   and helpers the rows they made. The owner's game applies the help when they next play (only if the field,
   home or tree still needs it) and marks the rows claimed with `claim_farm_help()`. Deleting either account
   removes its rows (foreign keys cascade).
+- **Ask a friend (1.8):** requests a player posts and what friends send for them live in `help_requests` and
+  `help_fills`; `help_watch` holds who wants to be told about new requests (push kind `help`). Friends can see
+  each other's open requests.
+- **Game events (1.8):** `log_event(kind, detail)` stores small named moments for the developer dashboard
+  (`player_events`): at most 200 a day per player, a short kind and a small flat detail object, kept 180 days.
+  Players cannot read them back. Nothing is sent in practice mode.
+- **Letters to every player (1.8):** the dashboard's `admin_letter_all()` queues a letter; the game asks for
+  undelivered ones with `my_admin_letters()` when it checks for developer gifts, claims each with
+  `claim_admin_letter()` (exactly once) and puts it in the mailbox, signed by the team.
 - **Privacy:** other players see your farmer's name, look, level, farm value, charm and weekly XP, and the
   layout of your farm when they visit it. Players
   who sign in with Google also store their Google email address and account id (in Supabase Auth) and a

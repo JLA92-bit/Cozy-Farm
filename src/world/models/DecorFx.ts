@@ -6,6 +6,7 @@ import type { PlacedBuilding } from '../../systems/State';
 import { geo } from '../Procedural';
 import type { Visual } from '../Visuals';
 import { MARK, PUMPKINS } from './Decor';
+import { foundingSignFx } from './FoundingSign';
 
 /**
  * Per-instance extras for "pretty farm" decor: paint colours (recoloured geometry, shared per colour) and the
@@ -87,6 +88,7 @@ const FX: Record<string, FxBuilder> = {
   beehive: beeFx,
   pinwheel: pinwheelFx,
   pumpkin_lanterns: pumpkinFx,
+  founding_sign: (inner, ctx) => foundingSignFx(inner, ctx.b, ctx.farmer),
 };
 
 /** Pieces with per-instance extras are drawn standalone (not pooled). */

@@ -1,7 +1,7 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
-  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, Platform,
+  PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
   HelpFill, HelpReason, HelpRequest,
 } from './types';
 import { cleanHelp } from './FarmHelp';
@@ -530,6 +530,21 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   async claimAdminGift(id: string): Promise<AdminGift> {
     return this.rpc<AdminGift>('claim_admin_gift', { p_id: id });
+  }
+
+  async adminLetters(): Promise<AdminLetter[]> {
+    return (await this.rpc<AdminLetter[] | null>('my_admin_letters', {})) ?? [];
+  }
+
+  async claimAdminLetter(id: string): Promise<AdminLetter> {
+    return this.rpc<AdminLetter>('claim_admin_letter', { p_id: id });
+  }
+
+  async logEvent(kind: string, detail: Record<string, unknown>): Promise<void> {
+    try {
+      await this.init();
+      this.check(await this.db().rpc('log_event', { p_kind: kind, p_detail: detail }) as Result<unknown>);
+    } catch { /* statistics only: never bother the player */ }
   }
 
   async submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void> {

@@ -15,6 +15,7 @@ import '../ui/panels';
 import { offlineSummary, hasNews } from '../systems/Offline';
 import { openWelcome } from '../ui/panels/WelcomePanel';
 import { openWhatsNew, shouldShowWhatsNew, refreshWhatsNewDot } from '../ui/panels/WhatsNewPanel';
+import { bootWelcome18, openWelcome18Soon, startWelcome18WhenCalm, welcome18Due } from '../ui/panels/Welcome18Panel';
 import { updateBubbles } from '../ui/Bubbles';
 import { player } from './Player';
 import { orders, truck, merchant } from '../systems/Economy';
@@ -181,9 +182,14 @@ export async function boot(): Promise<void> {
     if (game.state.player.created && game.state.tutorial.done && away && away.awayMs > 120000 && hasNews(away)) setTimeout(() => openWelcome(away, () => { if (dailyReady) openDaily(); }), delay);
     else if (game.state.player.created && game.state.tutorial.done && dailyReady) setTimeout(() => openDaily(), delay);
   };
-  // after an update: the What's new page first, then the usual welcome back / daily reward
-  if (shouldShowWhatsNew()) setTimeout(() => openWhatsNew({ sinceLast: true, onClose: () => greet(250) }), 600);
+  // after an update: the What's new page first, then the usual welcome back / daily reward. The 1.8 welcome
+  // takes What's new's place once for farms from before 1.8 (and gives the head start).
+  const welcome18Now = bootWelcome18(fresh);
+  if (welcome18Now) setTimeout(() => openWelcome18Soon({ onClose: () => greet(250) }), 600);
+  else if (shouldShowWhatsNew()) setTimeout(() => openWhatsNew({ sinceLast: true, onClose: () => greet(250) }), 600);
   else greet(600);
+  // a new farm already at level 3: its short village intro follows once the greetings are closed
+  if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });

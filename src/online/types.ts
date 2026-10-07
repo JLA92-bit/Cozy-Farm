@@ -122,6 +122,9 @@ export type OnlineEvent =
 /** A gift from the developer (admin dashboard): arrives by itself, no code to type. */
 export interface AdminGift { id: string; coins: number; gems: number; items: Record<string, number>; land: number; message: string | null; created_at: string }
 
+/** 1.8: a letter the developer sent to every player (admin dashboard); arrives in the mailbox once. */
+export interface AdminLetter { id: string; title: string; body: string; created_at: string }
+
 /** Where the game is running, for play statistics. */
 export type Platform = 'android' | 'pwa' | 'web' | 'ios';
 
@@ -182,6 +185,12 @@ export interface OnlineBackend {
   adminGifts(): Promise<AdminGift[]>;
   /** Mark a developer gift received (exactly once); rejects with 'not found' if it was already claimed. */
   claimAdminGift(id: string): Promise<AdminGift>;
+  /** 1.8: letters from the developer not yet delivered to this player. */
+  adminLetters(): Promise<AdminLetter[]>;
+  /** 1.8: mark a developer letter delivered (exactly once); rejects with 'not found' if it already was. */
+  claimAdminLetter(id: string): Promise<AdminLetter>;
+  /** 1.8: one small game event for the developer dashboard (src/online/Events.ts). Never throws. */
+  logEvent(kind: string, detail: Record<string, unknown>): Promise<void>;
   /** Settings > Send feedback. Rejects with 'too many' (10 a day) or when offline. */
   submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void>;
 

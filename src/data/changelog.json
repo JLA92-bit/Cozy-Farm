@@ -1,6 +1,91 @@
 {
  "releases": [
   {
+   "version": "1.8.0",
+   "date": "2026-10-07",
+   "title": "Village Friends",
+   "icon": "hug",
+   "color": "pink",
+   "dedication": {
+    "icon": "sparkle_heart",
+    "text": "Thank you for farming with us. Everything on your farm is just as you left it, and the village is waking up."
+   },
+   "highlights": [
+    {
+     "icon": "hug",
+     "text": "Meet six villagers: Rosa, Old Tom, Juniper, Pip, Hazel and Bram. Visit them, chat and bring them gifts"
+    },
+    {
+     "icon": "heart",
+     "text": "Gifts fill their hearts. More hearts bring letters, keepsakes and handy perks for your farm"
+    },
+    {
+     "icon": "star",
+     "text": "Some harvests and goods now come out silver or gold. Starred items sell for more"
+    },
+    {
+     "icon": "mailbox",
+     "text": "Your own mailbox: letters, little gifts, a villager visiting each day and finds around the farm"
+    },
+    {
+     "icon": "gift",
+     "text": "Missing something? Tap Ask and a friend can send it, or Hazel helps out"
+    }
+   ],
+   "sections": [
+    {
+     "title": "A head start for you",
+     "icon": "medal",
+     "items": [
+      {
+       "icon": "heart",
+       "text": "Farmers from before 1.8 start with friendship from all the orders they filled, up to 3 hearts with each villager"
+      },
+      {
+       "icon": "medal",
+       "text": "A Founding Farmer sign with your name on it is waiting in your storage. It is never sold in any shop"
+      },
+      {
+       "icon": "coin",
+       "text": "Give Rosa her first gift during the welcome for 200 coins"
+      }
+     ]
+    },
+    {
+     "title": "Village Friends",
+     "icon": "hug",
+     "items": [
+      {
+       "icon": "gift",
+       "text": "One gift a day for each villager. Their favourites count most, and birthdays count three times"
+      },
+      {
+       "icon": "memo",
+       "text": "Letters and story moments as your friendships grow, plus keepsakes and a portrait at 8 hearts"
+      },
+      {
+       "icon": "light_bulb",
+       "text": "Each villager has a perk at 6 hearts, from extra fishing casts to faster workshops"
+      }
+     ]
+    },
+    {
+     "title": "Also new",
+     "icon": "sparkles",
+     "items": [
+      {
+       "icon": "calendar",
+       "text": "New Book pages: a Calendar with birthdays, all your Letters and a Village Guide"
+      },
+      {
+       "icon": "info",
+       "text": "Missed the welcome or want to see it again? Settings > Replay 1.8 welcome"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "version": "1.7.0",
    "date": "2026-10-06",
    "title": "Farm care",

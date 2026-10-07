@@ -230,3 +230,10 @@ dialog.modal::backdrop { background: rgba(20, 18, 12, .45); }
   h1 { font-size: 24px; }
 }
 @media (forced-colors: active) { .chart .bar, .hbar-fill, .mini-bar { fill: CanvasText; background: CanvasText; } }
+
+/* 1.8 Village: letter preview, looks like the in-game letter paper in both themes */
+.letter-preview { border: 1px solid #d9c49a; border-radius: 12px; padding: 14px 16px; background: #fffaf0; box-shadow: inset 0 0 0 4px #fff3dc; color: #3b2a1a; margin: 6px 0 12px; font-size: 15px; line-height: 1.5; }
+.letter-preview .lp-from { color: #6b4f35; line-height: 1.3; }
+.letter-preview .lp-title { font-family: var(--display); font-size: 21px; line-height: 1.2; color: #b03a6a; margin: 2px 0 8px; }
+.letter-preview p { margin: 0 0 12px; white-space: pre-wrap; }
+.letter-preview p:last-child { margin-bottom: 0; }

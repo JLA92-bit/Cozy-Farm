@@ -2865,3 +2865,212 @@ grant execute on function public.my_help_fills() to authenticated;
 grant execute on function public.claim_help_fills(uuid[]) to authenticated;
 -- admin_help_overview checks admin_guard() itself; signed-in callers may try it (like the other admin_* functions)
 grant execute on function public.admin_help_overview(integer) to authenticated;
+
+-- ===== 1.8 welcome =====
+-- 1.8 "Village Friends" (ADMIN.md, "1.8 Village" page). Safe to run again.
+-- - player_events: small named game moments per player for the dashboard (welcome steps, gifts to villagers
+--   and how they landed, hearts gained, daily villager visits, Ask a friend). Written only by log_event(): at
+--   most 200 a day per player, a short kind and a small flat detail object, kept 180 days. Players cannot read
+--   them back; deleting the account removes them (cascade).
+-- - admin_letters / admin_letter_inbox: a letter from the developer to every player (or the ones active
+--   lately). The game picks it up with the developer gifts and puts it in the mailbox, exactly once per player.
+
+create table if not exists public.player_events (
+  id      bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  at      timestamptz not null default now(),
+  kind    text not null check (kind ~ '^[a-z0-9_.:-]{1,40}$'),
+  detail  jsonb not null default '{}'::jsonb check (jsonb_typeof(detail) = 'object' and pg_column_size(detail) <= 2000)
+);
+create index if not exists player_events_user_idx on public.player_events (user_id, at desc);
+create index if not exists player_events_kind_idx on public.player_events (kind, at desc);
+
+create table if not exists public.admin_letters (
+  id         uuid primary key default gen_random_uuid(),
+  title      text not null check (char_length(title) between 1 and 80),
+  body       text not null check (char_length(body) between 1 and 2000),
+  audience   text not null,
+  recipients integer not null default 0,
+  created_at timestamptz not null default now(),
+  created_by text
+);
+create index if not exists admin_letters_created_idx on public.admin_letters (created_at desc);
+
+create table if not exists public.admin_letter_inbox (
+  letter_id    uuid not null references public.admin_letters (id) on delete cascade,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  delivered_at timestamptz,
+  primary key (letter_id, user_id)
+);
+create index if not exists admin_letter_inbox_open_idx on public.admin_letter_inbox (user_id) where delivered_at is null;
+
+alter table public.player_events      enable row level security;
+alter table public.admin_letters      enable row level security;
+alter table public.admin_letter_inbox enable row level security;
+revoke all on public.player_events, public.admin_letters, public.admin_letter_inbox from anon, authenticated, public;
+
+-- One game event. Returns false (and stores nothing) when not signed in, the kind is not a short id, or the
+-- player already logged 200 events in the last day. A detail that is not a small object is stored as {}.
+create or replace function public.log_event(p_kind text, p_detail jsonb default '{}'::jsonb)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_detail jsonb := case when p_detail is not null and jsonb_typeof(p_detail) = 'object' and pg_column_size(p_detail) <= 2000 then p_detail else '{}'::jsonb end;
+begin
+  if uid is null or p_kind is null or p_kind !~ '^[a-z0-9_.:-]{1,40}$' then return false; end if;
+  if (select count(*) from public.player_events e where e.user_id = uid and e.at > now() - interval '1 day') >= 200 then return false; end if;
+  insert into public.player_events (user_id, kind, detail) values (uid, p_kind, v_detail);
+  -- now and then, tidy this player's old rows (cheap: the index covers it)
+  if random() < 0.02 then delete from public.player_events e where e.user_id = uid and e.at < now() - interval '180 days'; end if;
+  return true;
+end;
+$$;
+
+-- The caller's letters from the developer that are not in their mailbox yet (oldest first).
+create or replace function public.my_admin_letters()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(jsonb_build_object('id', l.id, 'title', l.title, 'body', l.body, 'created_at', l.created_at) order by l.created_at), '[]'::jsonb)
+    from public.admin_letter_inbox i join public.admin_letters l on l.id = i.letter_id
+   where i.user_id = auth.uid() and i.delivered_at is null;
+$$;
+
+-- Mark one developer letter delivered to the caller, exactly once; returns it (the game then puts it in the mailbox).
+create or replace function public.claim_admin_letter(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r jsonb;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  update public.admin_letter_inbox i set delivered_at = now()
+   where i.letter_id = p_id and i.user_id = uid and i.delivered_at is null;
+  if not found then raise exception 'not found'; end if;
+  select jsonb_build_object('id', l.id, 'title', l.title, 'body', l.body, 'created_at', l.created_at) into r
+    from public.admin_letters l where l.id = p_id;
+  return r;
+end;
+$$;
+
+-- Dashboard: queue a letter for every player (or those who played in the last 7/14/30 days, or Google players).
+-- It arrives in each mailbox the next time the game checks for developer gifts. Returns how many players get it.
+create or replace function public.admin_letter_all(p_title text, p_body text, p_audience text default 'all')
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  today date := (now() at time zone 'utc')::date;
+  v_aud text := coalesce(p_audience, 'all');
+  v_id uuid;
+  n integer;
+begin
+  if coalesce(btrim(p_title), '') = '' or coalesce(btrim(p_body), '') = '' then raise exception 'empty'; end if;
+  if v_aud not in ('all', 'active7', 'active14', 'active30', 'google') then raise exception 'unknown audience'; end if;
+  insert into public.admin_letters (title, body, audience, created_by)
+  values (left(btrim(p_title), 80), left(btrim(p_body), 2000), v_aud, v_admin)
+  returning id into v_id;
+  insert into public.admin_letter_inbox (letter_id, user_id)
+  select v_id, p.id from public.profiles p
+   where case v_aud
+           when 'active7' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 7)
+           when 'active14' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 14)
+           when 'active30' then exists (select 1 from public.player_days d where d.user_id = p.id and d.day > today - 30)
+           when 'google' then exists (select 1 from auth.identities x where x.user_id = p.id and x.provider = 'google')
+           else true end;
+  get diagnostics n = row_count;
+  update public.admin_letters l set recipients = n where l.id = v_id;
+  perform public.admin_note_log(v_admin, 'letter to everyone', null, jsonb_build_object('players', n, 'audience', v_aud, 'title', p_title));
+  return n;
+end;
+$$;
+
+-- Dashboard "1.8 Village": the welcome funnel, villager popularity, daily visits, Ask a friend and recent letters.
+create or replace function public.admin_v18_overview(p_days integer default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 30), 1), 180);
+  v_from timestamptz := now() - make_interval(days => v_days);
+  today date := (now() at time zone 'utc')::date;
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'generatedAt', now(),
+    'days', v_days,
+    'playersWithEvents', (select count(distinct e.user_id) from public.player_events e where e.at > v_from),
+    'events', (select count(*) from public.player_events e where e.at > v_from),
+    -- welcome funnel (all time: the welcome happens once per farm): players per step and variant
+    'funnel', (select coalesce(jsonb_agg(jsonb_build_object('variant', x.variant, 'step', x.step, 'players', x.n)), '[]'::jsonb) from (
+        select coalesce(e.detail ->> 'variant', 'full') as variant,
+               case e.kind when 'welcome_start' then 'start' when 'welcome_step' then coalesce(e.detail ->> 'step', '?')
+                           when 'welcome_gift' then 'gift_given' when 'welcome_done' then 'done' end as step,
+               count(distinct e.user_id) as n
+          from public.player_events e
+         where e.kind in ('welcome_start', 'welcome_step', 'welcome_gift', 'welcome_done')
+         group by 1, 2) x),
+    'later', (select count(distinct e.user_id) from public.player_events e where e.kind = 'welcome_later'),
+    'skippedGift', (select count(distinct e.user_id) from public.player_events e where e.kind = 'welcome_skip_gift'),
+    'headStart', (select jsonb_build_object('players', count(distinct e.user_id), 'avgHearts', coalesce(round(avg((e.detail ->> 'hearts')::numeric), 1), 0))
+                    from public.player_events e where e.kind = 'headstart' and jsonb_typeof(e.detail -> 'hearts') = 'number'),
+    -- gifts in the window, by villager and taste; hearts = each player's highest heart count reached, added up
+    'villagers', (select coalesce(jsonb_agg(jsonb_build_object('villager', v.villager, 'gifts', coalesce(g.gifts, 0), 'givers', coalesce(g.givers, 0),
+                    'loved', coalesce(g.loved, 0), 'liked', coalesce(g.liked, 0), 'disliked', coalesce(g.disliked, 0),
+                    'hearts', coalesce(hh.hearts, 0), 'friends', coalesce(hh.friends, 0)) order by coalesce(g.gifts, 0) desc, v.villager), '[]'::jsonb)
+                  from (select distinct e.detail ->> 'villager' as villager from public.player_events e
+                         where e.kind in ('gift', 'hearts') and e.detail ->> 'villager' ~ '^[a-z0-9_]{1,30}$') v
+                  left join (select e.detail ->> 'villager' as villager, count(*) as gifts, count(distinct e.user_id) as givers,
+                                    count(*) filter (where e.detail ->> 'taste' = 'love') as loved,
+                                    count(*) filter (where e.detail ->> 'taste' = 'like') as liked,
+                                    count(*) filter (where e.detail ->> 'taste' = 'dislike') as disliked
+                               from public.player_events e where e.kind = 'gift' and e.at > v_from group by 1) g on g.villager = v.villager
+                  left join (select m.villager, sum(m.hearts) as hearts, count(*) filter (where m.hearts >= 1) as friends
+                               from (select e.user_id, e.detail ->> 'villager' as villager, max((e.detail ->> 'hearts')::integer) as hearts
+                                       from public.player_events e where e.kind = 'hearts' and jsonb_typeof(e.detail -> 'hearts') = 'number' group by 1, 2) m
+                              group by 1) hh on hh.villager = v.villager),
+    -- daily villager visits done, against players who played that day
+    'visits', (select coalesce(jsonb_agg(jsonb_build_object('day', d.day, 'done', coalesce(vv.n, 0), 'active', d.n) order by d.day), '[]'::jsonb)
+                 from (select pd.day, count(*) as n from public.player_days pd where pd.day > today - v_days group by 1) d
+                 left join (select (e.at at time zone 'utc')::date as day, count(distinct e.user_id) as n from public.player_events e
+                             where e.kind = 'visit' and e.at > v_from group by 1) vv on vv.day = d.day),
+    -- Ask a friend and mailbox moments (one event per counter step: help_ask, help_send, visit_give, find_collect...)
+    'activity', (select coalesce(jsonb_agg(jsonb_build_object('kind', a.kind, 'n', a.n, 'players', a.p) order by a.n desc), '[]'::jsonb)
+               from (select e.kind, count(*) as n, count(distinct e.user_id) as p from public.player_events e
+                      where e.at > v_from and (e.kind like 'help\_%' or e.kind in ('visit_give', 'find_collect', 'find_return', 'mail_open', 'mail_collect'))
+                      group by 1) a),
+    'letters', (select coalesce(jsonb_agg(jsonb_build_object('id', l.id, 'title', l.title, 'body', l.body, 'audience', l.audience, 'recipients', l.recipients,
+                   'delivered', (select count(*) from public.admin_letter_inbox i where i.letter_id = l.id and i.delivered_at is not null),
+                   'created_at', l.created_at, 'created_by', l.created_by) order by l.created_at desc), '[]'::jsonb)
+                  from (select * from public.admin_letters x order by x.created_at desc limit 20) l));
+end;
+$$;
+
+revoke all on function public.log_event(text, jsonb) from public, anon;
+revoke all on function public.my_admin_letters() from public, anon;
+revoke all on function public.claim_admin_letter(uuid) from public, anon;
+revoke all on function public.admin_letter_all(text, text, text) from public, anon;
+revoke all on function public.admin_v18_overview(integer) from public, anon;
+grant execute on function public.log_event(text, jsonb) to authenticated;
+grant execute on function public.my_admin_letters() to authenticated;
+grant execute on function public.claim_admin_letter(uuid) to authenticated;
+-- the admin_* functions check admin_guard() themselves; signed-in callers may try them
+grant execute on function public.admin_letter_all(text, text, text) to authenticated;
+grant execute on function public.admin_v18_overview(integer) to authenticated;
