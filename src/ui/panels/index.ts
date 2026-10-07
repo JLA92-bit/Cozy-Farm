@@ -21,3 +21,4 @@ import './MailPanel';
 import './DailyVisitPanel';
 import './HelpPanel';
 import './VillagePanel';
+import './SkillsPanel';

@@ -6,6 +6,7 @@ import { isBuilt, plotReady, plotRemaining, treeReady } from './Timers';
 import { speedupCost } from './Buildings';
 import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
+import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
 
 /** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
 export const FERTILISER = 'fertiliser';
@@ -33,7 +34,7 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult()));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult()));
     b.plot = { crop, plantedAt: game.now(), growSec };
     if (this.useFert && game.count(FERTILISER) > 0) {
       game.addItem(FERTILISER, -1);
@@ -52,10 +53,14 @@ export class FarmingSystem {
   harvest(b: PlacedBuilding, at?: Vec): number {
     if (!b.plot || !plotReady(b, game.now())) return 0;
     const def = CROP[b.plot.crop];
-    const qty = def.yield;
+    // 1.8.5 skills: Big Harvest sometimes doubles the crop, Seed Saver sometimes gives the seed money back
+    const double = Math.random() < bigHarvestChance();
+    const qty = def.yield * (double ? 2 : 1);
     harvestingFert = !!b.plot.fert;
     try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; }
     game.addXp(def.xp, at);
+    if (double) game.bus.emit('toast', { title: 'Big Harvest!', sub: 'A double crop', icon: 'basket' });
+    if (Math.random() < seedSaverChance()) { game.addCoins(def.seedCost, at); game.bus.emit('toast', { title: 'Seed Saver', sub: `Your seed money came back (${def.seedCost})`, icon: 'seed' }); }
     game.incStat('crops_harvested', qty);
     game.incStat(`harvest_${def.id}`, qty);
     const types = new Set(Object.keys(game.state.stats).filter((k) => k.startsWith('harvest_') && CROP[k.slice(8)]));

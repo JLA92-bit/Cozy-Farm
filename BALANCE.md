@@ -404,3 +404,30 @@ the dearer crops, a small loss on wheat. It is a choice for players who want gol
 - **Weather:** per local day from the farm seed: sunny 65%, rain 20%, mist 15%, never three rainy days in a row.
   Rain: crops planted that day grow 5% faster (on top of Charm), and rare, legendary and mythic fish are 1.25x as
   likely to bite. Mist is only a look. Both are small on purpose: nice to notice, never a reason to wait for rain.
+
+## Skills (1.8.5, `src/data/skills.json`, `src/systems/Skills.ts`, `src/systems/SkillEffects.ts`)
+
+Four skills level 1-10 from the game's own stat counters. Level 1 is the plain game (every level above it adds its
+bonus), so a fresh farm plays exactly as before. XP: Farming 1 per crop or fruit harvested, Animals 1 per product,
+Fishing 8 per fish landed, Cooking 1 per good made. Total XP to reach level 2, 3 ... 10: 50, 150, 400, 1,000,
+2,000, 3,500, 6,000, 10,000, 16,000 (`xpLevels`). Rough pace: level 5 after about 1,000 harvests (two to three
+weeks of regular play at level 10-15), level 10 after about 16,000 (many months). Farms from before 1.8.5 start at
+up to level 5 from their lifetime stats (`headStartMaxLevel`).
+
+What the money-relevant numbers do at the top (all in `values`, tunable without code):
+
+- **Gold crops:** +1% per level above 1 (+9% at level 10), Master Farmer +5%: gold 3% -> 17% (fertiliser adds 5%;
+  hard cap 25%). Only the barn pays star prices, so a crop is worth about +6% more at the barn at 17% gold
+  (E = 1 + 0.25 silver + 0.5 gold). Orders, truck, stall and market still take normal items first.
+- **Speed:** Animals -1% time per level above 1 (-9% at 10), Cooking the same, Quick Grower -10% crop time.
+  Output per hour rises by the inverse (about +10% and +11%), but animals need feed and workshops need
+  ingredients, so it is throughput, not free coins.
+- **Extra capacity:** Breeder +1 space per animal home (a home holds 3 at level 1, so up to +33% output there,
+  paid for with animal purchases that get dearer with each animal owned). Head Chef +1 workshop queue place (only
+  helps a player who keeps the queue full). Big Harvest +10% crops. Batch Cook +15% goods.
+- **Barn prices:** Fishmonger +25% for fish and Chef +10% for goods, at the barn only. Fish are cheap relative to
+  other goods, so Fishmonger is a flavour pick, not a money maker.
+- **Quality perks:** Prize Animals +8% silver and +4% gold on animal products, Gourmet +5% gold on goods.
+
+Everything is a choice between two perks, so two farms at the same level play differently. If the dashboard shows
+income or play time jumping when players reach level 5 or 10, lower the numbers in `values`; no code change needed.

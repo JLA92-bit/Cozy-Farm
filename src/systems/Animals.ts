@@ -1,9 +1,10 @@
-import { ANIMAL, ANIMAL_COST_GROWTH, BUILDING } from '../data';
+import { ANIMAL, ANIMAL_COST_GROWTH, BUILDING, ITEMS } from '../data';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { animalState, isBuilt } from './Timers';
 import { addRolled } from './Quality';
+import { claimShepherdBonus, happyHerdChance } from './SkillEffects';
 
 export class AnimalSystem {
   owned(animal: string): number {
@@ -75,12 +76,16 @@ export class AnimalSystem {
     let n = 0;
     (b.animals ?? []).forEach((a, i) => {
       if (animalState(b, i, now) !== 'ready') return;
-      a.fedAt = null;
+      // Happy Herd: sometimes the animal carries on without needing new feed
+      a.fedAt = Math.random() < happyHerdChance() ? now : null;
       n++;
       game.bus.emit('animal:collected', { b, index: i, item: def.product });
     });
     if (n) {
-      addRolled('animal', def.product, n, at);
+      // Shepherd: once a day, one bonus product
+      const bonus = claimShepherdBonus() ? 1 : 0;
+      if (bonus) game.bus.emit('toast', { title: 'Shepherd', sub: `A bonus ${ITEMS[def.product]?.name ?? 'product'}`, icon: 'sheep' });
+      addRolled('animal', def.product, n + bonus, at);
       game.addXp(def.xp * n, at);
       game.incStat('animal_products', n);
       game.incStat(`collect_${def.product}`, n);

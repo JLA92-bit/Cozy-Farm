@@ -6,7 +6,7 @@ import { game } from '../../systems/Game';
 import { animals } from '../../systems/Animals';
 import { buildings } from '../../systems/Buildings';
 import { audio, haptics } from '../../systems/Audio';
-import { animalReadyAt, animalState, formatTime, isBuilt } from '../../systems/Timers';
+import { animalProduceMs, animalReadyAt, animalState, formatTime, isBuilt } from '../../systems/Timers';
 import type { PlacedBuilding } from '../../systems/State';
 import { sourceText } from './InventoryPanel';
 import { productModel } from '../../world/FarmView';
@@ -22,7 +22,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
     const list = b.animals ?? [];
     const now = game.now();
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' },
-      h('div', null, h('b', null, `${list.length}/${cap} ${a.name}s`), h('div', { class: 'muted' }, `Eat ${ITEMS[a.feed].name}, give ${ITEMS[a.product].name} every ${formatTime(a.produceSec * 1000)}`)),
+      h('div', null, h('b', null, `${list.length}/${cap} ${a.name}s`), h('div', { class: 'muted' }, `Eat ${ITEMS[a.feed].name}, give ${ITEMS[a.product].name} every ${formatTime(animalProduceMs(a))}`)),
       h('span', { class: 'pill' }, itemIcon(a.feed), `${game.count(a.feed)}`)));
     const grid = h('div', { class: 'grid tight' });
     const hasFeed = game.count(a.feed) > 0;
@@ -33,7 +33,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
       let status: HTMLElement;
       if (st === 'producing') {
         const left = animalReadyAt(b, i) - now;
-        const pct = Math.round(100 * (1 - left / (a.produceSec * 1000)));
+        const pct = Math.round(100 * (1 - left / (animalProduceMs(a))));
         status = h('div', { class: 'progress animal-progress' }, h('div', { class: 'fill', style: `width:${Math.max(4, Math.min(100, pct))}%` }), h('div', { class: 'label' }, formatTime(left)));
       } else status = h('div', { class: `card-sub ${st === 'hungry' ? 'animal-hungry' : 'animal-ready'}` }, st === 'hungry' ? 'Hungry' : 'Ready!');
       const badge = st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null;

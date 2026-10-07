@@ -7,6 +7,7 @@ import { game } from '../../systems/Game';
 import type { CharacterLook } from '../../systems/State';
 import { Character } from '../../world/Character';
 import { audio } from '../../systems/Audio';
+import { renderSkills } from './SkillsPanel';
 
 /** Is a cosmetic unlocked for the player? */
 export function cosmeticUnlocked(id: string, unlock: Unlock): boolean {
@@ -105,7 +106,7 @@ function popIn(el: HTMLElement): void {
   el.animate([{ transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
 }
 
-export function openCharacter(firstTime = false): void {
+export function openCharacter(firstTime = false, startTab?: string): void {
   const look: CharacterLook = { ...game.state.player.look };
   let name = game.state.player.name;
   let gender = avatarOf(look).gender;
@@ -114,7 +115,7 @@ export function openCharacter(firstTime = false): void {
     tabs: [
       { id: 'avatar', label: 'Avatar', icon: 'farmer' },
       { id: 'colours', label: 'Colours', icon: 'sparkles' },
-      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }]),
+      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }, { id: 'skills', label: 'Skills', icon: 'sparkles' }]),
     ],
   });
   const canvas = h('canvas');
@@ -165,6 +166,9 @@ export function openCharacter(firstTime = false): void {
 
   const render = (tab: string) => {
     clear(options);
+    // the Skills tab needs the room: no farmer preview or Save button there
+    previewBox.style.display = tab === 'skills' ? 'none' : '';
+    p.footer.style.display = tab === 'skills' ? 'none' : '';
     if (tab === 'avatar') {
       const input = h('input', { class: 'name-input', maxlength: '16', value: name, placeholder: 'Your name', 'aria-label': 'Your name', enterkeyhint: 'done', autocomplete: 'off', spellcheck: 'false' }) as HTMLInputElement;
       input.addEventListener('input', () => { name = input.value; });
@@ -212,6 +216,8 @@ export function openCharacter(firstTime = false): void {
       swatches(COSMETICS.outfitColors.map((o) => o.color), 'top', lockOf);
       section('Bottoms');
       swatches(COSMETICS.outfitColors.map((o) => o.color), 'bottom', lockOf);
+    } else if (tab === 'skills') {
+      renderSkills(options, () => render('skills'));
     } else {
       section('Hat');
       choices(COSMETICS.hats, 'hat');
@@ -242,10 +248,13 @@ export function openCharacter(firstTime = false): void {
   p.footer.lastElementChild!.setAttribute('style', 'flex:1 1 auto;max-width:420px');
   p.onClose = () => { preview.dispose(); if (firstTime) game.bus.emit('tutorial', { signal: 'character_done' }); };
   p.panel.style.height = '100%';
+  if (startTab && !firstTime) p.tab = startTab;
   p.open();
 }
 
 ui.register('character', () => openCharacter(false));
+// the Skills screen opens on the Skills tab of the Me screen
+ui.register('skills', () => openCharacter(false, 'skills'));
 ui.onBuildingTap((b) => {
   if (b.type !== 'farmhouse') return false;
   ui.buildingPopup(b, [button(['Change look', icon('farmer')], () => { ui.world.hidePopup(); openCharacter(false); }, 'small blue')]);

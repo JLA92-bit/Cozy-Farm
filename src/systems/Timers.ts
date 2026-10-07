@@ -1,5 +1,6 @@
 import { ANIMAL, BUILDING, RECIPE } from '../data';
 import type { PlacedBuilding } from './State';
+import { animalTimeMult } from './SkillEffects';
 
 /** Pure helpers that derive timer state from timestamps (so offline progress is automatic). */
 
@@ -27,17 +28,20 @@ export function treeReady(b: PlacedBuilding, now: number): boolean {
 export function isBuilt(b: PlacedBuilding, now: number): boolean { return !b.buildEnd || b.buildEnd <= now; }
 export function isUpgrading(b: PlacedBuilding, now: number): boolean { return !!b.upgradeEnd && b.upgradeEnd > now; }
 
+/** How long an animal takes to make its product, in ms (the Animals skill makes it a little shorter). */
+export function animalProduceMs(def: { produceSec: number }): number { return Math.round(def.produceSec * 1000 * animalTimeMult()); }
+
 export type AnimalState = 'hungry' | 'producing' | 'ready';
 export function animalState(b: PlacedBuilding, i: number, now: number): AnimalState {
   const a = b.animals?.[i];
   if (!a || a.fedAt === null) return 'hungry';
   const def = ANIMAL[BUILDING[b.type].animal!];
-  return now >= a.fedAt + def.produceSec * 1000 ? 'ready' : 'producing';
+  return now >= a.fedAt + animalProduceMs(def) ? 'ready' : 'producing';
 }
 export function animalReadyAt(b: PlacedBuilding, i: number): number {
   const a = b.animals?.[i];
   if (!a || a.fedAt === null) return 0;
-  return a.fedAt + ANIMAL[BUILDING[b.type].animal!].produceSec * 1000;
+  return a.fedAt + animalProduceMs(ANIMAL[BUILDING[b.type].animal!]);
 }
 
 /** Production: finished entries are those whose end has passed. */
@@ -60,9 +64,10 @@ export function settleProduction(b: PlacedBuilding, now: number): void {
   for (const e of b.queue) {
     if (e.end > now) { keep.push(e); continue; }
     const r = RECIPE[e.recipe];
-    (b.ready ??= []).push(...Array(r.out).fill(r.item));
+    const out = r.out * (e.dbl ? 2 : 1);
+    (b.ready ??= []).push(...Array(out).fill(r.item));
     // 1.8: goods made from star ingredients keep that star until collected
-    if (e.q) { const st = ((b.readyStar ??= {})[r.item] ??= [0, 0]); st[e.q - 1] += r.out; }
+    if (e.q) { const st = ((b.readyStar ??= {})[r.item] ??= [0, 0]); st[e.q - 1] += out; }
   }
   b.queue = keep;
 }

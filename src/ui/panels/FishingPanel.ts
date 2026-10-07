@@ -5,6 +5,7 @@ import { ui } from '../UI';
 import { Panel } from '../Panel';
 import { sideEntries } from '../SideBar';
 import { FISHING, ITEMS } from '../../data';
+import { biteWaitMult, reelZoneBonus } from '../../systems/SkillEffects';
 import { game } from '../../systems/Game';
 import { audio, haptics } from '../../systems/Audio';
 import { hints } from '../../systems/Hints';
@@ -311,7 +312,7 @@ class FishingController {
 
   private scheduleBite(first: boolean): void {
     const [lo, hi] = FISHING.bite.waitSec;
-    const wait = first ? rand(lo, hi) : rand(1.4, 3.2);
+    const wait = (first ? rand(lo, hi) : rand(1.4, 3.2)) * biteWaitMult();
     this.window = wait;
     // a couple of little nibbles before the real bite keep you watching
     this.nibbles.length = 0;
@@ -330,7 +331,7 @@ class FishingController {
     if (c.kind === 'junk') { this.win(); return; }
     // reel mini-game: zone size and fish liveliness by difficulty
     const d = Math.max(1, Math.min(5, c.def.difficulty)) - 1;
-    this.zoneW = Math.min(0.6, FISHING.reel.zone[d] + this.assist * FISHING.reel.assistZone);
+    this.zoneW = Math.min(0.6, FISHING.reel.zone[d] + this.assist * FISHING.reel.assistZone + reelZoneBonus());
     this.zone = 0.5 - this.zoneW / 2;
     this.zoneV = 0;
     this.fish = 0.5;

@@ -55,6 +55,8 @@ export interface GameEvents extends Record<string, unknown> {
 
 export class Game {
   readonly bus = new EventBus<GameEvents>();
+  /** 1.8.5: barn price multiplier for an item from skill perks (Fishmonger, Chef). Set by src/systems/SkillEffects.ts. */
+  sellBonus: (item: string) => number = () => 1;
   state!: SaveData;
   /** uid of building occupying each tile (0 = free). */
   occB = new Int32Array(MAP * MAP);
@@ -211,7 +213,7 @@ export class Game {
     n = Math.min(n, quality === undefined ? this.count(item) : this.qualityCounts(item)[quality]);
     if (n <= 0) return 0;
     const mult = quality === 2 ? QUALITY_MULT[2] : quality === 1 ? QUALITY_MULT[1] : 1;
-    const value = Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult * mult);
+    const value = Math.round(ITEMS[item].sell * n * ECONOMY.barn.sellMult * mult * this.sellBonus(item));
     if (quality === undefined) this.addItem(item, -n); else this.removeQuality(item, quality, n, at);
     this.addCoins(value, at);
     this.bus.emit('sfx', { name: 'coins' });

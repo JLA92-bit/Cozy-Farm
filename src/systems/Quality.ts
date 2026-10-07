@@ -71,7 +71,7 @@ export function addRolled(source: QualitySource, item: string, n: number, at?: V
 
 /** Sell price of one item at a quality (same formula as game.sellItem). */
 export function qualityPrice(item: string, q: Quality, n = 1): number {
-  return Math.round((ITEMS[item]?.sell ?? 0) * n * ECONOMY.barn.sellMult * QUALITY_MULT[q]);
+  return Math.round((ITEMS[item]?.sell ?? 0) * n * ECONOMY.barn.sellMult * QUALITY_MULT[q] * game.sellBonus(item));
 }
 
 /** Dashboard counters for stars made in play (not refunds or gifts). */

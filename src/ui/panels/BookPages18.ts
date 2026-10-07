@@ -140,7 +140,7 @@ function renderLetters(p: Panel): void {
 interface GuidePage { id: string; title: string; icon: string; paragraphs: string[]; pictures?: string[] }
 
 /** Order of the guide files in the Book; anything else follows alphabetically. */
-const GUIDE_ORDER = ['villagers', 'mail', 'quality', 'help'];
+const GUIDE_ORDER = ['villagers', 'mail', 'quality', 'help', 'skills'];
 const files = import.meta.glob('../../data/guide-*.json', { eager: true, import: 'default' }) as Record<string, { pages?: unknown }>;
 
 /** Every guide page from every guide file, checked, in Book order. Works with any number of files. */

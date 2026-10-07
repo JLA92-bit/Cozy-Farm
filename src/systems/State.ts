@@ -18,6 +18,8 @@ export interface QueueEntry {
   end: number;
   /** 1.8: made from silver (1) or gold (2) ingredients, so the goods come out at that quality */
   q?: 1 | 2;
+  /** 1.8.5 Batch Cook: this batch makes double */
+  dbl?: boolean;
 }
 
 export interface PlacedBuilding {
@@ -119,6 +121,32 @@ export interface SaveData {
   help: HelpState;
   /** 1.8 welcome for players who played before 1.8, and the one-time head start (src/systems/Welcome18.ts). */
   welcome18: Welcome18State;
+  /** 1.8.5 skills: XP and chosen perks per skill (optional; src/systems/Skills.ts makes it on first load). */
+  skills?: SkillsState;
+  /** 1.8.5 Village Restoration: bundle progress per room (optional; src/systems/Restoration.ts). */
+  restoration?: RestorationState;
+}
+
+/** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */
+export interface SkillsState {
+  xp: Record<string, number>;
+  perks: Record<string, string[]>;
+  /** the one-time start from lifetime stats was applied */
+  headStart: boolean;
+  /** mail id of the one-time letter about skills for farms from before 1.8.5 */
+  letter?: number;
+  /** local day of the last Shepherd bonus product */
+  shepherdDay?: string;
+}
+
+/** 1.8.5 Village Restoration: per room, per bundle, what has been given so far. */
+export interface RestorationState {
+  /** room id -> bundle id -> item id -> how many given */
+  given: Record<string, Record<string, Record<string, number>>>;
+  /** room ids rebuilt (rewards on) */
+  done: string[];
+  /** room ids whose rebuilt celebration was shown */
+  seen?: string[];
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

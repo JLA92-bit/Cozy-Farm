@@ -188,6 +188,36 @@ releases?.forEach((r, i) => {
   if (!v.friendship?.pointsPerHeart || !Array.isArray(v.friendship.milestones)) err('villagers.json: friendship settings missing');
 }
 
+// 1.8.5 skills: four skills, an XP ladder, two perks at each perk level, real icons, numbers for every perk
+{
+  const s = read('skills.json');
+  const ids = new Set();
+  if (!Array.isArray(s.xpLevels) || s.xpLevels.length < 2 || s.xpLevels[0] !== 0 || s.xpLevels.some((x, i) => i > 0 && x <= s.xpLevels[i - 1])) err('skills.json: xpLevels must start at 0 and rise');
+  if (!Array.isArray(s.perkLevels) || s.perkLevels.some((l) => l < 2 || l > s.xpLevels.length)) err('skills.json: perkLevels must be levels the XP ladder reaches');
+  if (!(s.headStartMaxLevel >= 1 && s.headStartMaxLevel <= s.xpLevels.length)) err('skills.json: bad headStartMaxLevel');
+  const perkIds = new Set();
+  for (const sk of s.skills ?? []) {
+    if (ids.has(sk.id)) err(`skill ${sk.id}: duplicate id`);
+    ids.add(sk.id);
+    if (!sk.name || !sk.about || !sk.grows || !sk.perLevel) err(`skill ${sk.id}: needs name, about, grows and perLevel`);
+    if (icons && !icons[sk.icon]) err(`skill ${sk.id}: unknown icon ${sk.icon}`);
+    if (!Object.keys(sk.xp ?? {}).length) err(`skill ${sk.id}: needs at least one stat that gives XP`);
+    for (const lvl of s.perkLevels) {
+      const opts = sk.perks?.[String(lvl)] ?? [];
+      if (opts.length !== 2) err(`skill ${sk.id}: level ${lvl} needs exactly two perks`);
+      for (const p of opts) {
+        if (!p.id || !p.name || !p.text) err(`skill ${sk.id}: a level ${lvl} perk needs id, name and text`);
+        if (perkIds.has(p.id)) err(`skill perk ${p.id}: duplicate id`);
+        perkIds.add(p.id);
+        if (icons && !icons[p.icon]) err(`skill perk ${p.id}: unknown icon ${p.icon}`);
+      }
+    }
+  }
+  if (ids.size !== 4) err('skills.json: expected the four skills (farming, animals, fishing, cooking)');
+  for (const [k, v] of Object.entries(s.values ?? {})) if (typeof v !== 'number' || !Number.isFinite(v)) err(`skills.json: value ${k} must be a number`);
+  if (/\u2014|\u2013/.test(JSON.stringify(s))) err('skills.json: no em or en dashes in text');
+}
+
 // 1.8 Village Guide: every src/data/guide-*.json has pages with an id, a title, an icon and some paragraphs
 {
   const ids = new Set();

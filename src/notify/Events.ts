@@ -2,6 +2,7 @@ import { ANIMAL, BUILDING, CROP, ITEMS, RECIPE, TREE } from '../data';
 import type { SaveData } from '../systems/State';
 import { localDay } from '../systems/Progression';
 import { nextLocalTime, type ReadyEvent } from './Plan';
+import { animalTimeMultOf } from '../systems/SkillMath';
 
 /** The daily reward reminder: tomorrow at 10:00 local time (moved later if quiet hours run past it). */
 export const DAILY_REMINDER_MINUTE = 10 * 60;
@@ -29,7 +30,7 @@ export function readyEvents(s: SaveData, gameNow: number): ReadyEvent[] {
     if (def.tree && b.tree) add('crops', Math.max(b.tree.readyAt, builtAt), itemName(TREE[def.tree]?.item) || TREE[def.tree]?.name);
     if (def.animal && b.animals) {
       const a = ANIMAL[def.animal];
-      for (const x of b.animals) if (a && x.fedAt !== null) add('animals', x.fedAt + a.produceSec * 1000, itemName(a.product));
+      for (const x of b.animals) if (a && x.fedAt !== null) add('animals', x.fedAt + Math.round(a.produceSec * 1000 * animalTimeMultOf(s.skills)), itemName(a.product));
     }
     for (const q of b.queue ?? []) add('goods', q.end, itemName(RECIPE[q.recipe]?.item));
   }

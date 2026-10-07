@@ -1,0 +1,97 @@
+{
+  "_comment": "1.8.5 Skills. Four skills level 1-10 by doing what players already do (src/systems/Skills.ts). xpLevels[n] = total XP needed to reach level n+1. xp maps a game stat (an incStat name) to the XP each count gives. Each level gives the 'perLevel' bonus (numbers in 'values'); at levels 5 and 10 the player picks one of two perks. All numbers here can be tuned without code changes (see BALANCE.md > Skills).",
+  "xpLevels": [0, 50, 150, 400, 1000, 2000, 3500, 6000, 10000, 16000],
+  "perkLevels": [5, 10],
+  "headStartMaxLevel": 5,
+  "values": {
+    "goldPerLevel": 0.01,
+    "animalSpeedPerLevel": 0.01,
+    "reelZonePerLevel": 0.008,
+    "cookSpeedPerLevel": 0.01,
+    "quickGrowerTime": 0.9,
+    "bigHarvestChance": 0.1,
+    "masterFarmerGold": 0.05,
+    "seedSaverChance": 0.2,
+    "happyHerdChance": 0.25,
+    "prizeSilver": 0.08,
+    "prizeGold": 0.04,
+    "breederSpaces": 1,
+    "patientAnglerRare": 1.25,
+    "quickCastWait": 0.7,
+    "legendHunterTop": 1.5,
+    "fishmongerSell": 1.25,
+    "batchCookChance": 0.15,
+    "chefSell": 1.1,
+    "gourmetGold": 0.05
+  },
+  "skills": [
+    {
+      "id": "farming", "name": "Farming", "icon": "seedling", "color": "green",
+      "about": "Grows as you harvest crops and fruit.",
+      "grows": "Harvesting crops and fruit",
+      "xp": { "crops_harvested": 1, "fruit_harvested": 1 },
+      "perLevel": "+1% chance of gold crops",
+      "perks": {
+        "5": [
+          { "id": "quick_grower", "name": "Quick Grower", "icon": "timer", "text": "Crops you plant grow 10% faster" },
+          { "id": "big_harvest", "name": "Big Harvest", "icon": "basket", "text": "1 harvest in 10 gives a double crop" }
+        ],
+        "10": [
+          { "id": "master_farmer", "name": "Master Farmer", "icon": "crown", "text": "A further 5% chance of gold crops" },
+          { "id": "seed_saver", "name": "Seed Saver", "icon": "seed", "text": "Now and then a harvest gives your seed money back" }
+        ]
+      }
+    },
+    {
+      "id": "animals", "name": "Animals", "icon": "cow", "color": "pink",
+      "about": "Grows as you collect eggs, milk, wool and more.",
+      "grows": "Collecting animal products",
+      "xp": { "animal_products": 1 },
+      "perLevel": "Animals give their products 1% sooner",
+      "perks": {
+        "5": [
+          { "id": "happy_herd", "name": "Happy Herd", "icon": "heart", "text": "A quarter of the time an animal carries on without needing new feed" },
+          { "id": "prize_animals", "name": "Prize Animals", "icon": "medal", "text": "More silver and gold animal products" }
+        ],
+        "10": [
+          { "id": "shepherd", "name": "Shepherd", "icon": "sheep", "text": "A bonus animal product every day" },
+          { "id": "breeder", "name": "Breeder", "icon": "nest", "text": "One extra space in every animal home" }
+        ]
+      }
+    },
+    {
+      "id": "fishing", "name": "Fishing", "icon": "fishing_pole", "color": "blue",
+      "about": "Grows with every fish you land at the dock.",
+      "grows": "Catching fish",
+      "xp": { "fish_caught": 8 },
+      "perLevel": "A wider green zone when reeling in",
+      "perks": {
+        "5": [
+          { "id": "patient_angler", "name": "Patient Angler", "icon": "hourglass", "text": "Rare fish bite more often" },
+          { "id": "quick_cast", "name": "Quick Cast", "icon": "rocket", "text": "Fish bite sooner after you cast" }
+        ],
+        "10": [
+          { "id": "legend_hunter", "name": "Legend Hunter", "icon": "kraken", "text": "Legendary and mythic fish bite more often" },
+          { "id": "fishmonger", "name": "Fishmonger", "icon": "coin", "text": "Fish sell for 25% more in the barn" }
+        ]
+      }
+    },
+    {
+      "id": "cooking", "name": "Cooking", "icon": "pie", "color": "yellow",
+      "about": "Grows as your workshops finish goods.",
+      "grows": "Making goods in workshops",
+      "xp": { "items_produced": 1 },
+      "perLevel": "Workshops work 1% faster",
+      "perks": {
+        "5": [
+          { "id": "batch_cook", "name": "Batch Cook", "icon": "bowl", "text": "Now and then a batch makes double" },
+          { "id": "chef", "name": "Chef", "icon": "cake", "text": "Goods sell for 10% more in the barn" }
+        ],
+        "10": [
+          { "id": "head_chef", "name": "Head Chef", "icon": "crown", "text": "An extra queue place in every workshop" },
+          { "id": "gourmet", "name": "Gourmet", "icon": "sparkles", "text": "More gold goods" }
+        ]
+      }
+    }
+  ]
+}

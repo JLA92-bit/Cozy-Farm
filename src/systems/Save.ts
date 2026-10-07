@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, VILLAGER } from '../data';
+import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -58,7 +58,45 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   // a farm from before 1.8 gets the welcome and the head start once
   out.welcome18 = isObj(s.welcome18) ? { ...base.welcome18, ...s.welcome18 } : { step: 0, done: false, headStart: false };
   out.quality = isObj(s.quality) ? (s.quality as SaveData['quality']) : {};
+  out.skills = repairSkills(s.skills);
+  out.restoration = repairRestoration(s.restoration);
   return sanitize(out, base);
+}
+
+/** 1.8.5: skills from an older or hand-edited save (missing = untouched, so the head start can still apply). */
+function repairSkills(v: unknown): SaveData['skills'] {
+  if (!isObj(v)) return undefined;
+  const xp: Record<string, number> = {}, perks: Record<string, string[]> = {};
+  for (const sk of SKILLS) {
+    xp[sk.id] = Math.floor(finite((v.xp as Record<string, unknown> | undefined)?.[sk.id], 0, 0));
+    const chosen = strArr((v.perks as Record<string, unknown> | undefined)?.[sk.id]);
+    const keep: string[] = [];
+    // one perk per perk level, in level order, only ids that exist at that level
+    SKILL_PERK_LEVELS.forEach((lvl, i) => {
+      const id = chosen[i];
+      if (id && sk.perks[String(lvl)]?.some((p) => p.id === id)) keep[i] = id;
+    });
+    perks[sk.id] = keep.filter(Boolean);
+  }
+  return {
+    xp, perks, headStart: v.headStart === true,
+    letter: typeof v.letter === 'number' ? v.letter : undefined,
+    shepherdDay: typeof v.shepherdDay === 'string' ? v.shepherdDay : undefined,
+  };
+}
+
+/** 1.8.5: restoration progress from an older or hand-edited save (only real rooms and bundles survive). */
+function repairRestoration(v: unknown): SaveData['restoration'] {
+  if (!isObj(v)) return undefined;
+  const given: Record<string, Record<string, Record<string, number>>> = {};
+  if (isObj(v.given)) {
+    for (const [room, bundles] of Object.entries(v.given)) {
+      if (!isObj(bundles)) continue;
+      given[room] = {};
+      for (const [bundle, items] of Object.entries(bundles)) given[room][bundle] = countMap(items, (k) => !!ITEMS[k]);
+    }
+  }
+  return { given, done: strArr(v.done), seen: strArr(v.seen) };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);
@@ -123,6 +161,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     // 1.8 star quality: fertilised fields, star-ingredient jobs and the star goods waiting to be collected
     if (b.plot && 'fert' in b.plot && b.plot.fert !== true) delete b.plot.fert;
     for (const e of b.queue ?? []) if (e.q !== undefined && e.q !== 1 && e.q !== 2) delete e.q;
+    for (const e of b.queue ?? []) if (e.dbl !== true) delete e.dbl;
     if ('readyStar' in b) { const rs = repairReadyStar(b.readyStar, b.ready ?? []); if (rs) b.readyStar = rs; else delete b.readyStar; }
     sanitizeDecorFields(b);
     maxUid = Math.max(maxUid, b.uid);

@@ -4,6 +4,7 @@ import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
+import { skills } from '../systems/Skills';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
@@ -111,6 +112,7 @@ export async function boot(): Promise<void> {
   await saves.claimTab();
   const { data, fresh } = saves.load();
   game.load(data);
+  skills.init();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -194,7 +196,7 @@ export async function boot(): Promise<void> {
   if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers });
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 
@@ -252,6 +254,7 @@ function wireProgression(): void {
     ui.hud.setGoal(goal.title, goal.text, goal.icon, goal.progress);
     ui.hud.setBadge('quests', quests.claimable() + events.claimable());
     ui.hud.setBadge('collection', collectionBadge());
+    ui.hud.setBadge('character', skills.pendingCount());
   };
   scene.onTick(() => refreshGoal());
   refreshGoal();

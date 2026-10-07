@@ -1,6 +1,7 @@
 /** Typed access to the JSON game data. All balance numbers live in the JSON files next to this one. */
 import cropsJson from './crops.json';
 import villagersJson from './villagers.json';
+import skillsJson from './skills.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -141,6 +142,24 @@ export const VILLAGERS: VillagerDef[] = villagersJson.villagers as unknown as Vi
 export const PIP_TREASURES = villagersJson.pipTreasures as { items?: Record<string, number>; gems?: number; coins?: number }[];
 export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as Record<string, VillagerDef>;
 export const FRIENDSHIP = villagersJson.friendship;
+
+/** 1.8.5 Skills (skills.json). */
+export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking';
+export interface SkillPerkDef { id: string; name: string; icon: string; text: string }
+export interface SkillDef {
+  id: SkillId; name: string; icon: string; color: string; about: string; grows: string;
+  /** stat name -> XP per count */
+  xp: Record<string, number>;
+  perLevel: string;
+  /** perk level ("5", "10") -> the two choices */
+  perks: Record<string, SkillPerkDef[]>;
+}
+export const SKILLS = skillsJson.skills as unknown as SkillDef[];
+export const SKILL = Object.fromEntries(SKILLS.map((s) => [s.id, s])) as Record<SkillId, SkillDef>;
+export const SKILL_XP_LEVELS = skillsJson.xpLevels as number[];
+export const SKILL_PERK_LEVELS = skillsJson.perkLevels as number[];
+export const SKILL_HEADSTART_MAX = skillsJson.headStartMaxLevel as number;
+export const SKILL_VALUES = skillsJson.values;
 
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;

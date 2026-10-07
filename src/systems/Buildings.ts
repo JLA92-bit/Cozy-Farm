@@ -3,6 +3,7 @@ import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, isUpgrading, settleProduction } from './Timers';
 import { farmhouseGainsText, nextCapRaise, type CapKey } from './Caps';
+import { breederSpaces, headChefSlots } from './SkillEffects';
 
 export type BuyCheck = { ok: true } | { ok: false; reason: string };
 
@@ -222,9 +223,9 @@ export class BuildingSystem {
   }
 
   /** Animal capacity of a housing building. */
-  capacity(b: PlacedBuilding): number { return UPGRADES.animal.baseCapacity + (b.level - 1); }
+  capacity(b: PlacedBuilding): number { return UPGRADES.animal.baseCapacity + (b.level - 1) + breederSpaces(); }
   /** Production queue slots. */
-  slots(b: PlacedBuilding): number { return UPGRADES.production.baseSlots + (b.level - 1); }
+  slots(b: PlacedBuilding): number { return UPGRADES.production.baseSlots + (b.level - 1) + headChefSlots(); }
 
   animalDef(b: PlacedBuilding) { return ANIMAL[BUILDING[b.type].animal!]; }
 
