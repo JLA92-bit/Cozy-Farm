@@ -161,6 +161,24 @@ releases?.forEach((r, i) => {
   if (!v.friendship?.pointsPerHeart || !Array.isArray(v.friendship.milestones)) err('villagers.json: friendship settings missing');
 }
 
+// 1.8 Village Guide: every src/data/guide-*.json has pages with an id, a title, an icon and some paragraphs
+{
+  const ids = new Set();
+  const iconDir = new URL('../public/assets/icons/', import.meta.url);
+  const hasIcon = (k) => (icons && icons[k]) || existsSync(new URL(`${k}.svg`, iconDir));
+  for (const f of readdirSync(dir).filter((f) => /^guide-.+\.json$/.test(f))) {
+    const pages = read(f).pages;
+    if (!Array.isArray(pages) || !pages.length) { err(`${f}: needs a "pages" list`); continue; }
+    for (const g of pages) {
+      if (!g.id || !g.title || !Array.isArray(g.paragraphs) || !g.paragraphs.length) err(`${f}: page ${g.id ?? '?'} needs id, title and paragraphs`);
+      if (ids.has(g.id)) err(`${f}: duplicate guide page id ${g.id}`);
+      ids.add(g.id);
+      if (g.icon && !hasIcon(g.icon)) err(`${f}: page ${g.id} has unknown icon ${g.icon}`);
+      for (const k of g.pictures ?? []) if (!hasIcon(k) && !items[k] && !read('villagers.json').villagers.some((v) => v.id === k)) err(`${f}: page ${g.id} has unknown picture ${k}`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

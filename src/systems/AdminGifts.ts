@@ -2,6 +2,7 @@ import { ITEMS } from '../data';
 import { game } from './Game';
 import { land } from './Land';
 import { saves } from './Save';
+import { mail } from './Mail';
 import type { AdminGift } from '../online/types';
 
 /** What a developer gift actually added (unknown items are skipped; land stops when the map is full). */
@@ -28,6 +29,12 @@ export function applyAdminGift(g: AdminGift): AppliedGift {
     plots++;
   }
   game.incStat('gifts_received');
+  // 1.8: keep it in the mailbox as a letter to reread (already collected, so it is filed as read)
+  const msg = (g.message ?? '').trim();
+  const body = `${msg || 'Thank you for playing Cozy Acres! Here is a little something for your farm.'}${plots ? `\n\nAlso: ${plots} new land ${plots === 1 ? 'plot' : 'plots'} next to your farm.` : ''}\n\nThe Cozy Acres team`;
+  const letter = mail.send('team', 'A gift from the Cozy Acres team', body, coins || gems || Object.keys(items).length ? { coins: coins || undefined, gems: gems || undefined, items: Object.keys(items).length ? items : undefined } : undefined);
+  letter.read = true;
+  letter.claimed = true;
   saves.save();
   return { coins, gems, items, land: plots };
 }

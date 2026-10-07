@@ -294,7 +294,7 @@ class Social {
       for (const g of list) this.known.add(g.id);
       this.inbox = list;
       if (fresh.length) {
-        if (this.firstPoll) game.bus.emit('toast', { title: 'You have mail!', sub: fresh.length > 1 ? `${fresh.length} gifts are waiting in your mailbox.` : `A gift from ${fresh[0].from.name} is waiting.`, icon: 'mailbox' });
+        if (this.firstPoll) game.bus.emit('toast', { title: 'Gifts from friends!', sub: fresh.length > 1 ? `${fresh.length} gifts are waiting in Friends.` : `A gift from ${fresh[0].from.name} is waiting in Friends.`, icon: 'gift' });
         else for (const g of fresh.slice(0, 2)) game.bus.emit('toast', { title: `Gift from ${g.from.name}!`, sub: 'Open Friends to claim it.', icon: 'gift' });
         game.bus.emit('sfx', { name: 'jingle' });
       }

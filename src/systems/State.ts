@@ -136,8 +136,10 @@ export interface FriendshipState {
 export interface VillageState {
   friends: Record<string, FriendshipState>;
   /** the daily rhythm (src/systems/Daily18.ts): today's villager visit and farm finds */
-  today: { day: string; visitor: string; visitorDone: boolean; finds: { id: string; item: string; x: number; z: number; taken: boolean }[] };
+  today: { day: string; visitor: string; visitorDone: boolean; finds: { id: string; item: string; x: number; z: number; taken: boolean }[]; request?: VisitRequest };
 }
+/** 1.8 mail agent: what today's visiting villager asks for and pays (optional; made on the first tick of the day). */
+export interface VisitRequest { item: string; qty: number; coins: number; xp: number }
 export type LetterFrom = string; // a villager id, 'team' (the developer), or 'game'
 export interface Letter {
   id: number;
@@ -149,6 +151,8 @@ export interface Letter {
   attach?: { coins?: number; gems?: number; items?: Record<string, number> };
   read: boolean;
   claimed: boolean;
+  /** 1.8 mail agent: 'note' = a short daily note (old read notes are tidied away by themselves) */
+  kind?: 'note';
 }
 export interface MailState { letters: Letter[]; nextId: number }
 export interface HelpState { auto: boolean; reserve: number; asked: Record<string, number> }

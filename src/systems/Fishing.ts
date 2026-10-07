@@ -1,6 +1,7 @@
 import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from '../data';
 import { game } from './Game';
 import { localDay } from './Progression';
+import { RAIN_RARE_FISH, weatherToday } from './Weather';
 import type { FishingState } from './State';
 import { countStars, rollQuality, type Quality } from './Quality';
 
@@ -113,10 +114,13 @@ class FishingSystem {
     const pool = this.biting();
     // pick a rarity tier first (only tiers with something biting), then a species in it
     const tiers = (Object.keys(FISHING.rarityChance) as FishDef['rarity'][]).filter((r) => pool.some((f) => f.rarity === r));
-    const total = tiers.reduce((s, r) => s + FISHING.rarityChance[r], 0);
+    // 1.8 weather: rare fish bite a little more often in the rain
+    const rain = weatherToday() === 'rain';
+    const chance = (r: FishDef['rarity']) => FISHING.rarityChance[r] * (rain && isRareTier(r) ? RAIN_RARE_FISH : 1);
+    const total = tiers.reduce((s, r) => s + chance(r), 0);
     let x = rnd() * total;
     let tier = tiers[0];
-    for (const r of tiers) { x -= FISHING.rarityChance[r]; if (x <= 0) { tier = r; break; } }
+    for (const r of tiers) { x -= chance(r); if (x <= 0) { tier = r; break; } }
     const list = pool.filter((f) => f.rarity === tier);
     const def = list[Math.floor(rnd() * list.length)] ?? FISH.sardine;
     return { kind: 'fish', id: def.id, def, size: this.size(def.size, rnd) };

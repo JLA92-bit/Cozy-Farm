@@ -516,7 +516,8 @@ function showCode(code: string): void {
 // ------------------------------------------------------------------ wiring
 
 ui.register('friends', (arg) => openFriends(arg as { tab?: Tab; code?: string } | undefined));
-sideEntries.push(() => (social.available ? { id: 'friends', icon: social.mailCount ? 'mailbox' : 'hug', label: social.mailCount ? 'Mail' : 'Friends', color: 'green', badge: social.mailCount > 0 } : null));
+// 1.8: 'Gifts', so it is not mistaken for the village Mail button
+sideEntries.push(() => (social.available ? { id: 'friends', icon: social.mailCount ? 'gift' : 'hug', label: social.mailCount ? 'Gifts' : 'Friends', color: 'green', badge: social.mailCount > 0 } : null));
 
 let started = false;
 let badgeAt = 0;

@@ -5,6 +5,7 @@ import type { PlacedBuilding } from './State';
 import { isBuilt, plotReady, plotRemaining, treeReady } from './Timers';
 import { speedupCost } from './Buildings';
 import { addRolled, qualityBoosts } from './Quality';
+import { plantGrowthMult } from './Weather';
 
 /** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
 export const FERTILISER = 'fertiliser';
@@ -31,8 +32,8 @@ export class FarmingSystem {
     if (!this.canPlant(b, crop).ok) return false;
     const def = CROP[crop];
     game.spend(def.seedCost);
-    // Charm speeds growth a little
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth)));
+    // Charm speeds growth a little; so does a rainy day (1.8 weather)
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult()));
     b.plot = { crop, plantedAt: game.now(), growSec };
     if (this.useFert && game.count(FERTILISER) > 0) {
       game.addItem(FERTILISER, -1);
