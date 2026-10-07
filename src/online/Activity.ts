@@ -3,6 +3,7 @@
  * - A session start, then minutes played (counted only while the game is visible), sent every 5 minutes.
  * - Gifts from the developer (coins, gems, items, land) are picked up by themselves: on start, every few
  *   minutes and every time the game is opened again (comes back to the front or back online). Each is claimed once on the server, then added.
+ * - 1.8: letters from the developer to every player arrive in the mailbox the same way, once each.
  * Only with real online play and once the farmer exists; never shown while visiting a neighbour.
  */
 import { online } from './Online';
@@ -11,7 +12,8 @@ import { game } from '../systems/Game';
 import { visiting } from '../systems/Visiting';
 import { applyAdminGift } from '../systems/AdminGifts';
 import { APP_VERSION } from '../systems/Version';
-import type { AdminGift, Platform } from './types';
+import { mail } from '../systems/Mail';
+import type { AdminGift, AdminLetter, Platform } from './types';
 
 const TICK_MS = 60000;
 const BEAT_MINUTES = 5;
@@ -52,7 +54,18 @@ async function checkGifts(): Promise<void> {
       applyAdminGift(got);
       await adminGiftHooks.show?.(got);
     }
+    await checkLetters();
   } catch { /* offline: try again later */ } finally { checking = false; }
+}
+
+/** 1.8: letters the developer sent to every player, delivered to the mailbox once each (claimed first). */
+async function checkLetters(): Promise<void> {
+  for (const l of await online.adminLetters()) {
+    if (visiting.active) break;
+    let got: AdminLetter;
+    try { got = await online.claimAdminLetter(l.id); } catch { continue; } // delivered already
+    mail.send('team', got.title, got.body);
+  }
 }
 
 async function tick(): Promise<void> {

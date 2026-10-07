@@ -196,6 +196,9 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   w.step = Math.floor(finite(w.step, 0, 0));
   w.done = !!w.done;
   w.headStart = !!w.headStart;
+  if (w.short !== true) delete w.short;
+  if (w.basket !== true) delete w.basket;
+  if (typeof w.letter !== 'number' || !Number.isInteger(w.letter) || w.letter < 1) delete w.letter;
   if (dropped.length) console.warn('save repaired, dropped:', dropped.join(', '));
   return out;
 }

@@ -83,6 +83,8 @@ class UIManager {
   }
 
   register(id: string, opener: PanelOpener): void { this.panels.set(id, opener); }
+  /** True when a panel with this id is registered (1.8 pieces may open each other's panels). */
+  has(id: string): boolean { return this.panels.has(id); }
   onBuildingTap(fn: BuildingTapHandler): void { this.tapHandlers.push(fn); }
   onTick(fn: (now: number) => void): void { this.tickHooks.push(fn); }
 

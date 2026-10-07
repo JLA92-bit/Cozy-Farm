@@ -9,6 +9,7 @@ import type { Quality } from '../../core/Renderer';
 import type { SaveData } from '../../systems/State';
 import credits from '../../../CREDITS.md?raw';
 import { tutorial } from '../Tutorial';
+import { openWelcome18 } from './Welcome18Panel';
 import { onlineSettingsSection } from './OnlineSettings';
 import { openWhatsNew, whatsNewPending } from './WhatsNewPanel';
 import { hints, HINT_MODES } from '../../systems/Hints';
@@ -89,6 +90,7 @@ export function openSettings(): void {
     whatsNewButton(),
     button([icon('light_bulb'), 'Send feedback'], () => { p.close(); openFeedback(); }, 'small blue'),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),
+    game.state.player.created && game.state.tutorial.done ? button([icon('sparkle_heart'), 'Replay 1.8 welcome'], () => { p.close(); setTimeout(() => openWelcome18({ replay: true }), 250); }, 'small pink-btn') : null,
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
   ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave.'));

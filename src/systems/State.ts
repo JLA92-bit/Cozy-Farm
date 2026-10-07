@@ -143,7 +143,15 @@ export interface Letter {
 }
 export interface MailState { letters: Letter[]; nextId: number }
 export interface HelpState { auto: boolean; reserve: number; asked: Record<string, number> }
-export interface Welcome18State { step: number; done: boolean; headStart: boolean }
+export interface Welcome18State {
+  step: number; done: boolean; headStart: boolean;
+  /** a farm started on 1.8 or later: the short intro (letter, villagers, first gift) is still to come at level 3 */
+  short?: boolean;
+  /** mail id of Hazel's welcome letter, so it is sent once */
+  letter?: number;
+  /** Hazel's basket of strawberries for the first gift was given */
+  basket?: boolean;
+}
 
 export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }
 
