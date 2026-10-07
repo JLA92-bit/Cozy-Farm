@@ -214,6 +214,18 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   hp.auto = !!hp.auto;
   hp.reserve = Math.min(999, Math.floor(finite(hp.reserve, 20, 0)));
   hp.asked = isObj(hp.asked) ? Object.fromEntries(Object.entries(hp.asked).filter(([k, t]) => !!ITEMS[k] && typeof t === 'number' && Number.isFinite(t))) : {};
+  // optional Ask a friend bookkeeping (src/systems/Help.ts): anything odd is simply forgotten
+  if (hp.day !== undefined && typeof hp.day !== 'string') delete hp.day;
+  if (hp.rewarded !== undefined) hp.rewarded = Math.min(999, Math.floor(finite(hp.rewarded, 0, 0)));
+  if (hp.log !== undefined) {
+    const lg = hp.log as unknown as Record<string, unknown>;
+    const sends = isObj(lg) && Array.isArray(lg.sends) ? lg.sends : [];
+    hp.log = isObj(lg) && typeof lg.day === 'string'
+      ? { day: lg.day, sends: sends.filter((x): x is NonNullable<SaveData['help']['log']>['sends'][number] => isObj(x) && typeof x.to === 'string' && !!ITEMS[x.item as string] && typeof x.qty === 'number' && typeof x.coins === 'number').slice(-100) }
+      : undefined;
+    if (!hp.log) delete hp.log;
+  }
+  if (hp.hazelNo !== undefined) hp.hazelNo = strArr(hp.hazelNo).slice(-30);
   const w = out.welcome18;
   w.step = Math.floor(finite(w.step, 0, 0));
   w.done = !!w.done;

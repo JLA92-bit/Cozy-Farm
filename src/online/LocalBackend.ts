@@ -1,4 +1,5 @@
-import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift } from './types';
+import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type HelpFill, type HelpReason, type HelpRequest } from './types';
+import { ASK, HELP_REASONS, cleanFill, cleanRequest } from './AskHelp';
 import { botFarm } from './BotFarms';
 import { helpKindFor } from './FarmHelp';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
@@ -19,6 +20,11 @@ const HELP_KEY = 'cozy-acres-online-help';
 export const HELP_LIMITS = { perOwnerPerDay: 50, keep: 400 };
 
 interface HelpDb { rows: FarmHelp[]; seq: number; botDay: string }
+/** Ask a friend (practice mode): requests with who may see them, fills, and when demo neighbours last asked. */
+const ASK_KEY = 'cozy-acres-online-askhelp';
+interface AskReq extends HelpRequest { audience: string[]; closedAt: number; hazel: boolean; bots: { bot: string; at: number; qty: number }[] }
+interface AskFill extends HelpFill { requester: string; claimed: boolean }
+interface AskDb { reqs: AskReq[]; fills: AskFill[]; seq: number; botAsked: Record<string, string> }
 const utcDay = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 interface Db { profiles: PlayerProfile[]; gifts: Gift[]; listings: Listing[]; seq: number; botsAt: number }
@@ -372,6 +378,200 @@ export class LocalBackend implements OnlineBackend {
     if (this.botHelpTried) return;
     this.botHelpTried = true;
     try { this.botHelp(false); } catch { /* demo only */ }
+  }
+
+  // ------------------------------------------------------------------ ask a friend (1.8)
+  private readAsk(): AskDb {
+    try {
+      const raw = JSON.parse(localStorage.getItem(ASK_KEY) ?? 'null') as AskDb | null;
+      if (raw && Array.isArray(raw.reqs) && Array.isArray(raw.fills)) return { reqs: raw.reqs, fills: raw.fills, seq: Number(raw.seq) || 1, botAsked: raw.botAsked && typeof raw.botAsked === 'object' ? raw.botAsked : {} };
+    } catch { /* corrupt: start over */ }
+    return { reqs: [], fills: [], seq: 1, botAsked: {} };
+  }
+  private writeAsk<T>(fn: (db: AskDb) => T): T {
+    const db = this.readAsk();
+    const now = this.now();
+    // same housekeeping as the server: expire, then forget finished rows after 30 days
+    for (const r of db.reqs) if (r.status === 'open' && r.expiresAt <= now) { r.status = 'expired'; r.closedAt = r.expiresAt; }
+    const r = fn(db);
+    const old = now - 30 * 864e5;
+    db.reqs = db.reqs.filter((x) => x.status === 'open' || x.createdAt > old || db.fills.some((f) => f.request === x.id && !f.claimed));
+    db.fills = db.fills.filter((f) => db.reqs.some((x) => x.id === f.request));
+    try { localStorage.setItem(ASK_KEY, JSON.stringify(db)); } catch { /* full or blocked */ }
+    return r;
+  }
+  private pub(r: AskReq): HelpRequest {
+    return cleanRequest({ id: r.id, requester: r.requester, item: r.item, qty: r.qty, filled: r.filled, reason: r.reason, createdAt: r.createdAt, expiresAt: r.expiresAt, status: r.status })!;
+  }
+  private pubFill(f: AskFill): HelpFill { return cleanFill({ ...f })!; }
+  private friendList(ids: string[]): string[] {
+    const known = new Set(this.read().profiles.map((p) => p.id));
+    return [...new Set(ids)].filter((id) => id !== this.id && known.has(id)).slice(0, 30);
+  }
+  /** Adds one fill with the server's rules; returns it (qty never past what is still needed). */
+  private addFill(db: AskDb, r: AskReq, helper: { id: string; name: string }, qty: number, auto: boolean): AskFill {
+    const now = this.now();
+    if (r.requester.id === helper.id) throw new Error('yourself');
+    if (!r.audience.includes(helper.id)) throw new Error('not found');
+    if (r.status !== 'open' || r.expiresAt <= now || r.filled >= r.qty) throw new Error('closed');
+    if (db.fills.filter((f) => f.helper.id === helper.id && f.at > now - 864e5).length >= ASK.fillsPerDay) throw new Error('too many today');
+    const take = Math.min(qty, r.qty - r.filled);
+    const f: AskFill = { id: `hf${db.seq++}`, request: r.id, requester: r.requester.id, item: r.item, helper: { id: helper.id, name: helper.name }, qty: take, auto, at: now, claimed: false };
+    db.fills.push(f);
+    r.filled += take;
+    if (r.filled >= r.qty) { r.status = 'filled'; r.closedAt = now; }
+    return f;
+  }
+
+  async askHelp(item: string, qty: number, reason: HelpReason, friends: string[]): Promise<HelpRequest> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (!/^[a-z0-9_]{1,40}$/.test(item) || !this.knownItems(item)) throw new Error('bad item');
+    if (!Number.isInteger(qty) || qty < 1 || qty > ASK.maxQty) throw new Error('bad qty');
+    if (!HELP_REASONS.includes(reason)) throw new Error('bad reason');
+    const audience = this.friendList(friends);
+    return this.writeAsk((db) => {
+      const now = this.now();
+      const mine = db.reqs.filter((r) => r.requester.id === me.id);
+      if (mine.filter((r) => r.status === 'open' && r.expiresAt > now).length >= ASK.maxOpen) throw new Error('too many open');
+      if (mine.some((r) => r.item === item && r.createdAt > now - ASK.sameItemHours * 3600e3)) throw new Error('asked recently');
+      if (mine.filter((r) => r.createdAt > now - 864e5).length >= ASK.asksPerDay) throw new Error('too many today');
+      // demo neighbours among the friends drop some off after a minute or two, and another one the rest a bit later
+      const bots = audience.filter((id) => id.startsWith('bot_'));
+      const plan: AskReq['bots'] = [];
+      if (bots.length) {
+        const [lo, hi] = ASK.practice.fillAfterSec;
+        const at = now + (lo + Math.random() * (hi - lo)) * 1000;
+        const first = bots[Math.floor(Math.random() * bots.length)];
+        const part = qty <= 2 ? qty : Math.ceil(qty / 2);
+        plan.push({ bot: first, at, qty: part });
+        if (part < qty) {
+          const second = bots.length > 1 ? bots.filter((b) => b !== first)[Math.floor(Math.random() * (bots.length - 1))] : first;
+          plan.push({ bot: second, at: at + (40 + Math.random() * 80) * 1000, qty: qty - part });
+        }
+      }
+      const r: AskReq = {
+        id: `hr${db.seq++}`, requester: { id: me.id, name: me.name }, item, qty, filled: 0, reason, createdAt: now,
+        expiresAt: now + ASK.expireHours * 3600e3, status: 'open', audience, closedAt: 0, hazel: false, bots: plan,
+      };
+      db.reqs.push(r);
+      return this.pub(r);
+    });
+  }
+
+  async setHelpFriends(friends: string[]): Promise<void> {
+    await this.init();
+    const audience = this.friendList(friends);
+    this.writeAsk((db) => { for (const r of db.reqs) if (r.requester.id === this.id && r.status === 'open') r.audience = audience; });
+  }
+
+  async cancelHelp(id: string, hazel = false): Promise<HelpRequest> {
+    await this.init();
+    return this.writeAsk((db) => {
+      const r = db.reqs.find((x) => x.id === id && x.requester.id === this.id);
+      if (!r) throw new Error('not found');
+      if (r.status !== 'open') throw new Error('not open');
+      r.status = 'cancelled';
+      r.closedAt = this.now();
+      r.hazel = hazel;
+      return this.pub(r);
+    });
+  }
+
+  async myHelpRequests(): Promise<HelpRequest[]> {
+    await this.init();
+    this.botFills();
+    const since = this.now() - 3 * 864e5;
+    return this.readAsk().reqs.filter((r) => r.requester.id === this.id && r.createdAt > since)
+      .sort((a, b) => b.createdAt - a.createdAt).slice(0, 30).map((r) => this.pub(r));
+  }
+
+  async friendHelpRequests(ids: string[]): Promise<HelpRequest[]> {
+    await this.init();
+    const friends = this.friendList(ids);
+    this.botAsks(friends.filter((id) => id.startsWith('bot_')));
+    const now = this.now();
+    return this.readAsk().reqs.filter((r) => friends.includes(r.requester.id) && r.audience.includes(this.id) && r.status === 'open' && r.expiresAt > now && r.filled < r.qty)
+      .sort((a, b) => a.createdAt - b.createdAt).map((r) => this.pub(r));
+  }
+
+  async fillHelp(id: string, qty: number, auto: boolean): Promise<HelpFill> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (!Number.isInteger(qty) || qty < 1 || qty > ASK.maxQty) throw new Error('bad qty');
+    return this.writeAsk((db) => {
+      const r = db.reqs.find((x) => x.id === id);
+      if (!r) throw new Error('not found');
+      return this.pubFill(this.addFill(db, r, me, qty, auto));
+    });
+  }
+
+  async myHelpFills(): Promise<HelpFill[]> {
+    await this.init();
+    this.botFills();
+    return this.readAsk().fills.filter((f) => f.requester === this.id && !f.claimed).sort((a, b) => a.at - b.at).slice(0, 100).map((f) => this.pubFill(f));
+  }
+
+  async claimHelpFills(ids: string[]): Promise<HelpFill[]> {
+    await this.init();
+    const want = new Set(ids.slice(0, 100));
+    return this.writeAsk((db) => {
+      const out: HelpFill[] = [];
+      for (const f of db.fills) if (want.has(f.id) && f.requester === this.id && !f.claimed) { f.claimed = true; out.push(this.pubFill(f)); }
+      return out;
+    });
+  }
+
+  /** Practice mode: demo neighbours drop off what they planned for this player's open requests once it is time. */
+  private botFills(): void {
+    const now = this.now();
+    const db = this.readAsk();
+    if (!db.reqs.some((r) => r.requester.id === this.id && r.status === 'open' && r.bots?.some((b) => b.at <= now))) return;
+    const bots = new Map(this.read().profiles.filter((p) => p.bot).map((p) => [p.id, p]));
+    this.writeAsk((d) => {
+      for (const r of d.reqs) {
+        if (r.requester.id !== this.id || r.status !== 'open' || !r.bots?.length) continue;
+        const due = r.bots.filter((b) => b.at <= now);
+        r.bots = r.bots.filter((b) => b.at > now);
+        for (const b of due) {
+          const bot = bots.get(b.bot);
+          // a demo neighbour the player removed in the meantime does not help any more
+          if (!bot || !r.audience.includes(b.bot)) continue;
+          try { this.addFill(d, r, { id: bot.id, name: bot.name }, b.qty, false); } catch { /* filled or closed meanwhile */ }
+        }
+      }
+    });
+  }
+
+  /** Practice mode: each demo neighbour on the friends list asks for one thing a (UTC) day. */
+  private botAsks(botIds: string[]): void {
+    if (!botIds.length || !this.id) return;
+    const day = utcDay(this.now());
+    const db = this.readAsk();
+    const todo = botIds.filter((b) => db.botAsked[b] !== day);
+    if (!todo.length) return;
+    const bots = new Map(this.read().profiles.filter((p) => p.bot).map((p) => [p.id, p]));
+    const pool = ASK.practice.items.filter((i) => this.knownItems(i));
+    if (!pool.length) return;
+    // different things from different neighbours
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    this.writeAsk((d) => {
+      const now = this.now();
+      todo.forEach((b, i) => {
+        const bot = bots.get(b);
+        d.botAsked[b] = day;
+        if (!bot) return;
+        const [lo, hi] = ASK.practice.qty;
+        const item = pool[i % pool.length];
+        d.reqs.push({
+          id: `hr${d.seq++}`, requester: { id: bot.id, name: bot.name }, item, qty: lo + Math.floor(Math.random() * (hi - lo + 1)), filled: 0,
+          reason: (['order', 'recipe', 'truck'] as HelpReason[])[i % 3], createdAt: now - i * 60000, expiresAt: now + ASK.expireHours * 3600e3,
+          status: 'open', audience: [this.id], closedAt: 0, hazel: false, bots: [],
+        });
+      });
+    });
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void { this.subs.add(cb); return () => this.subs.delete(cb); }

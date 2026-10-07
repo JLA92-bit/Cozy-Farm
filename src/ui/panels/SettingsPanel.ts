@@ -18,6 +18,7 @@ import { openMoveFarm, openLoadFarm } from './MoveFarmPanel';
 import { openFeedback } from './FeedbackPanel';
 import { notificationSettingsSection } from './NotificationSettings';
 import { openPhotoMode } from '../PhotoMode';
+import { autoHelpSection } from './HelpPanel';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -70,6 +71,7 @@ export function openSettings(): void {
   );
   p.body.append(onlineSettingsSection(() => { p.close(); ui.open('character'); }));
   p.body.append(notificationSettingsSection());
+  p.body.append(autoHelpSection());
   const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files?.[0];

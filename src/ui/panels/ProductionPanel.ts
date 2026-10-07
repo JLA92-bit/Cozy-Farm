@@ -16,6 +16,7 @@ import { hints } from '../../systems/Hints';
 import { QUALITY_NAME, type Quality } from '../../systems/Quality';
 import { starBadge, starIcon } from '../QualityUI';
 import '../quality.css';
+import { askButton } from './HelpPanel';
 
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
@@ -162,6 +163,7 @@ export function openProduction(b: PlacedBuilding): void {
           title: short ? sourceText(item) : ITEMS[item].name,
           onclick: short ? (e: MouseEvent) => { e.stopPropagation(); goToSource(item); } : undefined,
         }, pick ? starIcon(pick) : null, itemIcon(item), `${have}/${n}`, short ? icon('magnifier', 'icon tiny') : null));
+        if (short) ingredients.append(...[askButton(item, n - have, 'recipe', true)].filter((x): x is HTMLElement => !!x));
       }
       let starRow: HTMLElement | null = null;
       if (starOpts.length) {

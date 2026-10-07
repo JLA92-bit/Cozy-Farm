@@ -976,7 +976,7 @@ end;
 $$;
 
 -- Replace the caller's planned reminders with p_rows: a JSON array of
--- {"fire_at": "<ISO time>", "kind": "crops", "title": "...", "body": "..."}. Gift, market and test rows
+-- {"fire_at": "<ISO time>", "kind": "crops", "title": "...", "body": "..."}. Gift, market, help and test rows
 -- (made by the server) are kept. Limits: 30 rows, fire_at from 5 minutes ago to 48 hours ahead (rows
 -- outside are skipped, so a device with a wrong clock cannot fill the table), title 80 and body 200
 -- characters. Returns how many rows were planned.
@@ -999,7 +999,7 @@ begin
   perform 1 from public.profiles p where p.id = uid for update; -- serialises this player's calls (no-op without a profile)
 
   delete from public.push_schedule p
-   where p.user_id = uid and p.sent_at is null and p.kind not in ('gift', 'market', 'test', 'news');
+   where p.user_id = uid and p.sent_at is null and p.kind not in ('gift', 'market', 'test', 'news', 'help');
   -- tidy up this player's old sent rows
   delete from public.push_schedule p where p.user_id = uid and p.sent_at < now() - interval '2 days';
   if not exists (select 1 from public.push_subscriptions s where s.user_id = uid) then return 0; end if;
@@ -2453,3 +2453,415 @@ begin
   end if;
 end;
 $$;
+
+-- ===== 1.8 help =====
+-- "Ask a friend" (1.8.0 Village Friends, src/systems/Help.ts). A player who is short of an item asks their
+-- friends for 1-10 of it; friends send some with one tap (or their game does it by itself with Auto-help),
+-- and the items arrive in the asker's barn by themselves. Same trust model as gifts: the helper's game takes
+-- the items out of its barn before fill_help() and puts back whatever the server did not use; the asker's
+-- game adds the items of the fills that claim_help_fills() hands it, and the server hands each fill out
+-- exactly once.
+--
+-- Friends live on each device (like gifts), so the server learns them from both sides:
+--   * ask_help() stores the asker's friend list with the request (audience, at most 30). Only those players
+--     can see the request (friend_help_requests) and fill it (fill_help). set_help_friends() updates it when
+--     the asker adds or removes a friend while a request is open.
+--   * friend_help_requests() remembers who looks at whose requests (help_watch). A phone notification about
+--     a new request only goes to players who are in the audience AND look at the asker's requests, so no one
+--     can send notifications to strangers.
+-- Rules: qty 1-10, 3 open requests per player, the same item at most once per 8 hours, 10 requests per day,
+-- requests stay open 24 hours, a fill never goes past what is still needed and never to your own request,
+-- 30 fills per helper per day. Clients only read their own rows; every write goes through the functions.
+-- Deleting an account removes its requests, fills and watch rows (on delete cascade through profiles).
+
+create table if not exists public.help_requests (
+  id             uuid primary key default gen_random_uuid(),
+  requester      uuid not null references public.profiles (id) on delete cascade,
+  requester_name text not null check (char_length(requester_name) between 1 and 24),
+  item           text not null check (item ~ '^[a-z0-9_]{1,40}$'),
+  qty            integer not null check (qty between 1 and 10),
+  filled         integer not null default 0 check (filled between 0 and qty),
+  reason         text not null default 'other' check (reason in ('order', 'recipe', 'truck', 'visit', 'bundle', 'other')),
+  -- the asker's friends when they asked (only they see and fill it)
+  audience       uuid[] not null default '{}' check (cardinality(audience) <= 30),
+  created_at     timestamptz not null default now(),
+  expires_at     timestamptz not null default now() + interval '24 hours',
+  -- when the last item arrived (status filled), or when it was cancelled / expired
+  filled_at      timestamptz,
+  closed_at      timestamptz,
+  -- cancelled because Hazel brought the rest (for the dashboard)
+  hazel          boolean not null default false,
+  status         text not null default 'open' check (status in ('open', 'filled', 'expired', 'cancelled'))
+);
+
+create table if not exists public.help_fills (
+  id          uuid primary key default gen_random_uuid(),
+  request     uuid not null references public.help_requests (id) on delete cascade,
+  requester   uuid not null references public.profiles (id) on delete cascade,
+  item        text not null check (item ~ '^[a-z0-9_]{1,40}$'),
+  helper      uuid not null references public.profiles (id) on delete cascade,
+  helper_name text not null check (char_length(helper_name) between 1 and 24),
+  qty         integer not null check (qty between 1 and 10),
+  auto        boolean not null default false,
+  at          timestamptz not null default now(),
+  claimed_at  timestamptz,
+  check (helper <> requester)
+);
+
+-- who looks at whose requests (see above); refreshed at most twice a day per pair
+create table if not exists public.help_watch (
+  watcher  uuid not null references public.profiles (id) on delete cascade,
+  target   uuid not null references public.profiles (id) on delete cascade,
+  seen_at  timestamptz not null default now(),
+  primary key (watcher, target),
+  check (watcher <> target)
+);
+
+create index if not exists help_requests_requester_idx on public.help_requests (requester, created_at desc);
+create index if not exists help_requests_open_idx      on public.help_requests (requester) where status = 'open';
+create index if not exists help_requests_expiry_idx    on public.help_requests (expires_at) where status = 'open';
+create index if not exists help_requests_created_idx   on public.help_requests (created_at);
+create index if not exists help_fills_unclaimed_idx    on public.help_fills (requester, at) where claimed_at is null;
+create index if not exists help_fills_helper_idx       on public.help_fills (helper, at desc);
+create index if not exists help_fills_request_idx      on public.help_fills (request);
+create index if not exists help_watch_target_idx       on public.help_watch (target, seen_at);
+
+alter table public.help_requests enable row level security;
+alter table public.help_fills    enable row level security;
+alter table public.help_watch    enable row level security;
+revoke all on public.help_requests, public.help_fills, public.help_watch from anon, authenticated, public;
+grant select on public.help_requests, public.help_fills to authenticated;
+
+drop policy if exists "askers read their own help requests" on public.help_requests;
+create policy "askers read their own help requests" on public.help_requests
+  for select to authenticated using (requester = auth.uid());
+drop policy if exists "help fills visible to asker and helper" on public.help_fills;
+create policy "help fills visible to asker and helper" on public.help_fills
+  for select to authenticated using (requester = auth.uid() or helper = auth.uid());
+
+-- Internal, cheap: mark requests past their 24 hours expired, forget old finished ones (30 days; a fill the
+-- asker never collected is kept 60 days) and stale watch rows. Bounded, so it never makes a call slow.
+create or replace function public.help_cleanup()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.help_requests r set status = 'expired', closed_at = r.expires_at
+   where r.id in (select x.id from public.help_requests x where x.status = 'open' and x.expires_at < now() limit 500);
+  delete from public.help_requests r
+   where r.id in (select x.id from public.help_requests x
+                   where x.status <> 'open' and x.created_at < now() - interval '30 days'
+                     and (x.created_at < now() - interval '60 days'
+                          or not exists (select 1 from public.help_fills f where f.request = x.id and f.claimed_at is null))
+                   limit 500);
+  delete from public.help_watch w
+   where (w.watcher, w.target) in (select x.watcher, x.target from public.help_watch x where x.seen_at < now() - interval '30 days' limit 500);
+end;
+$$;
+
+-- Internal: the caller's friend ids, cleaned (real players, not the caller, no repeats, at most 30).
+create or replace function public.help_audience(p_uid uuid, p_ids uuid[])
+returns uuid[]
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(array_agg(x.id), '{}'::uuid[])
+    from (select distinct p.id from public.profiles p
+           where p.id = any (coalesce(p_ids[1:30], '{}'::uuid[])) and p.id <> p_uid) x;
+$$;
+
+-- Ask friends for p_qty (1-10) of p_item. p_reason: order, recipe, truck, visit, bundle or other.
+-- p_friends: the asker's friend ids from their device (at most 30). Returns the new request.
+create or replace function public.ask_help(p_item text, p_qty integer, p_reason text, p_friends uuid[] default null)
+returns public.help_requests
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_name text;
+  v_aud uuid[];
+  r public.help_requests;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  select public.clean_text(p.name, 24, 'Farmer') into v_name from public.profiles p where p.id = uid for update; -- serialises this player's asks
+  if not found then raise exception 'no profile'; end if;
+  if p_item is null or p_item !~ '^[a-z0-9_]{1,40}$' then raise exception 'bad item'; end if;
+  if p_qty is null or p_qty < 1 or p_qty > 10 then raise exception 'bad qty'; end if;
+  if p_reason is null or p_reason not in ('order', 'recipe', 'truck', 'visit', 'bundle', 'other') then raise exception 'bad reason'; end if;
+  if p_friends is not null and cardinality(p_friends) > 30 then raise exception 'too many friends'; end if;
+  perform public.help_cleanup();
+  if (select count(*) from public.help_requests x where x.requester = uid and x.status = 'open' and x.expires_at > now()) >= 3 then
+    raise exception 'too many open';
+  end if;
+  if exists (select 1 from public.help_requests x where x.requester = uid and x.item = p_item and x.created_at > now() - interval '8 hours') then
+    raise exception 'asked recently';
+  end if;
+  if (select count(*) from public.help_requests x where x.requester = uid and x.created_at > now() - interval '1 day') >= 10 then
+    raise exception 'too many today';
+  end if;
+  v_aud := public.help_audience(uid, p_friends);
+  insert into public.help_requests (requester, requester_name, item, qty, reason, audience)
+  values (uid, v_name, p_item, p_qty, p_reason, v_aud)
+  returning * into r;
+
+  -- a phone notification for friends who have the asker on their list too (one per friend per hour, after
+  -- their quiet hours). A notification problem never stops the request.
+  if cardinality(v_aud) > 0 then
+    begin
+      insert into public.push_schedule (user_id, fire_at, kind, title, body)
+      select s.user_id, public.push_after_quiet(now(), s.tz, s.quiet_start, s.quiet_end), 'help',
+             'A friend needs a hand',
+             left(v_name || ' is asking for ' || p_qty || ' x ' || replace(p_item, '_', ' ') || '. Open Cozy Acres to send some.', 200)
+        from (select distinct on (x.user_id) x.* from public.push_subscriptions x
+               where x.user_id = any (v_aud) and x.social order by x.user_id, x.updated_at desc) s
+       where exists (select 1 from public.help_watch w where w.watcher = s.user_id and w.target = uid and w.seen_at > now() - interval '14 days')
+         and not exists (select 1 from public.push_schedule p where p.user_id = s.user_id and p.kind = 'help' and p.created_at > now() - interval '1 hour');
+    exception when others then
+      raise warning 'ask_help push: %', sqlerrm;
+    end;
+  end if;
+  return r;
+end;
+$$;
+
+-- The asker's friend list changed: update who can see their open requests. Returns how many were updated.
+create or replace function public.set_help_friends(p_friends uuid[])
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  n integer;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_friends is not null and cardinality(p_friends) > 30 then raise exception 'too many friends'; end if;
+  update public.help_requests r set audience = public.help_audience(uid, p_friends)
+   where r.requester = uid and r.status = 'open' and r.expires_at > now();
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+-- Cancel your own open request (also used when Hazel brings the rest, p_hazel). Returns it, with how many
+-- had arrived by then. Fills that already arrived stay yours (my_help_fills still lists them).
+create or replace function public.cancel_help(p_id uuid, p_hazel boolean default false)
+returns public.help_requests
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.help_requests;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  update public.help_requests x set status = 'cancelled', closed_at = now(), hazel = coalesce(p_hazel, false)
+   where x.id = p_id and x.requester = uid and x.status = 'open'
+  returning x.* into r;
+  if not found then
+    if exists (select 1 from public.help_requests x where x.id = p_id and x.requester = uid) then raise exception 'not open'; end if;
+    raise exception 'not found';
+  end if;
+  return r;
+end;
+$$;
+
+-- Open requests of these players (the caller's friends, at most 30 ids) that the caller may help with,
+-- with what is still needed. Also notes that the caller looks at these players' requests (help_watch).
+create or replace function public.friend_help_requests(p_ids uuid[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_ids uuid[];
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_ids is null or cardinality(p_ids) = 0 then return '[]'::jsonb; end if;
+  if cardinality(p_ids) > 30 then raise exception 'too many friends'; end if;
+  v_ids := public.help_audience(uid, p_ids);
+  insert into public.help_watch as w (watcher, target, seen_at)
+  select uid, t, now() from unnest(v_ids) t
+  on conflict (watcher, target) do update set seen_at = now() where w.seen_at < now() - interval '12 hours';
+  return (select coalesce(jsonb_agg(jsonb_build_object(
+            'id', r.id, 'requester', r.requester, 'requester_name', r.requester_name, 'item', r.item, 'qty', r.qty,
+            'filled', r.filled, 'need', r.qty - r.filled, 'reason', r.reason, 'created_at', r.created_at, 'expires_at', r.expires_at)
+            order by r.created_at), '[]'::jsonb)
+            from public.help_requests r
+           where r.requester = any (v_ids) and r.status = 'open' and r.expires_at > now()
+             and r.filled < r.qty and uid = any (r.audience));
+end;
+$$;
+
+-- Send p_qty (1-10) of the requested item to a friend's request. Never more than is still needed: the
+-- returned fill says how many were used (the helper's game puts the rest back). p_auto = sent by Auto-help.
+-- Refused: 'not found' (gone, or not one of your friends' requests), 'yourself', 'closed' (filled, expired or
+-- cancelled), 'too many today' (30 fills a day).
+create or replace function public.fill_help(p_id uuid, p_qty integer, p_auto boolean default false)
+returns public.help_fills
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_name text;
+  v_take integer;
+  r public.help_requests;
+  f public.help_fills;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_qty is null or p_qty < 1 or p_qty > 10 then raise exception 'bad qty'; end if;
+  select public.clean_text(p.name, 24, 'Farmer') into v_name from public.profiles p where p.id = uid for update; -- serialises this helper
+  if not found then raise exception 'no profile'; end if;
+  select x.* into r from public.help_requests x where x.id = p_id for update;
+  if not found then raise exception 'not found'; end if;
+  if r.requester = uid then raise exception 'yourself'; end if;
+  if not (uid = any (r.audience)) then raise exception 'not found'; end if;
+  if r.status <> 'open' or r.expires_at <= now() or r.filled >= r.qty then raise exception 'closed'; end if;
+  if (select count(*) from public.help_fills x where x.helper = uid and x.at > now() - interval '1 day') >= 30 then
+    raise exception 'too many today';
+  end if;
+  v_take := least(p_qty, r.qty - r.filled);
+  insert into public.help_fills (request, requester, item, helper, helper_name, qty, auto)
+  values (r.id, r.requester, r.item, uid, v_name, v_take, coalesce(p_auto, false))
+  returning * into f;
+  update public.help_requests x
+     set filled = x.filled + v_take,
+         status = case when x.filled + v_take >= x.qty then 'filled' else x.status end,
+         filled_at = case when x.filled + v_take >= x.qty then now() else x.filled_at end,
+         closed_at = case when x.filled + v_take >= x.qty then now() else x.closed_at end
+   where x.id = r.id;
+  return f;
+end;
+$$;
+
+-- Items friends sent to the caller that their game has not added yet (oldest first).
+create or replace function public.my_help_fills()
+returns setof public.help_fills
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select f.* from public.help_fills f
+   where f.requester = auth.uid() and f.claimed_at is null
+   order by f.at limit 100;
+$$;
+
+-- Mark fills of the caller's requests as arrived, each exactly once. Returns only the fills claimed by this
+-- call: the caller's game adds exactly these to the barn.
+create or replace function public.claim_help_fills(p_ids uuid[])
+returns setof public.help_fills
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  f public.help_fills;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_ids is null or cardinality(p_ids) > 100 then raise exception 'bad ids'; end if;
+  for f in
+    update public.help_fills x set claimed_at = now()
+     where x.requester = uid and x.claimed_at is null and x.id = any (p_ids)
+    returning x.*
+  loop
+    return next f;
+  end loop;
+  return;
+end;
+$$;
+
+-- Dashboard: Requests page. Totals for the last p_days (7-365), most asked items (a balance hint: what is
+-- hard to get), how often and how fast requests fill, the most helpful players and the open requests.
+create or replace function public.admin_help_overview(p_days integer default 30)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 30), 7), 365);
+  v_since timestamptz;
+begin
+  perform public.admin_guard();
+  perform public.help_cleanup();
+  v_since := now() - make_interval(days => v_days);
+  return jsonb_build_object(
+    'days', v_days,
+    'totals', (select jsonb_build_object(
+        'asked', count(*),
+        'filled', count(*) filter (where r.status = 'filled'),
+        'partly', count(*) filter (where r.status <> 'filled' and r.filled > 0),
+        'expired', count(*) filter (where r.status = 'expired'),
+        'cancelled', count(*) filter (where r.status = 'cancelled' and not r.hazel),
+        'hazel', count(*) filter (where r.hazel),
+        'open', count(*) filter (where r.status = 'open'),
+        'unitsAsked', coalesce(sum(r.qty), 0),
+        'unitsGiven', coalesce(sum(r.filled), 0),
+        'askers', count(distinct r.requester),
+        'avgFillMin', round(coalesce(avg(extract(epoch from (r.filled_at - r.created_at)) / 60) filter (where r.status = 'filled'), 0)::numeric, 1),
+        'medianFillMin', round(coalesce((percentile_cont(0.5) within group (order by extract(epoch from (r.filled_at - r.created_at)) / 60)
+                                           filter (where r.status = 'filled')), 0)::numeric, 1))
+        from public.help_requests r where r.created_at > v_since),
+    'fills', (select jsonb_build_object('n', count(*), 'units', coalesce(sum(f.qty), 0), 'auto', count(*) filter (where f.auto),
+                                        'helpers', count(distinct f.helper), 'unclaimed', count(*) filter (where f.claimed_at is null))
+                from public.help_fills f where f.at > v_since),
+    'items', (select coalesce(jsonb_agg(to_jsonb(x) order by x.asked desc, x.units desc), '[]'::jsonb) from (
+        select r.item, count(*) as asked, sum(r.qty) as units, sum(r.filled) as given,
+               count(*) filter (where r.status = 'filled') as filled, count(distinct r.requester) as players,
+               jsonb_object_agg(r.reason, 1) as reasons
+          from public.help_requests r where r.created_at > v_since
+         group by r.item order by count(*) desc, sum(r.qty) desc limit 30) x),
+    'reasons', (select coalesce(jsonb_object_agg(x.reason, x.n), '{}'::jsonb) from (
+        select r.reason, count(*) as n from public.help_requests r where r.created_at > v_since group by r.reason) x),
+    'helpers', (select coalesce(jsonb_agg(to_jsonb(x) order by x.units desc), '[]'::jsonb) from (
+        select f.helper as id, max(f.helper_name) as name, count(*) as fills, sum(f.qty) as units,
+               count(*) filter (where f.auto) as auto, count(distinct f.requester) as friends
+          from public.help_fills f where f.at > v_since group by f.helper order by sum(f.qty) desc limit 20) x),
+    'daily', (select coalesce(jsonb_agg(jsonb_build_object('day', g.day, 'asked', coalesce(a.n, 0), 'filled', coalesce(b.n, 0), 'fills', coalesce(c.n, 0)) order by g.day), '[]'::jsonb)
+        from (select d::date as day from generate_series((now() at time zone 'utc')::date - least(v_days, 60) + 1, (now() at time zone 'utc')::date, interval '1 day') d) g
+        left join (select (r.created_at at time zone 'utc')::date as day, count(*) as n from public.help_requests r where r.created_at > v_since group by 1) a on a.day = g.day
+        left join (select (r.filled_at at time zone 'utc')::date as day, count(*) as n from public.help_requests r
+                    where r.status = 'filled' and r.filled_at > v_since group by 1) b on b.day = g.day
+        left join (select (f.at at time zone 'utc')::date as day, count(*) as n from public.help_fills f where f.at > v_since group by 1) c on c.day = g.day),
+    'open', (select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) from (
+        select r.id, r.requester, r.requester_name, r.item, r.qty, r.filled, r.reason, r.created_at, r.expires_at,
+               cardinality(r.audience) as friends,
+               (select count(*) from public.help_fills f where f.request = r.id) as fills
+          from public.help_requests r where r.status = 'open' and r.expires_at > now()
+         order by r.created_at desc limit 200) x));
+end;
+$$;
+
+revoke all on function public.help_cleanup() from public, anon, authenticated;
+revoke all on function public.help_audience(uuid, uuid[]) from public, anon, authenticated;
+revoke all on function public.ask_help(text, integer, text, uuid[]) from public, anon;
+revoke all on function public.set_help_friends(uuid[]) from public, anon;
+revoke all on function public.cancel_help(uuid, boolean) from public, anon;
+revoke all on function public.friend_help_requests(uuid[]) from public, anon;
+revoke all on function public.fill_help(uuid, integer, boolean) from public, anon;
+revoke all on function public.my_help_fills() from public, anon;
+revoke all on function public.claim_help_fills(uuid[]) from public, anon;
+revoke all on function public.admin_help_overview(integer) from public, anon;
+grant execute on function public.ask_help(text, integer, text, uuid[]) to authenticated;
+grant execute on function public.set_help_friends(uuid[]) to authenticated;
+grant execute on function public.cancel_help(uuid, boolean) to authenticated;
+grant execute on function public.friend_help_requests(uuid[]) to authenticated;
+grant execute on function public.fill_help(uuid, integer, boolean) to authenticated;
+grant execute on function public.my_help_fills() to authenticated;
+grant execute on function public.claim_help_fills(uuid[]) to authenticated;
+-- admin_help_overview checks admin_guard() itself; signed-in callers may try it (like the other admin_* functions)
+grant execute on function public.admin_help_overview(integer) to authenticated;

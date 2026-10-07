@@ -19,3 +19,4 @@ import './FishingPanel';
 import './AdminGiftPanel';
 import './MailPanel';
 import './DailyVisitPanel';
+import './HelpPanel';

@@ -155,7 +155,18 @@ export interface Letter {
   kind?: 'note';
 }
 export interface MailState { letters: Letter[]; nextId: number }
-export interface HelpState { auto: boolean; reserve: number; asked: Record<string, number> }
+export interface HelpState {
+  auto: boolean;
+  reserve: number;
+  asked: Record<string, number>;
+  /** local day the `rewarded` count belongs to (sends paid with coins today, a few a day) */
+  day?: string;
+  rewarded?: number;
+  /** what Auto-help sent on `log.day`, for the daily summary letter */
+  log?: { day: string; sends: { to: string; item: string; qty: number; coins: number }[] };
+  /** own requests whose offer from Hazel was turned down */
+  hazelNo?: string[];
+}
 export interface Welcome18State { step: number; done: boolean; headStart: boolean }
 
 export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }

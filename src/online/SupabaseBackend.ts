@@ -2,8 +2,10 @@ import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-j
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, Platform,
+  HelpFill, HelpReason, HelpRequest,
 } from './types';
 import { cleanHelp } from './FarmHelp';
+import { cleanFill, cleanRequest } from './AskHelp';
 import { setOnlineStatus } from './Status';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
 import { weekKey } from './Weekly';
@@ -44,6 +46,13 @@ interface CloudSaveRow {
   user_id: string; data: unknown; save_version: number | null; level: number | null; coins: number | null; updated_at: string; device: string | null;
 }
 interface FarmRow { data: unknown; updated_at: string }
+/** help_requests rows, and the rows friend_help_requests() returns (no audience, filled_at...). */
+interface HelpRequestRow {
+  id: string; requester: string; requester_name: string; item: string; qty: number; filled: number; reason: string;
+  created_at: string; expires_at: string; status?: string;
+}
+interface HelpFillRow { id: string; request: string; item: string; helper: string; helper_name: string; qty: number; auto: boolean; at: string }
+
 interface FarmHelpRow {
   id: string; owner_id: string; helper_id: string; helper_name: string; kind: string; target: unknown; note: string | null;
   created_at: string; claimed_at: string | null;
@@ -578,6 +587,65 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (!valid.length) return [];
     const rows = await this.rpc<FarmHelpRow[]>('claim_farm_help', { p_ids: valid });
     return (rows ?? []).map((r) => r.id);
+  }
+
+  // ------------------------------------------------------------------ ask a friend (1.8)
+  private mapRequest(r: HelpRequestRow): HelpRequest | null {
+    return cleanRequest({ id: r.id, requester: { id: r.requester, name: r.requester_name }, item: r.item, qty: r.qty, filled: r.filled, reason: r.reason, createdAt: ms(r.created_at), expiresAt: ms(r.expires_at), status: r.status ?? 'open' });
+  }
+  private mapFill(r: HelpFillRow): HelpFill | null {
+    return cleanFill({ id: r.id, request: r.request, item: r.item, helper: { id: r.helper, name: r.helper_name }, qty: r.qty, auto: r.auto, at: ms(r.at) });
+  }
+  private friendIds(ids: string[]): string[] { return [...new Set(ids.filter((id) => UUID.test(id)))].slice(0, 30); }
+
+  async askHelp(item: string, qty: number, reason: HelpReason, friends: string[]): Promise<HelpRequest> {
+    const r = this.mapRequest(await this.rpc<HelpRequestRow>('ask_help', { p_item: item, p_qty: int(qty, 10), p_reason: reason, p_friends: this.friendIds(friends) }));
+    if (!r) throw new Error('bad item');
+    return r;
+  }
+
+  async setHelpFriends(friends: string[]): Promise<void> {
+    await this.rpc<number>('set_help_friends', { p_friends: this.friendIds(friends) });
+  }
+
+  async cancelHelp(id: string, hazel = false): Promise<HelpRequest> {
+    if (!UUID.test(id)) throw new Error('not found');
+    const r = this.mapRequest(await this.rpc<HelpRequestRow>('cancel_help', { p_id: id, p_hazel: hazel }));
+    if (!r) throw new Error('not found');
+    return r;
+  }
+
+  async myHelpRequests(): Promise<HelpRequest[]> {
+    const since = new Date(Date.now() - 3 * 864e5).toISOString();
+    const rows = await this.query((sb) => sb.from('help_requests').select('id,requester,requester_name,item,qty,filled,reason,created_at,expires_at,status')
+      .eq('requester', this.uid).gte('created_at', since).order('created_at', { ascending: false }).limit(30) as PromiseLike<Result<HelpRequestRow[]>>);
+    return (rows ?? []).map((r) => this.mapRequest(r)).filter((r): r is HelpRequest => !!r);
+  }
+
+  async friendHelpRequests(ids: string[]): Promise<HelpRequest[]> {
+    const valid = this.friendIds(ids);
+    if (!valid.length) return [];
+    const rows = await this.rpc<HelpRequestRow[]>('friend_help_requests', { p_ids: valid });
+    return (Array.isArray(rows) ? rows : []).map((r) => this.mapRequest(r)).filter((r): r is HelpRequest => !!r);
+  }
+
+  async fillHelp(id: string, qty: number, auto: boolean): Promise<HelpFill> {
+    if (!UUID.test(id)) throw new Error('not found');
+    const f = this.mapFill(await this.rpc<HelpFillRow>('fill_help', { p_id: id, p_qty: int(qty, 10), p_auto: auto }));
+    if (!f) throw new Error('not found');
+    return f;
+  }
+
+  async myHelpFills(): Promise<HelpFill[]> {
+    const rows = await this.rpc<HelpFillRow[]>('my_help_fills', {});
+    return (rows ?? []).map((r) => this.mapFill(r)).filter((f): f is HelpFill => !!f);
+  }
+
+  async claimHelpFills(ids: string[]): Promise<HelpFill[]> {
+    const valid = [...new Set(ids.filter((id) => UUID.test(id)))].slice(0, 100);
+    if (!valid.length) return [];
+    const rows = await this.rpc<HelpFillRow[]>('claim_help_fills', { p_ids: valid });
+    return (rows ?? []).map((r) => this.mapFill(r)).filter((f): f is HelpFill => !!f);
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void {

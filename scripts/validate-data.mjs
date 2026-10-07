@@ -109,6 +109,16 @@ releases?.forEach((r, i) => {
     for (const i of so.botGift?.items ?? []) if (!items[i]) err(`economy.social.botGift: unknown item ${i}`);
   }
 }
+// 1.8 Ask a friend (economy.help): limits match the server (maxOpen 3, maxQty 10, fillsPerDay 30)
+{
+  const hp = read('economy.json').help;
+  if (!hp) err('economy.help missing');
+  else {
+    for (const k of ['maxOpen', 'maxQty', 'sameItemHours', 'asksPerDay', 'expireHours', 'fillsPerDay', 'pollSec', 'rewardedPerDay', 'rewardMult', 'rewardMin', 'rewardMax', 'hazelAfterMin', 'hazelMarkup', 'reserveDefault', 'autoPerPoll']) if (!(hp[k] > 0)) err(`economy.help.${k} must be > 0`);
+    if (hp.maxOpen !== 3 || hp.maxQty !== 10 || hp.fillsPerDay !== 30 || hp.expireHours !== 24) err('economy.help: maxOpen 3, maxQty 10, fillsPerDay 30 and expireHours 24 must match supabase/schema.sql');
+    for (const i of hp.practice?.items ?? []) if (!items[i]) err(`economy.help.practice: unknown item ${i}`);
+  }
+}
 
 // fishing (fish.json): species and junk are real items, known times/rarities, sane ranges
 {
