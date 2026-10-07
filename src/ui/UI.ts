@@ -170,11 +170,12 @@ class UIManager {
         this.feedback.fly(s.x, s.y, 'xp', 'xp', 1, () => this.hud.refresh());
       } else this.hud.refresh();
     });
-    bus.on('item', ({ item, delta, at }) => {
+    bus.on('item', ({ item, delta, at, quality }) => {
       if (delta > 0 && at) {
         const s = this.screen(at);
-        this.feedback.floatText(s.x - 24, s.y - 50, `+${delta}`, ITEMS[item]?.icon.startsWith('model:') ? undefined : ITEMS[item]?.icon, '#fff');
-        if (ITEMS[item]?.icon.startsWith('model:')) {
+        // silver and gold get their own starred pop instead (QualityUI), so the numbers never stack up
+        if (!quality) this.feedback.floatText(s.x - 24, s.y - 50, `+${delta}`, ITEMS[item]?.icon.startsWith('model:') ? undefined : ITEMS[item]?.icon, '#fff');
+        if (!quality && ITEMS[item]?.icon.startsWith('model:')) {
           const el = this.feedback.floatLayer.lastElementChild as HTMLElement | null;
           el?.prepend(itemIcon(item));
         }

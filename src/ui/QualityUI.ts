@@ -3,6 +3,7 @@
  * and sparkle when a silver or gold item is made, and the one-time hints for stars and fertiliser.
  */
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { h, itemIcon } from './dom';
 import { ITEMS } from '../data';
 import { game } from '../systems/Game';
@@ -47,8 +48,8 @@ export function wireQualityFx(fb: Feedback, fx: Effects, screen: (v: { x: number
     fx.sparkle(p, '#9be86a', 8);
     fx.dust(p, 5, 0.6);
   });
-  // several star items in the same instant (a swipe, a collect) stack up instead of covering each other
-  let stackAt = 0, stack = 0;
+  // a silver and a gold from the same field stack up instead of covering each other
+  const stacks = new Map<string, { t: number; n: number }>();
   game.bus.on('item', ({ item, delta, at, quality }) => {
     if (delta <= 0) return;
     if (item === FERTILISER && hints.firstTime('intro:fertiliser')) {
@@ -60,21 +61,21 @@ export function wireQualityFx(fb: Feedback, fx: Effects, screen: (v: { x: number
       setTimeout(() => game.bus.emit('toast', { title: `A ${QUALITY_NAME[quality].toLowerCase()} ${ITEMS[item]?.name ?? 'item'}!`, sub: 'Silver and gold items sell for more and villagers love them.', icon: 'star', style: 'gold' }), 900);
     }
     if (!at) return;
-    const now = performance.now();
-    stack = now - stackAt < 250 ? stack + 1 : 0;
-    stackAt = now;
+    const now = performance.now(), key = `${at.x.toFixed(1)},${at.z.toFixed(1)}`;
+    const st = stacks.get(key);
+    const n = st && now - st.t < 400 ? Math.min(2, st.n + 1) : 0;
+    stacks.set(key, { t: now, n });
+    if (stacks.size > 40) stacks.clear();
     const s = screen(at);
     const gold = quality === 2;
-    const el = h('div', { class: `float-text outlined q-pop ${gold ? 'gold' : 'silver'}`, style: `left:${s.x + 26}px;top:${s.y - 84 - Math.min(stack, 3) * 30}px` },
+    const el = h('div', { class: `float-text outlined q-pop ${gold ? 'gold' : 'silver'}`, style: `left:${s.x + 22}px;top:${s.y - 86 - n * 34}px` },
       starIcon(quality), itemIcon(item), `+${delta} ${QUALITY_NAME[quality]}`);
     fb.floatLayer.append(el);
-    el.animate([
-      { transform: 'translate(-50%,-50%) scale(.3)', opacity: 0 },
-      { transform: 'translate(-50%,-50%) scale(1.2)', opacity: 1, offset: 0.12 },
-      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.2 },
-      { transform: 'translate(-50%,-90%) scale(1)', opacity: 1, offset: 0.78 },
-      { transform: 'translate(-50%,-110%) scale(.95)', opacity: 0 },
-    ], { duration: gold ? 1700 : 1300, easing: 'ease-out', delay: 120 + Math.min(stack, 3) * 60, fill: 'both' }).onfinish = () => el.remove();
+    gsap.timeline({ delay: 0.1 + n * 0.08, onComplete: () => el.remove() })
+      .fromTo(el, { scale: 0.3, opacity: 0 }, { scale: gold ? 1.25 : 1.15, opacity: 1, duration: 0.2, ease: 'back.out(3)' })
+      .to(el, { scale: 1, duration: 0.12 })
+      .to(el, { y: -40, duration: gold ? 1.4 : 1.1, ease: 'power1.out' }, 0.15)
+      .to(el, { opacity: 0, duration: 0.3 }, gold ? 1.3 : 1.0);
     const p = new THREE.Vector3(at.x, at.y + 0.5, at.z);
     if (gold) {
       fx.sparkle(p, '#ffd84a', 16);
