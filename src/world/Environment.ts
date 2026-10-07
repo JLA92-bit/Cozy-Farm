@@ -67,6 +67,9 @@ export class Environment {
     scene.background = this.sky;
   }
 
+  /** The haze never starts closer than this (0 = normal). Set while looking at the village square. */
+  fogFloor = 0;
+
   setShadowMapSize(n: number): void {
     this.sun.shadow.mapSize.set(n, n);
     this.sun.shadow.map?.dispose();
@@ -169,6 +172,8 @@ export class Environment {
     // rain and mist pull the haze closer (scaled, so it stays sane at night too)
     fog.near = (70 - night * 32 - dusk * 18) * (1 - rainK * 0.42 - mistK * 0.85);
     fog.far = (160 - night * 50 - dusk * 30) * (1 - rainK * 0.33 - mistK * (0.62 - night * 0.15));
+    // the village square is viewed from further away: keep its own island clear of the haze
+    if (this.fogFloor > 0) { fog.near = Math.max(fog.near, this.fogFloor); fog.far = Math.max(fog.far, fog.near + 60); }
     // soft moonlit blue at night (still readable), warm peach at golden hour; a little greyer when it rains
     this.hemi.intensity = 1.35 - night * 0.45 - rainK * 0.28;
     this.hemi.color.copy(this.hemiDay).lerp(this.hemiNight, night * 0.9).lerp(this.hemiDusk, dusk * 0.75);

@@ -1,0 +1,77 @@
+/* 1.8.5 Village Restoration: the square's HUD, room labels and the room screen. */
+
+/* In the square only the square's own banner, labels, panels and toasts show */
+#ui-root.squaring > :not(.sq-keep):not(.overlay):not(.toast-stack):not(.float-layer):not(.speech-layer):not(.world-ui):not(.visit-wipe) { display: none !important; }
+#ui-root.squaring .toast-stack { top: calc(var(--safe-top) + 112px); }
+
+.sq-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sq-label {
+  position: absolute; left: 0; top: 0; min-width: 118px; max-width: 168px; padding: 4px 9px 5px; text-align: center;
+  background: #fff6df; border: 3px solid var(--outline); border-radius: 13px; box-shadow: 0 3px 0 var(--outline);
+  will-change: transform; transition: opacity .2s ease;
+}
+.sq-label-top { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.sq-label-icon { width: 20px; height: 20px; }
+.sq-name { font-family: var(--font-display); font-size: 15px; color: #fff; -webkit-text-stroke: 1.5px var(--outline); paint-order: stroke fill; line-height: 1.1; }
+.sq-sub { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.2; margin-top: 1px; }
+.sq-bar { height: 9px; margin-top: 3px; background: #e6d3a6; border: 2px solid var(--outline); border-radius: 6px; overflow: hidden; }
+.sq-bar-fill { display: block; height: 100%; width: 0; background: linear-gradient(#b4f28a, #62c13c); transition: width .4s ease; }
+.sq-label.done { background: #fff3c4; border-color: #c8962a; }
+.sq-label.done .sq-bar-fill { background: linear-gradient(#ffe27a, #ffb820); }
+.sq-label.locked { opacity: .82; }
+.sq-label.locked .sq-bar { display: none; }
+.sq-label.ready { animation: sq-pulse 1.6s ease-in-out infinite; }
+@keyframes sq-pulse { 0%, 100% { box-shadow: 0 3px 0 var(--outline), 0 0 0 0 rgba(255, 216, 74, 0); } 50% { box-shadow: 0 3px 0 var(--outline), 0 0 0 6px rgba(255, 216, 74, .65); } }
+.sq-progress { display: inline-flex; align-items: center; gap: 4px; }
+.sq-progress .icon { width: 18px; height: 18px; }
+
+/* the room screen */
+.sq-intro { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; background: #fff0f5; border: 2px dashed #f2a6c0; border-radius: 14px; }
+.sq-intro .icon { flex: 0 0 auto; width: 34px; height: 34px; }
+.sq-intro-text { font-size: 14px; color: var(--ink-soft); line-height: 1.3; }
+.sq-reward { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; border: 2px solid var(--outline); border-radius: 12px; background: #f1ead8; }
+.sq-reward.on { background: #fff3c4; border-color: #c8962a; }
+.sq-reward .icon { flex: 0 0 auto; width: 28px; height: 28px; }
+.sq-reward-title { font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.sq-reward-text { font-size: 13px; color: var(--ink-soft); line-height: 1.25; }
+
+.sq-bundle { margin-bottom: 12px; padding: 10px; border: 3px solid var(--outline); border-radius: 16px; box-shadow: 0 3px 0 var(--outline); background: #fff; }
+.sq-bundle.full { background: #f1fbe8; border-color: #3f8f22; }
+.sq-bundle-head { display: flex; align-items: center; gap: 10px; }
+.sq-bundle-head .icon { flex: 0 0 auto; width: 34px; height: 34px; }
+.sq-bundle-name { font-family: var(--font-display); font-size: 18px; color: var(--ink); }
+.sq-bundle-sub { font-size: 13px; color: var(--ink-soft); }
+.sq-bundle .progress { height: 16px; margin: 6px 0 4px; }
+.sq-line { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed #e0cda0; }
+.sq-line:first-of-type { border-top: 0; }
+.sq-line .icon { flex: 0 0 auto; width: 30px; height: 30px; }
+.sq-line .grow { flex: 1 1 auto; min-width: 0; }
+.sq-line-name { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.sq-line-count { font-size: 13px; color: var(--ink-soft); }
+.sq-line-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.sq-full-tag { font-family: var(--font-display); font-size: 14px; color: #3f8f22; display: inline-flex; align-items: center; gap: 4px; }
+.sq-full-tag .icon { width: 18px; height: 18px; }
+.sq-stall { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; border: 3px solid var(--outline); border-radius: 14px; background: #fff0f5; }
+.sq-stall .icon { width: 34px; height: 34px; flex: 0 0 auto; }
+.sq-stall .grow { flex: 1 1 auto; min-width: 0; }
+
+/* a slimmer banner on short screens so the labels of the back row stay clear of it */
+@media (max-height: 640px) {
+  .sq-banner { padding-top: 4px; padding-bottom: 4px; }
+  .sq-banner .visit-sub { display: none; }
+  .sq-banner .visit-name { font-size: 18px; }
+  .sq-banner .visit-home { transform: scale(.88); transform-origin: right center; }
+}
+
+/* narrow phones: smaller room labels so neighbours do not overlap */
+@media (max-width: 520px) {
+  .sq-label { min-width: 96px; max-width: 132px; padding: 3px 6px 4px; }
+  .sq-name { font-size: 13px; }
+  .sq-sub { font-size: 11px; }
+}
+
+/* very narrow: the label is just the room and its bar; tap the room to read the rest */
+@media (max-width: 520px) {
+  .sq-sub { display: none; }
+  .sq-label { min-width: 84px; padding: 3px 6px 4px; }
+}

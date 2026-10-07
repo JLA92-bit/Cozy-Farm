@@ -210,3 +210,8 @@
 
 /* Juniper's paint colours (6-heart perk) in the decor paint row */
 .paint-gift { margin-top: 4px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+/* 1.8.5: the way to the village square */
+.v-square { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; background: #f1fbe8; border: 2px solid #8fcf6a; border-radius: 14px; }
+.v-square .icon { flex: 0 0 auto; width: 34px; height: 34px; }
+.v-square .grow { flex: 1 1 auto; min-width: 0; }

@@ -104,7 +104,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 // ------------------------------------------------------------------------------------ transitions
 
 /** Soft cloud wipe over the whole screen with a friendly line (also the loading state). */
-function showWipe(text: string): HTMLElement {
+export function showWipe(text: string): HTMLElement {
   document.querySelector('.visit-wipe')?.remove();
   const el = h('div', { class: 'visit-wipe', role: 'status', 'aria-live': 'polite' },
     h('div', { class: 'visit-cloud c1' }), h('div', { class: 'visit-cloud c2' }), h('div', { class: 'visit-cloud c3' }),
@@ -114,7 +114,7 @@ function showWipe(text: string): HTMLElement {
   el.classList.add('on');
   return el;
 }
-async function hideWipe(el: HTMLElement): Promise<void> {
+export async function hideWipe(el: HTMLElement): Promise<void> {
   el.classList.remove('on');
   await sleep(380);
   el.remove();

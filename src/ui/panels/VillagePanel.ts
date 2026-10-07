@@ -10,6 +10,8 @@ import { localDay } from '../../systems/Progression';
 import { audio, haptics } from '../../systems/Audio';
 import { visiting } from '../../systems/Visiting';
 import { saves } from '../../systems/Save';
+import { restoration } from '../../systems/Restoration';
+import { ROOMS } from '../../data';
 import './village.css';
 
 /**
@@ -76,6 +78,14 @@ export function openVillage(arg?: { villager?: string }): void {
       h('div', null,
         h('div', { class: 'v-intro-title' }, `Your friends in the valley · ${total} ${total === 1 ? 'heart' : 'hearts'}`),
         h('div', { class: 'v-intro-text' }, 'Give each villager one gift a day, chat with them on your farm and fill their orders. Hearts bring letters, stories, keepsakes and special gifts.'))));
+    // 1.8.5: the way to the village square, once the farm is a little established
+    if (game.level >= 5 && ui.has('square')) {
+      const rooms = restoration.roomsDone(), ready = restoration.givable();
+      p.body.append(h('div', { class: 'v-square' }, icon('house', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'The Village Square'),
+          h('div', { class: 'v-intro-text' }, `${rooms} of ${ROOMS.length} rooms rebuilt${ready ? `. ${ready} ${ready === 1 ? 'bundle' : 'bundles'} you can give to now` : '. Rebuild the old square together with your friends in the valley'}`)),
+        button([icon('house'), 'Go'], () => { p.close(); ui.open('square'); }, 'green small', { 'aria-label': 'Go to the village square' })));
+    }
     const grid = h('div', { class: 'v-grid' });
     for (const v of VILLAGERS) {
       const hearts = village.hearts(v.id);
@@ -415,7 +425,7 @@ export function refreshVillageBadge(): void {
   const birthday = met.some((v) => village.isBirthday(v.id) && village.canGift(v.id));
   const unopened = s.village.openedDay !== today && met.some((v) => village.canGift(v.id));
   const never = !s.village.openedDay && s.tutorial.done && s.player.created;
-  ui.hud.setBadge('village', birthday || unopened || never);
+  ui.hud.setBadge('village', birthday || unopened || never || (game.level >= 10 && restoration.givable() > 0));
 }
 
 let lastInput = performance.now();

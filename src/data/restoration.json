@@ -48,7 +48,7 @@
       "bundles": []
     },
     {
-      "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "rosa", "opensAt": 22, "soon": true,
+      "id": "kitchen", "name": "The Kitchen", "icon": "pie", "color": "yellow", "villager": "juniper", "opensAt": 22, "soon": true,
       "about": "The village kitchen is a pile of bricks. It will be rebuilt in a later update.",
       "rebuilds": "The village kitchen",
       "reward": { "id": "kitchen_workshop", "text": "A new workshop: the Village Kitchen." },

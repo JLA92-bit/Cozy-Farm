@@ -5,6 +5,7 @@ import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
 import { skills } from '../systems/Skills';
+import { initSquare } from './Square';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
@@ -123,6 +124,7 @@ export async function boot(): Promise<void> {
   interaction = new Interaction(scene);
   scene.handler = interaction;
   initVisit(scene, interaction);
+  initSquare(scene, interaction);
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;
