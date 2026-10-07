@@ -118,6 +118,30 @@
    "qty": [2, 5]
   }
  },
+ "help": {
+  "_comment": "1.8 Ask a friend (src/systems/Help.ts). maxOpen, maxQty, sameItemHours, asksPerDay, expireHours and fillsPerDay match the server (supabase/schema.sql, 1.8 help). Helpers get rewardMult x the barn value in coins (rewardMin..rewardMax) for rewardedPerDay sends a day. After hazelAfterMin an unfilled request can be finished by Hazel at the market's fair price x hazelMarkup. Auto-help keeps at least reserveDefault of each item. practice = demo neighbours in practice mode.",
+  "maxOpen": 3,
+  "maxQty": 10,
+  "sameItemHours": 8,
+  "asksPerDay": 10,
+  "expireHours": 24,
+  "fillsPerDay": 30,
+  "pollSec": 25,
+  "rewardedPerDay": 10,
+  "rewardMult": 1.1,
+  "rewardMin": 5,
+  "rewardMax": 300,
+  "hazelAfterMin": 120,
+  "hazelMarkup": 1.2,
+  "reserveDefault": 20,
+  "autoPerPoll": 3,
+  "practice": {
+   "_comment": "Demo neighbours fill part of each request after fillAfterSec, the rest a little later; each demo friend asks for one thing a day.",
+   "fillAfterSec": [60, 150],
+   "items": ["wheat", "corn", "carrot", "egg", "milk", "bread", "chicken_feed", "sugar"],
+   "qty": [2, 5]
+  }
+ },
  "market": {
   "_comment": "Shared market between players. Prices are totals for the stack, clamped to minPriceMult..maxPriceMult x (item sell value x qty). slotsByLevel = [level, open listings]. practiceBuy = how the demo neighbours of practice mode buy your goods; practiceSellMinMult = demo neighbour goods never cost less than this x barn value, so they cannot be flipped for free coins.",
   "level": 6,

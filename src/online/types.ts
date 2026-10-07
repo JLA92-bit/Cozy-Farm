@@ -92,6 +92,25 @@ export const HELP_NOTES: Record<string, string> = {
   cozy: 'So cozy here!',
 };
 
+/** Ask a friend (1.8): what a request is for (shown to friends), and where it stands. */
+export type HelpReason = 'order' | 'recipe' | 'truck' | 'visit' | 'bundle' | 'other';
+export type HelpStatus = 'open' | 'filled' | 'expired' | 'cancelled';
+/** A player asking their friends for 1-10 of an item (open for 24 hours). */
+export interface HelpRequest {
+  id: string;
+  requester: PlayerRef;
+  item: string;
+  qty: number;
+  /** how many have arrived so far (never more than qty) */
+  filled: number;
+  reason: HelpReason;
+  createdAt: number;
+  expiresAt: number;
+  status: HelpStatus;
+}
+/** Items a friend sent to a request. The asker's game adds them once claimHelpFills hands them over. */
+export interface HelpFill { id: string; request: string; item: string; helper: PlayerRef; qty: number; auto: boolean; at: number }
+
 export type LeaderboardKind = 'level' | 'farmValue' | 'charm' | 'weeklyXp';
 
 export type OnlineEvent =
@@ -180,6 +199,29 @@ export interface OnlineBackend {
   myFarmHelp(): Promise<FarmHelp[]>;
   /** Marks the caller's own help rows claimed exactly once; returns the ids claimed by this call. */
   claimFarmHelp(ids: string[]): Promise<string[]>;
+
+  /**
+   * Ask a friend (1.8). Ask the friends `friends` (ids, at most 30; only they see it) for 1-10 of an item.
+   * Rejects with Error('too many open' | 'asked recently' | 'too many today' | 'bad ...') when refused.
+   */
+  askHelp(item: string, qty: number, reason: HelpReason, friends: string[]): Promise<HelpRequest>;
+  /** The caller's friends changed: update who sees their open requests. */
+  setHelpFriends(friends: string[]): Promise<void>;
+  /** Cancel the caller's own open request (hazel: because Hazel brought the rest). Rejects 'not open'. */
+  cancelHelp(id: string, hazel?: boolean): Promise<HelpRequest>;
+  /** The caller's own requests: open ones and those that closed in the last two days, newest first. */
+  myHelpRequests(): Promise<HelpRequest[]>;
+  /** Open requests of these friends (ids, at most 30) that the caller may help with. */
+  friendHelpRequests(ids: string[]): Promise<HelpRequest[]>;
+  /**
+   * Send up to `qty` of the requested item. Never more than is still needed: the returned fill says how many
+   * were used. Rejects with Error('closed' | 'not found' | 'yourself' | 'too many today').
+   */
+  fillHelp(id: string, qty: number, auto: boolean): Promise<HelpFill>;
+  /** Fills of the caller's requests that have not arrived yet. */
+  myHelpFills(): Promise<HelpFill[]>;
+  /** Mark fills arrived, each exactly once; returns only those claimed by this call (add exactly these). */
+  claimHelpFills(ids: string[]): Promise<HelpFill[]>;
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }
