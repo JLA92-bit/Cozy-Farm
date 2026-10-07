@@ -78,3 +78,5 @@
 .order-portrait .icon { width: 100%; height: 100%; }
 .order-signer { text-align: left; line-height: 1.15; }
 .order-signer b { font-family: var(--font-display); font-weight: normal; color: var(--ink); }
+.order-npc .card-sub.order-signer { white-space: normal; overflow: visible; font-size: 12px; }
+.order-signer b { display: block; font-size: 15px; }
