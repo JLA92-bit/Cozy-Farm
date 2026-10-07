@@ -4,8 +4,8 @@
  * items; the 1.8 quality agent wires rollQuality() into harvests, animals, fishing and workshops and adds the
  * bonuses (fertiliser, perks) through qualityBoosts.
  */
-import { game, QUALITY_MULT } from './Game';
-import { ECONOMY } from '../data';
+import { game, QUALITY_MULT, type Vec } from './Game';
+import { ECONOMY, ITEMS } from '../data';
 
 export type Quality = 0 | 1 | 2;
 export const QUALITY_NAME = ['Normal', 'Silver', 'Gold'] as const;
@@ -39,4 +39,43 @@ export function rollQuality(source: QualitySource, item: string, rand: () => num
 export function bestQuality(item: string): Quality {
   const [, s, g] = game.qualityCounts(item);
   return g > 0 ? 2 : s > 0 ? 1 : 0;
+}
+
+/**
+ * Does this item come out with a star when made? Feed, bait, fertiliser and event tokens are tools rather than
+ * produce, so a "silver chicken feed" would only confuse: they are always normal.
+ */
+export function rollsQuality(item: string): boolean {
+  const c = ITEMS[item]?.cat;
+  return !!c && c !== 'feed' && c !== 'event';
+}
+
+/** Roll n items one by one: how many came out normal, silver and gold. */
+export function rollCounts(source: QualitySource, item: string, n: number, rand: () => number = Math.random): [number, number, number] {
+  const out: [number, number, number] = [0, 0, 0];
+  if (!rollsQuality(item)) { out[0] = Math.max(0, n); return out; }
+  for (let i = 0; i < n; i++) out[rollQuality(source, item, rand)]++;
+  return out;
+}
+
+/**
+ * Add n freshly made items, each rolling its own quality (a harvest of 2 can be 1 normal + 1 gold). Normal
+ * first, so the floating "+n" reads in order and the star pops land on top. Returns the split.
+ */
+export function addRolled(source: QualitySource, item: string, n: number, at?: Vec): [number, number, number] {
+  const split = rollCounts(source, item, n);
+  split.forEach((k, q) => { if (k > 0) game.addItem(item, k, at, q as Quality); });
+  countStars(split[1], split[2]);
+  return split;
+}
+
+/** Sell price of one item at a quality (same formula as game.sellItem). */
+export function qualityPrice(item: string, q: Quality, n = 1): number {
+  return Math.round((ITEMS[item]?.sell ?? 0) * n * ECONOMY.barn.sellMult * QUALITY_MULT[q]);
+}
+
+/** Dashboard counters for stars made in play (not refunds or gifts). */
+export function countStars(silver: number, gold: number): void {
+  if (silver > 0) game.incStat('silver_items', silver);
+  if (gold > 0) game.incStat('gold_items', gold);
 }

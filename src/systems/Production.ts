@@ -3,6 +3,7 @@ import { buildings, speedupCost } from './Buildings';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { isBuilt, settleProduction } from './Timers';
+import { addRolled, countStars, rollsQuality, type Quality } from './Quality';
 
 export class ProductionSystem {
   recipesFor(type: string): RecipeDef[] {
@@ -11,24 +12,37 @@ export class ProductionSystem {
 
   queued(b: PlacedBuilding): number { return (b.queue ?? []).filter((q) => q.end > game.now()).length; }
 
-  canQueue(b: PlacedBuilding, recipe: string): { ok: boolean; reason?: string } {
+  /**
+   * 1.8: can one more of this recipe be made entirely from silver (1) or gold (2) ingredients? Only for goods
+   * that carry a star (not feed or bait).
+   */
+  canUseStar(recipe: string, q: 1 | 2): boolean {
+    const r = RECIPE[recipe];
+    return !!r && rollsQuality(r.item) && Object.entries(r.in).every(([item, n]) => game.qualityCounts(item)[q] >= n);
+  }
+
+  canQueue(b: PlacedBuilding, recipe: string, star: Quality = 0): { ok: boolean; reason?: string } {
     const r = RECIPE[recipe];
     if (!isBuilt(b, game.now())) return { ok: false, reason: 'Still being built' };
     if (game.level < r.level) return { ok: false, reason: `Unlocks at level ${r.level}` };
     if (this.queued(b) >= buildings.slots(b)) return { ok: false, reason: 'Queue is full' };
     if (!game.has(r.in)) return { ok: false, reason: 'Missing ingredients' };
+    if (star && !this.canUseStar(recipe, star)) return { ok: false, reason: `Not enough ${star === 2 ? 'gold' : 'silver'} ingredients` };
     return { ok: true };
   }
 
-  queue(b: PlacedBuilding, recipe: string): boolean {
-    if (!this.canQueue(b, recipe).ok) return false;
+  /** Queue a job. `star` 1 or 2 takes silver or gold ingredients and the goods come out at that quality. */
+  queue(b: PlacedBuilding, recipe: string, star: Quality = 0): boolean {
+    if (!this.canQueue(b, recipe, star).ok) return false;
     const r = RECIPE[recipe];
-    game.take(r.in);
+    if (star) { for (const [item, n] of Object.entries(r.in)) game.removeQuality(item, star, n); }
+    else game.take(r.in);
     const now = game.now();
     settleProduction(b, now);
     const q = (b.queue ??= []);
     const start = q.length ? Math.max(now, q[q.length - 1].end) : now;
-    q.push({ recipe, start, end: start + r.sec * 1000 });
+    q.push(star ? { recipe, start, end: start + r.sec * 1000, q: star } : { recipe, start, end: start + r.sec * 1000 });
+    if (star) game.incStat('star_jobs');
     game.bus.emit('production:queued', { b, recipe });
     game.bus.emit('building:changed', { b });
     game.bus.emit('sfx', { name: 'select' });
@@ -45,7 +59,8 @@ export class ProductionSystem {
     const dur = e.end - e.start;
     q.splice(index, 1);
     for (let k = index; k < q.length; k++) { q[k].start -= dur; q[k].end -= dur; }
-    for (const [item, n] of Object.entries(RECIPE[e.recipe].in)) game.addItem(item, n);
+    // star ingredients come back as stars
+    for (const [item, n] of Object.entries(RECIPE[e.recipe].in)) game.addItem(item, n, undefined, e.q ?? 0);
     game.bus.emit('building:changed', { b });
     game.bus.emit('sfx', { name: 'close' });
     return true;
@@ -56,12 +71,19 @@ export class ProductionSystem {
     settleProduction(b, game.now());
     const items = b.ready ?? [];
     if (!items.length) return [];
+    const star = b.readyStar ?? {};
     b.ready = [];
+    delete b.readyStar;
     const counts: Record<string, number> = {};
     for (const i of items) counts[i] = (counts[i] ?? 0) + 1;
     let xp = 0;
     for (const [item, n] of Object.entries(counts)) {
-      game.addItem(item, n, at);
+      // goods from star ingredients keep their star; the rest roll their own small chance
+      const s = Math.min(n, star[item]?.[0] ?? 0), g = Math.min(n - s, star[item]?.[1] ?? 0);
+      addRolled('production', item, n - s - g, at);
+      if (s) game.addItem(item, s, at, 1);
+      if (g) game.addItem(item, g, at, 2);
+      countStars(s, g);
       const r = RECIPES.find((x) => x.item === item && x.building === b.type);
       xp += Math.round(((r?.xp ?? 1) * n) / (r?.out ?? 1));
     }

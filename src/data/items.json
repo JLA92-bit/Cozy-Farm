@@ -613,6 +613,12 @@
    "sell": 3,
    "icon": "worm"
   },
+  "fertiliser": {
+   "name": "Fertiliser",
+   "cat": "feed",
+   "sell": 4,
+   "icon": "model:proc/fertiliser"
+  },
   "fish_cake": {
    "name": "Fish Cake",
    "cat": "goods",

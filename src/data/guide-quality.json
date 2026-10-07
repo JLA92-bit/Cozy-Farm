@@ -1,0 +1,37 @@
+{
+ "pages": [
+  {
+   "id": "star-quality",
+   "title": "Star quality",
+   "icon": "star",
+   "paragraphs": [
+    "Everything you grow, pick, collect, catch or make can come out Normal, Silver or Gold. Silver and gold items have a star and the word Silver or Gold on them in your barn.",
+    "About 1 in 8 things comes out silver and about 1 in 33 comes out gold. Each item rolls on its own, so a harvest of 3 can be 2 normal and 1 gold.",
+    "Silver sells for a quarter more at the barn and gold for half as much again. Tap a silver or gold tile in the barn to sell just those; the item card shows all three prices.",
+    "Villagers love a silver or gold gift: it counts for more friendship than a normal one.",
+    "Orders, the truck, the stall and the market always take your normal items first, so your stars are kept for gifts and selling.",
+    "Feed, worm bait and fertiliser are tools, not produce, so they never have a star."
+   ]
+  },
+  {
+   "id": "star-ingredients",
+   "title": "Star ingredients",
+   "icon": "bread",
+   "paragraphs": [
+    "Workshop goods can roll a star too. If you have enough silver (or gold) of every ingredient, the recipe shows Use star ingredients.",
+    "Pick Silver or Gold, then tap Make: the job takes those star ingredients and the goods come out silver or gold. The next job is normal again unless you pick it again.",
+    "If you take back a star job before it starts, your star ingredients come back with their stars."
+   ]
+  },
+  {
+   "id": "fertiliser",
+   "title": "Fertiliser",
+   "icon": "seedling",
+   "paragraphs": [
+    "Fertiliser is made at the Feed Mill from level 8: 2 wheat and 1 corn make 2 bags in 2 minutes.",
+    "When you plant, the seed tray shows a Fertiliser switch first. While it is On, every field you sow uses one bag. It turns itself off when the last bag is used.",
+    "A fertilised field has a better chance of silver and gold when you harvest it: about 1 in 5 silver and 1 in 12 gold. Tap a growing field to see if it was fertilised."
+   ]
+  }
+ ]
+}

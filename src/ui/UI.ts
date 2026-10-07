@@ -9,7 +9,7 @@ import { Effects } from '../world/Effects';
 import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND } from '../data';
 import { game } from '../systems/Game';
 import { buildings, speedupCost } from '../systems/Buildings';
-import { farming } from '../systems/Farming';
+import { farming, FERTILISER } from '../systems/Farming';
 import { land } from '../systems/Land';
 import { audio, haptics } from '../systems/Audio';
 import { hints } from '../systems/Hints';
@@ -20,6 +20,7 @@ import type { FarmScene } from '../scenes/FarmScene';
 import type { Interaction } from '../scenes/Interaction';
 import type { Pointer } from '../core/Input';
 import { decorPopupRows } from './DecorUI';
+import { wireQualityFx } from './QualityUI';
 
 type PanelOpener = (arg?: unknown) => void;
 type BuildingTapHandler = (b: PlacedBuilding) => boolean;
@@ -169,17 +170,20 @@ class UIManager {
         this.feedback.fly(s.x, s.y, 'xp', 'xp', 1, () => this.hud.refresh());
       } else this.hud.refresh();
     });
-    bus.on('item', ({ item, delta, at }) => {
+    bus.on('item', ({ item, delta, at, quality }) => {
       if (delta > 0 && at) {
         const s = this.screen(at);
-        this.feedback.floatText(s.x - 24, s.y - 50, `+${delta}`, ITEMS[item]?.icon.startsWith('model:') ? undefined : ITEMS[item]?.icon, '#fff');
-        if (ITEMS[item]?.icon.startsWith('model:')) {
+        // silver and gold get their own starred pop instead (QualityUI), so the numbers never stack up
+        if (!quality) this.feedback.floatText(s.x - 24, s.y - 50, `+${delta}`, ITEMS[item]?.icon.startsWith('model:') ? undefined : ITEMS[item]?.icon, '#fff');
+        if (!quality && ITEMS[item]?.icon.startsWith('model:')) {
           const el = this.feedback.floatLayer.lastElementChild as HTMLElement | null;
           el?.prepend(itemIcon(item));
         }
         this.feedback.fly(s.x, s.y, ITEMS[item]?.icon.startsWith('model:') ? 'package' : ITEMS[item]?.icon ?? 'package', 'barn', 1);
       }
     });
+    // 1.8: silver and gold items pop with a star and sparkle over where they were made
+    wireQualityFx(this.feedback, this.effects, (v) => this.screen(v), (uid) => this.scene.farm.anchor(uid));
     bus.on('toast', ({ title, sub, icon: ic, style }) => this.feedback.toast(title, sub, ic ?? 'star', style ?? ''));
     bus.on('sfx', ({ name }) => audio.play(name));
     bus.on('building:placed', ({ b, isNew }) => { void this.scene.farm.addBuilding(b, true); if (isNew && BUILDING[b.type].buildSec) audio.play('build2'); });
@@ -222,6 +226,8 @@ class UIManager {
     const tray = h('div', { class: 'tray' });
     const render = (sel: string | null) => {
       clear(tray);
+      // 1.8: with fertiliser in the barn, a toggle comes first: every field sown while it is on uses one
+      if (game.count(FERTILISER) > 0 || farming.useFert) tray.append(this.fertTile());
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
@@ -260,6 +266,7 @@ class UIManager {
       queued = true;
       requestAnimationFrame(() => {
         queued = false;
+        this.syncFertTile(tray);
         tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked)').forEach((el) => {
           const c = CROP[el.dataset.crop ?? ''];
           if (!c) return;
@@ -307,6 +314,33 @@ class UIManager {
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
+  }
+
+  /** The seed tray's fertiliser toggle tile (1.8). */
+  private fertTile(): HTMLElement {
+    const el = h('div', { class: 'tray-item fert-toggle', role: 'switch', dataset: { fert: '1' } },
+      itemIcon(FERTILISER), h('div', null, 'Fertiliser'), h('div', { class: 'fert-state outlined' }), h('div', { class: 'thave outlined', title: 'In your barn' }));
+    el.addEventListener('click', () => {
+      if (!farming.useFert && game.count(FERTILISER) <= 0) { this.feedback.toast('No fertiliser left', 'Make more at the Feed Mill', 'seedling'); audio.play('error'); return; }
+      farming.useFert = !farming.useFert;
+      audio.play('select', { volume: 0.6 });
+      if (farming.useFert) this.feedback.toast('Fertiliser on', 'Each field you sow now uses one: more silver and gold at harvest', 'seedling');
+      this.syncFertTile(el.parentElement);
+    });
+    queueMicrotask(() => this.syncFertTile(el.parentElement));
+    return el;
+  }
+  private syncFertTile(tray: HTMLElement | null): void {
+    const el = tray?.querySelector<HTMLElement>('.fert-toggle');
+    if (!el) return;
+    const have = game.count(FERTILISER);
+    el.classList.toggle('on', farming.useFert);
+    el.setAttribute('aria-checked', String(farming.useFert));
+    el.setAttribute('aria-label', `Plant with fertiliser: ${farming.useFert ? 'on' : 'off'}, ${have} in the barn`);
+    el.querySelector('.fert-state')!.textContent = farming.useFert ? 'On' : 'Off';
+    const tag = el.querySelector<HTMLElement>('.thave')!;
+    tag.textContent = String(have);
+    tag.style.display = have ? '' : 'none';
   }
 
   closeSeedTray(): void {
@@ -426,6 +460,7 @@ class UIManager {
       timerEnd = now + plotRemaining(b, now);
       growTotal = b.plot.growSec * 1000;
       rows.push(h('div', { class: 'row' }, itemIcon(b.plot.crop), h('div', { class: 'card-sub' }, `${CROP[b.plot.crop].name} growing`)));
+      if (b.plot.fert) rows.push(h('div', { class: 'row' }, itemIcon('fertiliser'), h('div', { class: 'card-sub' }, 'Fertilised: more silver and gold')));
       speedCost = farming.speedupCost(b);
       speedFn = () => farming.speedup(b);
     } else if (def.tree && b.tree && !treeReady(b, now)) {

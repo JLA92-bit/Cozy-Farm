@@ -18,6 +18,7 @@ import { worldToTile } from '../../world/Grid';
 import { walkable } from '../../world/People';
 import { player } from '../../scenes/Player';
 import { confetti } from './ProgressionPanels';
+import { starBadge } from '../QualityUI';
 import './fishing.css';
 
 type Step = 'idle' | 'cast' | 'wait' | 'bite' | 'reel' | 'land' | 'reveal' | 'lost';
@@ -544,6 +545,7 @@ class FishingController {
         ribbon ? h('div', { class: 'fish-ribbon outlined' }, ribbon) : null,
         h('div', { class: 'fish-reveal-icon' }, icon(r.icon)),
         h('div', { class: 'fish-reveal-name outlined' }, r.note ? 'Message in a bottle!' : r.name),
+        r.quality ? h('div', { class: 'q-catch' }, starBadge(r.quality)) : null,
         ...rows, pills,
         button(fishing.canCast ? 'Cast again' : 'OK', done, 'fish-again')));
     card.addEventListener('pointerdown', (e) => { if (e.target === card) done(); });
@@ -560,6 +562,7 @@ class FishingController {
       ui.scene.rig.shake(0.18, 0.4);
     } else if (legendary) { confetti(50, ['#ffc93c', '#ffe066', '#fff3c4', '#8fd3ff']); audio.play('reward'); haptics.play('celebrate'); }
     else if (ribbon) { audio.play(r.firstCatch ? 'unlock' : 'bonus', { volume: 0.8 }); confetti(20); }
+    else if (r.quality === 2) { audio.play('bonus', { volume: 0.8 }); confetti(16, ['#ffcf3f', '#ffe066', '#fff3c4']); }
     else audio.play(r.note ? 'reward' : 'sparkle', { volume: 0.7 });
     ui.effects.sparkle(this.tmp.copy(this.view!.seat).setY(this.view!.seat.y + 1.2), mythic ? '#ffb8f0' : legendary ? '#ffe066' : '#fff6a0', mythic ? 32 : legendary ? 20 : 10);
   }
