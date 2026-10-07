@@ -1,4 +1,19 @@
-# Cozy Acres 1.8.5 plan (draft for approval)
+# Cozy Acres 1.8.5 plan
+
+**Status (7 Oct 2026): built and committed locally, not pushed.** Decisions from Josh: split approved (1.8.5 = Skills + Pantry, Barn Room, Treasury; 1.8.6 = Pier, Kitchen, Workshop, Crafting, festival); the square is a real 3D place built from the game's own KayKit and Kenney models (no placeholder boxes); all 16 skill perks are built; market day as suggested; the Pixel 10 fix is confirmed so Skills did not wait for it.
+
+**What differs from the draft below:**
+- **Market day** pays +10% on orders and the roadside stall (every Saturday) instead of adding an extra order, because an extra order slot would have become permanent on the board.
+- **Pantry reward:** Rosa's rare seeds are a new item (`rare_seed`) with a seed tray toggle like fertiliser, a bigger quality boost, 3 a day for 60 coins.
+- **Happy Herd** means a quarter of collected animals carry on without needing new feed. Quick Grower and the crop perks only affect fields planted after the perk is chosen (a field's grow time is fixed when it is sown).
+- **Square scene** shipped in 1.8.5 as a real island with its own jetty, plus a signpost, jetty and boat on the farm's east beach. On narrow phones the lots stand along a main street instead of a curved row.
+- **Restoration head start:** none (players just give items).
+- The dashboard page and an optional re-run of `supabase/schema.sql` (new section at the end) cover the new events.
+
+---
+
+## Original draft plan (kept for reference)
+
 
 Source: the 1.8 design brief (Claude Doc "Cozy Acres 1.8 Village Friends - Design Brief") checked against the code on `main` (1.8.1). Nothing here is built. Size guide: S = under a day, M = a few days, L = a week or more of agent work.
 

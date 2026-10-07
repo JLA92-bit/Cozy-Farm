@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 7 October 2026 (game version 1.8.1). Owner: Josh Makes Games.
+Last updated: 7 October 2026 (game version 1.8.5, built locally and not pushed yet). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.8.1** (1.8.0 "Village Friends" + blank-screen fix) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.8.5 "The Village Square"** (live is 1.8.1 until pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.8.5 added:** four skills (Farming, Animals, Fishing, Cooking; level 1-10, 16 perks, head start for old farms; `src/systems/Skills.ts`, `SkillEffects.ts`, `skills.json`, Me > Skills) and Village Restoration (an island village square across the water with six lots; Pantry, Barn Room and Treasury can be rebuilt with bundles, the other three are ruins marked `soon`; `src/systems/Restoration.ts`, `RestorationEffects.ts`, `restoration.json`, 3D scene `src/world/SquareView.ts` + `src/scenes/Square.ts`, room screens `SquarePanel.ts`, the signpost/jetty on the farm's east beach `SquareGate.ts`). Rewards: Rosa's rare seeds (new item `rare_seed`, seed tray toggle), animals 10% faster, trucks +15%, Saturday market day (orders and stall +10%). Dashboard page "1.8.5 Square". Design: `PLAN-1.8.5.md`, balance: `BALANCE.md`.
 
 **1.8.0 added:** six villagers (Rosa, Old Tom, Juniper, Pip, Hazel, Bram) with hearts, daily gifts, letters, keepsakes and perks; silver/gold starred items; a mailbox with daily visits and finds; Ask a friend; fertiliser; weather; new Book pages (Calendar, Letters, Village Guide); and a one-off welcome flow with a head start for pre-1.8 farmers.
 
@@ -30,11 +32,12 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 ```
 src/core      renderer (Renderer.ts), camera, touch input, game loop, asset loader
-src/world     terrain, environment (sky, weather visuals), farm view, characters, villagers, effects
+src/world     terrain, environment (sky, weather visuals), farm view, characters, villagers, effects,
+              SquareView/SquareGate (the village square island and the way to it)
 src/systems   game state + event bus, farming, animals, production, economy, progression, save, audio,
               Village, VillageRewards, Perks, Mail, Help (Ask a friend), Weather, Quality (silver/gold),
-              Welcome18, Daily18, AdminGifts, Settings
-src/scenes    Boot, FarmScene, Interaction, Player, Visit
+              Welcome18, Daily18, AdminGifts, Settings, Skills (+SkillEffects, SkillMath), Restoration (+RestorationEffects)
+src/scenes    Boot, FarmScene, Interaction, Player, Visit, Square (going to the village square), GpuGuard
 src/online    Supabase backend, practice backend, profile sync, Google sign-in, cloud saves
 src/notify    phone notifications (web push)
 src/ui        HUD, panels (src/ui/panels: Village, Mail, Help, Welcome18, BookPages18, Settings...), popups
@@ -106,9 +109,12 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 6. Known issues
 
-**GPU safety net (added in 1.8.1, needs confirming on a real Pixel 10 Pro).** The Pixel 10 Pro (Imagination PowerVR) showed a white 3D view on Medium/High, probably from shadow maps. Now: `src/core/Renderer.ts` detects PowerVR/Imagination (`WEBGL_debug_renderer_info`) and treats an unset `settings.shadows` as off there (a player's own choice always wins); `src/scenes/GpuGuard.ts` reads pixels once the boot screen is gone and, if 9 spread-out pixels are all white or transparent, turns shadows off, then drops to Low and saves it (it checks once per quality: `settings.gpuChecked`; picking a quality or the Shadows switch stops it for good), and handles `webglcontextlost`/`restored`; Settings > Graphics has a Shadows switch. GPU info and fallbacks go to the admin dashboard via `logEvent` (kinds `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back`, `gpu_blank_low`; only when signed in online). If a phone still shows white: Settings > Graphics > Low. The `onBeforeCompile`/`ShaderMaterial` GLSL in `Terrain.ts` and `FarmView.ts` was reviewed and looks valid (no strict-compiler problems found), but it was not tested on PowerVR.
+**GPU safety net (added in 1.8.1, confirmed working on a Pixel 10 Pro by Josh).** The Pixel 10 Pro (Imagination PowerVR) showed a white 3D view on Medium/High, probably from shadow maps. Now: `src/core/Renderer.ts` detects PowerVR/Imagination (`WEBGL_debug_renderer_info`) and treats an unset `settings.shadows` as off there (a player's own choice always wins); `src/scenes/GpuGuard.ts` reads pixels once the boot screen is gone and, if 9 spread-out pixels are all white or transparent, turns shadows off, then drops to Low and saves it (it checks once per quality: `settings.gpuChecked`; picking a quality or the Shadows switch stops it for good), and handles `webglcontextlost`/`restored`; Settings > Graphics has a Shadows switch. GPU info and fallbacks go to the admin dashboard via `logEvent` (kinds `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back`, `gpu_blank_low`; only when signed in online). If a phone still shows white: Settings > Graphics > Low. The `onBeforeCompile`/`ShaderMaterial` GLSL in `Terrain.ts` and `FarmView.ts` was reviewed and looks valid (no strict-compiler problems found), but it was not tested on PowerVR.
 
 **Other rough edges (not fixed):**
+- 1.8.5: the Pier, Kitchen and Workshop rooms are ruins marked `soon` (no bundles yet). Skills and the square were tested in headless Chromium, not yet on real phones.
+- 1.8.5: the dashboard page "1.8.5 Square" needs the `1.8.5 skills and village restoration` section of `supabase/schema.sql` run in Supabase.
+- Market day is every Saturday in the player's local time (not a server calendar).
 - Old players get six 2-heart tip letters at once on their first 1.8 boot (head start). Could be spread over days.
 - Practice-mode demo neighbour "Old Tom" (`src/online/LocalBackend.ts`) shares a name with villager Old Tom.
 - `src/world/VillagerLooks18.ts` and the welcome's look table duplicate `villagers.json` `look` (`look` wins; they are fallbacks only).
@@ -149,14 +155,15 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Confirm the 1.8.1 white-screen fix on the Pixel 10 Pro** (section 6). If still white, check the `gpu_info` events for the GPU string.
+- [ ] **Review and push 1.8.5** (built and committed locally; nothing is pushed until Josh says "yes push"). Run the whole `supabase/schema.sql` in Supabase afterwards for the new dashboard page.
+- [ ] 1.8.6: the Pier (second fishing spot), Kitchen (new workshop) and Workshop (Crafting skill, crafted helpers) rooms, then the village festival. After that the new content from the 1.8 design brief (Beehive, Juice press, Kiln, Ducks, Horses, Blueberry, Peas, Lavender, mastery plaques).
 - [ ] Make sure the latest `supabase/schema.sql` (1.8 game events, letters, Ask a friend) has been run in Supabase.
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
 - [ ] After 14 days: apply for production, add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
-- [ ] Ideas for 1.8.5+ (not started): Village Restoration (community bundles), Skills, new workshops and animals, level 20-50 map, village market day (Saturdays; only a placeholder label exists in the Calendar). Design brief: https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
+- [ ] Ideas still not started: seasons and a fuller Collection Book (1.9), a level 20-50 map. Design brief: https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
 - [ ] Later: iOS. A plain web wrapper risks App Store guideline 4.2 rejection. Capacitor with native features (push, offline bundle, Sign in with Apple) is the likely route. Meanwhile iPhone players can **Add to Home Screen** from Safari.
 
 ---
@@ -178,6 +185,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-07: Game 1.8.5 "The Village Square" built and committed locally (skills, village restoration with a 3D square, rare seeds, market day, dashboard page). Not pushed until Josh approves.
 - 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.
 - 2026-10-07: Game 1.8.0 "Village Friends" released (villagers, hearts, letters, perks, mailbox, Ask a friend, silver/gold items, fertiliser, weather, welcome flow). Pixel 10 white screen diagnosed (shadows); fix still to do.
 - 2026-10-06: Game 1.7.0 (admin dashboard, gifts that arrive by themselves, feedback, play statistics).
