@@ -78,6 +78,14 @@
        "text": "New Book pages: a Calendar with birthdays, all your Letters and a Village Guide"
       },
       {
+       "icon": "seedling",
+       "text": "Fertiliser from the Feed Mill gives a field a better chance of silver and gold"
+      },
+      {
+       "icon": "sun",
+       "text": "Weather: sunny days, gentle rain that helps new crops grow and brings rare fish, and misty mornings"
+      },
+      {
        "icon": "info",
        "text": "Missed the welcome or want to see it again? Settings > Replay 1.8 welcome"
       }

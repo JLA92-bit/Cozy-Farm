@@ -81,6 +81,12 @@ const TARGETS: Record<string, Target> = {
   help: { label: 'Order Board', icon: 'clipboard', world: 'order_board' },
 };
 
+/** Loves the welcome shows count as found: the Village page and gift picker then list them (loved first). */
+function learnLoves(id: string, items: string[]): void {
+  const known = village.friend(id).known;
+  for (const x of items) if (!known.includes(x)) known.push(x);
+}
+
 function visibleEl(sel: string): HTMLElement | null {
   for (const el of document.querySelectorAll<HTMLElement>(sel)) {
     const r = el.getBoundingClientRect();
@@ -319,6 +325,7 @@ class Flow {
   private villagerCard(): HTMLElement {
     const v = VILLAGERS[this.vi];
     const loves = v.loves.filter((x) => ITEMS[x]).slice(0, 3);
+    learnLoves(v.id, loves);
     const strip = h('div', { class: 'w18-vstrip', role: 'tablist', 'aria-label': 'Villagers' }, ...VILLAGERS.map((x, k) =>
       h('button', { class: `w18-vtab${k === this.vi ? ' on' : ''}`, type: 'button', role: 'tab', 'aria-selected': String(k === this.vi), 'aria-label': x.name,
         onclick: () => { if (k !== this.vi) { const d = k > this.vi ? 1 : -1; this.vi = k; this.render(d); audio.play('page', { volume: 0.5 }); } } },
@@ -363,6 +370,7 @@ class Flow {
     const basket = welcome18.ensureBasket();
     const opts = welcome18.giftOptions(id);
     const canGive = village.canGift(id);
+    learnLoves(id, VILLAGER[id].loves.filter((x) => ITEMS[x]));
     const loves = VILLAGER[id].loves.filter((x) => ITEMS[x]).map((x) => ITEMS[x].name);
     const hasVillage = ui.has('village');
     const card = h('div', { class: 'w18-card w18-gift' },
@@ -388,7 +396,7 @@ class Flow {
           return row;
         })));
     } else card.append(h('div', { class: 'w18-note' }, icon('info'), h('span', null, `Nothing ${vname(id)} likes in your barn yet. Any gift still makes her smile.`)));
-    if (hasVillage) card.append(button([icon('house'), 'Open the Village'], () => this.toVillage(), 'green wide w18-gift-go'));
+    if (hasVillage) card.append(button([icon('hug'), 'Open the Village'], () => this.toVillage(), 'green wide w18-gift-go'));
     return card;
   }
 
@@ -523,7 +531,7 @@ class Flow {
       if (isOpen !== open) {
         open = isOpen;
         row.replaceChildren(button('Later', () => { this.hideCoach(); this.later(); }, 'small grey'));
-        if (!isOpen) row.append(button([icon('house'), 'Open the Village'], () => ui.open('village', { villager: W18.giftVillager }), 'small green'));
+        if (!isOpen) row.append(button([icon('hug'), 'Open the Village'], () => ui.open('village', { villager: W18.giftVillager }), 'small green'));
         text.textContent = isOpen ? `Give ${vname(W18.giftVillager)} something she loves. Tap Gift, then pick one of her favourites.` : `The Village is where ${vname(W18.giftVillager)} lives. Open it to give her a gift.`;
       }
       const target = isOpen ? this.giftButton() : null;

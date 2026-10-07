@@ -152,5 +152,5 @@ function renderStored(p: Panel): void {
   p.body.append(grid);
 }
 
-ui.register('inventory', (tab) => openInventory(tab as string | undefined));
+ui.register('inventory', (tab) => openInventory((tab as string | null) ?? undefined));
 ui.onBuildingTap((b) => { if (b.type !== 'barn') return false; ui.open('inventory'); return true; });
