@@ -187,8 +187,12 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
       rewards: Array.isArray(r.rewards) ? r.rewards.filter((x): x is number => typeof x === 'number') : [],
       known: strArr(r.known).filter((x) => !!ITEMS[x]),
     };
+    // villagers agent's optional fields: kept only when well formed
+    if (Array.isArray(r.stories)) vf[k].stories = r.stories.filter((x): x is number => typeof x === 'number');
+    for (const key of ['bdayThanks', 'weeklyDay', 'treasureWeek'] as const) if (typeof r[key] === 'string' && r[key]) vf[k][key] = r[key] as string;
   }
   out.village.friends = vf;
+  if (out.village.openedDay !== undefined && typeof out.village.openedDay !== 'string') delete out.village.openedDay;
   const td = out.village.today;
   if (typeof td.day !== 'string') td.day = '';
   if (typeof td.visitor !== 'string') td.visitor = '';

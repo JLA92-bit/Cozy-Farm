@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { assets } from '../core/Assets';
-import { BUILDING, COSMETICS } from '../data';
+import { BUILDING, COSMETICS, VILLAGER } from '../data';
 import { Character } from './Character';
 import { procGeometry } from './ProcModels';
 import { objectFor, visualFor } from './Visuals';
@@ -74,6 +74,14 @@ class Thumbs {
       c.mixer.update(0.4);
       return c.root;
     }
+    if (key.startsWith('villager:')) {
+      // 1.8: a named villager's portrait (their look in villagers.json), without the pet
+      const v = VILLAGER[key.slice(9)];
+      if (!v) return null;
+      const c = await Character.create({ ...v.look, pet: 'none' });
+      c.mixer.update(0.4);
+      return c.root;
+    }
     if (key.startsWith('building:')) {
       const type = key.slice(9);
       const def = BUILDING[type];
@@ -102,7 +110,7 @@ class Thumbs {
     obj.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(obj);
     const sphere = box.getBoundingSphere(new THREE.Sphere());
-    const portrait = key.startsWith('avatar:') || key.startsWith('look:');
+    const portrait = key.startsWith('avatar:') || key.startsWith('look:') || key.startsWith('villager:');
     if (portrait) { sphere.center.y += sphere.radius * 0.2; sphere.radius *= 0.8; }
     const dir = portrait ? new THREE.Vector3(0.25, 0.3, 1).normalize() : new THREE.Vector3(1, 0.85, 1.15).normalize();
     const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(this.camera.fov / 2)) * (portrait ? 0.9 : 1.02);

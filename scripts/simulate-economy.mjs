@@ -398,7 +398,7 @@ function truckFill() {
 }
 
 // ------------------------------------------------------------------ crates (rolled like the game)
-const decorPool = BUILDINGS.filter((b) => b.cat === 'decor' && !b.event && !b.path);
+const decorPool = BUILDINGS.filter((b) => b.cat === 'decor' && !b.event && !b.path && b.cost > 0);
 function openCrate(rarity) {
   const C = REWARDS.crates;
   const ix = C.rarities.indexOf(rarity);

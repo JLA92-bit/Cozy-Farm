@@ -17,6 +17,8 @@ export interface SayOpts {
   height?: number;
   /** higher priority lines may replace lower ones when the screen is busy */
   prio?: number;
+  /** a small name tag over the line (a villager you tapped) */
+  name?: string;
 }
 
 const MAX_LINES = 3;
@@ -46,11 +48,12 @@ class SpeechBubbles {
         this.drop(weakest);
       }
     } else this.remove(cur);
-    const ic = o.icon, text = o.text;
+    const ic = o.icon, text = o.text, name = o.name;
     const build = (): HTMLElement => {
       const kids: (HTMLElement | string)[] = [];
       if (ic) kids.push(ITEMS[ic] ? itemIcon(ic) : icon(ic));
-      if (text) kids.push(h('span', { class: 'speech-text' }, text));
+      if (text && name) kids.push(h('span', { class: 'speech-body' }, h('span', { class: 'speech-name' }, name), h('span', { class: 'speech-text' }, text)));
+      else if (text) kids.push(h('span', { class: 'speech-text' }, text));
       return h('div', { class: `speech${text ? '' : ' speech-emote'}` }, ...kids);
     };
     const line: Line = { key: `speech${++this.seq}`, target, height: o.height ?? (target.userData.speechHeight as number | undefined) ?? 1.9, pos: new THREE.Vector3(), until: this.time + (o.dur ?? (text ? 2.4 + text.length * 0.05 : 1.8)), build, version: String(this.seq), prio, leaving: false };

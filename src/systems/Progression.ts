@@ -19,7 +19,7 @@ export function unlocksAt(level: number): UnlockEntry[] {
   for (const t of TREES) if (t.level === level) out.push({ kind: 'Tree', id: t.id, name: t.name, icon: ITEMS[t.item].icon, level });
   for (const a of ANIMALS) if (a.level === level) out.push({ kind: 'Animal', id: a.id, name: a.name, icon: `model:${a.model}`, level });
   for (const b of BUILDINGS) if (b.level === level && !b.event && b.cat !== 'farm' && b.cost > 0) out.push({ kind: b.cat === 'decor' ? 'Decor' : 'Building', id: b.id, name: b.name, icon: `building:${b.id}`, level });
-  for (const r of RECIPES) if (r.level === level && r.level > BUILDING[r.building].level) out.push({ kind: 'Recipe', id: r.id, name: ITEMS[r.item].name, icon: ITEMS[r.item].icon, level });
+  for (const r of RECIPES) if (r.level === level && r.level > BUILDING[r.building].level && !r.perk) out.push({ kind: 'Recipe', id: r.id, name: ITEMS[r.item].name, icon: ITEMS[r.item].icon, level });
   for (const list of [COSMETICS.hats, COSMETICS.accessories, COSMETICS.pets]) for (const c of list) if (c.unlock.level === level) out.push({ kind: 'Style', id: c.id, name: c.name, icon: c.model ? `model:${c.model}` : 'hat', level });
   for (const o of COSMETICS.outfitColors) if (o.unlock.level === level) out.push({ kind: 'Style', id: o.color, name: `${o.name ?? 'New'} outfit colour`, icon: 'paint', level });
   for (const f of FARMHOUSE.levels) if (f.playerLevel === level && f.level > 1) out.push({ kind: 'Upgrade', id: `fh${f.level}`, name: `Farmhouse level ${f.level}`, icon: 'house', level });

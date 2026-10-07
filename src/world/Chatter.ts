@@ -1,4 +1,4 @@
-import { ANIMAL, BUILDING, ITEMS } from '../data';
+import { ANIMAL, BUILDING, ITEMS, type VillagerDef } from '../data';
 import { game } from '../systems/Game';
 import { animals } from '../systems/Animals';
 import { buildings } from '../systems/Buildings';
@@ -11,14 +11,8 @@ export const pick = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.l
 const fill = (s: string, vars: Record<string, string>): string => s.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? '');
 const lower = (s: string): string => s.toLowerCase();
 
-export const VILLAGER_NAMES = ['Mabel', 'Otis', 'Juniper', 'Rosie', 'Hank', 'Clover', 'Pip', 'Hazel', 'Wren', 'Barney', 'Poppy', 'Fern', 'Milo', 'Daisy', 'Gus', 'Tilly'] as const;
 
 const ANIMAL_SOUND: Record<string, string> = { cow: 'Moo!', chicken: 'Cluck cluck!', pig: 'Oink oink!', sheep: 'Baa!', goat: 'Meh-eh!' };
-const STORIES = [
-  'My cat stole a pie again.', 'The bees are extra busy today.', 'I heard the merchant has rare things!', 'Grandma says rain brings luck.',
-  'I am saving up for a fountain!', 'Fresh bread is the best smell.', 'My cow once won a ribbon!', 'I saw a fox by the pond!',
-  'Someone hums while they farm...', 'Pumpkin pie season, please!', 'I lost my hat in the wind.', 'Wave at the truck driver for me!',
-];
 
 /** Is it evening or night right now? (Environment.night is 0 by day, 1 at night.) */
 export const isNight = (night: number): boolean => night > 0.55;
@@ -74,17 +68,21 @@ export function reactionTo(b: PlacedBuilding): SayOpts {
   return { icon: 'smile' };
 }
 
-/** What a villager says when you tap them: a bit of their own story, or a gentle hint. */
-export function tapLine(name: string, night: number): SayOpts {
-  const r = Math.random();
+/**
+ * What a named villager says when you tap them (1.8): hello the first time, their birthday, a line in their own
+ * voice, or now and then a gentle hint about the farm.
+ */
+export function tapLine(v: VillagerDef, night: number, firstMeet: boolean, birthday: boolean): SayOpts {
+  if (firstMeet) return { icon: 'wave', text: `Hi! I'm ${v.name}. ${v.role}.` };
+  if (birthday) return { icon: 'birthday_cake', text: v.birthdayChat };
   const now = game.now();
-  if (r < 0.2) return { icon: 'wave', text: `I'm ${name}! ${isNight(night) ? 'Nice evening.' : 'Lovely day.'}` };
-  if (r < 0.45) {
+  if (Math.random() < 0.2) {
     const ready = game.state.buildings.find((b) => b.type === 'plot' && b.plot && plotReady(b, now));
     if (ready?.plot) { const it = ready.plot.crop; return { icon: it, text: `Your ${lower(ITEMS[it]?.name ?? it)} is ready!` }; }
     if (buildings.charm() < 60) return { icon: 'blossom', text: 'More flowers would be so pretty!' };
   }
-  return { icon: pick(['smile', 'heart', 'music', 'sun']), text: pick(STORIES) };
+  if (isNight(night) && Math.random() < 0.25) return { icon: 'moon', text: pick(['Lovely evening, isn\'t it?', 'The stars are out!', 'Nearly bedtime for me.']) };
+  return { icon: Math.random() < 0.5 ? v.icon : pick(['smile', 'heart', 'music', 'sun']), text: pick(v.chat) };
 }
 
 /** The farmer's own thoughts when tapped: the most useful nudge first. */

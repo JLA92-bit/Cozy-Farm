@@ -74,7 +74,7 @@ for (const c of crops) unlockLevels.add(c.level);
 for (const t of trees) unlockLevels.add(t.level);
 for (const a of animals) unlockLevels.add(a.level);
 for (const b of buildings) if (!b.event && b.cost > 0) unlockLevels.add(b.level);
-for (const r of recipes) unlockLevels.add(r.level);
+for (const r of recipes) if (!r.perk) unlockLevels.add(r.level); // perk recipes (1.8 villagers) are gifts, not level unlocks
 for (const list of [cosmetics.hats, cosmetics.accessories, cosmetics.pets, cosmetics.outfitColors]) for (const c of list) if (c.unlock.level) unlockLevels.add(c.unlock.level);
 for (const f of farmhouse.levels) unlockLevels.add(f.playerLevel);
 for (const lv of Object.keys(levels.orderSlots)) unlockLevels.add(Number(lv));
@@ -167,7 +167,24 @@ releases?.forEach((r, i) => {
     const [m, d] = p.birthday ?? [];
     if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) err(`villager ${p.id}: bad birthday`);
     if (!p.perk6?.id) err(`villager ${p.id}: no 6-heart perk`);
+    // looks, keepsakes and every piece of text the villagers agent wrote
+    const L = p.look ?? {};
+    if (!cosmetics.bodies.some((b) => b.id === L.body)) err(`villager ${p.id}: unknown body ${L.body}`);
+    if (!cosmetics.hats.some((c) => c.id === L.hat)) err(`villager ${p.id}: unknown hat ${L.hat}`);
+    if (!cosmetics.accessories.some((c) => c.id === L.accessory)) err(`villager ${p.id}: unknown accessory ${L.accessory}`);
+    if (!cosmetics.pets.some((c) => c.id === L.pet)) err(`villager ${p.id}: unknown pet ${L.pet}`);
+    for (const k of ['keepsake', 'portrait']) if (BUILDING[p[k]]?.group !== 'keepsakes') err(`villager ${p.id}: ${k} ${p[k]} is not a keepsakes decoration`);
+    if ((p.chat ?? []).length < 5 || !p.birthdayChat) err(`villager ${p.id}: needs 5+ chat lines and a birthday line`);
+    for (const t of ['love', 'like', 'neutral', 'dislike']) if ((p.react?.[t] ?? []).length < 3) err(`villager ${p.id}: needs 3 ${t} reactions`);
+    if (!(p.react?.birthday ?? []).length) err(`villager ${p.id}: needs birthday reactions`);
+    for (const k of ['hearts2', 'perk', 'best', 'weekly', 'birthday']) if (!p.letters?.[k]?.title || !p.letters?.[k]?.body) err(`villager ${p.id}: letter ${k} missing`);
+    for (const m of ['4', '8']) if ((p.stories?.[m]?.cards ?? []).length < 3) err(`villager ${p.id}: story ${m} needs 3-4 cards`);
+    for (const c of Object.values(p.stories ?? {}).flatMap((s) => s.cards)) if (icons && !icons[c.icon]) err(`villager ${p.id}: story icon ${c.icon} unknown`);
+    for (const it of Object.keys(p.weekly?.items ?? {})) if (!items[it]) err(`villager ${p.id}: weekly gift has unknown item ${it}`);
+    if (/\u2014|\u2013/.test(JSON.stringify(p))) err(`villager ${p.id}: no em or en dashes in text`);
   }
+  for (const t of v.pipTreasures ?? []) for (const it of Object.keys(t.items ?? {})) if (!items[it]) err(`pip treasure: unknown item ${it}`);
+  for (const r of recipes) if (r.perk && !v.villagers.some((p) => p.perk6?.id === r.perk)) err(`recipe ${r.id}: unknown perk ${r.perk}`);
   if (!v.friendship?.pointsPerHeart || !Array.isArray(v.friendship.milestones)) err('villagers.json: friendship settings missing');
 }
 

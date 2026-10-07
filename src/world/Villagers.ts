@@ -1,22 +1,27 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { COSMETICS, BUILDING } from '../data';
+import { BUILDING, FRIENDSHIP, VILLAGER, VILLAGERS } from '../data';
 import { game } from '../systems/Game';
 import { buildings } from '../systems/Buildings';
 import { audio } from '../systems/Audio';
 import type { PlacedBuilding } from '../systems/State';
 import { Character } from './Character';
 import { Walker, besideBuilding, buildingCenter, walkable } from './People';
-import { VILLAGER_NAMES, arrivalLine, greeting, isNight, leavingLine, pick, reactionTo, tapLine } from './Chatter';
+import { arrivalLine, greeting, isNight, leavingLine, pick, reactionTo, tapLine } from './Chatter';
 import { speech } from '../ui/Speech';
 import { ui } from '../ui/UI';
+import { village } from '../systems/Village';
+import { villageRewards } from '../systems/VillageRewards';
+import { localDay } from '../systems/Progression';
+import { saves } from '../systems/Save';
 import type { FarmScene } from '../scenes/FarmScene';
 
-const BODIES = COSMETICS.bodies.map((b) => b.id);
 
 interface Stop { b: PlacedBuilding | null; x: number; z: number }
 interface Villager {
-  w: Walker; name: string; plan: Stop[]; leaving: boolean; wait: number; greeted: boolean;
+  /** which of the six villagers (villagers.json) */
+  id: string;
+  w: Walker; plan: Stop[]; leaving: boolean; wait: number; greeted: boolean;
   /** building we are standing next to (to react once we arrive) */
   at: Stop | null; chatCooldown: number; gone: boolean;
   /** standing tile to hop back to after sitting on a bench */
@@ -83,19 +88,21 @@ export class Villagers {
     if (this.loading) return;
     this.loading = true;
     try {
-      const look = {
-        body: pick(BODIES), skin: pick(COSMETICS.skinTones), hair: pick(COSMETICS.hairColors),
-        top: pick(COSMETICS.outfitColors).color, bottom: pick(COSMETICS.outfitColors).color,
-        hat: pick(['none', 'none', 'straw', 'cap', 'beanie', 'bucket', 'flower_crown']), accessory: Math.random() < 0.25 ? pick(['backpack', 'scarf', 'glasses', 'flower']) : 'none', pet: Math.random() < 0.18 ? pick(['dog', 'cat', 'dog', 'bunny']) : 'none',
-      };
-      const c = await Character.create(look, 1.4);
+      // 1.8: the six named villagers, each with their own look; never two of the same person at once
+      const here = new Set(this.list.map((x) => x.id));
+      // the villager of the day waiting at the farmhouse (mail agent's Daily18) is not also out walking
+      const td = game.state.village.today;
+      if (td.visitor && td.day === localDay(game.now()) && !td.visitorDone) here.add(td.visitor);
+      const free = VILLAGERS.filter((x) => !here.has(x.id));
+      if (!free.length) return;
+      const who = pick(free);
+      const c = await Character.create({ ...who.look }, who.scale);
+      if (this.list.some((x) => x.id === who.id)) { c.dispose(); return; }
       const w = new Walker(c, this.scene.scene);
-      w.speed = 1.6 + Math.random() * 0.5;
+      w.speed = (who.id === 'pip' ? 2.0 : who.id === 'tom' ? 1.35 : 1.6) + Math.random() * 0.4;
       const [gx, gz] = this.gate();
       w.placeAt(gx, gz);
-      const used = new Set(this.list.map((v) => v.name));
-      const name = pick(VILLAGER_NAMES.filter((n) => !used.has(n)));
-      const v: Villager = { w, name, plan: [], leaving: false, wait: 0.5, greeted: false, at: null, chatCooldown: 6, gone: false, seat: null };
+      const v: Villager = { id: who.id, w, plan: [], leaving: false, wait: 0.5, greeted: false, at: null, chatCooldown: 6, gone: false, seat: null };
       const charmBonus = buildings.charm() >= 200 ? 1 : 0;
       const pool = this.destinations();
       // mostly the favourites, with a little randomness so walks differ
@@ -243,15 +250,33 @@ export class Villagers {
     return () => {
       const cam = this.scene.rig.camera.position;
       if (!v.w.walking && !v.seat) { v.w.face(cam.x, cam.z); void v.w.char.gesture('emote-yes'); }
-      speech.say(v.w.char.root, { ...tapLine(v.name, this.night()), prio: 2 });
+      this.chat(v);
       audio.play('pop', { volume: 0.5, rate: 1.1 + Math.random() * 0.2 });
       if (!v.w.walking) v.wait = Math.max(v.wait, 2.5);
       this.scene.loop.wake(1);
     };
   }
 
+  /** Tap to chat: their name over a line in their voice, and once a day a little friendship. */
+  private chat(v: Villager): void {
+    const def = VILLAGER[v.id];
+    const firstMeet = !villageRewards.met(v.id);
+    const birthday = village.isBirthday(v.id);
+    speech.say(v.w.char.root, { ...tapLine(def, this.night(), firstMeet, birthday), name: def.name, prio: 2, dur: 4 });
+    const f = village.friend(v.id);
+    const today = localDay(game.now());
+    if (f.chatDay === today) return;
+    f.chatDay = today;
+    village.addPoints(v.id, FRIENDSHIP.chat, 'chat');
+    saves.save();
+    const p = v.w.char.root.position;
+    const s = ui.screen({ x: p.x, y: 2.2, z: p.z });
+    ui.feedback.floatText(s.x + 30, s.y, `+${FRIENDSHIP.chat}`, 'heart', '#ffd1dc', 0.3);
+    if (firstMeet) ui.feedback.toast(`You met ${def.name}!`, 'Tap Village at the bottom to see your new friends', 'hug');
+  }
+
   private update(dt: number): void {
-    let target = game.state.player.created ? buildings.bonuses().villagers : 0;
+    let target = game.state.player.created ? Math.min(VILLAGERS.length, buildings.bonuses().villagers) : 0;
     if (isNight(this.night())) target = Math.min(target, Math.ceil(target / 2));
     this.spawnIn -= dt;
     if (this.spawnIn <= 0 && this.list.length < target && walkable(...this.gate())) {

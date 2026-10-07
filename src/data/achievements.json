@@ -841,6 +841,47 @@
    "icon": "kraken"
   },
   {
+   "id": "village_friend",
+   "name": "Village Friend",
+   "category": "collection",
+   "stat": "village_hearts",
+   "tiers": [
+    10,
+    30,
+    60
+   ],
+   "desc": "Earn {n} hearts with the villagers",
+   "icon": "heart",
+   "gauge": true
+  },
+  {
+   "id": "thoughtful_gifts",
+   "name": "Thoughtful Gifts",
+   "category": "collection",
+   "stat": "villager_gifts",
+   "tiers": [
+    10,
+    50,
+    150
+   ],
+   "desc": "Give {n} gifts to villagers",
+   "icon": "gift"
+  },
+  {
+   "id": "best_friends",
+   "name": "Best Friends",
+   "category": "collection",
+   "stat": "best_friends",
+   "tiers": [
+    1,
+    3,
+    6
+   ],
+   "desc": "Become best friends with {n} villagers",
+   "icon": "hug",
+   "gauge": true
+  },
+  {
    "id": "boot_collector",
    "name": "One Boot, Two Boots",
    "category": "hidden",

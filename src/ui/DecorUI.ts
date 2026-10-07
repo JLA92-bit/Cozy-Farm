@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { BUILDING } from '../data';
 import { audio, haptics } from '../systems/Audio';
+import { hasPerk } from '../systems/Perks';
 import { PAINTS, SIGN_MAX, cleanSignText, isFriendlyText, paintHex, setTint, signText } from '../systems/Decor';
 import { game } from '../systems/Game';
 import type { PlacedBuilding } from '../systems/State';
@@ -43,17 +44,20 @@ function paintRow(b: PlacedBuilding): HTMLElement {
     });
     return el;
   };
-  row.append(swatch(undefined, built, 'As built'), ...PAINTS.map((p) => swatch(p.id, p.hex, p.name)));
+  // Juniper's colours join the palette at 6 hearts (and stay offered on a piece already painted with one)
+  const paints = PAINTS.filter((p) => !p.juniper || hasPerk('juniper_paints') || p.id === b.tint);
+  row.append(swatch(undefined, built, 'As built'), ...paints.map((p) => swatch(p.id, p.hex, p.name)));
   const sync = (): void => {
     const on = b.tint ?? '';
     row.querySelectorAll<HTMLElement>('.paint-swatch').forEach((el, i) => {
-      const active = (i === 0 ? '' : PAINTS[i - 1].id) === on;
+      const active = (i === 0 ? '' : paints[i - 1].id) === on;
       el.classList.toggle('active', active);
       el.setAttribute('aria-checked', String(active));
     });
   };
   sync();
-  return h('div', { class: 'paint-box' }, h('div', { class: 'paint-label' }, icon('paint'), 'Paint'), row);
+  const gift = paints.some((p) => p.juniper) ? h('div', { class: 'paint-gift' }, "The last colours are Juniper's gift") : null;
+  return h('div', { class: 'paint-box' }, h('div', { class: 'paint-label' }, icon('paint'), 'Paint'), row, gift);
 }
 
 /** Small panel to write the sign's text, with a live wooden preview. */

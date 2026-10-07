@@ -1,5 +1,5 @@
 import {
-  ANIMALS, BUILDINGS, COSMETICS, CROPS, ECONOMY, ITEMS, ITEM_LEVEL, LEVEL_DATA, RECIPES, TREES, itemXp,
+  ANIMALS, BUILDINGS, COSMETICS, CROPS, ECONOMY, FRIENDSHIP, ITEMS, ITEM_LEVEL, LEVEL_DATA, RECIPES, TREES, VILLAGERS, itemXp,
 } from '../data';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
@@ -7,6 +7,9 @@ import { hints } from './Hints';
 import type { Order, OrderLine, StallSlot } from './State';
 import { rng, hashString } from '../world/Procedural';
 import { isBuilt } from './Timers';
+import { HAZEL_PRICE_MULT, hasPerk } from './Perks';
+import { recipeAvailable } from './Production';
+import { village } from './Village';
 
 // ======================================================================== obtainable items
 /** Extra sources of obtainable items from features outside this file (e.g. fish from the dock). */
@@ -22,7 +25,7 @@ export function obtainableItems(): string[] {
   for (const a of ANIMALS) if (game.buildingsOf(a.house).some((b) => (b.animals?.length ?? 0) > 0)) out.add(a.product);
   // recipes need a finished building and ingredients the player can really get; repeat until stable so
   // chains (wheat -> feed -> eggs -> corn bread) resolve whatever order the recipe list is in
-  const makeable = RECIPES.filter((r) => r.level <= lv && game.buildingsOf(r.building).some((b) => isBuilt(b, game.now())));
+  const makeable = RECIPES.filter((r) => r.level <= lv && recipeAvailable(r) && game.buildingsOf(r.building).some((b) => isBuilt(b, game.now())));
   for (let changed = true; changed;) {
     changed = false;
     for (const r of makeable) {
@@ -63,6 +66,11 @@ function maxQty(): number {
 }
 
 // ======================================================================== order board
+/** 1.8: the villager who signed an order. Orders keep their old `npc` number (0-11), so old saves map too. */
+export function orderVillager(o: Order): string {
+  return VILLAGERS[(Math.abs(Math.floor(o.npc)) || 0) % VILLAGERS.length].id;
+}
+
 export class OrderSystem {
   slots(): number {
     let n = 3;
@@ -128,6 +136,8 @@ export class OrderSystem {
     game.addXp(o.xp, at);
     if (o.gems) game.addGems(o.gems, at);
     game.incStat('orders_completed');
+    // 1.8: the villager who signed the order is pleased
+    village.addPoints(orderVillager(o), FRIENDSHIP.order, 'order');
     list[idx] = this.generate(game.now() + ECONOMY.orders.refillSec * 1000);
     game.bus.emit('order:completed', { orderId, coins: o.coins, xp: o.xp });
     game.bus.emit('orders:changed', {});
@@ -323,6 +333,13 @@ export class MerchantSystem {
       offers.push({ key: `i:${item}`, kind: 'items', id: item, qty, price: Math.round(ITEMS[item].sell * qty * ECONOMY.merchant.bulkPriceMult), was: 0 });
     }
     offers.push({ key: 'g', kind: 'gems', qty: 3, price: ECONOMY.merchant.gemPriceCoins * 3 });
+    // 1.8: Hazel's 6-heart friend discount (bulk goods never drop below barn value, so they cannot be flipped)
+    if (hasPerk('hazel_discount')) {
+      for (const o of offers) {
+        const floor = o.kind === 'items' ? ITEMS[o.id].sell * o.qty : 1;
+        o.price = Math.max(floor, Math.round(o.price * HAZEL_PRICE_MULT));
+      }
+    }
     return offers.slice(0, ECONOMY.merchant.stockSize);
   }
 

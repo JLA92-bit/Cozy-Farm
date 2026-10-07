@@ -2,6 +2,7 @@ import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from 
 import { game } from './Game';
 import { localDay } from './Progression';
 import { RAIN_RARE_FISH, weatherToday } from './Weather';
+import { TOM_EXTRA_CASTS, hasPerk } from './Perks';
 import type { FishingState } from './State';
 import { countStars, rollQuality, type Quality } from './Quality';
 
@@ -60,7 +61,9 @@ class FishingSystem {
     const today = localDay(game.now());
     if (this.st.freeDay !== today) { this.st.freeDay = today; this.st.freeUsed = 0; }
   }
-  get freeLeft(): number { this.rollDay(); return Math.max(0, FISHING.freeCastsPerDay - this.st.freeUsed); }
+  /** Free casts a day: the base, plus two once Old Tom is a 6-heart friend. */
+  get freePerDay(): number { return FISHING.freeCastsPerDay + (hasPerk('tom_casts') ? TOM_EXTRA_CASTS : 0); }
+  get freeLeft(): number { this.rollDay(); return Math.max(0, this.freePerDay - this.st.freeUsed); }
   get bait(): number { return game.count(FISHING.baitItem); }
   get canCast(): boolean { return this.freeLeft > 0 || this.bait > 0; }
 

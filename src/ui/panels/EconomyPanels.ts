@@ -1,9 +1,10 @@
 import { Panel } from '../Panel';
 import { h, append, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, ITEMS, ECONOMY } from '../../data';
+import { BUILDING, ITEMS, ECONOMY, FRIENDSHIP, VILLAGER } from '../../data';
 import { game } from '../../systems/Game';
-import { orders, truck, stall, merchant, requestedCount, type MerchantOffer } from '../../systems/Economy';
+import { orders, truck, stall, merchant, requestedCount, orderVillager, type MerchantOffer } from '../../systems/Economy';
+import type { Order } from '../../systems/State';
 import { audio, haptics } from '../../systems/Audio';
 import { hints } from '../../systems/Hints';
 import { formatTime, isBuilt } from '../../systems/Timers';
@@ -14,10 +15,9 @@ import { goToSource } from './ProductionPanel';
 import type { PlacedBuilding } from '../../systems/State';
 import { marketLink } from './MarketPanel';
 import { askButton } from './HelpPanel';
+import { hasPerk } from '../../systems/Perks';
 import './economy.css';
 
-const NPC_ICONS = ['farmer', 'woman_farmer', 'man_farmer', 'chick', 'dog', 'cat', 'rabbit', 'farmer', 'woman_farmer', 'man_farmer', 'bee', 'smile'];
-const NPC_NAMES = ['Farmer Joe', 'Aunt May', 'Uncle Bo', 'Little Pip', 'Rusty', 'Miss Whiskers', 'Clover', 'Old Tom', 'Rosie', 'Hank', 'Buzzy', 'Sunny'];
 
 function anchorOf(type: string) {
   const b = game.buildingsOf(type)[0];
@@ -46,6 +46,14 @@ function needPill(item: string, have: number, need: number): HTMLElement {
 }
 
 // ======================================================================== orders
+/** 1.8: every order is signed by a villager: their portrait and "Rosa would like..." (tap to open their page). */
+function orderSigner(o: Order): HTMLElement {
+  const v = VILLAGER[orderVillager(o)];
+  return h('span', { class: 'row order-npc', role: 'button', 'aria-label': `${v.name}'s page`, style: 'gap:6px;min-width:0;cursor:pointer', onclick: (e: MouseEvent) => { e.stopPropagation(); ui.open('village', { villager: v.id }); } },
+    h('span', { class: 'order-portrait', style: `--vc:${v.colour}` }, icon(`villager:${v.id}`, 'icon')),
+    h('span', { class: 'card-sub order-signer' }, h('b', null, v.name), ' would like...'));
+}
+
 export function openOrders(): void {
   orders.refresh();
   const p = new Panel({ title: 'Order Board', icon: 'clipboard', color: 'orange' });
@@ -98,7 +106,7 @@ export function openOrders(): void {
       }, skipping ? 'Skip?' : icon('cross'));
       const card = h('div', { class: `card order-card ${ok ? 'done' : ''}` },
         h('div', { class: 'row between', style: 'width:100%' },
-          h('span', { class: 'row order-npc' }, icon(NPC_ICONS[o.npc % NPC_ICONS.length], 'icon'), h('span', { class: 'card-sub' }, NPC_NAMES[o.npc % NPC_NAMES.length])),
+          orderSigner(o),
           skipBtn),
         lines,
         h('div', { class: 'chip-row' }, h('span', { class: 'pill' }, icon('coin'), fmt(o.coins)), h('span', { class: 'pill' }, icon('xp'), `${o.xp}`), o.gems ? h('span', { class: 'pill' }, icon('gem'), `${o.gems}`) : null),
@@ -111,6 +119,8 @@ export function openOrders(): void {
           return;
         }
         flyFrom(card, { coins: o.coins, xp: o.xp, gems: o.gems });
+        const cr = card.getBoundingClientRect();
+        ui.feedback.floatText(cr.left + 20, cr.top + 10, `+${FRIENDSHIP.order} ${VILLAGER[orderVillager(o)].name}`, 'heart', '#ffd1dc', 0.25);
         haptics.buzz([10, 30, 10]);
         const board = game.buildingsOf('order_board')[0];
         if (board) ui.effects.sparkle(ui.scene.farm.anchor(board.uid), '#ffe066', 14);
@@ -317,6 +327,7 @@ export function openMerchant(): void {
       return;
     }
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px' }, h('div', { class: 'muted' }, 'Rare goods from far away! Tap to look, tap again to buy.'), h('span', { class: 'timer-tag outlined' }, `Leaves in ${formatTime(v.leavesAt - game.now())}`)));
+    if (hasPerk('hazel_discount')) p.body.append(h('div', { class: 'econ-intro' }, icon('store', 'icon'), h('span', null, "Hazel's friend discount: 10% off everything")));
     const grid = h('div', { class: 'grid' });
     for (const o of merchant.stock()) {
       const bought = merchant.bought(o) || (o.kind === 'cosmetic' && game.state.cosmetics.includes(o.id));
@@ -330,7 +341,7 @@ export function openMerchant(): void {
         buy(o, card);
       });
       append(card, [
-        was > o.price ? h('span', { class: 'deal-tag outlined' }, `-${Math.round((1 - ECONOMY.merchant.discount) * 100)}%`) : null,
+        was > o.price ? h('span', { class: 'deal-tag outlined' }, `-${Math.round((1 - o.price / was) * 100)}%`) : null,
         offerIcon(o), h('div', { class: 'card-title' }, offerName(o)), h('div', { class: 'card-sub' }, offerSub(o)),
         bought ? h('div', { class: 'pill enough' }, 'Bought')
           : h('div', { class: 'row', style: 'gap:4px;flex-wrap:wrap;justify-content:center' },

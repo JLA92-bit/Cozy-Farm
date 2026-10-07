@@ -132,11 +132,21 @@ export interface FriendshipState {
   rewards: number[];
   /** item ids this villager's reaction has revealed (loves / likes / dislikes shown on their card) */
   known: string[];
+  /** 1.8 villagers (optional): story moments already shown (4, 8); each gave its keepsake */
+  stories?: number[];
+  /** local day of the last birthday gift that was thanked by letter (sent the day after the gift) */
+  bdayThanks?: string;
+  /** local day of the last best-friend weekly gift letter */
+  weeklyDay?: string;
+  /** Pip only: local day (a Monday) of the week whose treasure letter was sent */
+  treasureWeek?: string;
 }
 export interface VillageState {
   friends: Record<string, FriendshipState>;
   /** the daily rhythm (src/systems/Daily18.ts): today's villager visit and farm finds */
   today: { day: string; visitor: string; visitorDone: boolean; finds: { id: string; item: string; x: number; z: number; taken: boolean }[]; request?: VisitRequest };
+  /** 1.8 villagers (optional): local day the Village screen was last opened (quiets the HUD dot for the day) */
+  openedDay?: string;
 }
 /** 1.8 mail agent: what today's visiting villager asks for and pays (optional; made on the first tick of the day). */
 export interface VisitRequest { item: string; qty: number; coins: number; xp: number }

@@ -260,7 +260,7 @@ class FishingController {
     this.buyRow.style.display = s === 'idle' && !fishing.canCast ? '' : 'none';
     let p = '', sub = '';
     if (s === 'idle') {
-      if (!fishing.canCast) { p = 'Out of bait'; sub = `Free casts come back tomorrow (${FISHING.freeCastsPerDay} a day)`; }
+      if (!fishing.canCast) { p = 'Out of bait'; sub = `Free casts come back tomorrow (${fishing.freePerDay} a day)`; }
       else { p = 'Tap to cast'; sub = fishing.freeLeft ? `${fishing.freeLeft} free ${fishing.freeLeft === 1 ? 'cast' : 'casts'} left today` : 'Uses 1 Worm Bait'; }
     } else if (s === 'cast') p = '';
     else if (s === 'wait') { p = 'Waiting for a bite...'; sub = 'Tap when the bobber dips'; }

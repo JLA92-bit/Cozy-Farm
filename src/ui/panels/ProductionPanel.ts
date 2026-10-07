@@ -209,7 +209,7 @@ export function openProduction(b: PlacedBuilding): void {
         ic,
         h('div', { class: 'grow' },
           h('div', { class: 'title' }, `${ITEMS[r.item].name}${r.out > 1 ? ` x${r.out}` : ''}`),
-          h('div', { class: 'sub' }, `${formatTime(r.sec * 1000)} · sells ${ITEMS[r.item].sell * r.out} · +${r.xp} XP`),
+          h('div', { class: 'sub' }, `${formatTime(production.duration(r))} · sells ${ITEMS[r.item].sell * r.out} · +${r.xp} XP`),
           tags.childElementCount ? tags : null,
           ingredients,
           starRow),

@@ -149,6 +149,21 @@
    "xp": 34
   },
   {
+   "id": "berry_tart",
+   "building": "bakery",
+   "level": 10,
+   "in": {
+    "strawberry": 3,
+    "cream": 1,
+    "wheat": 2
+   },
+   "item": "berry_tart",
+   "out": 1,
+   "sec": 2400,
+   "xp": 23,
+   "perk": "rosa_tart"
+  },
+  {
    "id": "pumpkin_pie",
    "building": "bakery",
    "level": 25,

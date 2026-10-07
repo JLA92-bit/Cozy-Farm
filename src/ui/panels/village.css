@@ -1,0 +1,212 @@
+/* 1.8 Village Friends: the Village screen, villager pages, gift picker and story moments. */
+
+.btn.pink { --c: #ff8fb4; --d: #d4557f; }
+
+/* hearts: always with a number beside them, never colour alone */
+.v-hearts { display: flex; gap: 1px; justify-content: center; }
+.v-hearts .v-heart { width: 13px; height: 13px; filter: grayscale(1) opacity(.3); }
+.v-hearts .v-heart.on { filter: none; }
+.v-hearts.big { justify-content: flex-start; gap: 2px; }
+.v-hearts.big .v-heart { width: 19px; height: 19px; }
+.v-hearts-text { font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+
+.v-bar { width: 100%; height: 20px; }
+.v-bar > .fill { background: linear-gradient(#ffb3c9, #f0628f); }
+.v-bar > .label { font-size: 12px; }
+
+/* portraits */
+.v-portrait {
+  position: relative; flex: 0 0 auto; width: 80px; height: 80px; border-radius: 50%; overflow: visible;
+  background: radial-gradient(circle at 50% 35%, #fff 0 20%, color-mix(in srgb, var(--vc) 55%, #fff) 70%);
+  border: 3px solid var(--outline); box-shadow: 0 3px 0 var(--outline);
+}
+.v-portrait .v-portrait-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.v-portrait.big { width: 112px; height: 112px; }
+.v-portrait.best { border-color: #c8962a; box-shadow: 0 0 0 3px #ffd84a, 0 3px 0 var(--outline); }
+.v-badge {
+  position: absolute; width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 2px solid var(--outline);
+  display: flex; align-items: center; justify-content: center;
+}
+.v-badge .icon { width: 24px; height: 24px; }
+.v-badge.cake { top: -6px; right: -8px; }
+.v-badge.crown { top: -10px; left: -8px; background: #fff3c4; }
+
+/* the Village grid */
+.v-intro {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px;
+  background: #fff0f5; border: 2px dashed #f2a6c0; border-radius: 14px;
+}
+.v-intro .icon { flex: 0 0 auto; width: 34px; height: 34px; }
+.v-intro.small .icon { width: 26px; height: 26px; }
+.v-intro-title { font-family: var(--font-display); font-size: 17px; color: var(--ink); }
+.v-intro-text { font-size: 14px; color: var(--ink-soft); line-height: 1.3; }
+.v-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 12px; }
+.v-card { gap: 3px; padding: 10px 8px 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--vc) 22%, #fff) 0, #fff 60%); }
+.v-card.best { border-color: #c8962a; box-shadow: 0 0 0 3px #ffd84a, 0 3px 0 var(--outline); background: linear-gradient(180deg, #fff3c4 0, #fff 60%); }
+.v-card.birthday { box-shadow: 0 0 0 3px #ff8fb4, 0 3px 0 var(--outline); }
+.v-name { font-family: var(--font-display); font-size: 19px; color: var(--ink); line-height: 1.1; margin-top: 4px; }
+.v-name.big { font-size: 26px; margin-top: 0; }
+.v-role { font-size: 14px; color: var(--ink-soft); line-height: 1.15; }
+.v-card .v-bar { margin: 3px 0 4px; }
+.v-card .btn { width: 100%; }
+.v-bday-tag { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-display); font-size: 13px; color: #c43d6f; }
+.v-bday-tag .icon { width: 20px; height: 20px; }
+.v-gifted {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; width: 100%;
+  font-family: var(--font-display); font-size: 14px; color: #3d8f22; background: #e8f8dc; border: 2px solid #a8d98a; border-radius: 12px; padding: 2px 6px;
+}
+.v-gifted .icon { width: 20px; height: 20px; }
+.v-gifted.big { font-size: 16px; width: auto; padding: 6px 14px; text-align: center; }
+
+/* a villager's page */
+.v-head { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+.v-head-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.v-speech {
+  position: relative; margin: 4px 0 12px; padding: 10px 14px; background: #fff; border: 3px solid var(--outline); border-radius: 16px;
+  font-size: 15px; line-height: 1.35; color: var(--ink); box-shadow: 0 3px 0 var(--outline);
+}
+.v-speech::before {
+  content: ''; position: absolute; top: -12px; left: 46px; border: 10px solid transparent; border-bottom: 12px solid var(--outline); border-top: 0;
+}
+.v-speech::after { content: ''; position: absolute; top: -7px; left: 49px; border: 7px solid transparent; border-bottom: 9px solid #fff; border-top: 0; }
+.v-home { margin-top: 4px; font-size: 13px; color: var(--ink-soft); }
+.v-speech.react { background: #fffaf0; }
+.v-speech.react.love { background: #fff0f5; }
+.v-speech-line { font-family: var(--font-display); font-size: 18px; line-height: 1.25; }
+.v-react-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.v-taste, .v-points {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px 2px 4px; border-radius: 12px; border: 2px solid var(--outline);
+  font-family: var(--font-display); font-size: 15px; background: var(--cream-2);
+}
+.v-taste .icon, .v-points .icon { width: 24px; height: 24px; }
+.v-taste.love { background: #ffd6e4; }
+.v-taste.like { background: #e3f6d5; }
+.v-taste.dislike { background: #e6e1d8; }
+.v-points { background: #ffe8ef; }
+.v-points.neg { background: #ece6dc; }
+.v-bday-banner {
+  display: flex; align-items: center; gap: 8px; margin: -2px 0 12px; padding: 8px 12px; border-radius: 14px;
+  background: linear-gradient(90deg, #ffe0ec, #fff3c4); border: 2px solid #f2a6c0; font-family: var(--font-display); font-size: 15px; color: #a33c66;
+}
+.v-bday-banner .icon { width: 30px; height: 30px; flex: 0 0 auto; }
+.v-next {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: #fff8e1; border: 2px solid #e6c98a;
+  font-size: 15px; line-height: 1.3; color: var(--ink);
+}
+.v-next .icon { width: 32px; height: 32px; flex: 0 0 auto; }
+.v-tastes { display: flex; flex-direction: column; gap: 8px; }
+.v-taste-row { display: flex; align-items: flex-start; gap: 8px; }
+.v-taste-label { flex: 0 0 76px; font-family: var(--font-display); font-size: 15px; padding-top: 6px; }
+.v-taste-row.love .v-taste-label { color: #c43d6f; }
+.v-taste-row.like .v-taste-label { color: #3d8f22; }
+.v-taste-row.dislike .v-taste-label { color: #7c7568; }
+.v-taste-items { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.v-taste-chip {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 2px 9px 2px 3px; border-radius: 12px; background: #fff;
+  border: 2px solid var(--outline); font-size: 13px; font-family: var(--font-display); color: var(--ink);
+}
+.v-taste-chip .icon { width: 26px; height: 26px; }
+.v-taste-chip.unknown { width: 34px; padding: 0; justify-content: center; background: #efe6d2; border-style: dashed; }
+.v-q { font-family: var(--font-display); font-size: 18px; color: var(--ink-soft); }
+.v-hint { margin-top: 6px; font-size: 14px; }
+.v-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.v-facts .pill { font-size: 14px; padding: 3px 10px 3px 4px; }
+.v-facts .pill .icon { width: 22px; height: 22px; }
+.v-milestones { display: flex; flex-direction: column; gap: 6px; }
+.v-ms { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; background: #fff; border: 2px solid #e6d3a6; font-size: 14px; line-height: 1.25; }
+.v-ms.got { background: #eef9e4; border-color: #a8d98a; }
+.v-ms-hearts { flex: 0 0 48px; display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-display); font-size: 17px; }
+.v-ms-hearts .icon { width: 22px; height: 22px; }
+.v-ms-text { flex: 1 1 auto; min-width: 0; }
+.v-ms-done, .v-ms-left { flex: 0 0 auto; font-family: var(--font-display); font-size: 13px; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 2px; }
+.v-ms-done { color: #3d8f22; }
+.v-ms-done .icon { width: 18px; height: 18px; }
+.v-stories { display: flex; flex-wrap: wrap; gap: 8px; }
+.v-new { margin-left: 4px; padding: 0 6px; border-radius: 8px; background: #fff; color: #c43d6f; -webkit-text-stroke: 0; font-size: 12px; }
+.v-gift-main { font-size: 20px; min-width: 220px; }
+.v-gift-main .icon { width: 30px; height: 30px; }
+
+/* "+1 heart!" */
+.v-burst {
+  position: absolute; left: 50%; top: 38%; translate: -50% -50%; z-index: 5; display: flex; flex-direction: column; align-items: center;
+  width: max-content; white-space: nowrap; pointer-events: auto;
+  padding: 16px 28px; border-radius: 24px; background: radial-gradient(circle, #fff 0, #ffe3ec 70%); border: 4px solid var(--outline); box-shadow: 0 6px 0 var(--outline);
+}
+.v-burst-heart { width: 72px; height: 72px; }
+.v-burst-text { font-size: 34px; color: #ff6b9a; }
+.v-burst-sub { font-size: 18px; color: #fff; }
+.v-float-heart { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; pointer-events: none; }
+
+/* gift picker */
+.v-gift-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 8px; }
+.v-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 96px; padding: 18px 4px 6px;
+  background: #fff; border: 3px solid var(--outline); border-radius: 14px; box-shadow: 0 3px 0 var(--outline); cursor: pointer;
+  font-family: var(--font-body); color: var(--ink);
+}
+.v-tile:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--outline); }
+.v-tile.selected { outline: 4px solid var(--btn-blue); outline-offset: -1px; background: #eaf6ff; }
+.v-tile.disliked { background: #efebe3; }
+.v-tile.disliked .v-tile-icon { opacity: .6; }
+.v-tile-icon { width: 40px; height: 40px; }
+.v-tile-name { font-size: 12px; line-height: 1.1; text-align: center; overflow-wrap: anywhere; }
+.v-tile-count { position: absolute; top: 2px; right: 6px; font-size: 14px; }
+.v-star {
+  position: absolute; top: 2px; left: 3px; display: inline-flex; align-items: center; gap: 1px; padding: 0 5px 0 1px; border-radius: 8px;
+  font-family: var(--font-display); font-size: 11px; border: 2px solid var(--outline);
+}
+.v-star .icon { width: 13px; height: 13px; }
+.v-star.q1 { background: #e7eef4; }
+.v-star.q2 { background: #ffe58a; }
+.v-tile-taste { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 8px; font-family: var(--font-display); font-size: 12px; border: 2px solid var(--outline); }
+.v-tile-taste .icon { width: 13px; height: 13px; }
+.v-tile-taste.love { background: #ffd6e4; }
+.v-tile-taste.like { background: #e3f6d5; }
+.v-tile-taste.dislike { background: #ddd6ca; }
+.v-confirm { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 52px; }
+.v-confirm-text { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 16px; color: var(--ink); min-width: 0; }
+.v-confirm-text .icon { width: 34px; height: 34px; flex: 0 0 auto; }
+.v-confirm-text.muted { font-family: var(--font-body); width: 100%; justify-content: center; }
+.v-give { flex: 0 0 auto; }
+
+/* story moments */
+.v-story .panel-body { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.v-story-hearts { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-display); font-size: 15px; color: #c43d6f; }
+.v-story-hearts .icon { width: 22px; height: 22px; }
+.v-story-pic {
+  position: relative; width: min(260px, 70vw); aspect-ratio: 1.25; border-radius: 22px; border: 4px solid var(--outline); box-shadow: 0 5px 0 var(--outline);
+  background: radial-gradient(circle at 50% 40%, #fffdf4 0 25%, color-mix(in srgb, var(--vc) 60%, #fff) 80%);
+  overflow: hidden;
+}
+.v-story-portrait { position: absolute; left: 6%; bottom: 0; width: 54%; height: auto; }
+.v-story-icon {
+  position: absolute; right: 7%; top: 12%; width: 38%; aspect-ratio: 1; border-radius: 50%; background: #fff; border: 3px solid var(--outline);
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 var(--outline);
+}
+.v-story-icon .icon { width: 70%; height: 70%; }
+.v-story-text { max-width: 440px; font-size: 18px; line-height: 1.4; color: var(--ink); text-align: center; min-height: 4.2em; }
+.v-dots { display: flex; gap: 8px; }
+.v-dots span { width: 12px; height: 12px; border-radius: 50%; background: #e6d3a6; border: 2px solid var(--outline); }
+.v-dots span.on { background: #ff8fb4; }
+.v-keepsake { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.v-keepsake-title { font-size: 30px; color: #ffd84a; }
+.v-keepsake-img { width: 150px; height: 150px; }
+.v-keepsake-name { font-family: var(--font-display); font-size: 21px; color: var(--ink); }
+.v-keepsake .muted { font-size: 15px; max-width: 360px; line-height: 1.35; }
+
+/* chatting on the farm: the name over the line */
+.speech-name { display: block; font-family: var(--font-display); font-size: 12px; color: #c43d6f; line-height: 1; margin-bottom: 1px; }
+.speech .speech-body { display: flex; flex-direction: column; align-items: center; }
+
+@media (max-width: 400px) {
+  .v-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .v-card { padding: 9px 6px; }
+  .v-hearts .v-heart { width: 12px; height: 12px; }
+  .v-portrait.big { width: 96px; height: 96px; }
+  .v-name.big { font-size: 23px; }
+  .v-hearts.big .v-heart { width: 17px; height: 17px; }
+  .v-taste-label { flex-basis: 64px; }
+}
+
+/* Juniper's paint colours (6-heart perk) in the decor paint row */
+.paint-gift { margin-top: 4px; font-size: 12px; color: var(--ink-soft); text-align: center; }
