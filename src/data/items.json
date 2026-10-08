@@ -103,6 +103,18 @@
    "sell": 112,
    "icon": "blueberry"
   },
+  "pea": {
+   "name": "Pea",
+   "cat": "crop",
+   "sell": 142,
+   "icon": "pea"
+  },
+  "lavender": {
+   "name": "Lavender",
+   "cat": "crop",
+   "sell": 165,
+   "icon": "lavender"
+  },
   "radish": {
    "name": "Radish",
    "cat": "crop",
@@ -744,6 +756,24 @@
    "cat": "goods",
    "sell": 560,
    "icon": "blue_vase"
+  },
+  "pea_soup": {
+   "name": "Pea Soup",
+   "cat": "goods",
+   "sell": 520,
+   "icon": "pea_soup"
+  },
+  "lavender_honey": {
+   "name": "Lavender Honey",
+   "cat": "goods",
+   "sell": 420,
+   "icon": "lavender_honey"
+  },
+  "lavender_candle": {
+   "name": "Lavender Candle",
+   "cat": "goods",
+   "sell": 640,
+   "icon": "lavender_candle"
   },
   "honey": {
    "name": "Honey",

@@ -334,6 +334,42 @@
    "ready": {
     "model": "food/cauliflower"
    }
+  },
+  {
+   "id": "pea",
+   "name": "Pea",
+   "level": 38,
+   "seedCost": 26,
+   "growSec": 23400,
+   "yield": 2,
+   "xp": 36,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/pea"
+   }
+  },
+  {
+   "id": "lavender",
+   "name": "Lavender",
+   "level": 38,
+   "seedCost": 30,
+   "growSec": 28800,
+   "yield": 2,
+   "xp": 40,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/lavender"
+   }
   }
  ],
  "trees": [

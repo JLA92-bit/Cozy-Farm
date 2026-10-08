@@ -619,6 +619,9 @@
     {"id": "clay", "building": "pottery_kiln", "level": 34, "in": {"beet": 3}, "item": "clay", "out": 2, "sec": 900, "xp": 14},
     {"id": "clay_pot", "building": "pottery_kiln", "level": 34, "in": {"clay": 2}, "item": "clay_pot", "out": 1, "sec": 2400, "xp": 24},
     {"id": "glazed_tile", "building": "pottery_kiln", "level": 35, "in": {"clay": 1, "sugar": 1}, "item": "glazed_tile", "out": 1, "sec": 2700, "xp": 26},
-    {"id": "blue_vase", "building": "pottery_kiln", "level": 36, "in": {"clay": 3, "blueberry": 2}, "item": "blue_vase", "out": 1, "sec": 5400, "xp": 40}
+    {"id": "blue_vase", "building": "pottery_kiln", "level": 36, "in": {"clay": 3, "blueberry": 2}, "item": "blue_vase", "out": 1, "sec": 5400, "xp": 40},
+    {"id": "pea_soup", "building": "village_kitchen", "level": 38, "in": {"pea": 4, "onion": 1, "cream": 1}, "item": "pea_soup", "out": 1, "sec": 2400, "xp": 34},
+    {"id": "lavender_honey", "building": "beehive_house", "level": 38, "in": {"honey": 1, "lavender": 2}, "item": "lavender_honey", "out": 1, "sec": 2100, "xp": 32},
+    {"id": "lavender_candle", "building": "beehive_house", "level": 39, "in": {"beeswax_candle": 1, "lavender": 3}, "item": "lavender_candle", "out": 1, "sec": 3600, "xp": 44}
   ]
 }

@@ -505,3 +505,10 @@ truck: each horse in a built stable cuts the wait before the next delivery truck
 1,800 second cooldown drops to 1,260. The truck still stays 16 hours, so this is more crates per week, about +1%
 income on a farm that fills every truck. The horse model is built from boxes in `scripts/make-horse.mjs` (the
 Kenney pack has no horse).
+
+## Peas and Lavender (1.8.6, crops, level 38)
+
+Pea (seed 26, 6.5 hours, 2 per harvest, sells 142, xp 36) and lavender (seed 30, 8 hours, sells 165, xp 40) follow
+the cauliflower curve. Uses: pea soup (Village Kitchen, 4 peas + onion + cream, sells 520), lavender honey (Beehive
+House, honey + 2 lavender, 420) and lavender candle (Beehive House, beeswax candle + 3 lavender, 640). They are
+the use for the new workshops late in the game, not a separate income tier.

@@ -285,6 +285,23 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cyl(0.02, 0.025, 0.16, '#6a8f3a', [0, 0, 0], 5);
     return b.build();
   },
+  pea: () => {
+    const b = geo();
+    for (const [x, y, z, r] of [[-0.12, 0.2, 0, 0.2], [0.1, 0.27, 0.06, -0.25], [0.0, 0.36, -0.08, 0.1]] as [number, number, number, number][]) {
+      b.cyl(0.07, 0.07, 0.3, '#7bc44a', [x, y, z], 7, [0, 0, r + Math.PI / 2]);
+      for (let i = -1; i <= 1; i++) b.sphere(0.085, '#b6f06a', [x + i * 0.09 * Math.cos(r), y + i * 0.09 * Math.sin(r) * -1, z], 1);
+    }
+    b.cyl(0.02, 0.025, 0.16, '#5a8f3a', [0, 0, 0], 5);
+    return b.build();
+  },
+  lavender: () => {
+    const b = geo();
+    for (const [x, z, h] of [[-0.13, 0.02, 0.5], [0.0, -0.06, 0.58], [0.13, 0.03, 0.46], [-0.04, 0.12, 0.42], [0.07, -0.13, 0.4]] as [number, number, number][]) {
+      b.cyl(0.012, 0.016, h, '#6f9a52', [x, 0, z], 5);
+      for (let i = 0; i < 4; i++) b.sphere(0.045 - i * 0.004, i % 2 ? '#8e6bd1' : '#a98be6', [x, h - 0.02 + i * 0.07, z], 1, [1, 1.2, 1]);
+    }
+    return b.build();
+  },
   wool: () => {
     const b = geo();
     for (const p of [[0, 0.22, 0], [0.18, 0.2, 0.05], [-0.16, 0.2, 0.06], [0.04, 0.3, -0.12], [0.02, 0.36, 0.08]] as V3[]) b.sphere(0.16, PAL.wool, p, 1);

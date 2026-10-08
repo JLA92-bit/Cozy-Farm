@@ -31,6 +31,8 @@ export const FISHING_ICONS = {
   flower_pot: 'potted-plant', clay: 'brick',
   // Horses
   horse: 'horse',
+  // Peas and lavender
+  pea: 'pea-pod', lavender: 'hyacinth',
 };
 
 /**
@@ -75,6 +77,9 @@ export const ICON_VARIANTS = {
   clay_pot: { base: 'potted-plant', hue: 0, badge: 'sparkles' },
   glazed_tile: { base: 'brick', hue: 190, sat: 0.7, light: 1.15, badge: 'sparkles' },
   blue_vase: { base: 'amphora', hue: 200, sat: 1.1 },
+  pea_soup: { base: 'pot-of-food', hue: 70, sat: 0.9, badge: 'pea-pod' },
+  lavender_honey: { base: 'honey-pot', hue: 255, sat: 0.55, light: 1.1, badge: 'hyacinth' },
+  lavender_candle: { base: 'candle', hue: 230, sat: 0.7, badge: 'hyacinth' },
   apple_juice: { base: 'beverage-box', hue: 0, badge: 'red-apple' },
   orange_juice: { base: 'beverage-box', hue: 10, sat: 1.15, badge: 'tangerine' },
   berry_juice: { base: 'beverage-box', hue: -35, badge: 'strawberry' },
