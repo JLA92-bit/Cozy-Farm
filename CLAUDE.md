@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 8 October 2026 (game version 1.8.6 "Honey and More"; 1.8.5 is live, part of 1.8.6 is pushed). Owner: Josh Makes Games.
+Last updated: 8 October 2026 (game version 1.9.0 "A Year in the Valley" built locally; live is 1.8.8, 1.8.9 and 1.9.0 are committed but not pushed). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.8.5 "The Village Square"** (live is 1.8.1 until pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.9.0 "A Year in the Valley"** (local, not pushed; live is 1.8.8) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.9.0 added (local until pushed):** four seasons on a shared 28-day calendar (`seasons.json`, `Seasons.ts`; seasonal crops only plantable in season, in-season bonus, HUD pill, Hazel letter), Glass Frame (`glass_frame`, an onField 2x2 that ignores seasons), 16 seasonal fish (`season` in `fish.json`), season look (grass/sky/mote tints in `Terrain.ts`/`Environment.ts`, vertex colours only), Festival Days (`festivals.json`, `Festivals.ts`, `ui/panels/FestivalPanel.ts`: Egg Hunt, Fishing Derby, Harvest Fair, Feast of Lights), the Wild Woods island (`woods.json`, `Woods.ts`, `world/WoodsView.ts`, `scenes/Woods.ts`, `WoodsGate.ts` on the south beach; forage, dig spots, Foraging skill), Museum (`museum.json`, `Museum.ts`) and expedition board (`expeditions.json`, `Expeditions.ts`) in the woods, Help Wanted (`HelpWanted.ts`), heart events at 2/6/10 (`stories` in `villagers.json`), pet finds (`PetFinds.ts`), 9 new Collection Book pages + Master Collector + Almanac page (`AlmanacPage.ts`), dashboard page "1.9 Year" and server game settings (`online/GameConfig.ts`, `game_config` table). Not built from `PLAN-1.9.md`: villager schedules, the four real-date events were not folded into festivals, no decorations/buildings/recipes book pages, Museum is in the woods not a seventh square lot. Balance: `BALANCE.md`.
 
 **1.8.5 added:** five skills (Farming, Animals, Fishing, Cooking, and Crafting once the Workshop is rebuilt; level 1-10, 20 perks, head start for old farms; `src/systems/Skills.ts`, `SkillEffects.ts`, `skills.json`, Me > Skills) and Village Restoration (an island village square across the water with six lots, all rebuilt with bundles: Pantry, Barn Room, Pier, Kitchen, Workshop, Treasury; `src/systems/Restoration.ts`, `RestorationEffects.ts`, `restoration.json`, 3D scene `src/world/SquareView.ts` + `src/scenes/Square.ts`, room screens `SquarePanel.ts`, the signpost/jetty on the farm's east beach `SquareGate.ts`). Rewards: Rosa's rare seeds (new item `rare_seed`, seed tray toggle), animals 10% faster, trucks +15%, Saturday market day (orders and stall +10%), the Pier (second fishing spot on the west beach, `FishSpots.ts`, `FarmPier.ts`, nine fish with `spot: "pier"`), the Village Kitchen workshop (`building.room`, 8 recipes), Bram's forge crafting (`crafting.json`, `Crafting.ts`, `HelperEffects.ts`: sprinkler, auto-feeder, quality fertiliser) and, when all six rooms are done, the village festival (golden Village Hero statue, bunting, Hazel's letter; `restoration.festival`). Dashboard page "1.8.5 Square". Design: `PLAN-1.8.5.md`, balance: `BALANCE.md`.
 
@@ -186,6 +188,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-08: 1.9.0 (local): seasons, festivals, Wild Woods, Museum, expeditions, Help Wanted, collection pages, dashboard page and settings. Run the `1.9 a year in the valley` section of `supabase/schema.sql` after pushing.
 - 2026-10-08: 1.8.9 (local): placing paths and fences continues in a line (`Interaction.nextInRun`): the next ghost sits beside the last piece and keeps its direction.
 - 2026-10-08: 1.8.8 (local): boats (`world/Boats.ts`): the travelling merchant sails to the dock, climbs the new dock steps (Terrain.ts), sets up his cart and roams the farm (`Visitors.ts`); Marlow Pike arrives and leaves by boat (`PikeStall.ts`). `walkableOpen` lets arrivals cross unbought land.
 - 2026-10-08: 1.8.7 (local): Marlow Pike's fish stall on the north beach (`PikeStall.ts`, `systems/FishStall.ts`, `fishstall.json`, `FishStallPanel.ts`): buy fish at 4-6x barn price, small daily stock.
@@ -195,6 +198,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-07: 1.8.5 second half built locally: Pier, Kitchen, Workshop (Crafting skill, helpers), village festival. Still not pushed.
 - 2026-10-07: Game 1.8.5 "The Village Square" built and committed locally (skills, village restoration with a 3D square, rare seeds, market day, dashboard page). Not pushed until Josh approves.
 - 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.
-- 2026-10-07: Game 1.8.0 "Village Friends" released (villagers, hearts, letters, perks, mailbox, Ask a friend, silver/gold items, fertiliser, weather, welcome flow). Pixel 10 white screen diagnosed (shadows); fix still to do.
-- 2026-10-06: Game 1.7.0 (admin dashboard, gifts that arrive by themselves, feedback, play statistics).
-- 2026-10-06: Google Play setup: new app `app.joshmakesgames.cozyacres`, minSdk 24, versionCode 4 uploaded, assetlinks with both fingerprints, closed test sent for review.

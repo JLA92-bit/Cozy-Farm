@@ -1,6 +1,44 @@
 {
  "releases": [
   {
+   "version": "1.9.0",
+   "date": "2026-10-08",
+   "title": "A Year in the Valley",
+   "icon": "snowflake",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "snowflake",
+     "text": "The valley now has four seasons, seven days each. Most crops grow only in their seasons, grow faster and give more silver and gold when planted in season, and keep growing when the season changes. Wheat, corn, carrots and turnips grow all year. The season is shown on the top bar"
+    },
+    {
+     "icon": "ribbon",
+     "text": "Festival days: the last day of every season is a festival with a mini-game (Egg Hunt, Fishing Derby, Harvest Fair, Feast of Lights), prizes, a decoration and a ribbon for your Almanac"
+    },
+    {
+     "icon": "mushroom",
+     "text": "The Wild Woods (level 14): row over from your south beach to pick seasonal wild plants, dig up minerals, fossils and artifacts, and grow your new Foraging skill. Everything comes back each day"
+    },
+    {
+     "icon": "trophy",
+     "text": "The Museum in the woods: give one of each find to fill its shelves for rewards and become the Curator. Send villagers on expeditions from the board there to bring back more finds"
+    },
+    {
+     "icon": "memo",
+     "text": "A Help Wanted board in the Village with three neighbours' requests a day, new heart events at 2, 6 and 10 hearts, and your pet now digs up a little something for you every day (tap it)"
+    },
+    {
+     "icon": "fish",
+     "text": "16 new seasonal fish, a Glass Frame that lets a field grow any crop in any season, and a changing look for each season"
+    },
+    {
+     "icon": "books",
+     "text": "The Collection Book has nine new pages, an Almanac page shows the whole year at a glance, and objects now have a Path under button"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.8.9",
    "date": "2026-10-08",
    "title": "Straight Lines",

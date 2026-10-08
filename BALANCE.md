@@ -537,3 +537,15 @@ bundles (and the Collection Book), not an income source: fishing the same fish i
 - Wheat, corn, carrot, turnip grow all year. Every other crop is plantable only in its seasons (each season keeps at least 12 crops open).
 - In season: grow time x0.9, +5% silver, +3% gold chance. Crops already planted keep growing across a season change.
 - Shop/orders only ask for crops that are in season or already held.
+
+## 1.9 Glass Frame, seasonal fish, Festivals, Woods, Museum, Expeditions, Help Wanted
+
+- **Glass Frame** (level 22, 900 coins): stands on a 2x2 field; that field ignores the season rule and still gets the in-season grow and quality bonus. Seeds still cost the normal price.
+- **Seasonal fish**: 16 species (2 dock + 2 pier per season) bite only in their season. Sell 11-60 coins, so about as valuable as the all-year fish of the same tier. Fish Collector medal top tier raised to 45 kinds.
+- **Festivals** (last day of each season): best of any tries counts, prize paid once. 1 star 300 coins; 2 stars 600 coins + 3 gems + decoration; 3 stars 1000 coins + 6 gems + decoration + a small extra (rare seeds / bait / 3 gems). Four per year, so about 4k coins and 40 gems a year at most.
+- **Woods** (level 14): up to 14 forage spots a day (75% active), sell 9-28 coins each (gold star x1.5); 4 digs a day (6 with Deep Digger). Dig table: 58% mineral (30-120), 20% fossil (70-140), 12% artifact (110-500), 10% clay. About 300-600 coins of finds a day if every spot is used.
+- **Museum**: 44 pieces over six shelves. Shelf rewards total 12,800 coins and 43 gems, Curator adds 6,000 coins, 25 gems and a Grand Fountain. Pieces are given away for good, so the cost is their sell value (about 6,000 coins in all).
+- **Expeditions** (2 places): 2 h = 3 finds, 6 h = 6, 12 h = 10, weighted to minerals. Roughly the value of the player digging themselves, but no tapping. Friends return sooner (4 hearts x0.85, 8 hearts x0.75).
+- **Help Wanted**: 3 requests a day paying 1.6x the barn price of what is asked (3.2x for a gold-star request) plus 12-20 friendship and sometimes a gem. Items must be obtainable now, so it never asks for out-of-season crops.
+- **Heart events** 2/6/10: thank-you 100 / 300+1 gem / 600+3 gems, once each per villager (one-off about 6,000 coins and 24 gems across all six).
+- **Pet find**: once a day, 45% 60-150 coins, 10% 1 gem, the rest a small item (acorns, shells, petals, bait, a rare seed).
