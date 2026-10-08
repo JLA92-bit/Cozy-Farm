@@ -28,6 +28,8 @@ export class Interaction implements WorldHandler {
   mode: Mode = { kind: 'idle' };
   private swipe: Swipe | null = null;
   private dragGhost = false;
+  /** 1.8.8 laying paths and fences: the last one put down and the way the run is going, so the next ghost lines up */
+  private run: { type: string; last: [number, number]; dir: [number, number] | null } | null = null;
   private edgePan = new THREE.Vector2();
   private lastPointer: Pointer = { x: 0, y: 0 };
   /** the seed picked last time, so the tray reopens on it */
@@ -326,21 +328,21 @@ export class Interaction implements WorldHandler {
   }
 
   /** Begin placing a new (or stored) building at the screen centre. */
-  async startPlacement(type: string, fromStorage = false): Promise<void> {
+  async startPlacement(type: string, fromStorage = false, near?: [number, number]): Promise<void> {
     const returnToEdit = this.mode.kind === 'edit';
     this.exitPlant();
     this.cancelPlacement();
     const def = BUILDING[type];
     const c = this.scene.rig.target;
     const [w, d] = def.size;
-    const spot = this.findSpot(type, worldToTile(c.x) - Math.floor(w / 2), worldToTile(c.z) - Math.floor(d / 2), 0);
+    const spot = near ?? this.findSpot(type, worldToTile(c.x) - Math.floor(w / 2), worldToTile(c.z) - Math.floor(d / 2), 0);
     const ghost = await this.makeGhost(type);
     const foot = this.makeFoot(w, d);
     this.scene.scene.add(ghost, foot);
     this.mode = { kind: 'place', type, fromStorage, x: spot[0], z: spot[1], rot: 0, ghost, foot, valid: false, returnToEdit, grab: [0, 0] };
     this.scene.farm.terrain.gridLines.visible = true;
     this.moveGhost(spot[0], spot[1], true);
-    this.scene.rig.focus(footprintCenter(spot[0], w), footprintCenter(spot[1], d));
+    if (!near) this.scene.rig.focus(footprintCenter(spot[0], w), footprintCenter(spot[1], d));
     ui.showPlacementBar(this.placementActions());
     gsap.fromTo(ghost.scale, { x: 0.3, y: 0.3, z: 0.3 }, { x: 1, y: 1, z: 1, duration: 0.35, ease: 'back.out(2)' });
   }
@@ -401,6 +403,28 @@ export class Interaction implements WorldHandler {
       g.add(m);
     }
     return g;
+  }
+
+  /**
+   * Paths and fences are laid in lines: the next ghost appears right beside the one just placed and, once two are
+   * down, carries on in the same direction. If the way ahead is blocked (or the player turned the line by placing
+   * the next piece on another side) it turns to the nearest free side. Anything else starts at the screen centre.
+   */
+  private nextInRun(type: string, at: [number, number]): [number, number] | undefined {
+    const def = BUILDING[type];
+    if (!def.path && !def.link) { this.run = null; return undefined; }
+    const prev = this.run && this.run.type === type ? this.run : null;
+    let dir: [number, number] | null = null;
+    if (prev) {
+      const dx = at[0] - prev.last[0], dz = at[1] - prev.last[1];
+      // placed right beside the last one: that is the direction of the line
+      if (Math.abs(dx) + Math.abs(dz) === 1) dir = [dx, dz];
+      else if (prev.dir && Math.abs(dx) + Math.abs(dz) === 0) dir = prev.dir;
+    }
+    this.run = { type, last: at, dir };
+    const order: [number, number][] = dir ? [dir, [dir[1], dir[0]], [-dir[1], -dir[0]], [-dir[0], -dir[1]]] : [[1, 0], [0, 1], [-1, 0], [0, -1]];
+    for (const [dx, dz] of order) if (game.canPlace(type, at[0] + dx, at[1] + dz, 0)) return [at[0] + dx, at[1] + dz];
+    return undefined;
   }
 
   private findSpot(type: string, x: number, z: number, rot: number): [number, number] {
@@ -490,7 +514,8 @@ export class Interaction implements WorldHandler {
       game.bus.emit('tutorial', { signal: `placed:${type}` });
       // keep placing more of the same small things (fences, paths, fields) for convenience
       const more = fromStorage ? (game.state.storage[type] ?? 0) > 0 : keep && buildings.canBuy(type).ok;
-      if (more) { void this.startPlacement(type, fromStorage); return; }
+      if (more) { void this.startPlacement(type, fromStorage, this.nextInRun(type, [b.x, b.z])); return; }
+      this.run = null;
       // just used up the last field the Farmhouse allows: say how to get more
       if (type === 'plot' && !fromStorage && atFarmhouseCap(def)) fieldsHint(true);
     }
@@ -512,6 +537,7 @@ export class Interaction implements WorldHandler {
   cancelPlacement(userAction = false): void {
     const m = this.placing;
     if (!m) return;
+    if (userAction) this.run = null;
     this.endPlacement();
     if (m.uid) this.scene.farm.setHidden(m.uid, false);
     if (userAction && m.returnToEdit) this.enterEdit();

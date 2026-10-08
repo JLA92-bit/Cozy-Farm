@@ -1,6 +1,20 @@
 {
  "releases": [
   {
+   "version": "1.8.9",
+   "date": "2026-10-08",
+   "title": "Straight Lines",
+   "icon": "hammer",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "hammer",
+     "text": "Laying paths and fences is easier: after you place one, the next appears right beside it, and once two are down it carries on in the same direction. Just keep tapping Confirm"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.8.8",
    "date": "2026-10-08",
    "title": "Arriving by Sea",
