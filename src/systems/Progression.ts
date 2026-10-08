@@ -3,6 +3,8 @@ import {
   QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING, VILLAGERS, SEASONS, FESTIVALS, FISHING, WOODS, type SeasonId,
 } from '../data';
 import { game } from './Game';
+import { seasonOnDay } from './Seasons';
+import { dayNumber } from './Weather';
 import type { QuestState } from './State';
 import { rng, hashString } from '../world/Procedural';
 
@@ -386,16 +388,11 @@ export function syncCosmeticDiscovery(isUnlocked: (id: string, unlock: { level?:
 }
 
 // ======================================================================== seasonal events
+/** 1.9: the seasonal events follow the valley's seasons (one each) instead of real dates. */
+const EVENT_OF_SEASON: Record<SeasonId, string> = { spring: 'spring_blossom', summer: 'summer_fair', autumn: 'harvest_festival', winter: 'winter_wonderland' };
 export function eventForDate(now: number): EventDef | null {
-  const d = new Date(now);
-  const md = (d.getMonth() + 1) * 100 + d.getDate();
-  for (const e of EVENTS) {
-    const [sm, sd] = e.start.split('-').map(Number), [em, ed] = e.end.split('-').map(Number);
-    const s = sm * 100 + sd, en = em * 100 + ed;
-    const inside = s <= en ? md >= s && md <= en : md >= s || md <= en;
-    if (inside) return e;
-  }
-  return null;
+  const id = EVENT_OF_SEASON[seasonOnDay(dayNumber(localDay(now))).id];
+  return EVENTS.find((e) => e.id === id) ?? null;
 }
 
 export class EventSystem {
