@@ -4,7 +4,8 @@ import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear } from '../dom';
 import { ui } from '../UI';
-import { EVENTS, ITEMS, VILLAGER, VILLAGERS } from '../../data';
+import { FESTIVALS, ITEMS, VILLAGER, VILLAGERS } from '../../data';
+import { seasonOnDay } from '../../systems/Seasons';
 import { game } from '../../systems/Game';
 import { mail } from '../../systems/Mail';
 import { daily18 } from '../../systems/Daily18';
@@ -45,14 +46,6 @@ export function renderBook18(id: string, p: Panel): boolean {
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 let monthShift = 0;
 
-/** Is month/day inside an event's MM-DD range (which may wrap the new year)? */
-function inEvent(start: string, end: string, m: number, d: number): boolean {
-  const k = m * 100 + d;
-  const [sm, sd] = start.split('-').map(Number), [em, ed] = end.split('-').map(Number);
-  const s = sm * 100 + sd, e = em * 100 + ed;
-  return s <= e ? k >= s && k <= e : k >= s || k <= e;
-}
-
 function renderCalendar(p: Panel): void {
   clear(p.body);
   const now = new Date(game.now());
@@ -70,27 +63,29 @@ function renderCalendar(p: Panel): void {
   for (const d of DOW) grid.append(h('div', { class: 'cal-dow' }, d));
   const lead = (first.getDay() + 6) % 7;
   for (let i = 0; i < lead; i++) grid.append(h('div', { class: 'cal-day blank' }));
-  const monthEvents = EVENTS.filter((e) => Array.from({ length: days }, (_, i) => i + 1).some((d) => inEvent(e.start, e.end, m + 1, d)));
+  // 1.9: the valley's festival days (the last day of each season) in this month
+  const monthEvents: { day: number; name: string; icon: string }[] = [];
+  for (let d = 1; d <= days; d++) { const sn = seasonOnDay(dayNumber(localDay(new Date(y, m, d).getTime()))); if (sn.festival) { const f = FESTIVALS.festivals[sn.id]; monthEvents.push({ day: d, name: f.name, icon: f.icon }); } }
   for (let d = 1; d <= days; d++) {
     const date = new Date(y, m, d);
     const key = localDay(date.getTime());
     const sat = date.getDay() === (gameConfig.marketDay ?? 6);
     const bday = VILLAGERS.filter((v) => v.birthday[0] === m + 1 && v.birthday[1] === d);
-    const ev = monthEvents.find((e) => inEvent(e.start, e.end, m + 1, d));
+    const ev = monthEvents.find((e) => e.day === d);
     const isToday = key === todayKey;
     const cell = h('div', { class: `cal-day${sat ? ' sat' : ''}${ev ? ' event' : ''}${isToday ? ' today' : ''}`, 'aria-label': `${d}${isToday ? ', today' : ''}${bday.length ? `, ${bday.map((v) => v.name).join(' and ')}'s birthday` : ''}${sat ? ', market day' : ''}` },
       h('span', { class: 'n' }, String(d)));
     if (bday.length) cell.append(senderBadge(bday[0].id, 24));
     else if (isToday) cell.append(icon(WEATHER[weatherToday()].icon, 'mk'));
     else if (sat) cell.append(icon('basket', 'mk'));
-    else if (ev && (d === 1 || inEvent(ev.start, ev.start, m + 1, d))) cell.append(icon(ev.icon, 'mk'));
+    else if (ev) cell.append(icon(ev.icon, 'mk'));
     grid.append(cell);
   }
   p.body.append(grid);
   p.body.append(h('div', { class: 'cal-legend' },
     h('span', null, h('i', { class: 'sw', style: 'border:3px solid var(--btn-red);background:#fff1ef' }), 'Today'),
     h('span', null, icon('basket', 'mk'), roomDone('treasury') ? 'Saturday: village market day, orders and your stall pay 10% more' : 'Saturday: village market day (opens when the Treasury is rebuilt)'),
-    monthEvents.length ? h('span', null, h('i', { class: 'sw', style: 'background:#eaf6ff' }), 'Event') : null,
+    monthEvents.length ? h('span', null, h('i', { class: 'sw', style: 'background:#eaf6ff' }), 'Festival day') : null,
     h('span', null, senderBadge('pip', 22), 'Face: a villager\'s birthday')));
 
   const list = h('div', { class: 'list cal-list' });
@@ -119,11 +114,8 @@ function renderCalendar(p: Panel): void {
       h('span', { class: 'row', style: 'gap:2px' }, ...loves.map((i) => itemIcon(i)))));
   }
   if (monthEvents.length) {
-    list.append(h('div', { class: 'section-title' }, 'Events'));
-    for (const e of monthEvents) {
-      const fmtD = (s: string) => { const [mm, dd] = s.split('-').map(Number); return new Date(2000, mm - 1, dd).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
-      list.append(h('div', { class: 'list-item' }, icon(e.icon, 'icon big'), h('div', { class: 'grow' }, h('div', { class: 'title' }, e.name), h('div', { class: 'sub' }, `${fmtD(e.start)} to ${fmtD(e.end)}`))));
-    }
+    list.append(h('div', { class: 'section-title' }, 'Festivals'));
+    for (const e of monthEvents) list.append(h('div', { class: 'list-item' }, icon(e.icon, 'icon big'), h('div', { class: 'grow' }, h('div', { class: 'title' }, e.name), h('div', { class: 'sub' }, `${e.day} ${first.toLocaleDateString('en-GB', { month: 'long' })}`))));
   }
   p.body.append(list);
 }
