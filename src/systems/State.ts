@@ -202,6 +202,9 @@ export interface VillageState {
   today: { day: string; visitor: string; visitorDone: boolean; finds: { id: string; item: string; x: number; z: number; taken: boolean }[]; request?: VisitRequest };
   /** 1.8 villagers (optional): local day the Village screen was last opened (quiets the HUD dot for the day) */
   openedDay?: string;
+  /** 1.9: how many heart milestones were given on this local day (they are spread out: two a day at most) */
+  milestoneDay?: string;
+  milestoneN?: number;
 }
 /** 1.8 mail agent: what today's visiting villager asks for and pays (optional; made on the first tick of the day). */
 export interface VisitRequest { item: string; qty: number; coins: number; xp: number }

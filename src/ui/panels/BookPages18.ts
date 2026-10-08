@@ -1,3 +1,4 @@
+import { gameConfig } from '../../online/GameConfig';
 import { renderAlmanac } from './AlmanacPage';
 import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
@@ -73,7 +74,7 @@ function renderCalendar(p: Panel): void {
   for (let d = 1; d <= days; d++) {
     const date = new Date(y, m, d);
     const key = localDay(date.getTime());
-    const sat = date.getDay() === 6;
+    const sat = date.getDay() === (gameConfig.marketDay ?? 6);
     const bday = VILLAGERS.filter((v) => v.birthday[0] === m + 1 && v.birthday[1] === d);
     const ev = monthEvents.find((e) => inEvent(e.start, e.end, m + 1, d));
     const isToday = key === todayKey;

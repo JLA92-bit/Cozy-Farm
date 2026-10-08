@@ -549,6 +549,13 @@ class UIManager {
       rows.push(h('div', { class: 'card-sub' }, `Next: ${up.label}${check.ok ? '' : ` (${(check as { reason: string }).reason})`}`));
     }
     btns.append(button('Move', () => { this.world.hidePopup(); void this.interaction.startMove(b.uid, false); }, 'small blue'));
+    // 1.9: lay a path under this object (paths can go beneath benches, lanterns and the like)
+    if (!def.path && !def.tree && b.type !== 'plot' && isBuilt(b, now) && game.level >= BUILDING.path_dirt.level) {
+      const [bw, bd] = def.size;
+      let bare = false;
+      for (let z = b.z; z < b.z + bd && !bare; z++) for (let x = b.x; x < b.x + bw; x++) if (!game.pathAt(x, z)) { bare = true; break; }
+      if (bare) btns.append(button([icon('bricks'), 'Path under'], () => { this.world.hidePopup(); void this.interaction.startPlacement('path_dirt', false, [b.x, b.z]); }, 'small green'));
+    }
     rows.push(btns);
     const title = def.cat === 'production' || def.cat === 'animal' || b.type === 'farmhouse' ? `${def.name} (Lv ${b.level})` : def.name;
     this.world.showPopup(this.scene.farm.anchor(b.uid), this.card(title, ...rows));

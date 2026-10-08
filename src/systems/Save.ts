@@ -256,6 +256,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   }
   out.village.friends = vf;
   if (out.village.openedDay !== undefined && typeof out.village.openedDay !== 'string') delete out.village.openedDay;
+  if (typeof out.village.milestoneDay !== 'string') { delete out.village.milestoneDay; delete out.village.milestoneN; } else out.village.milestoneN = Math.floor(finite(out.village.milestoneN, 0, 0));
   const td = out.village.today;
   if (typeof td.day !== 'string') td.day = '';
   if (typeof td.visitor !== 'string') td.visitor = '';

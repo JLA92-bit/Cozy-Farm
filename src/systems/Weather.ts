@@ -3,6 +3,7 @@
  * nothing needs saving. Sunny most days, some rain (crops planted today grow 5% faster, rare fish bite a little
  * more often), some soft mist. Never three rainy days in a row.
  */
+import { gameConfig } from '../online/GameConfig';
 import { game } from './Game';
 import { localDay } from './Progression';
 import { hashString, rng } from '../world/Procedural';
@@ -43,6 +44,9 @@ export function weatherOn(n: number, seed = game.state.seed): WeatherKind {
 
 /** Today's weather (local day). */
 export function weatherToday(now = game.now()): WeatherKind {
+  // 1.9: the developer can set the weather for one date from the dashboard
+  const w = gameConfig.weather;
+  if (w && w.date === localDay(now) && w.kind in WEATHER) return w.kind as WeatherKind;
   return weatherOn(dayNumber(localDay(now)));
 }
 

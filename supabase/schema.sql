@@ -3131,3 +3131,108 @@ $$;
 revoke all on function public.admin_v185_overview(integer) from public, anon;
 -- the admin_* functions check admin_guard() themselves; signed-in callers may try them
 grant execute on function public.admin_v185_overview(integer) to authenticated;
+
+-- ===== 1.9 a year in the valley =====
+-- Two small things. (1) game_config: a few settings the developer can change from the dashboard without a new
+-- release (for now: which weekday is market day, and the weather for one chosen date). The game reads them with
+-- get_game_config() and always has an offline default, so it never depends on the server. (2) one read-only
+-- dashboard function that summarises the 1.9 moments the game writes with log_event() (festival_play,
+-- festival_collect, woods_first, forage, dig, museum_give, museum_shelf, museum_curator, expedition_send,
+-- expedition_done, help_wanted). Safe to re-run.
+
+create table if not exists public.game_config (
+  key text primary key check (key ~ '^[a-z0-9_]{1,40}$'),
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.game_config enable row level security;
+revoke all on public.game_config from public, anon, authenticated;
+
+-- Everyone (signed in or not) may read the settings; nobody can write them except through admin_set_game_config.
+create or replace function public.get_game_config()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_object_agg(c.key, c.value), '{}'::jsonb) from public.game_config c;
+$$;
+
+-- Dashboard: set one setting (a JSON value), or clear it with null. Logged in admin_log.
+create or replace function public.admin_set_game_config(p_key text, p_value jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+begin
+  if p_key not in ('market_day', 'weather') then raise exception 'unknown setting'; end if;
+  if p_value is null or jsonb_typeof(p_value) = 'null' then
+    delete from public.game_config where key = p_key;
+  else
+    if p_key = 'market_day' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::integer between 0 and 6) then raise exception 'market_day must be 0-6'; end if;
+    if p_key = 'weather' and not (jsonb_typeof(p_value) = 'object' and (p_value ->> 'date') ~ '^\d{4}-\d{2}-\d{2}$' and (p_value ->> 'kind') in ('sunny', 'rain', 'mist')) then raise exception 'weather needs a date and a kind'; end if;
+    insert into public.game_config (key, value, updated_at) values (p_key, p_value, now())
+    on conflict (key) do update set value = excluded.value, updated_at = now();
+  end if;
+  perform public.admin_note_log(v_admin, 'game setting', null, jsonb_build_object('key', p_key, 'value', p_value));
+  return public.get_game_config();
+end;
+$$;
+
+create or replace function public.admin_v19_overview(p_days integer default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 30), 1), 180);
+  v_from timestamptz := now() - make_interval(days => v_days);
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'generatedAt', now(),
+    'days', v_days,
+    'config', public.get_game_config(),
+    -- festival plays and prizes collected, per festival, with the stars players got
+    'festivals', (select coalesce(jsonb_agg(jsonb_build_object('festival', x.festival, 'plays', x.plays, 'players', x.players, 'collected', x.collected, 'threeStar', x.three) order by x.festival), '[]'::jsonb) from (
+        select e.detail ->> 'festival' as festival,
+               count(*) filter (where e.kind = 'festival_play') as plays,
+               count(distinct e.user_id) filter (where e.kind = 'festival_play') as players,
+               count(*) filter (where e.kind = 'festival_collect') as collected,
+               count(*) filter (where e.kind = 'festival_collect' and (e.detail ->> 'stars') = '3') as three
+          from public.player_events e
+         where e.kind in ('festival_play', 'festival_collect') and e.at > v_from and e.detail ->> 'festival' ~ '^[a-z_]{1,30}$'
+         group by 1) x),
+    'woods', (select jsonb_build_object(
+                'visitors', count(distinct e.user_id) filter (where e.kind = 'woods_first'),
+                'foragers', count(distinct e.user_id) filter (where e.kind = 'forage'),
+                'forages', count(*) filter (where e.kind = 'forage'),
+                'diggers', count(distinct e.user_id) filter (where e.kind = 'dig'),
+                'digs', count(*) filter (where e.kind = 'dig'),
+                'expeditions', count(*) filter (where e.kind = 'expedition_send'),
+                'expeditionsDone', count(*) filter (where e.kind = 'expedition_done'))
+                from public.player_events e where e.kind in ('woods_first', 'forage', 'dig', 'expedition_send', 'expedition_done')),
+    'museum', jsonb_build_object(
+        'givers', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_give'),
+        'pieces', (select count(*) from public.player_events e where e.kind = 'museum_give'),
+        'curators', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_curator'),
+        'shelves', (select coalesce(jsonb_agg(jsonb_build_object('shelf', x.shelf, 'players', x.n) order by x.n desc), '[]'::jsonb) from (
+            select e.detail ->> 'shelf' as shelf, count(distinct e.user_id) as n from public.player_events e
+             where e.kind = 'museum_shelf' and e.detail ->> 'shelf' ~ '^[a-z_]{1,30}$' group by 1) x)),
+    'helpWanted', (select jsonb_build_object('players', count(distinct e.user_id), 'filled', count(*)) from public.player_events e where e.kind = 'help_wanted' and e.at > v_from));
+end;
+$$;
+
+revoke all on function public.get_game_config() from public;
+revoke all on function public.admin_set_game_config(text, jsonb) from public, anon;
+revoke all on function public.admin_v19_overview(integer) from public, anon;
+grant execute on function public.get_game_config() to anon, authenticated;
+-- the admin_* functions check admin_guard() themselves; signed-in callers may try them
+grant execute on function public.admin_set_game_config(text, jsonb) to authenticated;
+grant execute on function public.admin_v19_overview(integer) to authenticated;

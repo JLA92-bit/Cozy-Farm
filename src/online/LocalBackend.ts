@@ -33,7 +33,7 @@ const BOTS: { name: string; level: number; charm: number; look: PlayerProfile['l
   { name: 'Granny Mae', level: 14, charm: 420, look: { body: 'female-b', skin: '#ffe0c2', hair: '#f2e2b0', top: '#ff8fb4', bottom: '#3b3b45', hat: 'straw' } },
   { name: 'Farmer Joe', level: 9, charm: 160, look: { body: 'male-a', skin: '#f6c9a0', hair: '#5a3a22', top: '#e2533c', bottom: '#3fa9f5', hat: 'straw' } },
   { name: 'Priya', level: 21, charm: 880, look: { body: 'female-c', skin: '#a26a43', hair: '#2b2622', top: '#6cc644', bottom: '#f7f1e3', hat: 'none' } },
-  { name: 'Old Tom', level: 5, charm: 60, look: { body: 'male-b', skin: '#c98a5e', hair: '#9aa5b1', top: '#8a5528', bottom: '#3b3b45', hat: 'none' } },
+  { name: 'Grandpa Joe', level: 5, charm: 60, look: { body: 'male-b', skin: '#c98a5e', hair: '#9aa5b1', top: '#8a5528', bottom: '#3b3b45', hat: 'none' } },
   { name: 'Luna', level: 31, charm: 1500, look: { body: 'female-f', skin: '#e8b38a', hair: '#a77bf3', top: '#3b3b45', bottom: '#ff8fb4', hat: 'none' } },
 ];
 /** Goods the demo neighbours put up for sale: [item, qty, price per unit]. */
@@ -236,6 +236,7 @@ export class LocalBackend implements OnlineBackend {
   async adminLetters(): Promise<AdminLetter[]> { return []; }
   async claimAdminLetter(): Promise<AdminLetter> { throw new Error('not found'); }
   async logEvent(): Promise<void> { /* practice mode: no statistics */ }
+  async gameConfig(): Promise<Record<string, unknown>> { return {}; }
   async submitFeedback(): Promise<void> {
     throw new Error('Feedback needs online play.');
   }

@@ -3,6 +3,7 @@
  * Perks.ts) so animals, trucks, orders, the stall and the seed tray can ask "is this room rebuilt?" without
  * pulling in the restoration screens. The bundles, giving and celebrations live in Restoration.ts.
  */
+import { gameConfig } from '../online/GameConfig';
 import { game } from './Game';
 import { RESTORATION } from '../data';
 
@@ -17,7 +18,7 @@ export const barnSpeedMult = (): number => (roomDone('barn') ? R.rewards.animalT
 /** Treasury: the delivery truck pays more. */
 export const truckPayMult = (): number => (roomDone('treasury') ? R.rewards.truckMult : 1);
 /** Treasury: every Saturday (the local day) is village market day. */
-export function isMarketDay(now = game.now()): boolean { return roomDone('treasury') && new Date(now).getDay() === R.market.dayOfWeek; }
+export function isMarketDay(now = game.now()): boolean { return roomDone('treasury') && new Date(now).getDay() === (gameConfig.marketDay ?? R.market.dayOfWeek); }
 /** Market day: orders pay a little more (coins). */
 export const marketOrderMult = (): number => (isMarketDay() ? R.market.ordersCoinMult : 1);
 /** Market day: the roadside stall pays a little more. */

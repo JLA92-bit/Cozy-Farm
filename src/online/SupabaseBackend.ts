@@ -547,6 +547,16 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     } catch { /* statistics only: never bother the player */ }
   }
 
+  async gameConfig(): Promise<Record<string, unknown>> {
+    try {
+      await this.init();
+      const r = await this.db().rpc('get_game_config') as Result<unknown>;
+      this.check(r);
+      const d = r.data;
+      return d && typeof d === 'object' && !Array.isArray(d) ? d as Record<string, unknown> : {};
+    } catch { return {}; }
+  }
+
   async submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void> {
     await this.rpc<string>('submit_feedback', { p_category: category, p_message: message.slice(0, 2000), p_version: info.version, p_platform: info.platform, p_device: info.device.slice(0, 200), p_level: info.level });
   }

@@ -24,6 +24,7 @@ export const STORY_HEARTS = [2, 4, 6, 8, 10] as const;
 /** 1.9: the 2, 6 and 10 heart events have no keepsake; they pay a small thank-you instead. */
 const EVENT_THANKS: Record<number, { coins: number; gems: number }> = { 2: { coins: 100, gems: 0 }, 6: { coins: 300, gems: 1 }, 10: { coins: 600, gems: 3 } };
 const WEEK_DAYS = 7;
+const MILESTONES_PER_DAY = 2;
 
 /** What each milestone brings, in a short line for the villager page ("At 4 hearts: ..."). */
 export function milestoneText(v: VillagerDef, m: number): string {
@@ -94,6 +95,11 @@ class VillageRewards {
     let changed = false;
     for (const m of FRIENDSHIP.milestones) {
       if (hearts < m || f.rewards.includes(m)) continue;
+      // 1.9: a farm that earned many hearts before this update gets its letters and stories a couple a day, not all at once
+      const vs = game.state.village, day = localDay(game.now());
+      if (vs.milestoneDay !== day) { vs.milestoneDay = day; vs.milestoneN = 0; }
+      if ((vs.milestoneN ?? 0) >= MILESTONES_PER_DAY) continue;
+      vs.milestoneN = (vs.milestoneN ?? 0) + 1;
       f.rewards.push(m);
       changed = true;
       const today = localDay(game.now());

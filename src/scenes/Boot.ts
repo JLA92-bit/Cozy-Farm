@@ -44,6 +44,7 @@ import { tutorial } from '../ui/Tutorial';
 import { ECONOMY, SEASONS } from '../data';
 import { seasons } from '../systems/Seasons';
 import { festivals } from '../systems/Festivals';
+import { loadGameConfig } from '../online/GameConfig';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
 import { startActivity } from '../online/Activity';
@@ -211,6 +212,7 @@ export async function boot(): Promise<void> {
   // a new farm already at level 3: its short village intro follows once the greetings are closed
   if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
+  void loadGameConfig();
   syncCollection19();
   game.bus.on('collection:new', ({ kind }) => { if (kind === 'item') syncCollection19(); });
   setTimeout(() => { seasons.announce(); festivals.announce(); }, 4000);

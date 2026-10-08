@@ -191,6 +191,8 @@ export interface OnlineBackend {
   claimAdminLetter(id: string): Promise<AdminLetter>;
   /** 1.8: one small game event for the developer dashboard (src/online/Events.ts). Never throws. */
   logEvent(kind: string, detail: Record<string, unknown>): Promise<void>;
+  /** 1.9 settings the developer can change from the dashboard (market day, a day's weather); {} when offline */
+  gameConfig(): Promise<Record<string, unknown>>;
   /** Settings > Send feedback. Rejects with 'too many' (10 a day) or when offline. */
   submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void>;
 
