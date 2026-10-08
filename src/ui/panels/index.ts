@@ -23,3 +23,4 @@ import './HelpPanel';
 import './VillagePanel';
 import './SkillsPanel';
 import './SquarePanel';
+import './FestivalPanel';

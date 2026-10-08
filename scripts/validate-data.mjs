@@ -293,5 +293,24 @@ if (errors.length) {
     if (!sd.seasons[season]) err(`seasons: missing season ${season}`);
   }
   if (new Date(sd.epoch + 'T00:00:00Z').getUTCDay() !== 1) err('seasons: epoch must be a Monday');
+  for (const [id, f] of Object.entries(sd.seasons)) if (!f.look?.grass || !f.look?.pollen || !f.look?.sky) err(`seasons: ${id} needs a look`);
+}
+// 1.9 festivals: one per season, prizes exist, stars ascend
+{
+  const fd = read('festivals.json'), sd = read('seasons.json');
+  const bIds = buildings.map((b) => b.id), itemIds = Object.keys(read('items.json').items);
+  for (const season of sd.order) {
+    const f = fd.festivals[season];
+    if (!f) { err(`festivals: no festival for ${season}`); continue; }
+    if (!['eggs', 'derby', 'fair', 'feast'].includes(f.game)) err(`festivals: ${f.id} has unknown game ${f.game}`);
+    if (!(f.stars[0] < f.stars[1] && f.stars[1] < f.stars[2])) err(`festivals: ${f.id} stars must ascend`);
+    if (!bIds.includes(f.prize.decor)) err(`festivals: ${f.id} prize decoration ${f.prize.decor} does not exist`);
+    if (f.prize.item && !itemIds.includes(f.prize.item.id)) err(`festivals: ${f.id} prize item ${f.prize.item.id} does not exist`);
+  }
+  if (fd.prizes.length !== 3) err('festivals: prizes needs 3 tiers');
+}
+if (errors.length) {
+  console.error(`data invalid:\n - ${errors.join('\n - ')}`);
+  process.exit(1);
 }
 console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.length} animals, ${recipes.length} recipes, ${buildings.length} buildings, ${achievements.length} achievements, every level 2-${levels.maxLevel} unlocks something`);

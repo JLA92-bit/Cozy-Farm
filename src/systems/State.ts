@@ -90,6 +90,8 @@ export interface SaveData {
   fishstall?: { day: string; bought: Record<string, number> };
   /** 1.9 seasons: the last season a letter was sent for ("year:season") */
   seasons?: { letter: string };
+  /** 1.9 festival days: best stars per festival ("year:season") and the stars already collected */
+  festivals?: { best: Record<string, number>; done: Record<string, number>; seen: string };
   stats: Record<string, number>;
   achievements: Record<string, number>;
   quests: { daily: QuestState[]; dailyKey: string; weekly: QuestState[]; weeklyKey: string; weeklyBonusClaimed: boolean };

@@ -6,6 +6,7 @@ import restorationJson from './restoration.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
+import festivalsJson from './festivals.json';
 import seasonsJson from './seasons.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
@@ -240,3 +241,13 @@ export function itemSource(item: string): { kind: 'crop' | 'tree' | 'animal' | '
 export function itemXp(item: string): number {
   return Math.max(1, Math.round((ITEMS[item]?.sell ?? 1) / ECONOMY.orders.xpDivisor));
 }
+
+/** 1.9 Festival Days (festivals.json): one per season, on its last day. */
+export interface FestivalDef {
+  id: string; name: string; icon: string; game: 'eggs' | 'derby' | 'fair' | 'feast'; ribbon: string; blurb: string; rules: string;
+  stars: [number, number, number]; seconds?: number; eggs?: number; bushes?: number; casts?: number; dishes?: number;
+  prize: { decor: string; item?: { id: string; n: number }; gems?: number };
+}
+export const FESTIVALS = festivalsJson as unknown as {
+  festivals: Record<SeasonId, FestivalDef>; prizes: { coins: number; gems?: number }[]; feastPoints: { love: number; like: number; other: number };
+};
