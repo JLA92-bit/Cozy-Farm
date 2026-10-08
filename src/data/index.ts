@@ -6,6 +6,7 @@ import restorationJson from './restoration.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
+import woodsJson from './woods.json';
 import festivalsJson from './festivals.json';
 import seasonsJson from './seasons.json';
 import animalsJson from './animals.json';
@@ -156,7 +157,7 @@ export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as R
 export const FRIENDSHIP = villagersJson.friendship;
 
 /** 1.8.5 Skills (skills.json). */
-export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking' | 'crafting';
+export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking' | 'crafting' | 'foraging';
 export interface SkillPerkDef { id: string; name: string; icon: string; text: string }
 export interface SkillDef {
   id: SkillId; name: string; icon: string; color: string; about: string; grows: string;
@@ -250,4 +251,14 @@ export interface FestivalDef {
 }
 export const FESTIVALS = festivalsJson as unknown as {
   festivals: Record<SeasonId, FestivalDef>; prizes: { coins: number; gems?: number }[]; feastPoints: { love: number; like: number; other: number };
+};
+
+/** 1.9 The Wild Woods (woods.json): seasonal forage, dig finds, how many spots there are each day. */
+export type ForageKind = 'leaf' | 'flower' | 'berry' | 'mushroom' | 'nut' | 'root';
+export type FindKind = 'mineral' | 'fossil' | 'artifact';
+export const WOODS = woodsJson as unknown as {
+  level: number; forage: { spots: number; chance: number };
+  dig: { spots: number; perDay: number; table: Record<FindKind | 'clay', number>; luckyMult: number }; clayItem: string;
+  foragedBySeason: Record<SeasonId, { id: string; kind: ForageKind; w: number }[]>;
+  finds: Record<FindKind, { id: string; w: number }[]>;
 };

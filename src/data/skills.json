@@ -27,7 +27,11 @@
     "thriftyCrafting": 0.25,
     "sturdyRange": 1,
     "goldenTouch": 2,
-    "tinkererFeeds": 2
+    "tinkererFeeds": 2,
+    "forageGoldPerLevel": 0.01,
+    "keenEyesChance": 0.2,
+    "extraDigs": 2,
+    "wildGold": 0.05
   },
   "skills": [
     {
@@ -112,6 +116,23 @@
         "10": [
           { "id": "golden_touch", "name": "Golden Touch", "icon": "sparkles", "text": "Quality fertiliser is twice as strong" },
           { "id": "tinkerer", "name": "Tinkerer", "icon": "gear", "text": "Auto-feeders feed twice as many animals" }
+        ]
+      }
+    },
+    {
+      "id": "foraging", "name": "Foraging", "icon": "mushroom", "color": "green",
+      "about": "Opens with the Wild Woods. Grows as you pick wild plants and dig up finds.",
+      "grows": "Foraging and digging in the Wild Woods",
+      "xp": { "forage_picked": 3, "digs_done": 4 },
+      "perLevel": "+1% chance of gold-star forage",
+      "perks": {
+        "5": [
+          { "id": "keen_eyes", "name": "Keen Eyes", "icon": "sparkles", "text": "1 forage pick in 5 gives a double" },
+          { "id": "extra_digs", "name": "Deep Digger", "icon": "pick", "text": "Two more dig spots can be dug each day" }
+        ],
+        "10": [
+          { "id": "forager_gold", "name": "Wild Gold", "icon": "crown", "text": "A further 5% chance of gold-star forage" },
+          { "id": "lucky_finds", "name": "Lucky Finds", "icon": "gem", "text": "Fossils, artifacts and gems turn up much more often" }
         ]
       }
     }

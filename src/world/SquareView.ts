@@ -21,11 +21,11 @@ import { buntingGeometry, heroStatueGeometry } from './models/festival';
 /** Where the island sits in the world: well clear of the farm and its distant islands. */
 export const SQUARE = { x: 130, z: 0 };
 /** Island radius, plaza radius and the arc the lots stand on. */
-const R_ISLAND = 25;
+export const R_ISLAND = 25;
 const R_PLAZA = 5.2;
 const LOT_R = 13.6;
 const LOT_W = 4.6;
-const CLIFF_H = 1.6;
+export const CLIFF_H = 1.6;
 
 // The camera looks from (+x, +z) towards (-x, -z). A point is given in screen terms: sx to the right, sy away
 // from the viewer (up the screen), and turned into world x, z.
@@ -77,7 +77,7 @@ interface Lot {
 }
 
 /** A model scaled so its widest side (x or z) is `width`, standing on y=0 with its centre at the origin. */
-async function modelObject(id: string, width: number): Promise<THREE.Object3D> {
+export async function modelObject(id: string, width: number): Promise<THREE.Object3D> {
   const m = await assets.static(id);
   const mesh = assets.meshFrom(m);
   const s = width / Math.max(m.size.x, m.size.z);
@@ -88,7 +88,7 @@ async function modelObject(id: string, width: number): Promise<THREE.Object3D> {
 }
 
 /** A tall thin model (lantern, banner) scaled to a height instead of a width. */
-async function tallObject(id: string, height: number): Promise<THREE.Object3D> {
+export async function tallObject(id: string, height: number): Promise<THREE.Object3D> {
   const m = await assets.static(id);
   const mesh = assets.meshFrom(m);
   mesh.scale.setScalar(height / m.size.y);
@@ -113,7 +113,7 @@ async function buildingObject(type: string, width: number): Promise<THREE.Object
  * has a lot of small static things (trees, flowers, fences, crates): drawn one by one they would cost hundreds of
  * draw calls on a phone, merged they cost a handful. Anything that moves or is animated is added after this call.
  */
-function mergeStatic(parent: THREE.Object3D): void {
+export function mergeStatic(parent: THREE.Object3D): void {
   parent.updateWorldMatrix(true, true);
   const inv = new THREE.Matrix4().copy(parent.matrixWorld).invert();
   const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
@@ -156,7 +156,7 @@ function mergeStatic(parent: THREE.Object3D): void {
   for (const m of made) parent.add(m);
 }
 
-function noise(seed: number, cells = 24): (x: number, z: number) => number {
+export function noise(seed: number, cells = 24): (x: number, z: number) => number {
   const r = rng(seed);
   const lat = new Float32Array(cells * cells);
   for (let i = 0; i < lat.length; i++) lat[i] = r();
@@ -171,7 +171,7 @@ function noise(seed: number, cells = 24): (x: number, z: number) => number {
 }
 
 /** Round grass top with the same meadow-patch colouring as the farm. Centre (cx, cz) in island space. */
-function grassTop(cx: number, cz: number, radius: number): THREE.Mesh {
+export function grassTop(cx: number, cz: number, radius: number): THREE.Mesh {
   const rings = 22, segs = 88;
   const pos: number[] = [], col: number[] = [];
   const base = new THREE.Color(PAL.grass), meadow = new THREE.Color('#9be06a'), lush = new THREE.Color('#5fbf45'), warm = new THREE.Color('#a9d65c');
@@ -207,7 +207,7 @@ function grassTop(cx: number, cz: number, radius: number): THREE.Mesh {
 }
 
 /** Cliffs, beach and rocks round the island (same look as the farm island). */
-function islandBase(cx: number, cz: number): THREE.Mesh {
+export function islandBase(cx: number, cz: number): THREE.Mesh {
   const R = R_ISLAND, b = geo();
   b.cyl(R, R, CLIFF_H, PAL.dirt, [cx, -CLIFF_H - 0.06, cz], 72)
     .cyl(R + 0.15, R + 0.15, 0.25, PAL.grassDark, [cx, -0.285, cz], 72)

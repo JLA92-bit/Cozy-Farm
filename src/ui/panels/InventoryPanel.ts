@@ -13,6 +13,7 @@ const CATS = [
   { id: 'animal', label: 'Animal', icon: 'egg' },
   { id: 'goods', label: 'Goods', icon: 'bread' },
   { id: 'fish', label: 'Fish', icon: 'fish' },
+  { id: 'finds', label: 'Finds', icon: 'mushroom' },
   { id: 'stored', label: 'Stored', icon: 'hut' },
 ];
 
@@ -24,6 +25,7 @@ export function sourceText(item: string): string {
   if (s.kind === 'animal') return `From ${ANIMAL[s.id].name}s`;
   if (s.kind === 'recipe') return `Made at the ${BUILDING[RECIPE[s.id].building].name}`;
   if (s.kind === 'fish') return 'Caught at the dock';
+  if (['forage', 'mineral', 'fossil', 'artifact'].includes(ITEMS[item]?.cat ?? '')) return 'Found in the Wild Woods';
   // 1.8 daily finds turn up on the farm too
   return ['seashell', 'petal', 'acorn'].includes(item) ? 'Found on your farm and during events' : 'Found during events';
 }
@@ -34,11 +36,12 @@ const EMPTY: Record<string, string> = {
   animal: 'No animal goods yet. Feed your animals!',
   goods: 'No goods yet. Make some in your workshops!',
   fish: 'No fish yet. Try fishing at the dock!',
+  finds: 'Nothing found yet. Row over to the Wild Woods!',
 };
 
 const inCat = (id: string, t: string): boolean => {
   const c = ITEMS[id]?.cat;
-  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed') || (t === 'fish' && id === 'bait');
+  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed') || (t === 'fish' && id === 'bait') || (t === 'finds' && ['forage', 'mineral', 'fossil', 'artifact'].includes(c ?? ''));
 };
 
 export function openInventory(tab = 'all'): void {

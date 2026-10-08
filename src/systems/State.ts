@@ -91,6 +91,8 @@ export interface SaveData {
   /** 1.9 seasons: the last season a letter was sent for ("year:season") */
   seasons?: { letter: string };
   /** 1.9 festival days: best stars per festival ("year:season") and the stars already collected */
+  /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */
+  woods?: WoodsState;
   festivals?: { best: Record<string, number>; done: Record<string, number>; seen: string };
   stats: Record<string, number>;
   achievements: Record<string, number>;
@@ -134,6 +136,9 @@ export interface SaveData {
   /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
   mastery?: { done: string[] };
 }
+
+/** 1.9 The Wild Woods (src/systems/Woods.ts). */
+export interface WoodsState { day: string; picked: number[]; dug: number[]; found: Record<string, number>; visited: boolean }
 
 /** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */
 export interface SkillsState {

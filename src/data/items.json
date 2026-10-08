@@ -949,6 +949,186 @@
    "sell": 60,
    "icon": "frost_halibut"
   },
+  "wild_leek": {
+   "name": "Wild Leek",
+   "cat": "forage",
+   "sell": 14,
+   "icon": "wild_leek"
+  },
+  "dandelion": {
+   "name": "Dandelion",
+   "cat": "forage",
+   "sell": 9,
+   "icon": "dandelion"
+  },
+  "daffodil": {
+   "name": "Daffodil",
+   "cat": "forage",
+   "sell": 22,
+   "icon": "daffodil"
+  },
+  "raspberry": {
+   "name": "Raspberry",
+   "cat": "forage",
+   "sell": 16,
+   "icon": "raspberry"
+  },
+  "wild_rose": {
+   "name": "Wild Rose",
+   "cat": "forage",
+   "sell": 24,
+   "icon": "wild_rose"
+  },
+  "fern_frond": {
+   "name": "Fern Frond",
+   "cat": "forage",
+   "sell": 12,
+   "icon": "fern_frond"
+  },
+  "chanterelle": {
+   "name": "Chanterelle",
+   "cat": "forage",
+   "sell": 26,
+   "icon": "chanterelle"
+  },
+  "hazelnut": {
+   "name": "Hazelnut",
+   "cat": "forage",
+   "sell": 14,
+   "icon": "hazelnut"
+  },
+  "blackberry": {
+   "name": "Blackberry",
+   "cat": "forage",
+   "sell": 18,
+   "icon": "blackberry"
+  },
+  "winter_root": {
+   "name": "Winter Root",
+   "cat": "forage",
+   "sell": 20,
+   "icon": "winter_root"
+  },
+  "holly": {
+   "name": "Holly",
+   "cat": "forage",
+   "sell": 22,
+   "icon": "holly"
+  },
+  "snow_yam": {
+   "name": "Snow Yam",
+   "cat": "forage",
+   "sell": 28,
+   "icon": "snow_yam"
+  },
+  "copper_ore": {
+   "name": "Copper Ore",
+   "cat": "mineral",
+   "sell": 30,
+   "icon": "copper_ore"
+  },
+  "iron_ore": {
+   "name": "Iron Ore",
+   "cat": "mineral",
+   "sell": 42,
+   "icon": "iron_ore"
+  },
+  "quartz": {
+   "name": "Quartz",
+   "cat": "mineral",
+   "sell": 60,
+   "icon": "quartz"
+  },
+  "topaz": {
+   "name": "Topaz",
+   "cat": "mineral",
+   "sell": 100,
+   "icon": "topaz"
+  },
+  "amethyst": {
+   "name": "Amethyst",
+   "cat": "mineral",
+   "sell": 120,
+   "icon": "amethyst"
+  },
+  "ammonite": {
+   "name": "Ammonite",
+   "cat": "fossil",
+   "sell": 80,
+   "icon": "ammonite"
+  },
+  "fossil_fern": {
+   "name": "Fossil Fern",
+   "cat": "fossil",
+   "sell": 70,
+   "icon": "fossil_fern"
+  },
+  "fossil_bone": {
+   "name": "Fossil Bone",
+   "cat": "fossil",
+   "sell": 95,
+   "icon": "fossil_bone"
+  },
+  "amber": {
+   "name": "Amber",
+   "cat": "fossil",
+   "sell": 140,
+   "icon": "amber"
+  },
+  "old_coin": {
+   "name": "Old Coin",
+   "cat": "artifact",
+   "sell": 150,
+   "icon": "old_coin"
+  },
+  "rusty_key": {
+   "name": "Rusty Key",
+   "cat": "artifact",
+   "sell": 110,
+   "icon": "rusty_key"
+  },
+  "ancient_bell": {
+   "name": "Ancient Bell",
+   "cat": "artifact",
+   "sell": 130,
+   "icon": "ancient_bell"
+  },
+  "scroll_fragment": {
+   "name": "Scroll Fragment",
+   "cat": "artifact",
+   "sell": 160,
+   "icon": "scroll_fragment"
+  },
+  "clay_figure": {
+   "name": "Clay Figure",
+   "cat": "artifact",
+   "sell": 180,
+   "icon": "clay_figure"
+  },
+  "amphora": {
+   "name": "Amphora",
+   "cat": "artifact",
+   "sell": 220,
+   "icon": "amphora"
+  },
+  "silver_mirror": {
+   "name": "Silver Mirror",
+   "cat": "artifact",
+   "sell": 260,
+   "icon": "silver_mirror"
+  },
+  "old_compass": {
+   "name": "Old Compass",
+   "cat": "artifact",
+   "sell": 240,
+   "icon": "old_compass"
+  },
+  "lost_crown": {
+   "name": "Lost Crown",
+   "cat": "artifact",
+   "sell": 500,
+   "icon": "lost_crown"
+  },
   "anchovy": {
    "name": "Anchovy",
    "cat": "fish",

@@ -215,7 +215,7 @@ releases?.forEach((r, i) => {
       }
     }
   }
-  if (ids.size !== 5) err('skills.json: expected the five skills (farming, animals, fishing, cooking, crafting)');
+  if (ids.size !== 6) err('skills.json: expected the six skills (farming, animals, fishing, cooking, crafting, foraging)');
   for (const [k, v] of Object.entries(s.values ?? {})) if (typeof v !== 'number' || !Number.isFinite(v)) err(`skills.json: value ${k} must be a number`);
   if (/\u2014|\u2013/.test(JSON.stringify(s))) err('skills.json: no em or en dashes in text');
 }
@@ -272,6 +272,21 @@ releases?.forEach((r, i) => {
   }
 }
 
+// 1.9 woods: every item exists with the right category, every season has forage
+{
+  const wd = read('woods.json'), sd = read('seasons.json'), items = read('items.json').items;
+  for (const season of sd.order) {
+    const list = wd.foragedBySeason[season] ?? [];
+    if (list.length < 3) err(`woods: ${season} needs at least 3 forage items`);
+    for (const e of list) {
+      if (!items[e.id] || items[e.id].cat !== 'forage') err(`woods: forage ${e.id} must be an item with cat "forage"`);
+      if (!['leaf', 'flower', 'berry', 'mushroom', 'nut', 'root'].includes(e.kind)) err(`woods: forage ${e.id} has unknown kind ${e.kind}`);
+    }
+  }
+  for (const [kind, list] of Object.entries(wd.finds)) for (const e of list) if (!items[e.id] || items[e.id].cat !== kind) err(`woods: find ${e.id} must be an item with cat "${kind}"`);
+  if (!items[wd.clayItem]) err(`woods: clay item ${wd.clayItem} does not exist`);
+  if (wd.dig.perDay > wd.dig.spots) err('woods: dig perDay is more than the number of spots');
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

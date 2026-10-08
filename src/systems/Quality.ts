@@ -12,7 +12,7 @@ export const QUALITY_NAME = ['Normal', 'Silver', 'Gold'] as const;
 export { QUALITY_MULT };
 
 /** Where an item came from, for boosts that only apply to some sources. */
-export type QualitySource = 'crop' | 'tree' | 'animal' | 'fish' | 'production' | 'other';
+export type QualitySource = 'crop' | 'tree' | 'animal' | 'fish' | 'production' | 'forage' | 'other';
 
 /** Extra chances (0..1 added to silver / gold) from fertiliser, perks and skills. Systems push functions here. */
 export const qualityBoosts: ((source: QualitySource, item: string) => { silver?: number; gold?: number } | null)[] = [];

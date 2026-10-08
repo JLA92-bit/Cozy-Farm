@@ -80,10 +80,19 @@ export function skillSellMult(item: string): number {
 }
 game.sellBonus = skillSellMult;
 
+// ---------------------------------------------------------------- foraging (1.9)
+/** Chance that a forage pick gives a double (Keen Eyes). */
+export const keenEyesChance = (): number => (hasSkillPerk('keen_eyes') ? V.keenEyesChance : 0);
+/** More dig spots can be dug each day (Deep Digger). */
+export const extraDigs = (): number => (hasSkillPerk('extra_digs') ? V.extraDigs : 0);
+/** Fossils, artifacts and gems come up this much more often (Lucky Finds). */
+export const luckyFinds = (): boolean => hasSkillPerk('lucky_finds');
+
 // gold chances: Farming level (and Master Farmer) on crops and fruit, Prize Animals, Gourmet
 qualityBoosts.push((source) => {
   if (source === 'crop' || source === 'tree') return { gold: (skillLevel('farming') - 1) * V.goldPerLevel + (hasSkillPerk('master_farmer') ? V.masterFarmerGold : 0) };
   if (source === 'animal' && hasSkillPerk('prize_animals')) return { silver: V.prizeSilver, gold: V.prizeGold };
   if (source === 'production' && hasSkillPerk('gourmet')) return { gold: V.gourmetGold };
+  if (source === 'forage') return { gold: (skillLevel('foraging') - 1) * V.forageGoldPerLevel + (hasSkillPerk('forager_gold') ? V.wildGold : 0) };
   return null;
 });

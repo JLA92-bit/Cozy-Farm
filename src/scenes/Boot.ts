@@ -9,6 +9,7 @@ import { restoration } from '../systems/Restoration';
 import { mastery } from '../systems/Mastery';
 import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
+import { initWoods } from './Woods';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
@@ -134,6 +135,7 @@ export async function boot(): Promise<void> {
   scene.handler = interaction;
   initVisit(scene, interaction);
   initSquare(scene, interaction);
+  initWoods(scene, interaction);
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;

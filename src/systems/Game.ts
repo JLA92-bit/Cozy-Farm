@@ -20,6 +20,8 @@ export interface GameEvents extends Record<string, unknown> {
   'village:points': { id: string; delta: number; points: number; hearts: number; reason: string };
   /** 1.8.5: a bundle in the village square got items, or was filled (src/systems/Restoration.ts) */
   'restoration:changed': { room: string; bundle?: string };
+  /** 1.9: something was picked or dug up in the Wild Woods (src/systems/Woods.ts) */
+  'woods:changed': Record<string, never>;
   /** 1.8.5: every bundle of a room is full, so the room is rebuilt */
   'restoration:room': { room: string };
   'restoration:festival': Record<string, never>;
