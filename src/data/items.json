@@ -661,6 +661,30 @@
    "sell": 260,
    "icon": "oyster_chowder"
   },
+  "honey": {
+   "name": "Honey",
+   "cat": "goods",
+   "sell": 150,
+   "icon": "honey_pot"
+  },
+  "honeycomb": {
+   "name": "Honeycomb",
+   "cat": "goods",
+   "sell": 340,
+   "icon": "honeycomb"
+  },
+  "beeswax_candle": {
+   "name": "Beeswax Candle",
+   "cat": "goods",
+   "sell": 400,
+   "icon": "beeswax_candle"
+  },
+  "honey_butter": {
+   "name": "Honey Butter",
+   "cat": "goods",
+   "sell": 330,
+   "icon": "honey_butter"
+  },
   "garden_pizza": {
    "name": "Garden Pizza",
    "cat": "goods",

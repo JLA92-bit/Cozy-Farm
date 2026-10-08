@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.8.6",
+   "date": "2026-10-08",
+   "title": "Honey and More",
+   "icon": "honey_pot",
+   "color": "yellow",
+   "highlights": [
+    {
+     "icon": "honey_pot",
+     "text": "Beehive House (level 20): bees turn apples into honey, honeycomb, beeswax candles and honey butter"
+    },
+    {
+     "icon": "sparkles",
+     "text": "New Village Hero title on your farmer screen once you have rebuilt every room of the square"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.8.5",
    "date": "2026-10-07",
    "title": "The Village Square",

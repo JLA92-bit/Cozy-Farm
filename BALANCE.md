@@ -465,3 +465,10 @@ up spare stock rather than competing with orders or the truck (normal items go f
 Everything here is data: change the numbers in `restoration.json` (bundles, `rewards`, `market`) and the validator
 checks them. The first thing to watch on the dashboard (1.8.5 Square page) is how many players finish the first
 bundle of each room and how long the Treasury takes.
+
+## Beehive House (1.8.6, building `beehive`, level 20, 4,000 coins)
+
+A production workshop (2x2, counts against the same production cap as the others). Four recipes, all cheap farm
+ingredients: honey (2 apples, 20 min, sells 150), honeycomb (2 honey, 30 min, 340), beeswax candle (1 honey + 2
+cotton, 40 min, 400) and honey butter (1 honey + 1 butter, 25 min, 330). Per hour of the workshop the best is about
+600 coins of added value, in line with the Loom, so it adds variety and a use for apples, not a new income tier.

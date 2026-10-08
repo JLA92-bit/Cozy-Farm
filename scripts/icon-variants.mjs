@@ -19,6 +19,8 @@ export const FISHING_ICONS = {
   // 1.8.5 the Village Kitchen dishes
   pizza: 'pizza', spaghetti: 'spaghetti', dumpling: 'dumpling', bento: 'bento-box', fondue: 'fondue',
   stuffed_flatbread: 'stuffed-flatbread', roast: 'poultry-leg', taco: 'taco',
+  // the Beehive house
+  honey_pot: 'honey-pot', candle: 'candle', honeybee: 'honeybee',
 };
 
 /**
@@ -57,6 +59,10 @@ export const ICON_VARIANTS = {
   spider_crab: { base: 'crab', hue: -25, sat: 0.9, light: 0.95 },
   tuna: { base: 'fish', hue: 225, sat: 1.1, light: 0.7 },
   golden_crab: { base: 'crab', hue: 45, sat: 1.2, light: 1.15, badge: 'sparkles' },
+  // the Beehive house
+  honeycomb: { base: 'honey-pot', hue: -12, sat: 1.1, light: 1.1, badge: 'honeybee' },
+  honey_butter: { base: 'butter', badge: 'honey-pot' },
+  beeswax_candle: { base: 'candle', hue: 20, sat: 0.9, light: 1.15, badge: 'sparkles' },
 };
 
 function hexToHsl(hex) {

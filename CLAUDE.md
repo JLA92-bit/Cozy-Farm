@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 7 October 2026 (game version 1.8.5, built locally and not pushed yet). Owner: Josh Makes Games.
+Last updated: 8 October 2026 (game version 1.8.6 in progress; 1.8.5 is live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -156,7 +156,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 ## 8. Open to-dos
 
 - [ ] **Review and push 1.8.5** (built and committed locally; nothing is pushed until Josh says "yes push"). Run the whole `supabase/schema.sql` in Supabase afterwards for the new dashboard page.
-- [ ] 1.8.6: the new content from the 1.8 design brief (Beehive, Juice press, Kiln, Ducks, Horses, Blueberry, Peas, Lavender, mastery plaques).
+- [ ] 1.8.6 content from the 1.8 design brief, built in level order: Beehive House (done locally), Ducks, Juice press, Blueberry, Pottery kiln, Horses, Peas and Lavender, mastery plaques. Each stage is committed locally and pushed only after Josh says "yes push".
 - [ ] Make sure the latest `supabase/schema.sql` (1.8 game events, letters, Ask a friend) has been run in Supabase.
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -185,6 +185,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-08: 1.8.5 pushed (live). 1.8.6 started: Village Hero title on the farmer screen, Beehive House workshop (level 20, `models/beehive.ts`, 4 recipes).
 - 2026-10-07: 1.8.5 second half built locally: Pier, Kitchen, Workshop (Crafting skill, helpers), village festival. Still not pushed.
 - 2026-10-07: Game 1.8.5 "The Village Square" built and committed locally (skills, village restoration with a 3D square, rare seeds, market day, dashboard page). Not pushed until Josh approves.
 - 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.
