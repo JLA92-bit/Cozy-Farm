@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { assets } from '../core/Assets';
 import { WOODS } from '../data';
 import { woods } from '../systems/Woods';
+import { schedules } from '../systems/Schedules';
+import { VILLAGERS } from '../data';
+import { Character } from './Character';
 import { museum } from '../systems/Museum';
 import { expeditions } from '../systems/Expeditions';
 import { seasons } from '../systems/Seasons';
@@ -20,7 +23,7 @@ const JETTY_ANGLE = Math.PI / 4;
 const POND = { x: -7.5, z: -6, r: 4.1 };
 const TREES = ['nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple'] as const;
 
-export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board'; i: number }
+export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager'; i: number; id?: string }
 /** Fixed places in island space: the Museum at the top of the island and the expedition board at the landing. */
 const MUSEUM_AT = { x: -1, z: -15 };
 const BOARD_AT = { x: 10.5, z: 13.5 };
@@ -56,6 +59,9 @@ export class WoodsView {
   private digNodes: DigNode[] = [];
   private pickers: THREE.Object3D[] = [];
   private raycaster = new THREE.Raycaster();
+  private folk = new Map<string, { char: Character; pick: THREE.Mesh }>();
+  private folkBusy = false;
+  private folkIn = 0;
   private gems: { gem: THREE.Mesh; shelf: string }[] = [];
   private flag?: THREE.Object3D;
   private boardDot?: THREE.Mesh;
@@ -234,8 +240,39 @@ export class WoodsView {
     });
   }
 
+  /** Villagers whose routine puts them in the woods right now stand about the island (made the first time they are needed). */
+  private async syncVillagers(): Promise<void> {
+    if (this.folkBusy) return;
+    this.folkBusy = true;
+    try {
+      const here = new Set(schedules.at('woods'));
+      const SPOTS: [number, number][] = [[-2, -6], [3, -9], [-11, -1], [5, 3], [-5, 5], [9, -4]];
+      for (const v of VILLAGERS) {
+        let f = this.folk.get(v.id);
+        if (here.has(v.id) && !f) {
+          const char = await Character.create(v.look, v.scale);
+          char.play('idle');
+          char.root.userData.speechHeight = 2.1;
+          const k = VILLAGERS.indexOf(v);
+          char.root.position.set(SPOTS[k % SPOTS.length][0], 0.02, SPOTS[k % SPOTS.length][1]);
+          char.root.rotation.y = Math.PI / 4 + k;
+          this.group.add(char.root);
+          const pick = new THREE.Mesh(new THREE.SphereGeometry(0.95, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+          pick.position.copy(char.root.position).setY(1.0);
+          pick.userData = { kind: 'villager', i: k, id: v.id };
+          this.group.add(pick);
+          this.pickers.push(pick);
+          f = { char, pick };
+          this.folk.set(v.id, f);
+        }
+        if (f) { f.char.root.visible = here.has(v.id); f.pick.visible = here.has(v.id); }
+      }
+    } catch (e) { console.warn('[woods] villagers could not be drawn', e); } finally { this.folkBusy = false; }
+  }
+
   /** Show today's plants and mounds. */
   refresh(): void {
+    void this.syncVillagers();
     const spots = woods.forage();
     for (const n of this.forageNodes) {
       const s = spots[n.i];
@@ -259,6 +296,7 @@ export class WoodsView {
 
   /** World position for an effect over a spot. */
   spotAt(hit: WoodsHit): THREE.Vector3 | null {
+    if (hit.kind === 'villager') return this.world(this.folk.get(hit.id ?? '')?.char.root.position.x ?? 0, 1.5, this.folk.get(hit.id ?? '')?.char.root.position.z ?? 0);
     if (hit.kind === 'museum') return this.world(MUSEUM_AT.x + 1.5, 1.5, MUSEUM_AT.z + 1.5);
     if (hit.kind === 'board') return this.world(BOARD_AT.x, 1.5, BOARD_AT.z);
     const n = hit.kind === 'forage' ? this.forageNodes[hit.i] : this.digNodes[hit.i];
@@ -270,7 +308,7 @@ export class WoodsView {
     this.group.updateMatrixWorld(true);
     const live = this.pickers.filter((p) => {
       const ud = p.userData as WoodsHit;
-      return ud.kind === 'forage' ? this.forageNodes[ud.i]?.group.visible : true;
+      return ud.kind === 'forage' ? this.forageNodes[ud.i]?.group.visible : ud.kind === 'villager' ? (this.folk.get(ud.id ?? '')?.pick.visible ?? false) : true;
     });
     const hits = this.raycaster.intersectObjects(live, false);
     return hits.length ? (hits[0].object.userData as WoodsHit) : null;
@@ -278,6 +316,8 @@ export class WoodsView {
 
   update(dt: number): void {
     this.t += dt;
+    for (const f of this.folk.values()) if (f.char.root.visible) f.char.update(dt);
+    if ((this.folkIn -= dt) <= 0) { this.folkIn = 30; void this.syncVillagers(); }
     for (const n of this.forageNodes) if (n.group.visible) { n.glint.position.y = 0.9 + Math.sin(this.t * 2.2 + n.i) * 0.06; n.glint.rotation.y = this.t * 1.5; }
     for (const e of this.gems) if (e.gem.visible) e.gem.rotation.y = this.t;
     if (this.boardDot?.visible) { this.boardDot.position.y = 3.6 + Math.sin(this.t * 2.4) * 0.1; this.boardDot.rotation.y = this.t * 1.5; }

@@ -5,6 +5,7 @@ import { ui } from '../UI';
 import { BUILDING, FRIENDSHIP, ITEMS, VILLAGER, VILLAGERS, type VillagerDef } from '../../data';
 import { game } from '../../systems/Game';
 import { village, type GiftResult, type Taste } from '../../systems/Village';
+import { schedules } from '../../systems/Schedules';
 import { helpWanted } from '../../systems/HelpWanted';
 import { villageRewards, milestoneIcon, milestoneText, STORY_HEARTS } from '../../systems/VillageRewards';
 import { localDay } from '../../systems/Progression';
@@ -145,6 +146,7 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
       h('div', { class: 'v-head-info' },
         h('div', { class: 'v-name big' }, v.name),
         h('div', { class: 'v-role' }, v.role),
+        h('div', { class: 'v-role' }, `Right now: ${schedules.text(id)}`),
         heartsRow(hearts, true),
         h('div', { class: 'v-hearts-text' }, heartsText(hearts)),
         heartBar(id))));

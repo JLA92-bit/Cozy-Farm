@@ -1,0 +1,20 @@
+{
+  "_comment": "1.9 villager routines: where each villager is found in each part of the day. Weights per place; the choice for a day part is fixed by the farm seed and the date, and rain keeps people indoors (home). Places: home, farm, woods, pier, market. Day parts are 4-hour blocks of the local clock from 6am to 10pm; at night everyone is home.",
+  "dayParts": [6, 10, 14, 18, 22],
+  "places": {
+    "home": "at home",
+    "farm": "visiting your farm",
+    "woods": "in the Wild Woods",
+    "pier": "down at the pier",
+    "market": "at the village market"
+  },
+  "villagers": {
+    "rosa": { "home": 3, "farm": 2, "market": 3, "woods": 1 },
+    "tom": { "home": 2, "pier": 4, "woods": 2, "farm": 1 },
+    "juniper": { "home": 2, "woods": 4, "farm": 2, "pier": 1 },
+    "pip": { "home": 1, "woods": 4, "pier": 2, "farm": 2, "market": 1 },
+    "hazel": { "home": 3, "market": 4, "farm": 1 },
+    "bram": { "home": 3, "market": 2, "woods": 2, "farm": 1 }
+  },
+  "rainHome": 3
+}

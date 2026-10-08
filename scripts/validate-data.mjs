@@ -287,6 +287,12 @@ releases?.forEach((r, i) => {
   if (!items[wd.clayItem]) err(`woods: clay item ${wd.clayItem} does not exist`);
   if (wd.dig.perDay > wd.dig.spots) err('woods: dig perDay is more than the number of spots');
 }
+// 1.9 schedules: known villagers and places
+{
+  const sc = read('schedules.json'), vIds = read('villagers.json').villagers.map((v) => v.id);
+  for (const id of vIds) if (!sc.villagers[id]) err(`schedules: no routine for ${id}`);
+  for (const [id, w] of Object.entries(sc.villagers)) for (const place of Object.keys(w)) if (!sc.places[place]) err(`schedules: ${id} uses unknown place ${place}`);
+}
 // 1.9 museum and expeditions
 {
   const md = read('museum.json'), ed = read('expeditions.json'), items = read('items.json').items;

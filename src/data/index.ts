@@ -8,6 +8,7 @@ import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
 import museumJson from './museum.json';
 import expeditionsJson from './expeditions.json';
+import schedulesJson from './schedules.json';
 import woodsJson from './woods.json';
 import festivalsJson from './festivals.json';
 import seasonsJson from './seasons.json';
@@ -273,3 +274,7 @@ export const EXPEDITIONS = expeditionsJson as unknown as {
   slots: number; level: number; trips: TripDef[];
   favour: Record<string, Partial<Record<FindKind | 'forage', number>> & { text: string }>; hearts: Record<string, number>;
 };
+
+/** 1.9 villager routines (schedules.json). */
+export type PlaceId = 'home' | 'farm' | 'woods' | 'pier' | 'market';
+export const SCHEDULES = schedulesJson as unknown as { dayParts: number[]; places: Record<PlaceId, string>; villagers: Record<string, Partial<Record<PlaceId, number>>>; rainHome: number };

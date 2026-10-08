@@ -185,6 +185,7 @@ function act(hit: WoodsHit): void {
   const at = view.spotAt(hit);
   if (!at) return;
   const fx = ui.effects;
+  if (hit.kind === 'villager' && hit.id) { ui.open('village', { villager: hit.id }); return; }
   if (hit.kind === 'museum') { ui.open('museum'); return; }
   if (hit.kind === 'board') { ui.open('expeditions'); return; }
   if (hit.kind === 'forage') {
