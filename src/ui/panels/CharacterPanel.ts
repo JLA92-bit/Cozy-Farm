@@ -8,6 +8,7 @@ import type { CharacterLook } from '../../systems/State';
 import { Character } from '../../world/Character';
 import { audio } from '../../systems/Audio';
 import { renderSkills } from './SkillsPanel';
+import { restoration } from '../../systems/Restoration';
 
 /** Is a cosmetic unlocked for the player? */
 export function cosmeticUnlocked(id: string, unlock: Unlock): boolean {
@@ -198,6 +199,8 @@ export function openCharacter(firstTime = false, startTab?: string): void {
       options.append(h('div', { class: 'creator-head' },
         h('div', null, h('div', { class: 'section-title' }, 'Your name'), h('div', { class: 'name-row' }, input, dice)),
         h('div', null, h('div', { class: 'section-title' }, 'Choose your farmer'), seg)));
+      // a title earned by rebuilding the whole village square (1.8.5)
+      if (!firstTime && restoration.festivalOn()) options.append(h('div', { class: 'hero-title', role: 'note' }, icon('sparkles'), h('span', null, 'Village Hero'), h('small', null, 'You rebuilt every room of the village square')));
       const grid = h('div', { class: 'avatar-grid' });
       for (const a of COSMETICS.avatars.filter((x) => x.gender === gender)) {
         const card = h('button', { class: `avatar-card ${look.body === a.body ? 'selected' : ''}`, 'aria-label': a.name }, icon(`avatar:${a.id}`, 'avatar-img'), h('span', {}, a.name));
