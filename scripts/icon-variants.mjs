@@ -25,6 +25,8 @@ export const FISHING_ICONS = {
   duck: 'duck',
   // the Juice Press
   juice_box: 'beverage-box', juice_cup: 'cup-with-straw',
+  // Blueberries
+  blueberry: 'blueberries',
 };
 
 /**
@@ -64,6 +66,8 @@ export const ICON_VARIANTS = {
   tuna: { base: 'fish', hue: 225, sat: 1.1, light: 0.7 },
   golden_crab: { base: 'crab', hue: 45, sat: 1.2, light: 1.15, badge: 'sparkles' },
   // the Beehive house
+  blueberry_juice: { base: 'beverage-box', hue: 150, badge: 'blueberries' },
+  blueberry_muffin: { base: 'cupcake', badge: 'blueberries' },
   apple_juice: { base: 'beverage-box', hue: 0, badge: 'red-apple' },
   orange_juice: { base: 'beverage-box', hue: 10, sat: 1.15, badge: 'tangerine' },
   berry_juice: { base: 'beverage-box', hue: -35, badge: 'strawberry' },

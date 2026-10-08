@@ -16,6 +16,14 @@
      "text": "Ducks (level 24): build a Duck House and collect duck eggs. Duck Feed is made at the Feed Mill"
     },
     {
+     "icon": "apple_juice",
+     "text": "Juice Press (level 26): apple, berry, grape and orange juice"
+    },
+    {
+     "icon": "blueberry",
+     "text": "Blueberries (level 30): a new crop, with blueberry juice and blueberry muffins"
+    },
+    {
      "icon": "sparkles",
      "text": "New Village Hero title on your farmer screen once you have rebuilt every room of the square"
     }

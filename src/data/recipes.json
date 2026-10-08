@@ -599,6 +599,8 @@
     {"id": "apple_juice", "building": "juice_press", "level": 26, "in": {"apple": 3}, "item": "apple_juice", "out": 1, "sec": 1500, "xp": 16},
     {"id": "berry_juice", "building": "juice_press", "level": 26, "in": {"strawberry": 4}, "item": "berry_juice", "out": 1, "sec": 1800, "xp": 20},
     {"id": "grape_juice", "building": "juice_press", "level": 27, "in": {"grapes": 3}, "item": "grape_juice", "out": 1, "sec": 2100, "xp": 24},
-    {"id": "orange_juice", "building": "juice_press", "level": 28, "in": {"orange": 3}, "item": "orange_juice", "out": 1, "sec": 2400, "xp": 28}
+    {"id": "orange_juice", "building": "juice_press", "level": 28, "in": {"orange": 3}, "item": "orange_juice", "out": 1, "sec": 2400, "xp": 28},
+    {"id": "blueberry_juice", "building": "juice_press", "level": 30, "in": {"blueberry": 3}, "item": "blueberry_juice", "out": 1, "sec": 2700, "xp": 30},
+    {"id": "blueberry_muffin", "building": "bakery", "level": 30, "in": {"wheat": 3, "blueberry": 2, "butter": 1}, "item": "blueberry_muffin", "out": 1, "sec": 2400, "xp": 26}
   ]
 }

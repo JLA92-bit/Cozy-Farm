@@ -479,3 +479,13 @@ Duck House 2,600 coins (4x4, like the Goat Pen), duck 1,500 coins (+25% per duck
 Feed: duck feed from the Feed Mill (3 wheat + 2 carrot make 3, level 24). A duck lays a duck egg (sells 150) 90
 minutes after feeding, so about 100 coins an hour per duck minus 10 for feed: between the goat and the pig, as it
 should be at level 24. The model is the chick recoloured white (`variant: "duck"` in FarmView).
+
+## Juice Press and Blueberries (1.8.6)
+
+Juice Press (`juice_press`, level 26, 6,500 coins, 2x2): apple juice (3 apples, 25 min, 160), berry juice (4
+strawberries, 30 min, 230), grape juice (3 grapes, 35 min, 300, level 27), orange juice (3 oranges, 40 min, 400,
+level 28) and blueberry juice (3 blueberries, 45 min, 340, level 30). Juice sells for roughly 1.8x its fruit, below
+the jams made from the same fruit, so it is a faster, cheaper alternative rather than a replacement.
+
+Blueberry (crop, level 30, seed 21, 4.5 hours, 2 per harvest, sells 112, xp 28) sits between watermelon and radish
+on the same curve (about 25 coins/hour per field like its neighbours). Blueberry muffin (Bakery, level 30) sells 330.

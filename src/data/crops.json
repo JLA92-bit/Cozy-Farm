@@ -283,6 +283,24 @@
    }
   },
   {
+   "id": "blueberry",
+   "name": "Blueberry",
+   "level": 30,
+   "seedCost": 21,
+   "growSec": 16200,
+   "yield": 2,
+   "xp": 28,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/blueberry"
+   }
+  },
+  {
    "id": "radish",
    "name": "Radish",
    "level": 33,

@@ -276,6 +276,13 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cyl(0.02, 0.025, 0.2, '#6a8f3a', [0, 0, 0], 5);
     return b.build();
   },
+  blueberry: () => {
+    const b = geo();
+    for (const p of [[0, 0.2, 0], [0.12, 0.26, 0.05], [-0.1, 0.24, 0.08], [0.03, 0.32, -0.08], [-0.06, 0.18, -0.1], [0.14, 0.16, -0.05]] as V3[]) b.sphere(0.09, '#4a5fc1', p, 1);
+    for (const p of [[0.12, 0.34, 0.05], [-0.1, 0.32, 0.08], [0.03, 0.4, -0.08]] as V3[]) b.sphere(0.025, '#2f3a8a', p, 1);
+    b.cyl(0.02, 0.025, 0.16, '#6a8f3a', [0, 0, 0], 5);
+    return b.build();
+  },
   wool: () => {
     const b = geo();
     for (const p of [[0, 0.22, 0], [0.18, 0.2, 0.05], [-0.16, 0.2, 0.06], [0.04, 0.3, -0.12], [0.02, 0.36, 0.08]] as V3[]) b.sphere(0.16, PAL.wool, p, 1);

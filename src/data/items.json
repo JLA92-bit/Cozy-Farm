@@ -97,6 +97,12 @@
    "sell": 105,
    "icon": "watermelon"
   },
+  "blueberry": {
+   "name": "Blueberry",
+   "cat": "crop",
+   "sell": 112,
+   "icon": "blueberry"
+  },
   "radish": {
    "name": "Radish",
    "cat": "crop",
@@ -696,6 +702,18 @@
    "cat": "goods",
    "sell": 400,
    "icon": "orange_juice"
+  },
+  "blueberry_juice": {
+   "name": "Blueberry Juice",
+   "cat": "goods",
+   "sell": 340,
+   "icon": "blueberry_juice"
+  },
+  "blueberry_muffin": {
+   "name": "Blueberry Muffin",
+   "cat": "goods",
+   "sell": 330,
+   "icon": "blueberry_muffin"
   },
   "honey": {
    "name": "Honey",
