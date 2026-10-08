@@ -106,6 +106,7 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   roadside_stall: { title: 'Your own stall!', sub: 'Set a price and passers-by buy from it.', skill: 'stall' },
   // 1.8.5 and 1.8.6 buildings: no `skill`, so players who know the basics still hear about what is new
   village_kitchen: { title: 'A hearty kitchen!', sub: 'Cook pizza, pasta, soup and more. Pea soup needs peas from level 38.', icon: 'stew' },
+  glass_frame: { title: 'Grow all year!', sub: 'Stand it on a field: that field can grow any crop in any season, with the in-season bonus.', icon: 'snowflake' },
   beehive_house: { title: 'Bees at work!', sub: 'Tap it and pick a recipe: apples become honey, then candles and honey butter.', icon: 'honey_pot' },
   juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
   pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },

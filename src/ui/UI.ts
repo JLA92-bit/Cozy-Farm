@@ -8,6 +8,7 @@ import { Panel } from './Panel';
 import { Effects } from '../world/Effects';
 import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND, SEASONS } from '../data';
 import { seasons } from '../systems/Seasons';
+import { hasGlass } from '../systems/HelperEffects';
 import { game } from '../systems/Game';
 import { buildings, speedupCost } from '../systems/Buildings';
 import { farming, FERTILISER, fertStock, RARE_SEED } from '../systems/Farming';
@@ -237,11 +238,11 @@ class UIManager {
       for (const c of visible) {
         const locked = c.level > game.level;
         // 1.9: a seasonal crop out of season shows greyed with when it is back
-        const off = !locked && !seasons.open(c.id);
+        const off = !locked && !seasons.open(c.id) && !hasGlass();
         const back = off ? seasons.nextSeasonFor(c.id) : null;
         const poor = !locked && !off && game.coins < c.seedCost;
         const have = locked ? 0 : game.count(c.id);
-        const inSeason = !locked && !off && seasons.bonus(c.id);
+        const inSeason = !locked && !off && seasons.seasonal(c.id);
         const item = h('div', { class: `tray-item ${sel === c.id ? 'selected' : ''} ${locked ? 'locked' : ''} ${off ? 'offseason' : ''} ${poor ? 'poor' : ''}`, dataset: { crop: c.id } },
           itemIcon(c.id), h('div', null, locked ? `Lv ${c.level}` : off ? '' : formatTime(c.growSec * 1000 * (inSeason ? SEASONS.bonus.growMult : 1))),
           off && back ? h('div', { class: 'tseason outlined' }, icon(SEASONS.seasons[back.season].icon)) : null,

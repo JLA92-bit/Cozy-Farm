@@ -8,7 +8,7 @@ import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
 import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
 import { RESTORATION, HELPERS } from '../data';
-import { craftFertMult, sprinklerGrowMult } from './HelperEffects';
+import { craftFertMult, sprinklerGrowMult, underGlass, hasGlass } from './HelperEffects';
 import { seasons } from './Seasons';
 import { SEASONS } from '../data';
 
@@ -47,9 +47,9 @@ export class FarmingSystem {
     if (b.type !== 'plot' || b.plot) return { ok: false, reason: 'Field is busy' };
     if (!isBuilt(b, game.now())) return { ok: false, reason: 'Still being built' };
     if (game.level < def.level) return { ok: false, reason: `Unlocks at level ${def.level}` };
-    if (!seasons.open(crop)) {
+    if (!seasons.open(crop) && !underGlass(b)) {
       const back = seasons.nextSeasonFor(crop);
-      return { ok: false, reason: back ? `${def.name} is out of season. Back in ${SEASONS.seasons[back.season].name} (${back.days} day${back.days === 1 ? '' : 's'})` : `${def.name} is out of season` };
+      return { ok: false, reason: back ? `${def.name} is out of season. Back in ${SEASONS.seasons[back.season].name} (${back.days} day${back.days === 1 ? '' : 's'})${hasGlass() ? ', or sow it under a glass frame' : ''}` : `${def.name} is out of season` };
     }
     if (game.coins < def.seedCost) return { ok: false, reason: 'Not enough coins' };
     return { ok: true };
@@ -60,9 +60,9 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * (seasons.bonus(crop) ? SEASONS.bonus.growMult : 1)));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * (seasons.seasonal(crop) ? SEASONS.bonus.growMult : 1)));
     b.plot = { crop, plantedAt: game.now(), growSec };
-    if (seasons.bonus(crop)) b.plot.inSeason = true;
+    if (seasons.seasonal(crop)) b.plot.inSeason = true;
     if (this.useFert && fertStock() > 0) {
       const q = game.count(QUALITY_FERT) > 0;
       game.addItem(q ? QUALITY_FERT : FERTILISER, -1);

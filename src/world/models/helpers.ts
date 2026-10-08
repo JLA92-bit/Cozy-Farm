@@ -41,4 +41,19 @@ export const HELPER_PROC: Record<string, () => THREE.BufferGeometry> = {
     b.sphere(0.07, PAL.red, [0, 1.8, -0.12], 1);
     return b.build();
   },
+  glass_frame: () => {
+    const b = geo();
+    const F = '#f4f1e6', GLASS = '#cdeefa';
+    // low cold frame over a 2x2 field: white timber rim, glass walls and a pitched glass lid
+    for (const z of [-0.9, 0.9]) b.box(1.9, 0.5, 0.06, F, [0, 0.0, z]);
+    for (const x of [-0.9, 0.9]) b.box(0.06, 0.5, 1.8, F, [x, 0.0, 0]);
+    for (const x of [-0.9, 0, 0.9]) for (const z of [-0.9, 0.9]) b.box(0.08, 0.62, 0.08, F, [x, 0, z]);
+    b.box(1.9, 0.05, 0.05, F, [0, 0.6, 0]);
+    for (const z of [-0.9, 0.9]) b.box(1.92, 0.04, 0.04, F, [0, 0.5, z]);
+    for (const z of [-0.9, 0.9]) b.box(1.8, 0.4, 0.015, GLASS, [0, 0.1, z]);
+    for (const x of [-0.9, 0.9]) b.box(0.015, 0.4, 1.76, GLASS, [x, 0.1, 0]);
+    b.box(1.8, 0.015, 0.95, GLASS, [0, 0.58, 0.45], [0.3, 0, 0]);
+    b.box(1.8, 0.015, 0.95, GLASS, [0, 0.58, -0.45], [-0.3, 0, 0]);
+    return b.build();
+  },
 };
