@@ -179,7 +179,7 @@ export const HELPERS = craftingJson.helpers;
 
 /** 1.9 Seasons (seasons.json). */
 export type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
-export interface SeasonDef { name: string; icon: string; color: string; blurb: string }
+export interface SeasonDef { name: string; icon: string; color: string; blurb: string; /** how the farm looks: grass and sky tints (vertex colours and lights only) and the colour of the drifting motes */ look: { grass: string; grassMix: number; pollen: string; sky: string; skyMix: number } }
 export const SEASONS = seasonsJson as unknown as {
   epoch: string; daysPerSeason: number; order: SeasonId[]; seasons: Record<SeasonId, SeasonDef>;
   bonus: { growMult: number; silver: number; gold: number }; yearRound: string[]; crops: Record<string, SeasonId[]>;

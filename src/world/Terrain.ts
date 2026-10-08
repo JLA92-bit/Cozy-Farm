@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MAP, HALF, CHUNK, CHUNKS, chunkOf } from './Grid';
 import { PAL, geo, rng } from './Procedural';
+import { seasons } from '../systems/Seasons';
 
 /** Smooth 2D value noise on a wrapped lattice (deterministic, cheap; used at build time only). */
 function valueNoise(seed: number, cells = 32): (x: number, z: number) => number {
@@ -84,6 +85,13 @@ export class Terrain {
     g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     this.colors = new Float32Array(cols);
     this.baseColors = new Float32Array(cols);
+    // 1.9 season look: the whole turf leans toward the season's grass colour (vertex colours only, no shader change)
+    const look = seasons.now().def.look, lean = new THREE.Color(look.grass);
+    for (let i = 0; i < this.baseColors.length; i += 3) {
+      c.setRGB(this.baseColors[i], this.baseColors[i + 1], this.baseColors[i + 2]).lerp(lean, look.grassMix);
+      this.baseColors[i] = c.r; this.baseColors[i + 1] = c.g; this.baseColors[i + 2] = c.b;
+      this.colors[i] = c.r; this.colors[i + 1] = c.g; this.colors[i + 2] = c.b;
+    }
     g.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
     g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array((positions.length / 3) * 2), 2));
     g.computeVertexNormals();
