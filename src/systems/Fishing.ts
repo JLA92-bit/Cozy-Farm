@@ -1,4 +1,5 @@
-import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from '../data';
+import { FISH, FISHING, ITEMS, SEASONS, type FishDef, type FishTime, type JunkDef } from '../data';
+import { seasons } from './Seasons';
 import { game } from './Game';
 import { localDay } from './Progression';
 import { RAIN_RARE_FISH, weatherToday } from './Weather';
@@ -105,7 +106,7 @@ class FishingSystem {
   /** Species that can bite right now (level and time of day; mythic ones once awake). */
   biting(time = this.time): FishDef[] {
     const awake = this.mythicAwake;
-    return FISHING.species.filter((f) => (f.spot ?? 'dock') === this.spot && f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
+    return FISHING.species.filter((f) => (f.spot ?? 'dock') === this.spot && (!f.season || f.season === seasons.id) && f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
   }
 
   /** What is on the hook this cast. */
@@ -195,8 +196,9 @@ class FishingSystem {
   whenText(id: string): string {
     const f = FISH[id];
     if (!f) return 'Fished up at the dock';
-    if (f.spot === 'pier') return `At Old Tom's Pier, ${f.times.length === TIME_ORDER.length ? 'any time' : f.times.map((t) => TIME_LABEL[t].toLowerCase()).join(', ')}, from level ${f.level}`;
-    const when = f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', ');
+    const sn = f.season ? `${SEASONS.seasons[f.season].name} only. ` : '';
+    if (f.spot === 'pier') return `${sn}At Old Tom's Pier, ${f.times.length === TIME_ORDER.length ? 'any time' : f.times.map((t) => TIME_LABEL[t].toLowerCase()).join(', ')}, from level ${f.level}`;
+    const when = sn + (f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', '));
     if (f.level > game.level) return `${when}, from level ${f.level}`;
     return f.rarity === 'mythic' && !this.mythicAwake ? `${when}, after a legendary catch` : when;
   }

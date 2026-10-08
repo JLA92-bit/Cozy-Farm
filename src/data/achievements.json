@@ -794,8 +794,8 @@
    "stat": "fish_species",
    "tiers": [
     5,
-    15,
-    29
+    20,
+    45
    ],
    "desc": "Catch {n} kinds of fish",
    "icon": "tropical_fish",

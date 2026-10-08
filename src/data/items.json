@@ -853,6 +853,102 @@
    "sell": 14,
    "icon": "model:proc/fertiliser_q"
   },
+  "smelt": {
+   "name": "Silver Smelt",
+   "cat": "fish",
+   "sell": 11,
+   "icon": "smelt"
+  },
+  "blossom_carp": {
+   "name": "Blossom Carp",
+   "cat": "fish",
+   "sell": 36,
+   "icon": "blossom_carp"
+  },
+  "sun_bream": {
+   "name": "Sun Bream",
+   "cat": "fish",
+   "sell": 13,
+   "icon": "sun_bream"
+  },
+  "gold_bream": {
+   "name": "Golden Bream",
+   "cat": "fish",
+   "sell": 42,
+   "icon": "gold_bream"
+  },
+  "herring": {
+   "name": "Autumn Herring",
+   "cat": "fish",
+   "sell": 12,
+   "icon": "herring"
+  },
+  "harvest_perch": {
+   "name": "Harvest Perch",
+   "cat": "fish",
+   "sell": 40,
+   "icon": "harvest_perch"
+  },
+  "frost_cod": {
+   "name": "Frost Cod",
+   "cat": "fish",
+   "sell": 14,
+   "icon": "frost_cod"
+  },
+  "ice_char": {
+   "name": "Ice Char",
+   "cat": "fish",
+   "sell": 44,
+   "icon": "ice_char"
+  },
+  "tulip_wrasse": {
+   "name": "Tulip Wrasse",
+   "cat": "fish",
+   "sell": 22,
+   "icon": "tulip_wrasse"
+  },
+  "blossom_snapper": {
+   "name": "Blossom Snapper",
+   "cat": "fish",
+   "sell": 52,
+   "icon": "blossom_snapper"
+  },
+  "sun_mullet": {
+   "name": "Sun Mullet",
+   "cat": "fish",
+   "sell": 23,
+   "icon": "sun_mullet"
+  },
+  "rainbow_dorado": {
+   "name": "Rainbow Dorado",
+   "cat": "fish",
+   "sell": 58,
+   "icon": "rainbow_dorado"
+  },
+  "maple_flounder": {
+   "name": "Maple Flounder",
+   "cat": "fish",
+   "sell": 24,
+   "icon": "maple_flounder"
+  },
+  "amber_trout": {
+   "name": "Amber Trout",
+   "cat": "fish",
+   "sell": 56,
+   "icon": "amber_trout"
+  },
+  "pearl_herring": {
+   "name": "Pearl Herring",
+   "cat": "fish",
+   "sell": 22,
+   "icon": "pearl_herring"
+  },
+  "frost_halibut": {
+   "name": "Frost Halibut",
+   "cat": "fish",
+   "sell": 60,
+   "icon": "frost_halibut"
+  },
   "anchovy": {
    "name": "Anchovy",
    "cat": "fish",
