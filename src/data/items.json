@@ -673,6 +673,30 @@
    "sell": 260,
    "icon": "oyster_chowder"
   },
+  "apple_juice": {
+   "name": "Apple Juice",
+   "cat": "goods",
+   "sell": 160,
+   "icon": "apple_juice"
+  },
+  "berry_juice": {
+   "name": "Berry Juice",
+   "cat": "goods",
+   "sell": 230,
+   "icon": "berry_juice"
+  },
+  "grape_juice": {
+   "name": "Grape Juice",
+   "cat": "goods",
+   "sell": 300,
+   "icon": "grape_juice"
+  },
+  "orange_juice": {
+   "name": "Orange Juice",
+   "cat": "goods",
+   "sell": 400,
+   "icon": "orange_juice"
+  },
   "honey": {
    "name": "Honey",
    "cat": "goods",

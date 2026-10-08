@@ -595,6 +595,10 @@
     {"id": "honey", "building": "beehive_house", "level": 20, "in": {"apple": 2}, "item": "honey", "out": 1, "sec": 1200, "xp": 14},
     {"id": "honeycomb", "building": "beehive_house", "level": 21, "in": {"honey": 2}, "item": "honeycomb", "out": 1, "sec": 1800, "xp": 18},
     {"id": "beeswax_candle", "building": "beehive_house", "level": 23, "in": {"honey": 1, "cotton": 2}, "item": "beeswax_candle", "out": 1, "sec": 2400, "xp": 22},
-    {"id": "honey_butter", "building": "beehive_house", "level": 25, "in": {"honey": 1, "butter": 1}, "item": "honey_butter", "out": 1, "sec": 1500, "xp": 20}
+    {"id": "honey_butter", "building": "beehive_house", "level": 25, "in": {"honey": 1, "butter": 1}, "item": "honey_butter", "out": 1, "sec": 1500, "xp": 20},
+    {"id": "apple_juice", "building": "juice_press", "level": 26, "in": {"apple": 3}, "item": "apple_juice", "out": 1, "sec": 1500, "xp": 16},
+    {"id": "berry_juice", "building": "juice_press", "level": 26, "in": {"strawberry": 4}, "item": "berry_juice", "out": 1, "sec": 1800, "xp": 20},
+    {"id": "grape_juice", "building": "juice_press", "level": 27, "in": {"grapes": 3}, "item": "grape_juice", "out": 1, "sec": 2100, "xp": 24},
+    {"id": "orange_juice", "building": "juice_press", "level": 28, "in": {"orange": 3}, "item": "orange_juice", "out": 1, "sec": 2400, "xp": 28}
   ]
 }
