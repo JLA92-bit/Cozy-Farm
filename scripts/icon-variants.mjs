@@ -29,6 +29,8 @@ export const FISHING_ICONS = {
   blueberry: 'blueberries',
   // Pottery Kiln
   flower_pot: 'potted-plant', clay: 'brick',
+  // Horses
+  horse: 'horse',
 };
 
 /**

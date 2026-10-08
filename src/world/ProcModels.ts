@@ -164,6 +164,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   pen_pig: () => penBuilder('#a07850', PAL.orange, '#8a5a33'),
   pen_goat: () => penBuilder('#9bc66a', '#6a7d8f', '#bfe8ff'),
   pen_duck: () => penDuck(),
+  pen_horse: () => penHorse(),
   haybale: () => geo()
     .cyl(0.32, 0.32, 0.55, PAL.hay, [0, 0.32, 0], 9, [Math.PI / 2, 0, 0])
     .cyl(0.33, 0.33, 0.06, PAL.hayDark, [0, 0.32, 0.12], 9, [Math.PI / 2, 0, 0])
@@ -297,6 +298,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   feed_pig: () => sack('#ff9fc2'),
   feed_goat: () => sack('#9bd16a'),
   feed_duck: () => sack('#f2d16a'),
+  feed_horse: () => sack('#c9a35a'),
   // 1.8: a brown-tagged sack with a little green sprout on top
   fertiliser: () => sack('#8a5a2e', true),
   fertiliser_q: () => sack('#d99a16', true),
@@ -362,6 +364,23 @@ function penDuck(): THREE.BufferGeometry {
   shed(b, 1.3, 1.0, 0.85, '#bfe8ff', '#3fa9f5', [-0.95, 0.04, -1.25]);
   b.block(0.6, 0.22, 0.3, PAL.woodDark, [1.0, 0.05, -1.3]);
   b.block(0.5, 0.06, 0.2, '#e6c76a', [1.0, 0.27, -1.3]);
+  return b.build();
+}
+
+/** The Stable: a paddock with a long timber stable, a hay stack, a water trough and a hitching rail. */
+function penHorse(): THREE.BufferGeometry {
+  const b = geo();
+  b.block(3.9, 0.05, 3.9, '#a8cf78', [0, 0, 0]);
+  fencePosts(b, 3.9, 3.9);
+  shed(b, 2.2, 1.0, 1.0, '#a8693a', '#7a4a2a', [-0.7, 0.04, -1.3]);
+  b.block(0.5, 0.4, 0.06, '#3b2a22', [-0.7, 0.05, -0.76]);
+  b.cyl(0.32, 0.32, 0.55, PAL.hay, [1.35, 0.05, -1.2], 10);
+  b.cyl(0.3, 0.3, 0.45, PAL.hay, [1.1, 0.05, -0.7], 10, [Math.PI / 2, 0, 0]);
+  b.block(1.0, 0.25, 0.4, PAL.woodDark, [-0.1, 0.05, 1.45]);
+  b.block(0.9, 0.06, 0.3, '#bfe8ff', [-0.1, 0.27, 1.45]);
+  b.block(0.07, 0.5, 0.07, PAL.wood, [1.1, 0.05, 1.3]);
+  b.block(0.07, 0.5, 0.07, PAL.wood, [1.7, 0.05, 1.3]);
+  b.block(0.75, 0.06, 0.07, PAL.woodDark, [1.4, 0.45, 1.3]);
   return b.build();
 }
 

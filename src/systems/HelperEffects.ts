@@ -43,3 +43,11 @@ export function homesInReach(feeder: PlacedBuilding): PlacedBuilding[] {
 
 /** Animals fed per round by one auto-feeder (Tinkerer doubles it). */
 export const feederPerTick = (): number => HELPERS.autoFeederPerTick * (hasSkillPerk('tinkerer') ? 2 : 1);
+
+/** Horses in a built stable bring the delivery truck back sooner: 10% less waiting per horse, up to three horses. */
+export function truckCooldownMult(): number {
+  const now = game.now();
+  let horses = 0;
+  for (const b of game.state.buildings) if (b.type === 'stable' && isBuilt(b, now)) horses += b.animals?.length ?? 0;
+  return 1 - Math.min(3, horses) * 0.1;
+}

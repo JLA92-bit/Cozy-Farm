@@ -12,7 +12,7 @@ const fill = (s: string, vars: Record<string, string>): string => s.replace(/\{(
 const lower = (s: string): string => s.toLowerCase();
 
 
-const ANIMAL_SOUND: Record<string, string> = { cow: 'Moo!', chicken: 'Cluck cluck!', pig: 'Oink oink!', sheep: 'Baa!', goat: 'Meh-eh!', duck: 'Quack quack!' };
+const ANIMAL_SOUND: Record<string, string> = { cow: 'Moo!', chicken: 'Cluck cluck!', pig: 'Oink oink!', sheep: 'Baa!', goat: 'Meh-eh!', duck: 'Quack quack!', horse: 'Neigh!' };
 
 /** Is it evening or night right now? (Environment.night is 0 by day, 1 at night.) */
 export const isNight = (night: number): boolean => night > 0.55;

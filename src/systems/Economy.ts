@@ -10,6 +10,7 @@ import { isBuilt } from './Timers';
 import { HAZEL_PRICE_MULT, hasPerk } from './Perks';
 import { recipeAvailable } from './Production';
 import { marketOrderMult, marketStallMult, truckPayMult } from './RestorationEffects';
+import { truckCooldownMult } from './HelperEffects';
 import { village } from './Village';
 
 // ======================================================================== obtainable items
@@ -173,7 +174,7 @@ export class TruckSystem {
       // The cooldown counts from when it actually left, so a long absence does not add a wait.
       const leftAt = s.truck.leavesAt;
       s.truck = null;
-      s.truckNextAt = leftAt + ECONOMY.truck.cooldownSec * 1000;
+      s.truckNextAt = leftAt + ECONOMY.truck.cooldownSec * 1000 * truckCooldownMult();
       game.bus.emit('truck:changed', {});
       if (now - leftAt < 60000) game.bus.emit('toast', { title: 'The truck had to leave', sub: 'It will be back soon', icon: 'truck' });
     }
@@ -227,7 +228,7 @@ export class TruckSystem {
     game.bus.emit('crate:granted', { rarity: ECONOMY.truck.rewardCrate });
     game.incStat('trucks_completed');
     game.state.truck = null;
-    game.state.truckNextAt = game.now() + ECONOMY.truck.cooldownSec * 1000;
+    game.state.truckNextAt = game.now() + ECONOMY.truck.cooldownSec * 1000 * truckCooldownMult();
     game.bus.emit('truck:changed', {});
     game.bus.emit('sfx', { name: 'truck' });
     return true;

@@ -495,3 +495,13 @@ on the same curve (about 25 coins/hour per field like its neighbours). Blueberry
 Four recipes: potter's clay (3 beets make 2, 15 min), clay pot (2 clay, 40 min, sells 260), glazed tile (1 clay +
 1 sugar, 45 min, 300, level 35) and blue vase (3 clay + 2 blueberries, 90 min, 560, level 36). Clay sells for 70 so
 making it is never worth more than selling beets. The Glazed Tiles path (level 34, 60 coins) is plain decor.
+
+## Horses and the Stable (1.8.6, animal `horse`, house `stable`, level 36)
+
+Stable 4,200 coins (4x4), horse 2,400 coins (+25% per horse owned), 3 per stable at level 1. Horse feed (4 wheat + 2
+carrots + 1 apple make 3, Feed Mill, level 36). A horse makes one fertiliser every 2 hours (the same item as the
+Feed Mill recipe, so it saves a fertiliser run and feeds the silver/gold seed tray toggle). The real prize is the
+truck: each horse in a built stable cuts the wait before the next delivery truck by 10%, up to three horses, so the
+1,800 second cooldown drops to 1,260. The truck still stays 16 hours, so this is more crates per week, about +1%
+income on a farm that fills every truck. The horse model is built from boxes in `scripts/make-horse.mjs` (the
+Kenney pack has no horse).

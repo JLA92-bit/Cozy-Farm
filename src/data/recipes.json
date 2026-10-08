@@ -80,6 +80,20 @@
    "xp": 10
   },
   {
+   "id": "horse_feed",
+   "building": "feed_mill",
+   "level": 36,
+   "in": {
+    "wheat": 4,
+    "carrot": 2,
+    "apple": 1
+   },
+   "item": "horse_feed",
+   "out": 3,
+   "sec": 1200,
+   "xp": 12
+  },
+  {
    "id": "bread",
    "building": "bakery",
    "level": 4,

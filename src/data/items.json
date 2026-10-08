@@ -331,6 +331,12 @@
    "sell": 30,
    "icon": "model:proc/feed_duck"
   },
+  "horse_feed": {
+   "name": "Horse Feed",
+   "cat": "feed",
+   "sell": 36,
+   "icon": "model:proc/feed_horse"
+  },
   "goat_cheese": {
    "name": "Goat Cheese",
    "cat": "goods",

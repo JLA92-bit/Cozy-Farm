@@ -88,6 +88,20 @@
    "scale": 0.5,
    "sound": "chicken",
    "variant": "duck"
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "level": 36,
+   "house": "stable",
+   "cost": 2400,
+   "feed": "horse_feed",
+   "product": "fertiliser",
+   "produceSec": 7200,
+   "xp": 22,
+   "model": "pet/horse",
+   "scale": 0.46,
+   "sound": "cow"
   }
  ]
 }

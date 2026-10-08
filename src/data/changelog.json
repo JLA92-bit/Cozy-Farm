@@ -28,6 +28,10 @@
      "text": "Pottery Kiln (level 34): fire potter's clay into pots, vases and glazed tiles, plus a new Glazed Tiles path"
     },
     {
+     "icon": "horse",
+     "text": "Horses (level 36): build a Stable for horses that give fertiliser. Each horse brings the delivery truck back 10% sooner, up to three"
+    },
+    {
      "icon": "sparkles",
      "text": "New Village Hero title on your farmer screen once you have rebuilt every room of the square"
     }
