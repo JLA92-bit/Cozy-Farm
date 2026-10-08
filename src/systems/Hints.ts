@@ -104,6 +104,20 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   production: { title: 'Time to make goods!', sub: 'Tap the building and pick a recipe. Goods earn more than crops.', skill: 'produce' },
   tree: { title: 'Fruit trees', sub: 'They fruit again and again. Tap to pick when ripe.', skill: 'fruit' },
   roadside_stall: { title: 'Your own stall!', sub: 'Set a price and passers-by buy from it.', skill: 'stall' },
+  // 1.8.5 and 1.8.6 buildings: no `skill`, so players who know the basics still hear about what is new
+  village_kitchen: { title: 'A hearty kitchen!', sub: 'Cook pizza, pasta, soup and more. Pea soup needs peas from level 38.', icon: 'stew' },
+  beehive_house: { title: 'Bees at work!', sub: 'Tap it and pick a recipe: apples become honey, then candles and honey butter.', icon: 'honey_pot' },
+  juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
+  pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },
+  duck_house: { title: 'Ducks!', sub: 'Make duck feed at the Feed Mill. Fed ducks lay duck eggs.', icon: 'duck' },
+  stable: { title: 'Horses!', sub: 'Feed them to get fertiliser. Each horse in a stable (up to 3) brings the delivery truck back 10% sooner.', icon: 'horse' },
+};
+
+/** Tips for the 1.8.6 crops, shown the first time one is harvested: where to use it. */
+const CROP_TIPS: Record<string, { title: string; sub: string }> = {
+  blueberry: { title: 'Blueberries!', sub: 'Press them into juice, or bake blueberry muffins. Pottery vases use them too.' },
+  pea: { title: 'Peas!', sub: 'Cook pea soup at the Village Kitchen.' },
+  lavender: { title: 'Lavender!', sub: 'Make lavender honey and lavender candles at the Beehive House.' },
 };
 
 let wired = false;
@@ -116,13 +130,23 @@ export function wireHintIntros(): void {
   const introFor = (b: PlacedBuilding) => {
     const def = BUILDING[b.type];
     if (!def) return;
-    const key = def.cat === 'animal' ? 'animal' : def.cat === 'production' ? 'production' : def.tree ? 'tree' : INTROS[b.type] ? b.type : '';
+    const key = INTROS[b.type] ? b.type : def.cat === 'animal' ? 'animal' : def.cat === 'production' ? 'production' : def.tree ? 'tree' : '';
     const intro = key ? INTROS[key] : undefined;
     if (!intro || !hints.firstTime(`intro:${key}`, intro.skill)) return;
     // after the "is ready!" toast, so the two read in order
     setTimeout(() => game.bus.emit('toast', { title: intro.title, sub: intro.sub, icon: intro.icon ?? def.icon ?? 'info' }), 900);
   };
   game.bus.on('building:complete', ({ b }) => introFor(b));
+  // 1.8.6 layered placement: a tip the first time a path or a field item is put down
+  game.bus.on('building:placed', ({ b }) => {
+    const def = BUILDING[b.type];
+    if (def?.path && hints.firstTime('intro:path_under')) setTimeout(() => game.bus.emit('toast', { title: 'Paths go under things', sub: 'Benches, lanterns and more can stand right on top of a path.', icon: def.icon ?? 'info' }), 600);
+    else if (def?.onField && hints.firstTime('intro:on_field')) setTimeout(() => game.bus.emit('toast', { title: 'Fields can have friends', sub: `${def.name} can stand on a field tile. Plant around it as usual.`, icon: def.icon ?? 'info' }), 600);
+  });
+  game.bus.on('crop:harvested', ({ crop }) => {
+    const tip = CROP_TIPS[crop];
+    if (tip && hints.firstTime(`intro:crop_${crop}`)) setTimeout(() => game.bus.emit('toast', { ...tip, icon: crop }), 900);
+  });
   // things with no build time (fruit trees) are ready as soon as they are placed
   game.bus.on('building:placed', ({ b, isNew }) => { if (isNew && !b.buildEnd) introFor(b); });
 }

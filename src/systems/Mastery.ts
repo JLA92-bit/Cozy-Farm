@@ -9,6 +9,7 @@ import { game } from './Game';
 import { saves } from './Save';
 import { rollsQuality } from './Quality';
 import { logEvent } from '../online/Events';
+import { hints } from './Hints';
 
 export interface MasteryEntry { id: string; kind: 'crop' | 'workshop'; name: string; icon: string; target: number; items: string[] }
 
@@ -38,6 +39,8 @@ class MasterySystem {
   /** Finish every challenge whose count has been reached (only from the unlock level). */
   check(): void {
     if (!this.isOpen()) return;
+    // a one-time tip the first time Mastery is open (level 40, or already past it when 1.8.6 arrives)
+    if (hints.firstTime('intro:mastery')) setTimeout(() => game.bus.emit('toast', { title: 'Mastery is open!', sub: 'Grow gold crops and make gold goods to earn plaques. See Me > Mastery.', icon: 'trophy' }), 3500);
     for (const e of this.entries) {
       if (this.isDone(e.id) || this.progress(e) < e.target) continue;
       this.st.done.push(e.id);

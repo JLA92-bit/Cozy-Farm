@@ -186,6 +186,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-08: One-time tips (toasts via `hints.firstTime`, `src/systems/Hints.ts`) for the 1.8.5/1.8.6 buildings, new crops, layered placement and Mastery. Add an entry to `INTROS`/`CROP_TIPS` for any new building or crop.
 - 2026-10-08: 1.8.6: Pottery Kiln, Horses and Stable (horse model from `scripts/make-horse.mjs`), Peas and Lavender, Mastery plaques (Me > Mastery). Local until pushed. Beehive House uses id `beehive_house` (decor `beehive` already existed); `validate-data` now rejects duplicate building ids.
 - 2026-10-08: 1.8.5 pushed (live). 1.8.6 started: Village Hero title on the farmer screen, Beehive House workshop (level 20, `models/beehive.ts`, 4 recipes).
 - 2026-10-07: 1.8.5 second half built locally: Pier, Kitchen, Workshop (Crafting skill, helpers), village festival. Still not pushed.
