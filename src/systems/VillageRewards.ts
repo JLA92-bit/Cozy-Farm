@@ -143,6 +143,7 @@ class VillageRewards {
     if (!BUILDING[deco]) return null;
     game.state.storage[deco] = (game.state.storage[deco] ?? 0) + 1;
     game.incStat('keepsakes');
+    game.discover(`${id}_${hearts}`, 'keepsake');
     saves.save();
     return deco;
   }

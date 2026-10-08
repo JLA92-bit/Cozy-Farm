@@ -27,3 +27,18 @@
 /* Help Wanted */
 .hw-card { display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 8px; }
 .hw-card.done { opacity: .6; }
+/* Almanac */
+.al-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.al-icon { width: 30px; height: 30px; }
+.al-title { font-weight: 800; font-size: 17px; }
+.al-season { margin-bottom: 8px; padding: 8px; border-left: 6px solid var(--sc, #ccc); }
+.al-season.now { background: #fff8d9; }
+.al-name { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; }
+.al-now { background: #2fa84f; color: #fff; border-radius: 8px; padding: 0 6px; font-size: 11px; }
+.al-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; font-size: 13px; }
+.al-label { font-weight: 700; width: 48px; }
+.al-item { width: 24px; height: 24px; }
+.al-ribbons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.al-ribbon { display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: 10px; background: rgba(0,0,0,.06); opacity: .6; font-size: 13px; }
+.al-ribbon.got { background: #fff3c4; opacity: 1; }
+.al-ribbon img { width: 26px; height: 26px; }

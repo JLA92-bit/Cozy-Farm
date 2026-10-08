@@ -1,3 +1,4 @@
+import { renderAlmanac } from './AlmanacPage';
 import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear } from '../dom';
@@ -22,6 +23,7 @@ export const BOOK18_TABS = [
   { id: 'Calendar', label: 'Calendar', icon: 'calendar' },
   { id: 'Letters', label: 'Letters', icon: 'mailbox' },
   { id: 'Guide', label: 'Village Guide', icon: 'book' },
+  { id: 'Almanac', label: 'Almanac', icon: 'sun' },
 ];
 
 /** Red dot count for a page's tab. */
@@ -34,6 +36,7 @@ export function renderBook18(id: string, p: Panel): boolean {
   if (id === 'Calendar') { monthShift = 0; renderCalendar(p); return true; }
   if (id === 'Letters') { renderLetters(p); return true; }
   if (id === 'Guide') { renderGuide(p, guideAt); return true; }
+  if (id === 'Almanac') { renderAlmanac(p); return true; }
   return false;
 }
 

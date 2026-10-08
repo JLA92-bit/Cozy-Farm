@@ -31,7 +31,7 @@ import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
-import { achievements, quests, daily, events, syncCosmeticDiscovery, localDay } from '../systems/Progression';
+import { achievements, quests, daily, events, syncCosmeticDiscovery, syncCollection19, localDay } from '../systems/Progression';
 import { nextGoal, type Goal } from '../systems/Goals';
 import { showLevelUp, openDaily, openUnlockTree, collectionBadge, wireProgressionNotes } from '../ui/panels/ProgressionPanels';
 import { runGoalAction } from '../ui/GoalActions';
@@ -211,6 +211,8 @@ export async function boot(): Promise<void> {
   // a new farm already at level 3: its short village intro follows once the greetings are closed
   if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
+  syncCollection19();
+  game.bus.on('collection:new', ({ kind }) => { if (kind === 'item') syncCollection19(); });
   setTimeout(() => { seasons.announce(); festivals.announce(); }, 4000);
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills });

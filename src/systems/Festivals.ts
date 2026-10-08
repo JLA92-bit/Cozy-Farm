@@ -65,6 +65,7 @@ class FestivalSystem {
     if (item && ITEMS[item.id]) game.addItem(item.id, item.n);
     this.st.done[t.key] = stars;
     game.incStat('festival_ribbons');
+    game.discover(t.season, 'ribbon');
     logEvent('festival_collect', { festival: t.def.id, stars });
     game.bus.emit('sfx', { name: 'reward' });
     saves.save();

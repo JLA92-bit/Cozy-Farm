@@ -1,6 +1,6 @@
 import {
   ACHIEVEMENTS, ACHIEVEMENT_REWARDS, ANIMALS, BUILDINGS, COSMETICS, CROP, CROPS, EVENTS, FARMHOUSE, ITEMS, LAND, LEVEL_DATA,
-  QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING,
+  QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING, VILLAGERS, SEASONS, FESTIVALS, FISHING, WOODS, type SeasonId,
 } from '../data';
 import { game } from './Game';
 import type { QuestState } from './State';
@@ -304,9 +304,16 @@ export function collectionEntries(): CollectionEntry[] {
   const out: CollectionEntry[] = [];
   for (const it of Object.values(ITEMS)) {
     if (it.cat === 'event') continue;
-    const group = it.cat === 'crop' ? 'Crops' : it.cat === 'fruit' ? 'Fruit' : it.cat === 'animal' ? 'Animal goods' : it.cat === 'fish' ? 'Fish' : 'Goods';
+    const group = it.cat === 'crop' ? 'Crops' : it.cat === 'fruit' ? 'Fruit' : it.cat === 'animal' ? 'Animal goods' : it.cat === 'fish' ? 'Fish'
+      : it.cat === 'forage' ? 'Foraged' : it.cat === 'mineral' || it.cat === 'fossil' ? 'Minerals' : it.cat === 'artifact' ? 'Artifacts' : 'Goods';
     out.push({ key: `item:${it.id}`, kind: 'item', id: it.id, name: it.name, icon: it.icon, group });
   }
+  // 1.9: keepsakes and portraits from the villagers, festival ribbons and the four seasonal pages
+  for (const v of VILLAGERS) for (const [hearts, deco] of [[4, v.keepsake], [8, v.portrait]] as const) {
+    if (BUILDING[deco]) out.push({ key: `keepsake:${v.id}_${hearts}`, kind: 'keepsake', id: `${v.id}_${hearts}`, name: BUILDING[deco].name, icon: `building:${deco}`, group: 'Villagers' });
+  }
+  for (const sid of SEASONS.order) out.push({ key: `ribbon:${sid}`, kind: 'ribbon', id: sid, name: FESTIVALS.festivals[sid].ribbon, icon: 'ribbon', group: 'Ribbons' });
+  for (const [id, sid] of seasonalItems()) out.push({ key: `season:${id}`, kind: 'season', id, name: ITEMS[id].name, icon: ITEMS[id].icon, group: SEASON_PAGES[sid] });
   for (const a of ANIMALS) out.push({ key: `animal:${a.id}`, kind: 'animal', id: a.id, name: a.name, icon: `model:${a.model}`, group: 'Animals' });
   for (const c of [...COSMETICS.hats, ...COSMETICS.accessories, ...COSMETICS.pets]) {
     if (c.id === 'none') continue;
@@ -316,7 +323,15 @@ export function collectionEntries(): CollectionEntry[] {
 }
 
 /** Collection Book pages: finishing every entry on a page pays a one-off reward. */
-export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles', 'Fish'] as const;
+export const SEASON_PAGES: Record<SeasonId, string> = { spring: 'Spring finds', summer: 'Summer finds', autumn: 'Autumn finds', winter: 'Winter finds' };
+/** Seasonal fish and wild plants with the season they belong to (1.9). */
+export function seasonalItems(): [string, SeasonId][] {
+  const out: [string, SeasonId][] = [];
+  for (const f of FISHING.species) if (f.season) out.push([f.id, f.season]);
+  for (const sid of SEASONS.order) for (const e of WOODS.foragedBySeason[sid]) out.push([e.id, sid]);
+  return out;
+}
+export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles', 'Fish', 'Foraged', 'Minerals', 'Artifacts', 'Villagers', 'Ribbons', 'Spring finds', 'Summer finds', 'Autumn finds', 'Winter finds'] as const;
 type PageReward = { gems?: number; crate?: string };
 let bookCache: CollectionEntry[] | null = null;
 export const book = {
@@ -341,9 +356,27 @@ export const book = {
     if (r.gems) game.addGems(r.gems);
     if (r.crate) { game.state.crates.push(r.crate); game.bus.emit('crate:granted', { rarity: r.crate }); }
     game.bus.emit('sfx', { name: 'reward' });
+    // 1.9: every page claimed makes a Master Collector, once
+    const pages = game.state.seen.bookPages;
+    if (!pages.includes('__master') && BOOK_PAGES.every((g) => pages.includes(g))) {
+      pages.push('__master');
+      game.addGems(25);
+      game.state.crates.push('legendary');
+      game.bus.emit('crate:granted', { rarity: 'legendary' });
+      game.bus.emit('toast', { title: 'Master Collector!', sub: 'Every page of the book is complete. 25 gems and a legendary crate', icon: 'trophy' });
+    }
     return r;
   },
 };
+
+/** Keep the 1.9 pages in step with what the player already has (runs at boot and when something new is found). */
+export function syncCollection19(): void {
+  // entries the player already earned count without a "New!" tag
+  const quiet = (id: string, kind: string) => { const k = `${kind}:${id}`; if (!game.state.collection[k]) game.state.collection[k] = game.state.seen.collectionSeenAt ?? 1; };
+  for (const [id] of seasonalItems()) if (game.state.collection[`item:${id}`]) quiet(id, 'season');
+  for (const v of VILLAGERS) for (const m of game.state.village.friends[v.id]?.stories ?? []) if (m === 4 || m === 8) quiet(`${v.id}_${m}`, 'keepsake');
+  for (const k of Object.keys(game.state.festivals?.done ?? {})) { const sid = SEASONS.order[Number(k.split(':')[1])]; if (sid && (game.state.festivals!.done[k] ?? 0) > 0) quiet(sid, 'ribbon'); }
+}
 
 /** Mark cosmetics that are now unlocked as discovered. */
 export function syncCosmeticDiscovery(isUnlocked: (id: string, unlock: { level?: number; achievement?: string; default?: boolean }) => boolean): void {
