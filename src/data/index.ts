@@ -6,6 +6,8 @@ import restorationJson from './restoration.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
+import museumJson from './museum.json';
+import expeditionsJson from './expeditions.json';
 import woodsJson from './woods.json';
 import festivalsJson from './festivals.json';
 import seasonsJson from './seasons.json';
@@ -261,4 +263,13 @@ export const WOODS = woodsJson as unknown as {
   dig: { spots: number; perDay: number; table: Record<FindKind | 'clay', number>; luckyMult: number }; clayItem: string;
   foragedBySeason: Record<SeasonId, { id: string; kind: ForageKind; w: number }[]>;
   finds: Record<FindKind, { id: string; w: number }[]>;
+};
+
+/** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */
+export interface MuseumShelf { id: string; name: string; icon: string; items?: string[]; kind?: 'gold'; slots?: number; reward: { coins: number; gems: number } }
+export const MUSEUM = museumJson as unknown as { level: number; shelves: MuseumShelf[]; curator: { coins: number; gems: number; decor: string } };
+export interface TripDef { id: string; name: string; hours: number; items: number; weights: Record<FindKind | 'forage', number> }
+export const EXPEDITIONS = expeditionsJson as unknown as {
+  slots: number; level: number; trips: TripDef[];
+  favour: Record<string, Partial<Record<FindKind | 'forage', number>> & { text: string }>; hearts: Record<string, number>;
 };

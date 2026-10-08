@@ -1,0 +1,19 @@
+{
+  "_comment": "1.9 Expedition board (Wild Woods): send a villager out for a while and they bring back finds. kind picks the loot table (finds in woods.json), hours is the trip, items is how many finds come back. favour: a villager is better at some trips (chance weights x). hearts: friendship shortens a trip. See BALANCE.md > Expeditions.",
+  "slots": 2,
+  "level": 14,
+  "trips": [
+    { "id": "short", "name": "A quick look", "hours": 2, "items": 3, "weights": { "mineral": 0.8, "fossil": 0.1, "artifact": 0.05, "forage": 0.05 } },
+    { "id": "medium", "name": "A good afternoon", "hours": 6, "items": 6, "weights": { "mineral": 0.6, "fossil": 0.2, "artifact": 0.12, "forage": 0.08 } },
+    { "id": "long", "name": "A proper expedition", "hours": 12, "items": 10, "weights": { "mineral": 0.45, "fossil": 0.25, "artifact": 0.22, "forage": 0.08 } }
+  ],
+  "favour": {
+    "bram": { "mineral": 1.6, "text": "Bram knows ore." },
+    "pip": { "artifact": 1.8, "text": "Pip finds shiny things." },
+    "tom": { "fossil": 1.6, "text": "Old Tom has an eye for fossils." },
+    "rosa": { "forage": 4, "text": "Rosa brings home wild plants." },
+    "juniper": { "fossil": 1.3, "forage": 2, "text": "Juniper is curious about everything." },
+    "hazel": { "artifact": 1.4, "mineral": 1.2, "text": "Hazel has a good sense for old things." }
+  },
+  "hearts": { "4": 0.85, "8": 0.75 }
+}

@@ -94,7 +94,7 @@ class WoodsSystem {
   }
 
   /** Remember that an item was found here (the Museum and the Collection Book read this). True the first time. */
-  private noteFound(item: string): boolean {
+  noteFound(item: string): boolean {
     const w = this.st();
     const first = !w.found[item];
     w.found[item] = (w.found[item] ?? 0) + 1;

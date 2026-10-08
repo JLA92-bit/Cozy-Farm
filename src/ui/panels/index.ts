@@ -24,3 +24,5 @@ import './VillagePanel';
 import './SkillsPanel';
 import './SquarePanel';
 import './FestivalPanel';
+import './MuseumPanel';
+import './ExpeditionPanel';

@@ -70,6 +70,15 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     found: countMap(s.woods.found, (k) => !!ITEMS[k]),
     visited: !!s.woods.visited,
   } : undefined;
+  out.museum = isObj(s.museum) ? {
+    donated: Object.fromEntries(Object.entries(isObj(s.museum.donated) ? s.museum.donated : {}).map(([k, v]) => [k, strArr(v).filter((i) => !!ITEMS[i])])),
+    done: strArr(s.museum.done),
+    curator: !!s.museum.curator,
+  } : undefined;
+  out.expeditions = isObj(s.expeditions) && Array.isArray(s.expeditions.trips) ? {
+    trips: s.expeditions.trips.filter((t: unknown) => isObj(t) && typeof t.who === 'string' && typeof t.trip === 'string' && Number.isFinite(t.start) && Number.isFinite(t.end))
+      .map((t: { who: string; trip: string; start: number; end: number }) => ({ who: t.who, trip: t.trip, start: t.start, end: t.end })),
+  } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
 }

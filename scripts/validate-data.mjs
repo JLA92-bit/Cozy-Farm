@@ -287,6 +287,22 @@ releases?.forEach((r, i) => {
   if (!items[wd.clayItem]) err(`woods: clay item ${wd.clayItem} does not exist`);
   if (wd.dig.perDay > wd.dig.spots) err('woods: dig perDay is more than the number of spots');
 }
+// 1.9 museum and expeditions
+{
+  const md = read('museum.json'), ed = read('expeditions.json'), items = read('items.json').items;
+  const bIds = buildings.map((b) => b.id), vIds = read('villagers.json').villagers.map((v) => v.id);
+  const shelfIds = new Set();
+  for (const sh of md.shelves) {
+    if (shelfIds.has(sh.id)) err(`museum: duplicate shelf ${sh.id}`);
+    shelfIds.add(sh.id);
+    if (!sh.kind && !(sh.items?.length)) err(`museum: shelf ${sh.id} needs items`);
+    for (const i of sh.items ?? []) if (!items[i]) err(`museum: shelf ${sh.id} item ${i} does not exist`);
+    if (icons && !icons[sh.icon]) err(`museum: shelf ${sh.id} unknown icon ${sh.icon}`);
+  }
+  if (!bIds.includes(md.curator.decor)) err(`museum: curator decoration ${md.curator.decor} does not exist`);
+  for (const t of ed.trips) if (!(t.hours > 0 && t.items > 0)) err(`expeditions: trip ${t.id} needs hours and items`);
+  for (const v of Object.keys(ed.favour)) if (!vIds.includes(v)) err(`expeditions: favour for unknown villager ${v}`);
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

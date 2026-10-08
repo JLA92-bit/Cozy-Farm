@@ -1,3 +1,26 @@
 /* 1.9 The Wild Woods */
 .wd-banner .wd-progress { display: inline-flex; align-items: center; gap: 4px; }
 .wd-banner .wd-progress img { width: 16px; height: 16px; }
+/* Museum */
+.mu-head { margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
+.mu-title { font-weight: 800; text-align: center; }
+.mu-shelf { margin-bottom: 8px; padding: 8px; }
+.mu-name { display: flex; align-items: center; gap: 6px; font-weight: 800; }
+.mu-icon { width: 24px; height: 24px; }
+.mu-slots, .mu-gold { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.mu-slot { width: 40px; height: 40px; border-radius: 10px; border: 2px dashed rgba(0, 0, 0, .25); background: rgba(0, 0, 0, .06); display: flex; align-items: center; justify-content: center; font-weight: 800; opacity: .75; padding: 2px; }
+.mu-slot img { width: 30px; height: 30px; }
+.mu-slot.got { border: 2px solid #2fa84f; background: #dff5d4; opacity: 1; }
+.mu-slot.ready { border: 2px solid #ffb300; background: #fff3c4; opacity: 1; animation: pulse 1.4s ease-in-out infinite; }
+.mu-shelf.done { background: #fff3c4; }
+.mu-reward { font-size: 12px; }
+/* Expeditions */
+.ex-face { width: 40px; height: 40px; margin-right: 8px; }
+.ex-trip, .ex-villager { margin-bottom: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.ex-trip { flex-direction: row; align-items: center; }
+.ex-trip.ready { background: #fff3c4; }
+.ex-btns { display: flex; gap: 6px; }
+.ex-loot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.ex-loot-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.ex-piece { display: flex; flex-direction: column; align-items: center; font-size: 12px; }
+.ex-piece img { width: 40px; height: 40px; }

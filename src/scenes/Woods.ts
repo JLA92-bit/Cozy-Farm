@@ -51,6 +51,7 @@ export function initWoods(scene: FarmScene, interaction: Interaction): void {
   const prevPick = ui.extraPick;
   ui.extraPick = (ray) => gate.pick(ray) ?? prevPick?.(ray) ?? null;
   game.bus.on('woods:changed', () => { view?.refresh(); updateBanner(); });
+  game.bus.on('state:changed', () => { if (inWoods) view?.refresh(); });
   Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate } });
 }
 
@@ -184,6 +185,8 @@ function act(hit: WoodsHit): void {
   const at = view.spotAt(hit);
   if (!at) return;
   const fx = ui.effects;
+  if (hit.kind === 'museum') { ui.open('museum'); return; }
+  if (hit.kind === 'board') { ui.open('expeditions'); return; }
   if (hit.kind === 'forage') {
     const r = woods.pick(hit.i, at);
     if (!r) return;

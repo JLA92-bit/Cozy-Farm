@@ -75,3 +75,25 @@ export function pondGeometry(r: number): THREE.BufferGeometry {
   for (let i = 0; i < 7; i++) { const a = 2.6 + i * 0.2; b.cyl(0.02, 0.025, 0.9 + (i % 3) * 0.2, '#7aa83a', [Math.cos(a) * (r + 0.1), 0, Math.sin(a) * (r + 0.1)], 4); b.cyl(0.04, 0.04, 0.22, '#7a4a2a', [Math.cos(a) * (r + 0.1), 0.78 + (i % 3) * 0.2, Math.sin(a) * (r + 0.1)], 5); }
   return b.build();
 }
+
+/** The expedition board at the landing: two posts, a board with pinned notes and a little roof. Faces +z. */
+export function noticeBoardGeometry(): THREE.BufferGeometry {
+  const b = geo();
+  b.block(0.16, 1.7, 0.16, PAL.woodDark, [-0.75, 0, 0]);
+  b.block(0.16, 1.7, 0.16, PAL.woodDark, [0.75, 0, 0]);
+  b.block(1.8, 0.95, 0.1, PAL.woodLight, [0, 0.7, 0.02]);
+  b.box(1.86, 0.08, 0.16, PAL.woodDark, [0, 0.7, 0.02]);
+  b.box(1.86, 0.08, 0.16, PAL.woodDark, [0, 1.65, 0.02]);
+  for (const [x, y, c] of [[-0.55, 1.2, '#fff3c4'], [0.0, 1.35, '#ffd6e0'], [0.5, 1.15, '#d4f0ff'], [-0.2, 0.9, '#e2f7c9'], [0.55, 0.85, '#fff3c4']] as const) b.box(0.34, 0.4, 0.02, c, [x, y, 0.1], [0, 0, (x * 0.2)]);
+  b.prism(2.1, 0.4, 0.8, PAL.roof, [0, 1.75, 0]);
+  b.block(0.34, 0.08, 0.34, PAL.stoneDark, [-0.75, 0, 0]);
+  b.block(0.34, 0.08, 0.34, PAL.stoneDark, [0.75, 0, 0]);
+  // a compass rose on top
+  b.sphere(0.12, PAL.gold, [0, 2.3, 0], 1);
+  return b.build();
+}
+
+/** A stone pedestal for a museum piece (the gem on top is added per shelf). */
+export function pedestalGeometry(): THREE.BufferGeometry {
+  return geo().cyl(0.28, 0.34, 0.5, '#d8cba9', [0, 0, 0], 8).cyl(0.34, 0.34, 0.08, '#b3a78d', [0, 0.5, 0], 8).build();
+}

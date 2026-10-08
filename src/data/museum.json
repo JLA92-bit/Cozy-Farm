@@ -1,0 +1,13 @@
+{
+  "_comment": "1.9 The Museum (in the Wild Woods): a shelf of finds to donate one of each (the item is given away for good). A full shelf pays its reward; every shelf full makes the player the Curator. A shelf with kind gold takes any gold-star items, one of each kind. See BALANCE.md > Museum.",
+  "level": 14,
+  "shelves": [
+    { "id": "minerals", "name": "Minerals", "icon": "gem", "items": ["copper_ore", "iron_ore", "quartz", "topaz", "amethyst"], "reward": { "coins": 800, "gems": 4 } },
+    { "id": "fossils", "name": "Fossils", "icon": "ammonite", "items": ["ammonite", "fossil_fern", "fossil_bone", "amber"], "reward": { "coins": 1200, "gems": 5 } },
+    { "id": "artifacts", "name": "Old Artifacts", "icon": "amphora", "items": ["old_coin", "rusty_key", "ancient_bell", "scroll_fragment", "clay_figure", "amphora", "silver_mirror", "old_compass", "lost_crown"], "reward": { "coins": 3000, "gems": 10 } },
+    { "id": "forage", "name": "Forager's Cabinet", "icon": "mushroom", "items": ["wild_leek", "dandelion", "daffodil", "raspberry", "wild_rose", "fern_frond", "chanterelle", "hazelnut", "blackberry", "winter_root", "holly", "snow_yam"], "reward": { "coins": 1800, "gems": 6 } },
+    { "id": "fish", "name": "Great Catches", "icon": "fish", "items": ["moon_jelly", "octopus", "lobster", "sunfish", "reef_shark", "coelacanth", "crown_betta", "sea_dragon"], "reward": { "coins": 3500, "gems": 10 } },
+    { "id": "gold", "name": "Gold Star Case", "icon": "medal3", "kind": "gold", "slots": 6, "reward": { "coins": 2500, "gems": 8 } }
+  ],
+  "curator": { "coins": 6000, "gems": 25, "decor": "fountain_grand" }
+}
