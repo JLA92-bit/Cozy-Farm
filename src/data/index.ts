@@ -4,6 +4,7 @@ import villagersJson from './villagers.json';
 import skillsJson from './skills.json';
 import restorationJson from './restoration.json';
 import craftingJson from './crafting.json';
+import masteryJson from './mastery.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -171,6 +172,9 @@ export const SKILL_VALUES = skillsJson.values;
 export interface CraftRecipe { id: string; name: string; icon: string; kind: 'building' | 'item'; out: string; qty: number; coins: number; in: Record<string, number>; about: string }
 export const CRAFT_RECIPES = craftingJson.recipes as unknown as CraftRecipe[];
 export const HELPERS = craftingJson.helpers;
+
+/** 1.8.6 Mastery plaques (mastery.json). */
+export const MASTERY = masteryJson;
 
 /** 1.8.5 Village Restoration (restoration.json). */
 export interface BundleDef { id: string; name: string; icon: string; wants: Record<string, number>; minStar?: 1 | 2 }

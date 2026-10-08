@@ -34,6 +34,23 @@ export function heroStatueGeometry(): THREE.BufferGeometry {
   return b.build();
 }
 
+/** The mastery plaque: a gold-framed board with a star on a little stone post. */
+export function masteryPlaqueGeometry(): THREE.BufferGeometry {
+  const b = geo();
+  b.cyl(0.4, 0.46, 0.08, STONE_DARK, [0, 0, 0], 12);
+  b.block(0.14, 0.7, 0.14, STONE, [0, 0.08, 0]);
+  b.block(0.78, 0.5, 0.08, GOLD_DARK, [0, 0.74, 0]);
+  b.block(0.68, 0.4, 0.1, '#fff1c9', [0, 0.79, 0.01]);
+  b.sphere(0.1, GOLD, [0, 0.99, 0.08], 1, [1, 1, 0.5]);
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    b.cone(0.05, 0.14, GOLD, [Math.sin(a) * 0.13, 0.99 + Math.cos(a) * 0.13, 0.08], 4, [Math.PI / 2, 0, -a]);
+  }
+  b.block(0.46, 0.03, 0.02, GOLD_DARK, [0, 0.66, 0.1]);
+  b.block(0.3, 0.03, 0.02, GOLD_DARK, [0, 0.6, 0.1]);
+  return b.build();
+}
+
 const FLAGS = ['#ff6b6b', '#ffd166', '#6cc644', '#3fa9f5', '#ff8fb4', '#a97bd8'];
 
 /** Bunting between two points: a sagging string with little pennants, in island-space coordinates. */
@@ -54,4 +71,4 @@ export function buntingGeometry(ax: number, az: number, bx: number, bz: number, 
   return b.build();
 }
 
-export const FESTIVAL_PROC: Record<string, () => THREE.BufferGeometry> = { hero_statue: heroStatueGeometry };
+export const FESTIVAL_PROC: Record<string, () => THREE.BufferGeometry> = { hero_statue: heroStatueGeometry, mastery_plaque: masteryPlaqueGeometry };

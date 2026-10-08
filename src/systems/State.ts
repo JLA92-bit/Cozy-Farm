@@ -125,6 +125,8 @@ export interface SaveData {
   skills?: SkillsState;
   /** 1.8.5 Village Restoration: bundle progress per room (optional; src/systems/Restoration.ts). */
   restoration?: RestorationState;
+  /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
+  mastery?: { done: string[] };
 }
 
 /** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */

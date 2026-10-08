@@ -512,3 +512,12 @@ Pea (seed 26, 6.5 hours, 2 per harvest, sells 142, xp 36) and lavender (seed 30,
 the cauliflower curve. Uses: pea soup (Village Kitchen, 4 peas + onion + cream, sells 520), lavender honey (Beehive
 House, honey + 2 lavender, 420) and lavender candle (Beehive House, beeswax candle + 3 lavender, 640). They are
 the use for the new workshops late in the game, not a separate income tier.
+
+## Mastery plaques (1.8.6, `src/data/mastery.json`, `src/systems/Mastery.ts`)
+
+From level 40, each of the 21 crops (10 gold of that crop) and each of the 10 workshops that make starred goods (6
+gold goods from any of its recipes) is a challenge: 31 in all. A challenge pays 1,500 coins, 3 gems and a Mastery
+Plaque decoration (8 charm). Gold is 3% base, up to 17% with Farming level 10, the Master Farmer perk and fertiliser,
+so a crop takes roughly 50-100 harvested crops and a workshop 40-100 goods: weeks of steady play for the first few,
+months for the whole set. All 31 pay about 46,000 coins and 93 gems in total, a small bonus next to level 40+ income.
+Progress counts the stats `gold_<item>` kept by Quality.addRolled, so it starts counting when 1.8.6 is installed.

@@ -8,6 +8,7 @@ import type { CharacterLook } from '../../systems/State';
 import { Character } from '../../world/Character';
 import { audio } from '../../systems/Audio';
 import { renderSkills } from './SkillsPanel';
+import { renderMastery } from './MasteryPanel';
 import { restoration } from '../../systems/Restoration';
 
 /** Is a cosmetic unlocked for the player? */
@@ -116,7 +117,7 @@ export function openCharacter(firstTime = false, startTab?: string): void {
     tabs: [
       { id: 'avatar', label: 'Avatar', icon: 'farmer' },
       { id: 'colours', label: 'Colours', icon: 'sparkles' },
-      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }, { id: 'skills', label: 'Skills', icon: 'sparkles' }]),
+      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }, { id: 'skills', label: 'Skills', icon: 'sparkles' }, { id: 'mastery', label: 'Mastery', icon: 'trophy' }]),
     ],
   });
   const canvas = h('canvas');
@@ -221,6 +222,8 @@ export function openCharacter(firstTime = false, startTab?: string): void {
       swatches(COSMETICS.outfitColors.map((o) => o.color), 'bottom', lockOf);
     } else if (tab === 'skills') {
       renderSkills(options, () => render('skills'));
+    } else if (tab === 'mastery') {
+      renderMastery(options);
     } else {
       section('Hat');
       choices(COSMETICS.hats, 'hat');

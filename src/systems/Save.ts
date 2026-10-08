@@ -60,6 +60,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.quality = isObj(s.quality) ? (s.quality as SaveData['quality']) : {};
   out.skills = repairSkills(s.skills);
   out.restoration = repairRestoration(s.restoration);
+  out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
 }
 

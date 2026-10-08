@@ -6,6 +6,7 @@ import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
 import { skills } from '../systems/Skills';
 import { restoration } from '../systems/Restoration';
+import { mastery } from '../systems/Mastery';
 import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { settings, shadowsWanted } from '../systems/Settings';
@@ -117,6 +118,7 @@ export async function boot(): Promise<void> {
   game.load(data);
   skills.init();
   restoration.init();
+  mastery.init();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;

@@ -1,0 +1,8 @@
+{
+  "_comment": "1.8.6 Mastery plaques. From unlockLevel, every crop and every workshop that makes starred goods has a gold-star challenge: grow or make `cropGold` gold crops of that kind, or `workshopGold` gold goods from that workshop (counted by the stats gold_<item>, from the moment 1.8.6 is installed). Finishing one gives the reward and a Mastery Plaque decoration (item `plaque`).",
+  "unlockLevel": 40,
+  "cropGold": 10,
+  "workshopGold": 6,
+  "reward": { "coins": 1500, "gems": 3 },
+  "plaque": "mastery_plaque"
+}

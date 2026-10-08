@@ -1,0 +1,13 @@
+.ms-intro { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; border: 3px solid var(--outline); border-radius: 16px; background: linear-gradient(180deg, #fff3c4, #fff); box-shadow: 0 3px 0 var(--outline); }
+.ms-intro-icon { width: 40px; height: 40px; flex: none; }
+.ms-title { font-weight: 800; font-size: 18px; }
+.ms-text { font-size: 14px; opacity: .85; }
+.ms-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; padding: 8px 10px; border: 3px solid var(--outline); border-radius: 14px; background: #fff; box-shadow: 0 2px 0 var(--outline); }
+.ms-row.done { background: linear-gradient(180deg, #fff3c4, #ffe9a0); }
+.ms-pic { width: 40px; height: 40px; flex: none; display: flex; align-items: center; justify-content: center; }
+.ms-pic img, .ms-pic svg { width: 36px; height: 36px; }
+.ms-name { font-weight: 800; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ms-tag { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: #f2c14e; border: 2px solid var(--outline); }
+.ms-tag svg, .ms-tag img { width: 14px; height: 14px; }
+.ms-sub { font-size: 13px; opacity: .8; margin-bottom: 4px; }
+.ms-bar { height: 18px; }
