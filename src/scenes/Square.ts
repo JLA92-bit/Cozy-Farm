@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ROOMS } from '../data';
 import { game } from '../systems/Game';
 import { restoration } from '../systems/Restoration';
+import { festivals } from '../systems/Festivals';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { SQUARE, SquareView } from '../world/SquareView';
@@ -235,10 +236,12 @@ function tapAt(p: Pointer): void {
 function makeBanner(): HTMLElement {
   const home = button([icon('house'), h('span', null, 'Back to the farm')], () => void leaveSquare(), 'green visit-home', { 'aria-label': 'Back to your farm' });
   const done = restoration.roomsDone();
+  const fest = festivals.today();
   return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Village Square'),
       h('div', { class: 'visit-sub' }, h('span', { class: 'sq-progress' }, icon('sparkle_heart'), restoration.festivalOn() ? 'Village Hero: all rooms rebuilt' : `${done} of ${ROOMS.length} rooms rebuilt`))),
+    fest ? button([icon(fest.def.icon), h('span', null, fest.def.name)], () => ui.open('festival'), 'yellow visit-home', { 'aria-label': `Join the ${fest.def.name}` }) : null,
     home);
 }
 

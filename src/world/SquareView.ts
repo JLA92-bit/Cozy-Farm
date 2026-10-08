@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { assets } from '../core/Assets';
 import { ROOMS, VILLAGER, type RoomDef } from '../data';
 import { restoration } from '../systems/Restoration';
+import { festivals } from '../systems/Festivals';
 import { Character } from './Character';
 import { PAL, geo, rng } from './Procedural';
 import { objectFor, visualFor } from './Visuals';
@@ -295,6 +296,8 @@ export class SquareView {
   private boat: THREE.Mesh | null = null;
   /** the village festival (all rooms rebuilt): golden statue and bunting, shown from then on */
   private festival = new THREE.Group();
+  /** 1.9: the bunting also hangs on every festival day */
+  private bunting?: THREE.Mesh;
   private statue: THREE.Mesh | null = null;
   private raycaster = new THREE.Raycaster();
   private t = 0;
@@ -733,12 +736,16 @@ export class SquareView {
     const bunting = new THREE.Mesh(mergeGeometries(geos, false), assets.vertexMaterial);
     bunting.position.y = 0.14;
     f.add(bunting);
+    this.bunting = bunting;
     this.group.add(f);
   }
 
   /** Show each lot in the stage its room has reached. */
   refresh(): void {
-    this.festival.visible = restoration.festivalOn();
+    const hero = restoration.festivalOn(), today = !!festivals.today();
+    this.festival.visible = hero || today;
+    if (this.statue) this.statue.visible = hero;
+    if (this.bunting) this.bunting.visible = true;
     for (const lot of this.lots.values()) {
       const stage = restoration.stage(lot.info.id);
       if (stage === lot.stage) continue;
@@ -790,7 +797,7 @@ export class SquareView {
     if (this.disposed) return;
     this.t += dt;
     for (const c of this.characters) c.char.update(dt);
-    if (this.statue && this.festival.visible) this.statue.rotation.y = Math.sin(this.t * 0.6) * 0.45;
+    if (this.statue && this.statue.visible) this.statue.rotation.y = Math.sin(this.t * 0.6) * 0.45;
     // the animals amble about their yard
     for (const a of this.animals) {
       if (!a.root.visible) continue;
