@@ -466,9 +466,16 @@ Everything here is data: change the numbers in `restoration.json` (bundles, `rew
 checks them. The first thing to watch on the dashboard (1.8.5 Square page) is how many players finish the first
 bundle of each room and how long the Treasury takes.
 
-## Beehive House (1.8.6, building `beehive`, level 20, 4,000 coins)
+## Beehive House (1.8.6, building `beehive_house`, level 20, 4,000 coins)
 
 A production workshop (2x2, counts against the same production cap as the others). Four recipes, all cheap farm
 ingredients: honey (2 apples, 20 min, sells 150), honeycomb (2 honey, 30 min, 340), beeswax candle (1 honey + 2
 cotton, 40 min, 400) and honey butter (1 honey + 1 butter, 25 min, 330). Per hour of the workshop the best is about
 600 coins of added value, in line with the Loom, so it adds variety and a use for apples, not a new income tier.
+
+## Ducks (1.8.6, animal `duck`, house `duck_house`, level 24)
+
+Duck House 2,600 coins (4x4, like the Goat Pen), duck 1,500 coins (+25% per duck owned), 3 per house at level 1.
+Feed: duck feed from the Feed Mill (3 wheat + 2 carrot make 3, level 24). A duck lays a duck egg (sells 150) 90
+minutes after feeding, so about 100 coins an hour per duck minus 10 for feed: between the goat and the pig, as it
+should be at level 24. The model is the chick recoloured white (`variant: "duck"` in FarmView).

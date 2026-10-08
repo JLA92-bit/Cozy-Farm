@@ -313,6 +313,18 @@
    "sell": 180,
    "icon": "cheese"
   },
+  "duck_egg": {
+   "name": "Duck Egg",
+   "cat": "animal",
+   "sell": 150,
+   "icon": "duck_egg"
+  },
+  "duck_feed": {
+   "name": "Duck Feed",
+   "cat": "feed",
+   "sell": 30,
+   "icon": "model:proc/feed_duck"
+  },
   "goat_cheese": {
    "name": "Goat Cheese",
    "cat": "goods",

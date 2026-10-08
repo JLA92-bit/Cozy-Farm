@@ -73,6 +73,21 @@
    "scale": 0.55,
    "sound": "goat",
    "variant": "goat"
+  },
+  {
+   "id": "duck",
+   "name": "Duck",
+   "level": 24,
+   "house": "duck_house",
+   "cost": 1500,
+   "feed": "duck_feed",
+   "product": "duck_egg",
+   "produceSec": 5400,
+   "xp": 18,
+   "model": "pet/chick",
+   "scale": 0.5,
+   "sound": "chicken",
+   "variant": "duck"
   }
  ]
 }

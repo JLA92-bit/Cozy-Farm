@@ -161,6 +161,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   pen_sheep: () => penBuilder('#8fd16a', '#3fa9f5', '#bfe8ff'),
   pen_pig: () => penBuilder('#a07850', PAL.orange, '#8a5a33'),
   pen_goat: () => penBuilder('#9bc66a', '#6a7d8f', '#bfe8ff'),
+  pen_duck: () => penDuck(),
   haybale: () => geo()
     .cyl(0.32, 0.32, 0.55, PAL.hay, [0, 0.32, 0], 9, [Math.PI / 2, 0, 0])
     .cyl(0.33, 0.33, 0.06, PAL.hayDark, [0, 0.32, 0.12], 9, [Math.PI / 2, 0, 0])
@@ -286,6 +287,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   feed_sheep: () => sack('#a8d8ff'),
   feed_pig: () => sack('#ff9fc2'),
   feed_goat: () => sack('#9bd16a'),
+  feed_duck: () => sack('#f2d16a'),
   // 1.8: a brown-tagged sack with a little green sprout on top
   fertiliser: () => sack('#8a5a2e', true),
   fertiliser_q: () => sack('#d99a16', true),
@@ -333,6 +335,24 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...FESTIVAL_PROC,
   ...BEEHIVE_PROC,
 };
+
+/** The Duck Pond: a grassy pen with a pond in the middle, reeds and a little blue duck house. */
+function penDuck(): THREE.BufferGeometry {
+  const b = geo();
+  b.block(3.9, 0.05, 3.9, '#9fd17a', [0, 0, 0]);
+  fencePosts(b, 3.9, 3.9);
+  b.cyl(1.25, 1.32, 0.07, '#d9c7a3', [0.15, 0.05, 0.35], 18);
+  b.cyl(1.12, 1.12, 0.09, '#6fc6f2', [0.15, 0.06, 0.35], 18);
+  b.cyl(0.7, 0.7, 0.1, '#8fd6ff', [0.35, 0.06, 0.45], 14);
+  for (const [x, z, h] of [[-0.95, 1.0, 0.5], [-0.8, 1.15, 0.38], [1.35, -0.15, 0.45], [1.5, 0.05, 0.35]] as const) {
+    b.cyl(0.02, 0.02, h, PAL.green, [x, 0.07, z], 5);
+    b.cyl(0.04, 0.04, 0.1, '#8a5a33', [x, 0.07 + h, z], 6);
+  }
+  shed(b, 1.3, 1.0, 0.85, '#bfe8ff', '#3fa9f5', [-0.95, 0.04, -1.25]);
+  b.block(0.6, 0.22, 0.3, PAL.woodDark, [1.0, 0.05, -1.3]);
+  b.block(0.5, 0.06, 0.2, '#e6c76a', [1.0, 0.27, -1.3]);
+  return b.build();
+}
 
 function penBuilder(ground: string, roof: string, trough: string): THREE.BufferGeometry {
   const b = geo();

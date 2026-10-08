@@ -875,6 +875,7 @@ export class FarmView {
         let material = sm.material;
         if (def.variant === 'sheep') geometry = this.own(sheepGeometry(sm.geometry, sm.size));
         if (def.variant === 'goat') { material = goatMaterial(sm.material as THREE.MeshLambertMaterial); this.ownMaterial.push(material); }
+        if (def.variant === 'duck') { material = duckMaterial(sm.material as THREE.MeshLambertMaterial); this.ownMaterial.push(material); }
         return this.pools.pool(`a/${animal}`, () => ({ geometry, material, castShadow: true }));
       })();
       this.animalPools.set(animal, p);
@@ -1254,6 +1255,32 @@ function mergeAll(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
 }
 
 /** Desaturated + brightened copy of the pets atlas turns the deer into a cream-coloured goat. */
+/** Ducks reuse the chick: its yellow turns white (a Pekin duck) and the orange beak and feet stay. */
+function duckMaterial(src: THREE.MeshLambertMaterial): THREE.Material {
+  const img = src.map!.image as HTMLImageElement | ImageBitmap;
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const g = c.getContext('2d')!;
+  g.drawImage(img as CanvasImageSource, 0, 0);
+  const data = g.getImageData(0, 0, c.width, c.height);
+  const d = data.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], gg = d[i + 1], b = d[i + 2];
+    const sat = Math.max(r, gg, b) - Math.min(r, gg, b);
+    if (sat > 60 && r > b && gg > r * 0.72) { // yellow body -> soft white; orange beak and feet are redder, so they stay
+      d[i] = 250; d[i + 1] = 246; d[i + 2] = 236;
+    }
+  }
+  g.putImageData(data, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.flipY = false;
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  return new THREE.MeshLambertMaterial({ map: tex, vertexColors: true });
+}
+
 function goatMaterial(src: THREE.MeshLambertMaterial): THREE.Material {
   const img = src.map!.image as HTMLImageElement | ImageBitmap;
   const c = document.createElement('canvas');

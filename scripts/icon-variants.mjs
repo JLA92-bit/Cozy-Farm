@@ -21,6 +21,8 @@ export const FISHING_ICONS = {
   stuffed_flatbread: 'stuffed-flatbread', roast: 'poultry-leg', taco: 'taco',
   // the Beehive house
   honey_pot: 'honey-pot', candle: 'candle', honeybee: 'honeybee',
+  // Ducks
+  duck: 'duck',
 };
 
 /**
@@ -60,6 +62,7 @@ export const ICON_VARIANTS = {
   tuna: { base: 'fish', hue: 225, sat: 1.1, light: 0.7 },
   golden_crab: { base: 'crab', hue: 45, sat: 1.2, light: 1.15, badge: 'sparkles' },
   // the Beehive house
+  duck_egg: { base: 'egg', hue: 140, sat: 0.35, light: 1.04 },
   honeycomb: { base: 'honey-pot', hue: -12, sat: 1.1, light: 1.1, badge: 'honeybee' },
   honey_butter: { base: 'butter', badge: 'honey-pot' },
   beeswax_candle: { base: 'candle', hue: 20, sat: 0.9, light: 1.15, badge: 'sparkles' },

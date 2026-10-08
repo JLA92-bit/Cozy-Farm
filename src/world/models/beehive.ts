@@ -15,7 +15,7 @@ function bee(b: ReturnType<typeof geo>, x: number, y: number, z: number): void {
 }
 
 export const BEEHIVE_PROC: Record<string, () => THREE.BufferGeometry> = {
-  beehive: () => {
+  beehive_house: () => {
     const b = geo();
     // grass-and-stone base
     b.cyl(1.02, 1.08, 0.08, '#b9d98a', [0, 0, 0], 16);
