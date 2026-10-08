@@ -26,6 +26,8 @@ import { updateBubbles } from '../ui/Bubbles';
 import { player } from './Player';
 import { orders, truck, merchant } from '../systems/Economy';
 import { Visitors } from '../world/Visitors';
+import { PikeStall } from '../world/PikeStall';
+import '../ui/panels/FishStallPanel';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
 import { achievements, quests, daily, events, syncCosmeticDiscovery, localDay } from '../systems/Progression';
@@ -155,10 +157,11 @@ export async function boot(): Promise<void> {
   const visitors = new Visitors(scene, merchantSpot);
   visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
+  const pike = new PikeStall(scene);
   const squarePick = ui.extraPick; // the way to the village square (set by initSquare)
   ui.extraPick = (ray) => {
     if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
-    return villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
+    return pike.pick(ray) ?? villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
   };
   scene.onTick((now) => { buildings.tick(now); crafting.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 

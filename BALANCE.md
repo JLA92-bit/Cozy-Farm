@@ -521,3 +521,13 @@ Plaque decoration (8 charm). Gold is 3% base, up to 17% with Farming level 10, t
 so a crop takes roughly 50-100 harvested crops and a workshop 40-100 goods: weeks of steady play for the first few,
 months for the whole set. All 31 pay about 46,000 coins and 93 gems in total, a small bonus next to level 40+ income.
 Progress counts the stats `gold_<item>` kept by Quality.addRolled, so it starts counting when 1.8.6 is installed.
+
+## Marlow Pike's fish stall (1.8.7, `src/data/fishstall.json`, `src/systems/FishStall.ts`)
+
+A fish stall on the north beach by the dock, open once the player can fish (level 7). The player BUYS fish: common x6,
+uncommon x5 and rare x4 the barn price, so a sardine (barn 8) costs 48 and a rainbow trout (barn 44) 220. Prices are
+always well above barn value, so fish cannot be bought and sold for profit. Stock is small and refreshes at local
+midnight: every common species the player can reach (1-3 each), three uncommon species (1-2 each), and a rare one on
+40% of days (1). Legendary and mythic fish are never sold. Pier fish appear once the Pier is rebuilt. The stock is
+seeded by the farm seed and the day; only the day's purchases are saved. It is a convenience for orders and
+bundles (and the Collection Book), not an income source: fishing the same fish is always cheaper in coins and pays XP.

@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.8.7",
+   "date": "2026-10-08",
+   "title": "Marlow's Fresh Catch",
+   "icon": "fish",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fish",
+     "text": "Marlow Pike has set up a fish stall on the north beach by the dock. He sells fish at steep prices, in small stock that is fresh every day"
+    },
+    {
+     "icon": "cart",
+     "text": "Handy when an order needs a fish you have not caught yet, and the prices mean fishing it yourself always pays better"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.8.6",
    "date": "2026-10-08",
    "title": "Honey and More",

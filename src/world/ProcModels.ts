@@ -12,6 +12,7 @@ import { FESTIVAL_PROC } from './models/festival';
 import { BEEHIVE_PROC } from './models/beehive';
 import { JUICEPRESS_PROC } from './models/juicepress';
 import { KILN_PROC } from './models/kiln';
+import { FISHSTALL_PROC } from './models/fishstall';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -364,6 +365,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...BEEHIVE_PROC,
   ...JUICEPRESS_PROC,
   ...KILN_PROC,
+  ...FISHSTALL_PROC,
 };
 
 /** The Duck Pond: a grassy pen with a pond in the middle, reeds and a little blue duck house. */

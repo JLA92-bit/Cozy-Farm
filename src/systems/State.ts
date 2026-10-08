@@ -86,6 +86,8 @@ export interface SaveData {
   truckNextAt: number;
   stall: { slots: StallSlot[]; adUntil: number };
   merchant: { bought: Record<string, number> };
+  /** 1.8.7 Marlow Pike's fish stall: what was bought on which local day (stock refreshes each day) */
+  fishstall?: { day: string; bought: Record<string, number> };
   stats: Record<string, number>;
   achievements: Record<string, number>;
   quests: { daily: QuestState[]; dailyKey: string; weekly: QuestState[]; weeklyKey: string; weeklyBonusClaimed: boolean };

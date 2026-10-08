@@ -60,6 +60,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.quality = isObj(s.quality) ? (s.quality as SaveData['quality']) : {};
   out.skills = repairSkills(s.skills);
   out.restoration = repairRestoration(s.restoration);
+  out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
 }
