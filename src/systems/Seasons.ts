@@ -39,19 +39,10 @@ class SeasonSystem {
   }
   /** Seasonal crops get the in-season bonus; year-round ones do not. */
   seasonal(crop: string): boolean { return !SEASONS.yearRound.includes(crop) && !!SEASONS.crops[crop]; }
-  /** Planted right now, is this crop getting the in-season bonus? */
-  bonus(crop: string): boolean { return this.seasonal(crop) && this.open(crop); }
 
   /** Crops open to plant this season (all of them, level aside). */
   cropsIn(season: SeasonId = this.id): string[] { return Object.keys(CROP).filter((c) => this.open(c, season)); }
 
-  /** Days until a crop can be planted again (0 when open now). */
-  daysUntil(crop: string, t = game.now()): number {
-    const here = this.now(t);
-    for (let d = 0; d <= YEAR; d++) if (this.open(crop, seasonOnDay(dayNumber(localDay(t)) + d).id)) return d;
-    void here;
-    return 0;
-  }
   /** Which season brings the crop back next, and in how many days. */
   nextSeasonFor(crop: string): { season: SeasonId; days: number } | null {
     const n = dayNumber(localDay(game.now()));

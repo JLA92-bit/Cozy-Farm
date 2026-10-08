@@ -3,6 +3,8 @@ import type { Panel } from '../Panel';
 import { CROP, FESTIVALS, FISHING, SEASONS, WOODS, type SeasonId } from '../../data';
 import { game } from '../../systems/Game';
 import { seasons } from '../../systems/Seasons';
+import { roomDone } from '../../systems/RestorationEffects';
+import { gameConfig } from '../../online/GameConfig';
 import './woods.css';
 
 /** The Almanac (1.9): the year on one page. Four season cards and the ribbon wall. */
@@ -11,7 +13,7 @@ export function renderAlmanac(p: Panel): void {
   const now = seasons.now();
   p.body.append(h('div', { class: 'al-head' }, icon(now.def.icon, 'al-icon'),
     h('div', null, h('div', { class: 'al-title' }, `${now.def.name}, day ${now.day} of ${SEASONS.daysPerSeason}`),
-      h('div', { class: 'muted' }, `The valley's year has ${SEASONS.order.length * SEASONS.daysPerSeason} days. The last day of every season is a festival, and Saturday is market day.`))));
+      h('div', { class: 'muted' }, `The valley's year has ${SEASONS.order.length * SEASONS.daysPerSeason} days. The last day of every season is a festival.${roomDone('treasury') ? ` Market day is ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][gameConfig.marketDay ?? 6]}.` : ''}`))));
   for (const sid of SEASONS.order) p.body.append(card(sid, sid === now.id));
   // the ribbon wall
   const wall = h('div', { class: 'al-ribbons' });

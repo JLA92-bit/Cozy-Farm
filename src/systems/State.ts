@@ -96,12 +96,12 @@ export interface SaveData {
   /** 1.9 the day the pet's find was last claimed */
   petfind?: { day: string };
   /** 1.9 Help Wanted: which of today's three requests were filled */
-  helpwanted?: { day: string; done: number[] };
+  helpwanted?: { day: string; done: number[]; reqs?: { who: string; item: string; n: number; star: 0 | 2; coins: number; points: number; gems: number }[] };
   /** 1.9 the Museum: item ids donated to each shelf, shelves already paid, and the Curator reward */
   museum?: { donated: Record<string, string[]>; done: string[]; curator: boolean };
   /** 1.9 the expedition board: villagers out on a trip */
   expeditions?: { trips: { who: string; trip: string; start: number; end: number }[] };
-  festivals?: { best: Record<string, number>; done: Record<string, number>; seen: string };
+  festivals?: { best: Record<string, number>; done: Record<string, number>; seen: string; played?: Record<string, number> };
   stats: Record<string, number>;
   achievements: Record<string, number>;
   quests: { daily: QuestState[]; dailyKey: string; weekly: QuestState[]; weeklyKey: string; weeklyBonusClaimed: boolean };

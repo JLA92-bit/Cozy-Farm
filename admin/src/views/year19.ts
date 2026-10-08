@@ -46,11 +46,11 @@ export async function year19View(host: HTMLElement): Promise<void> {
               h('button', { class: 'btn', onclick: () => { if (!wDate.value) { fail(new Error('Pick a date first')); return; } void set('weather', { date: wDate.value, kind: wKind.value }); } }, 'Save weather'),
               h('button', { class: 'btn', onclick: () => void set('weather', null) }, 'Clear'))))),
       h('div', { class: 'tiles' },
-        tile('Woods visitors', num(o.woods.visitors), 'all time'),
+        tile('New woods visitors', num(o.woods.visitors), `${days} days`),
         tile('Forage picked', num(o.woods.forages), `${num(o.woods.foragers)} players`),
         tile('Digs', num(o.woods.digs), `${num(o.woods.diggers)} players`),
         tile('Expeditions sent', num(o.woods.expeditions), `${num(o.woods.expeditionsDone)} came home`),
-        tile('Museum pieces given', num(o.museum.pieces), `${num(o.museum.givers)} players, ${num(o.museum.curators)} Curators`),
+        tile(`Museum pieces given (${days} days)`, num(o.museum.pieces), `${num(o.museum.givers)} players, ${num(o.museum.curators)} Curators`),
         tile(`Help Wanted filled (${days} days)`, num(o.helpWanted.filled), `${num(o.helpWanted.players)} players`)),
       h('div', { class: 'grid-2' },
         h('section', { class: 'card' }, h('h3', null, `Festivals (${days} days)`),
@@ -58,7 +58,7 @@ export async function year19View(host: HTMLElement): Promise<void> {
             h('thead', null, h('tr', null, h('th', null, 'Festival'), h('th', { class: 'r' }, 'Players'), h('th', { class: 'r' }, 'Plays'), h('th', { class: 'r' }, 'Prizes'), h('th', { class: 'r' }, '3 stars'))),
             h('tbody', null, o.festivals.map((f) => h('tr', null, h('td', null, FESTIVALS[f.festival] ?? f.festival), h('td', { class: 'r' }, num(f.players)), h('td', { class: 'r' }, num(f.plays)), h('td', { class: 'r' }, num(f.collected)), h('td', { class: 'r' }, num(f.threeStar))))))
             : h('p', { class: 'muted' }, 'No festival played yet. Festivals fall on the last day of each season.')),
-        h('section', { class: 'card' }, h('h3', null, 'Museum shelves completed'),
+        h('section', { class: 'card' }, h('h3', null, `Museum shelves completed (${days} days)`),
           o.museum.shelves.length ? h('table', { class: 'table compact' },
             h('thead', null, h('tr', null, h('th', null, 'Shelf'), h('th', { class: 'r' }, 'Players'))),
             h('tbody', null, o.museum.shelves.map((s) => h('tr', null, h('td', null, SHELVES[s.shelf] ?? s.shelf), h('td', { class: 'r' }, num(s.players))))))

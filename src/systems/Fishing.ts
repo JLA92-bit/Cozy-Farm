@@ -189,7 +189,7 @@ class FishingSystem {
   /** Common fish that bite at any time of day and were caught before: fair game for orders and the truck. */
   orderable(): string[] {
     if (!this.unlocked) return [];
-    return FISHING.species.filter((f) => f.rarity === 'common' && f.level <= game.level && f.times.length === TIME_ORDER.length && this.st.caught[f.id]).map((f) => f.id);
+    return FISHING.species.filter((f) => f.rarity === 'common' && (!f.season || f.season === seasons.id) && f.level <= game.level && f.times.length === TIME_ORDER.length && this.st.caught[f.id]).map((f) => f.id);
   }
 
   /** Where and when a fish bites, for hints: "Night, level 12". */

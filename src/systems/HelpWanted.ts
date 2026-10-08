@@ -23,7 +23,7 @@ class HelpWantedSystem {
   private st() {
     const day = localDay(game.now());
     const s = (game.state.helpwanted ??= { day, done: [] });
-    if (s.day !== day) { s.day = day; s.done = []; }
+    if (s.day !== day) { s.day = day; s.done = []; s.reqs = undefined; }
     return s;
   }
 
@@ -31,6 +31,8 @@ class HelpWantedSystem {
 
   requests(): HelpRequest[] {
     const st = this.st();
+    // fixed for the day once made, so what you can currently obtain cannot change a request half way through
+    if (st.reqs?.length === PER_DAY) return st.reqs.map((r, i) => ({ ...r, i, done: st.done.includes(i) }));
     const pool = [...obtainableItems(), ...(woods.visited ? WOODS.foragedBySeason[seasons.id].map((e) => e.id) : [])].filter((i) => ITEMS[i]);
     if (!pool.length) return [];
     const out: HelpRequest[] = [];
@@ -49,6 +51,7 @@ class HelpWantedSystem {
       const coins = Math.round(sell * n * (star ? 3.2 : 1.6));
       out.push({ i, who, item, n, star, coins, points: star ? 20 : 12, gems: star ? 1 : r() < 0.2 ? 1 : 0, done: st.done.includes(i) });
     }
+    st.reqs = out.map(({ who, item, n, star, coins, points, gems }) => ({ who, item, n, star, coins, points, gems }));
     return out;
   }
 

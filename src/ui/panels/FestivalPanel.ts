@@ -40,7 +40,7 @@ export function openFestival(): void {
       })),
       h('div', { class: 'fe-actions' },
         ...(done ? [h('div', { class: 'muted' }, `The ${def.ribbon} is on your ribbon wall. See you at the next festival!`)] : [
-          h('button', { class: 'btn green', type: 'button', onclick: () => start() }, best ? 'Try again' : 'Play'),
+          def.game === 'feast' && festivals.played(t.key) > 0 ? null : h('button', { class: 'btn green', type: 'button', onclick: () => start() }, best ? 'Try again' : 'Play'),
           best ? h('button', { class: 'btn yellow', type: 'button', onclick: () => collect() }, 'Collect prize') : null]))));
   };
 

@@ -4,7 +4,7 @@
  * decoration and a ribbon) is paid once, when they collect it. The mini-games themselves live in
  * ui/panels/FestivalPanel.ts; this file keeps the rules, the stars and the prizes.
  */
-import { FESTIVALS, BUILDING, ITEMS, type FestivalDef } from '../data';
+import { FESTIVALS, BUILDING, ITEMS, SEASONS, type FestivalDef } from '../data';
 import { game } from './Game';
 import { saves } from './Save';
 import { seasons } from './Seasons';
@@ -42,38 +42,60 @@ class FestivalSystem {
     const t = this.today();
     if (!t) return 0;
     this.st.best[t.key] = Math.max(this.st.best[t.key] ?? 0, stars);
+    (this.st.played ??= {})[t.key] = (this.st.played[t.key] ?? 0) + 1;
     game.incStat('festival_plays');
     logEvent('festival_play', { festival: t.def.id, stars });
     saves.save();
     return this.st.best[t.key];
   }
 
-  /** Pay the prize for the best result (once per festival). Returns what was given, or null. */
-  collect(): { stars: number; coins: number; gems: number; decor: string; item?: { id: string; n: number } } | null {
-    const t = this.today();
-    if (!t || this.collected(t.key)) return null;
-    const stars = this.best(t.key);
-    if (stars < 1) return null;
+  /** Tries made at a festival (the Feast of Lights can only be shared once). */
+  played(key: string): number { return this.st.played?.[key] ?? 0; }
+
+  /** Pay the prize for the best result of one festival (once). Returns what was given, or null. */
+  private payout(key: string): { stars: number; coins: number; gems: number; decor: string; item?: { id: string; n: number } } | null {
+    if (this.collected(key)) return null;
+    const stars = this.best(key);
+    const sid = SEASONS.order[Number(key.split(':')[1])];
+    const def = sid ? FESTIVALS.festivals[sid] : undefined;
+    if (!def || stars < 1) return null;
     const p = FESTIVALS.prizes[stars - 1];
-    const gems = (p.gems ?? 0) + (stars === 3 ? t.def.prize.gems ?? 0 : 0);
+    const gems = (p.gems ?? 0) + (stars === 3 ? def.prize.gems ?? 0 : 0);
     game.addCoins(p.coins);
     if (gems) game.addGems(gems);
-    const decor = t.def.prize.decor;
+    const decor = def.prize.decor;
     const st = game.state.storage;
     if (stars >= 2 && BUILDING[decor]) st[decor] = (st[decor] ?? 0) + 1;
-    const item = stars === 3 ? t.def.prize.item : undefined;
+    const item = stars === 3 ? def.prize.item : undefined;
     if (item && ITEMS[item.id]) game.addItem(item.id, item.n);
-    this.st.done[t.key] = stars;
+    this.st.done[key] = stars;
     game.incStat('festival_ribbons');
-    game.discover(t.season, 'ribbon');
-    logEvent('festival_collect', { festival: t.def.id, stars });
+    game.discover(sid, 'ribbon');
+    logEvent('festival_collect', { festival: def.id, stars });
     game.bus.emit('sfx', { name: 'reward' });
     saves.save();
     return { stars, coins: p.coins, gems, decor: stars >= 2 && BUILDING[decor] ? decor : '', item };
   }
 
+  /** Collect today's prize. */
+  collect(): { stars: number; coins: number; gems: number; decor: string; item?: { id: string; n: number } } | null {
+    const t = this.today();
+    return t ? this.payout(t.key) : null;
+  }
+
+  /** A prize earned on an earlier festival day that was never collected (the day ended first) is paid out now. */
+  settleOld(): void {
+    const today = this.today()?.key;
+    for (const key of Object.keys(this.st.best)) {
+      if (key === today || this.collected(key) || this.best(key) < 1) continue;
+      const r = this.payout(key);
+      if (r) game.bus.emit('toast', { title: 'Your festival prize arrived', sub: `${r.coins} coins${r.gems ? ` and ${r.gems} gems` : ''}${r.decor ? `, and a ${BUILDING[r.decor].name} in your storage` : ''}`, icon: 'ribbon' });
+    }
+  }
+
   /** Once on each festival morning: a toast pointing at the side button. */
   announce(): void {
+    if (game.state.player.created && game.state.tutorial.done) this.settleOld();
     const t = this.today();
     if (!t || !game.state.player.created || !game.state.tutorial.done) return;
     if (this.st.seen === t.key) return;

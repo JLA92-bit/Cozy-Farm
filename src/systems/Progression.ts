@@ -417,15 +417,11 @@ export class EventSystem {
     for (let i = 0; i < e.quests.length; i++) if (!st.questsClaimed.includes(i) && this.questProgress(i) >= e.quests[i].n) n++;
     return n;
   }
-  /** Milliseconds until the current event ends (end of its last day). */
+  /** Milliseconds until the current event ends (end of the season's last day). */
   timeLeft(now = game.now()): number {
-    const e = this.current;
-    if (!e) return 0;
-    const [em, ed] = e.end.split('-').map(Number);
+    if (!this.current) return 0;
     const d = new Date(now);
-    let end = new Date(d.getFullYear(), em - 1, ed + 1).getTime();
-    if (end <= now) end = new Date(d.getFullYear() + 1, em - 1, ed + 1).getTime();
-    return end - now;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1 + seasonOnDay(dayNumber(localDay(now))).daysLeft).getTime() - now;
   }
   questProgress(i: number): number {
     const e = this.current;

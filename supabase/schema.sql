@@ -3217,14 +3217,14 @@ begin
                 'digs', count(*) filter (where e.kind = 'dig'),
                 'expeditions', count(*) filter (where e.kind = 'expedition_send'),
                 'expeditionsDone', count(*) filter (where e.kind = 'expedition_done'))
-                from public.player_events e where e.kind in ('woods_first', 'forage', 'dig', 'expedition_send', 'expedition_done')),
+                from public.player_events e where e.kind in ('woods_first', 'forage', 'dig', 'expedition_send', 'expedition_done') and e.at > v_from),
     'museum', jsonb_build_object(
-        'givers', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_give'),
-        'pieces', (select count(*) from public.player_events e where e.kind = 'museum_give'),
-        'curators', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_curator'),
+        'givers', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_give' and e.at > v_from),
+        'pieces', (select count(*) from public.player_events e where e.kind = 'museum_give' and e.at > v_from),
+        'curators', (select count(distinct e.user_id) from public.player_events e where e.kind = 'museum_curator' and e.at > v_from),
         'shelves', (select coalesce(jsonb_agg(jsonb_build_object('shelf', x.shelf, 'players', x.n) order by x.n desc), '[]'::jsonb) from (
             select e.detail ->> 'shelf' as shelf, count(distinct e.user_id) as n from public.player_events e
-             where e.kind = 'museum_shelf' and e.detail ->> 'shelf' ~ '^[a-z_]{1,30}$' group by 1) x)),
+             where e.kind = 'museum_shelf' and e.at > v_from and e.detail ->> 'shelf' ~ '^[a-z_]{1,30}$' group by 1) x)),
     'helpWanted', (select jsonb_build_object('players', count(distinct e.user_id), 'filled', count(*)) from public.player_events e where e.kind = 'help_wanted' and e.at > v_from));
 end;
 $$;

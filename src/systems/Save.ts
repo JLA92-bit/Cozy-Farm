@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { BUILDING, CROP, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { BUILDING, CROP, EXPEDITIONS, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -62,7 +62,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.restoration = repairRestoration(s.restoration);
   out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
   out.seasons = isObj(s.seasons) && typeof s.seasons.letter === 'string' ? { letter: s.seasons.letter } : undefined;
-  out.festivals = isObj(s.festivals) ? { best: countMap(s.festivals.best, () => true), done: countMap(s.festivals.done, () => true), seen: typeof s.festivals.seen === 'string' ? s.festivals.seen : '' } : undefined;
+  out.festivals = isObj(s.festivals) ? { best: countMap(s.festivals.best, () => true), done: countMap(s.festivals.done, () => true), seen: typeof s.festivals.seen === 'string' ? s.festivals.seen : '', played: countMap(s.festivals.played, () => true) } : undefined;
   out.woods = isObj(s.woods) ? {
     day: typeof s.woods.day === 'string' ? s.woods.day : '',
     picked: Array.isArray(s.woods.picked) ? s.woods.picked.filter((n: unknown) => Number.isInteger(n)) as number[] : [],
@@ -76,10 +76,12 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     curator: !!s.museum.curator,
   } : undefined;
   out.expeditions = isObj(s.expeditions) && Array.isArray(s.expeditions.trips) ? {
-    trips: s.expeditions.trips.filter((t: unknown) => isObj(t) && typeof t.who === 'string' && typeof t.trip === 'string' && Number.isFinite(t.start) && Number.isFinite(t.end))
+    trips: s.expeditions.trips.filter((t: unknown) => isObj(t) && typeof t.who === 'string' && !!VILLAGER[t.who] && EXPEDITIONS.trips.some((x) => x.id === t.trip) && Number.isFinite(t.start) && Number.isFinite(t.end))
       .map((t: { who: string; trip: string; start: number; end: number }) => ({ who: t.who, trip: t.trip, start: t.start, end: t.end })),
   } : undefined;
-  out.helpwanted = isObj(s.helpwanted) && typeof s.helpwanted.day === 'string' ? { day: s.helpwanted.day, done: Array.isArray(s.helpwanted.done) ? s.helpwanted.done.filter((n: unknown) => Number.isInteger(n)) as number[] : [] } : undefined;
+  out.helpwanted = isObj(s.helpwanted) && typeof s.helpwanted.day === 'string' ? { day: s.helpwanted.day, done: Array.isArray(s.helpwanted.done) ? s.helpwanted.done.filter((n: unknown) => Number.isInteger(n)) as number[] : [],
+    reqs: Array.isArray(s.helpwanted.reqs) ? s.helpwanted.reqs.filter((r: unknown) => isObj(r) && typeof r.who === 'string' && !!VILLAGER[r.who] && typeof r.item === 'string' && !!ITEMS[r.item] && Number.isFinite(r.n) && Number.isFinite(r.coins)).slice(0, 3)
+      .map((r: { who: string; item: string; n: number; star: number; coins: number; points: number; gems: number }) => ({ who: r.who, item: r.item, n: Math.max(1, Math.floor(r.n)), star: (r.star === 2 ? 2 : 0) as 0 | 2, coins: Math.floor(r.coins), points: Math.floor(Number(r.points) || 0), gems: Math.floor(Number(r.gems) || 0) })) : undefined } : undefined;
   out.petfind = isObj(s.petfind) && typeof s.petfind.day === 'string' ? { day: s.petfind.day } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
