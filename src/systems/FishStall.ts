@@ -1,7 +1,7 @@
 /**
  * 1.8.7 Marlow Pike's fish stall: the player BUYS fish here, at steep prices and in small daily stock. Prices are a
  * multiple of the barn price (fishstall.json), so fish can never be bought here and sold for profit. The stock is
- * chosen from the farm seed and the local day, so it is the same on every device and refreshes at local midnight;
+ * chosen from the farm seed and the trading night, so it is the same on every device and refreshes each time he opens;
  * only what was bought today is saved. Marlow trades only in his hours (`isOpen`). Legendary and mythic fish are never for sale.
  */
 import { FISH, FISHING, FISHSTALL, ITEMS } from '../data';
@@ -17,29 +17,32 @@ class FishStallSystem {
   /** The stall is open once the player can fish. */
   get open(): boolean { return game.level >= FISHING.level; }
 
-  private day(now = game.now()): string { return localDay(now); }
+  /** The trading "night" a time belongs to: the stock changes each time he opens, not at midnight. */
+  private day(now = game.now()): string { return localDay(now - FISHSTALL.hours.open * 3600000); }
 
   /** Is Marlow trading right now (his hours are local time, in fishstall.json)? */
   isOpen(now = game.now()): boolean {
-    const h = new Date(now).getHours();
-    return h >= FISHSTALL.hours.open && h < FISHSTALL.hours.close;
+    const h = new Date(now).getHours(), { open, close } = FISHSTALL.hours;
+    // a close before the open means the hours run past midnight (7 pm to 7 am)
+    return open <= close ? h >= open && h < close : h >= open || h < close;
   }
   /** Milliseconds until he opens again (0 when open). */
   opensIn(now = game.now()): number {
     if (this.isOpen(now)) return 0;
     const d = new Date(now);
-    const dayShift = d.getHours() >= FISHSTALL.hours.close ? 1 : 0;
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + dayShift, FISHSTALL.hours.open).getTime() - now;
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), FISHSTALL.hours.open).getTime();
+    return (t > now ? t : t + 86400000) - now;
+  }
+  /** Milliseconds until he closes (0 when closed). */
+  closesIn(now = game.now()): number {
+    if (!this.isOpen(now)) return 0;
+    const d = new Date(now);
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), FISHSTALL.hours.close).getTime();
+    return (t > now ? t : t + 86400000) - now;
   }
   /** "7 am" / "7 pm" for the opening hours. */
   hourText(h: number): string { return `${h % 12 || 12} ${h < 12 ? 'am' : 'pm'}`; }
   get hoursText(): string { return `${this.hourText(FISHSTALL.hours.open)} to ${this.hourText(FISHSTALL.hours.close)}`; }
-
-  /** Milliseconds until the stock refreshes (the next local midnight). */
-  restockIn(now = game.now()): number {
-    const d = new Date(now);
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime() - now;
-  }
 
   private bought(): Record<string, number> {
     const s = game.state.fishstall;

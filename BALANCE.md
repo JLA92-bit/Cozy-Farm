@@ -525,9 +525,8 @@ Progress counts the stats `gold_<item>` kept by Quality.addRolled, so it starts 
 ## Marlow Pike's fish stall (1.8.7, `src/data/fishstall.json`, `src/systems/FishStall.ts`)
 
 A fish stall on the north beach by the dock, open once the player can fish (level 7). The player BUYS fish: common x200,
-uncommon x150 and rare x100 the barn price, so a sardine (barn 8) costs 1,600 and a rainbow trout (barn 44) 6,600. Buying is meant to hurt: it is the price of skipping the fishing. He trades 7 am to 7 pm local time (`hours`); out of hours he is away and the stall is closed. Prices are
-always well above barn value, so fish cannot be bought and sold for profit. Stock is small and refreshes at local
-midnight: every common species the player can reach (1-3 each), three uncommon species (1-2 each), and a rare one on
-40% of days (1). Legendary and mythic fish are never sold. Pier fish appear once the Pier is rebuilt. The stock is
-seeded by the farm seed and the day; only the day's purchases are saved. It is a convenience for orders and
+uncommon x150 and rare x100 the barn price, so a sardine (barn 8) costs 1,600 and a rainbow trout (barn 44) 6,600. Buying is meant to hurt: it is the price of skipping the fishing. He is a night trader, 7 pm to 7 am local time (`hours`); by day he is away and the stall is closed. The stock refreshes each time he opens. Prices are
+always well above barn value, so fish cannot be bought and sold for profit. Stock is small: every common species the player can reach (1-3 each), three uncommon species (1-2 each), and a rare one on
+40% of nights (1). Legendary and mythic fish are never sold. Pier fish appear once the Pier is rebuilt. The stock is
+seeded by the farm seed and the trading night; only that night's purchases are saved. It is a convenience for orders and
 bundles (and the Collection Book), not an income source: fishing the same fish is always cheaper in coins and pays XP.

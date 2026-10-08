@@ -41,7 +41,7 @@ export class PikeStall {
   private async sync(): Promise<void> {
     if (this.shown && !this.char && !this.loading) await this.build();
     this.group.visible = this.shown && !!this.char;
-    // Marlow stands at his stall only in his trading hours; out of hours the stall is shut and he has gone home
+    // Marlow stands at his stall only in his trading hours (nights); by day the stall is shut and he is out on his boat
     if (this.char) this.char.root.visible = fishstall.isOpen();
     if (!this.group.visible) this.box.makeEmpty();
   }
@@ -54,6 +54,11 @@ export class PikeStall {
       stall.position.set(SPOT.x, BEACH_Y, SPOT.z);
       stall.scale.setScalar(0.95);
       this.group.add(stall);
+      // a lantern to see by: he trades at night
+      const lamp = await assets.mesh('prop/lantern');
+      lamp.scale.setScalar(0.9);
+      lamp.position.set(SPOT.x + 1.35, BEACH_Y, SPOT.z + 0.1);
+      this.group.add(lamp);
       const c = await Character.create(FISHSTALL.look as CharacterLook, FISHSTALL.scale);
       c.root.position.set(SPOT.x - 1.3, BEACH_Y, SPOT.z + 0.1);
       c.root.rotation.y = Math.PI / 5;
@@ -63,7 +68,7 @@ export class PikeStall {
       this.box.setFromCenterAndSize(new THREE.Vector3(SPOT.x - 0.3, BEACH_Y + 0.9, SPOT.z), new THREE.Vector3(3.6, 2.2, 1.8));
       this.scene.loop.wake(1);
       // a one-time hello the first time he is open: where to find him
-      if (hints.firstTime('intro:fishstall')) setTimeout(() => game.bus.emit('toast', { title: 'Marlow Pike is here!', sub: `His fish stall is by the dock on the north beach. He trades ${fishstall.hoursText}. Tap him to buy fish: ridiculously dear, fresh stock every day.`, icon: 'fish' }), 3000);
+      if (hints.firstTime('intro:fishstall')) setTimeout(() => game.bus.emit('toast', { title: 'Marlow Pike is here!', sub: `His fish stall is by the dock on the north beach. He is a night trader: ${fishstall.hoursText}. Ridiculously dear, fresh stock every night.`, icon: 'fish' }), 3000);
     } finally { this.loading = false; }
   }
 
