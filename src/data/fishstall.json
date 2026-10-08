@@ -5,7 +5,7 @@
   "look": { "body": "male-d", "skin": "#e0a878", "hair": "#cfd2d6", "top": "#f2c14e", "bottom": "#2b4a6b", "hat": "cap", "accessory": "scarf", "pet": "none" },
   "scale": 1.5,
   "hours": { "open": 7, "close": 19 },
-  "priceMult": { "common": 50, "uncommon": 40, "rare": 30 },
+  "priceMult": { "common": 200, "uncommon": 150, "rare": 100 },
   "common": { "qty": [1, 3] },
   "uncommon": { "species": 3, "qty": [1, 2] },
   "rare": { "chance": 0.4, "qty": 1 }

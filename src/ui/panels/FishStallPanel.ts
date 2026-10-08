@@ -22,7 +22,7 @@ export function openFishStall(): void {
     const open = fishstall.isOpen();
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px;gap:8px' },
       h('div', { class: 'muted' }, open
-        ? `${fishstall.name} says: "Fresh off the boat. Dear? Aye, ridiculously. But there is only so much to go round."`
+        ? `${fishstall.name} says: "Fresh off the boat. You skipped the fishing, so you pay for it. Dear? Aye, ridiculously."`
         : `${fishstall.name} has gone home for the day. He trades ${fishstall.hoursText}.`),
       h('span', { class: 'timer-tag outlined' }, open ? `New catch in ${formatTime(fishstall.restockIn())}` : `Opens in ${formatTime(fishstall.opensIn())}`)));
     if (!offers.length) { p.body.append(h('div', { class: 'center muted', style: 'padding:20px' }, 'Nothing on the slab today. Come back tomorrow.')); return; }
