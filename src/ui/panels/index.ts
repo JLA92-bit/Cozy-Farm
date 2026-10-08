@@ -26,3 +26,4 @@ import './SquarePanel';
 import './FestivalPanel';
 import './MuseumPanel';
 import './ExpeditionPanel';
+import './HelpWantedPanel';

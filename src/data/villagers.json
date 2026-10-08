@@ -126,6 +126,23 @@
         }
       },
       "stories": {
+        "2": {
+          "title": "Flour on the doorstep",
+          "cards": [
+            {
+              "icon": "bread",
+              "text": "You knock at the bakery door and find Rosa up to her elbows in dough, humming."
+            },
+            {
+              "icon": "wheat",
+              "text": "\"Oh, a farmer! Just who I need,\" she says, and puts a rolling pin in your hand. \"Press, fold, turn. Press, fold, turn.\""
+            },
+            {
+              "icon": "heart",
+              "text": "By the end of the morning you have a warm roll to take home and a new friend in the village."
+            }
+          ]
+        },
         "4": {
           "title": "The first loaf",
           "cards": [
@@ -147,6 +164,23 @@
             }
           ]
         },
+        "6": {
+          "title": "The recipe tin",
+          "cards": [
+            {
+              "icon": "book",
+              "text": "Rosa shows you a battered tin full of handwritten recipes, stained with a hundred years of butter."
+            },
+            {
+              "icon": "strawberry",
+              "text": "\"Most of these never leave the tin,\" she says. \"But I think you would look after them.\" She copies out a berry tart just for you."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "You promise to bake it often. Rosa beams."
+            }
+          ]
+        },
         "8": {
           "title": "The picnic pie",
           "cards": [
@@ -165,6 +199,23 @@
             {
               "icon": "framed",
               "text": "\"I don't need a fancy oven,\" Rosa says. \"I need friends like you.\" Juniper paints her holding the pie, and Rosa wants you to keep it."
+            }
+          ]
+        },
+        "10": {
+          "title": "Best friends at the oven",
+          "cards": [
+            {
+              "icon": "pie",
+              "text": "Rosa has closed the bakery for the afternoon, which she never does."
+            },
+            {
+              "icon": "party",
+              "text": "The whole village is squeezed into the shop, and in the middle sits a cake with your name piped on it in strawberry icing."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"Every bakery needs a good farmer,\" she says. \"But mostly it needs a good friend.\""
             }
           ]
         }
@@ -278,6 +329,23 @@
         }
       },
       "stories": {
+        "2": {
+          "title": "The one that got away",
+          "cards": [
+            {
+              "icon": "fishing_pole",
+              "text": "Old Tom is sitting by the pond with a line in the water and no bait on the hook."
+            },
+            {
+              "icon": "fish",
+              "text": "\"Fish are clever,\" he says. \"They know when you are trying too hard. Sit down. Do nothing. It works better.\""
+            },
+            {
+              "icon": "smile",
+              "text": "You sit together until sunset and catch absolutely nothing. It is the best afternoon you have had in weeks."
+            }
+          ]
+        },
         "4": {
           "title": "The one that got away",
           "cards": [
@@ -299,6 +367,23 @@
             }
           ]
         },
+        "6": {
+          "title": "Tom's lucky lure",
+          "cards": [
+            {
+              "icon": "fishing_pole",
+              "text": "Tom digs a tangled little lure out of his hat. It has caught, he swears, every fish he has ever been proud of."
+            },
+            {
+              "icon": "fish",
+              "text": "\"Cast it where the water goes dark,\" he says. \"And do not tell the fish I told you.\""
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "You tuck it in your pocket, and you cast a little more carefully from then on."
+            }
+          ]
+        },
         "8": {
           "title": "Message in a bottle",
           "cards": [
@@ -317,6 +402,23 @@
             {
               "icon": "framed",
               "text": "He asks Juniper to paint him holding the bottle, and gives you the painting to keep."
+            }
+          ]
+        },
+        "10": {
+          "title": "Tom's biggest catch",
+          "cards": [
+            {
+              "icon": "fish",
+              "text": "Tom asks you to meet him at the pier before sunrise. He has a very serious face on."
+            },
+            {
+              "icon": "tropical_fish",
+              "text": "He holds up a hand-painted wooden fish with a little plaque: \"The one that did not get away: my best friend\"."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"I never caught the big one,\" he says. \"But I think I did all right.\""
             }
           ]
         }
@@ -431,6 +533,23 @@
         }
       },
       "stories": {
+        "2": {
+          "title": "A splash of paint",
+          "cards": [
+            {
+              "icon": "paint",
+              "text": "Juniper's windmill studio is full of canvases, all of the valley, all slightly different."
+            },
+            {
+              "icon": "sun",
+              "text": "\"The light changes every hour,\" she says. \"I have been painting the same field for ten years.\""
+            },
+            {
+              "icon": "heart",
+              "text": "She lets you add a single yellow dab to the corner of one. You are surprisingly proud of it."
+            }
+          ]
+        },
         "4": {
           "title": "The missing colour",
           "cards": [
@@ -452,6 +571,23 @@
             }
           ]
         },
+        "6": {
+          "title": "Painting your farm",
+          "cards": [
+            {
+              "icon": "framed",
+              "text": "Juniper sets up her easel at the edge of your farm and paints all afternoon without a word."
+            },
+            {
+              "icon": "tree",
+              "text": "When she is done you see it: every crop, every fence, the smoke from your chimney, all glowing."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"This is how I see it,\" she says quietly. \"I thought you should too.\""
+            }
+          ]
+        },
         "8": {
           "title": "The gallery",
           "cards": [
@@ -470,6 +606,23 @@
             {
               "icon": "framed",
               "text": "Afterwards she gives you her self-portrait. \"So you remember who painted your farm first.\""
+            }
+          ]
+        },
+        "10": {
+          "title": "The windmill gallery",
+          "cards": [
+            {
+              "icon": "framed",
+              "text": "Juniper has hung a surprise show in the windmill. Every painting is of the valley, and every painting has you somewhere in it."
+            },
+            {
+              "icon": "party",
+              "text": "The villagers drift in with cups of tea and stay for hours, pointing and laughing."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"Thank you for being my friend,\" Juniper says. \"It is easier to paint when someone is looking.\""
             }
           ]
         }
@@ -602,6 +755,23 @@
         }
       ],
       "stories": {
+        "2": {
+          "title": "The shiny thing",
+          "cards": [
+            {
+              "icon": "sparkles",
+              "text": "Pip waves at you from behind a hedge, holding something up to the light."
+            },
+            {
+              "icon": "gem",
+              "text": "\"Look! It is a bottle top, but a really good one.\" Pip lets you hold it. It does sparkle."
+            },
+            {
+              "icon": "smile",
+              "text": "You trade a button for a feather. Pip says it is a fair deal."
+            }
+          ]
+        },
         "4": {
           "title": "The treasure map",
           "cards": [
@@ -623,6 +793,23 @@
             }
           ]
         },
+        "6": {
+          "title": "Pip's treasure map",
+          "cards": [
+            {
+              "icon": "map",
+              "text": "Pip has drawn a map on the back of a flour sack. There is an X, a crooked tree and a very large arrow."
+            },
+            {
+              "icon": "pick",
+              "text": "Together you follow it through the long grass and dig under the crooked tree."
+            },
+            {
+              "icon": "gift",
+              "text": "You find a rusty tin of pebbles and shells. \"Told you,\" Pip says. \"Treasure.\""
+            }
+          ]
+        },
         "8": {
           "title": "Lost and found",
           "cards": [
@@ -641,6 +828,23 @@
             {
               "icon": "framed",
               "text": "Pip gives you a portrait Juniper helped paint: Pip, the puppy and a very big smile."
+            }
+          ]
+        },
+        "10": {
+          "title": "The treasure club",
+          "cards": [
+            {
+              "icon": "star",
+              "text": "Pip has made a badge out of a bottle top and a ribbon. It says: Chief Treasure Hunter."
+            },
+            {
+              "icon": "hug",
+              "text": "\"Only two members,\" Pip explains. \"You and me.\" You pin it on proudly."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "Every shiny thing you find from now on, you save a little of for Pip."
             }
           ]
         }
@@ -755,6 +959,23 @@
         }
       },
       "stories": {
+        "2": {
+          "title": "Behind the counter",
+          "cards": [
+            {
+              "icon": "store",
+              "text": "Hazel lets you behind the counter of the village shop, which smells of string and spices."
+            },
+            {
+              "icon": "notebook",
+              "text": "\"Everyone's tab, everyone's secrets,\" she whispers, tapping a worn notebook. \"Never write down a secret.\""
+            },
+            {
+              "icon": "heart",
+              "text": "She hands you a paper bag of sweets for the walk home."
+            }
+          ]
+        },
         "4": {
           "title": "Behind the counter",
           "cards": [
@@ -776,6 +997,23 @@
             }
           ]
         },
+        "6": {
+          "title": "The village noticeboard",
+          "cards": [
+            {
+              "icon": "memo",
+              "text": "Hazel pins a new notice to the shop board and asks you to read it. It says: a thank you to the farmer who keeps the valley fed."
+            },
+            {
+              "icon": "heart",
+              "text": "\"I wrote it myself,\" she says, \"and half the village signed.\""
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "You read it three times and pretend you have something in your eye."
+            }
+          ]
+        },
         "8": {
           "title": "The surprise party",
           "cards": [
@@ -794,6 +1032,23 @@
             {
               "icon": "framed",
               "text": "She gives you a portrait of herself in her party hat. \"So you never forget my face. Or my hat.\""
+            }
+          ]
+        },
+        "10": {
+          "title": "Closing up shop",
+          "cards": [
+            {
+              "icon": "store",
+              "text": "Hazel hangs a sign on the door: Closed for a Very Important Visitor."
+            },
+            {
+              "icon": "party",
+              "text": "The shop is full of lamps and the whole village, and a tea set has come out of a cupboard it has been hiding in for years."
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "\"You came to the valley as a stranger,\" Hazel says, \"and I think you are the best neighbour I have ever had.\""
             }
           ]
         }
@@ -908,6 +1163,23 @@
         }
       },
       "stories": {
+        "2": {
+          "title": "Sparks at the forge",
+          "cards": [
+            {
+              "icon": "hammer",
+              "text": "Bram lets you stand at the forge door as long as you promise not to touch anything."
+            },
+            {
+              "icon": "fire",
+              "text": "\"Iron wants to be something,\" he says, thumping a glowing bar. \"You just have to ask it nicely, and then not nicely.\""
+            },
+            {
+              "icon": "smile",
+              "text": "A single spark lands on your boot. He pretends not to laugh."
+            }
+          ]
+        },
         "4": {
           "title": "The cracked bell",
           "cards": [
@@ -929,6 +1201,23 @@
             }
           ]
         },
+        "6": {
+          "title": "Bram's apology pie",
+          "cards": [
+            {
+              "icon": "pie",
+              "text": "Bram turns up at your gate holding a pie. It is slightly burnt on one side."
+            },
+            {
+              "icon": "heart",
+              "text": "\"I was grumpy last week,\" he mutters. \"Rosa told me to bring pie. I do not know how pies work.\""
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "You share it on the fence. It is delicious, and you tell him so."
+            }
+          ]
+        },
         "8": {
           "title": "Pie day",
           "cards": [
@@ -947,6 +1236,23 @@
             {
               "icon": "framed",
               "text": "Next day a portrait arrives: Bram, with pie crumbs in his beard. \"Juniper made me. Keep it.\""
+            }
+          ]
+        },
+        "10": {
+          "title": "A shoe for the wind",
+          "cards": [
+            {
+              "icon": "horse",
+              "text": "Bram has made you a horseshoe, polished until it shines, with a little heart hammered into the curve."
+            },
+            {
+              "icon": "hammer_wrench",
+              "text": "\"Hang it over your door,\" he says gruffly. \"Luck and all that. And, er, thanks. For everything.\""
+            },
+            {
+              "icon": "sparkle_heart",
+              "text": "It is the nicest thing a blacksmith has ever said to you."
             }
           ]
         }

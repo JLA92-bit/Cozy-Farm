@@ -79,6 +79,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     trips: s.expeditions.trips.filter((t: unknown) => isObj(t) && typeof t.who === 'string' && typeof t.trip === 'string' && Number.isFinite(t.start) && Number.isFinite(t.end))
       .map((t: { who: string; trip: string; start: number; end: number }) => ({ who: t.who, trip: t.trip, start: t.start, end: t.end })),
   } : undefined;
+  out.helpwanted = isObj(s.helpwanted) && typeof s.helpwanted.day === 'string' ? { day: s.helpwanted.day, done: Array.isArray(s.helpwanted.done) ? s.helpwanted.done.filter((n: unknown) => Number.isInteger(n)) as number[] : [] } : undefined;
+  out.petfind = isObj(s.petfind) && typeof s.petfind.day === 'string' ? { day: s.petfind.day } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
 }

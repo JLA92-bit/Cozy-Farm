@@ -5,6 +5,7 @@ import { ui } from '../UI';
 import { BUILDING, FRIENDSHIP, ITEMS, VILLAGER, VILLAGERS, type VillagerDef } from '../../data';
 import { game } from '../../systems/Game';
 import { village, type GiftResult, type Taste } from '../../systems/Village';
+import { helpWanted } from '../../systems/HelpWanted';
 import { villageRewards, milestoneIcon, milestoneText, STORY_HEARTS } from '../../systems/VillageRewards';
 import { localDay } from '../../systems/Progression';
 import { audio, haptics } from '../../systems/Audio';
@@ -85,6 +86,14 @@ export function openVillage(arg?: { villager?: string }): void {
         h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'The Village Square'),
           h('div', { class: 'v-intro-text' }, `${rooms} of ${ROOMS.length} rooms rebuilt${ready ? `. ${ready} ${ready === 1 ? 'bundle' : 'bundles'} you can give to now` : '. Rebuild the old square together with your friends in the valley'}`)),
         button([icon('house'), 'Go'], () => { p.close(); ui.open('square'); }, 'green small', { 'aria-label': 'Go to the village square' })));
+    }
+    // 1.9: the Help Wanted board
+    if (helpWanted.unlocked) {
+      const left = helpWanted.remaining(), fillable = helpWanted.fillable();
+      p.body.append(h('div', { class: 'v-square' }, icon('memo', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Help Wanted'),
+          h('div', { class: 'v-intro-text' }, left ? `${left} ${left === 1 ? 'request' : 'requests'} today${fillable ? `, ${fillable} you can fill now` : ''}` : 'All of today\'s requests are done')),
+        button([icon('memo'), 'Open'], () => { p.close(); ui.open('helpwanted'); }, 'green small', { 'aria-label': 'Open the Help Wanted board' })));
     }
     const grid = h('div', { class: 'v-grid' });
     for (const v of VILLAGERS) {
@@ -198,7 +207,7 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
       p.body.append(h('div', { class: 'section-title' }, 'Stories'));
       const row = h('div', { class: 'v-stories' });
       for (const m of [...seen, ...waiting].sort()) {
-        const fresh = waiting.includes(m as 4 | 8);
+        const fresh = (waiting as number[]).includes(m);
         row.append(button([icon(fresh ? 'sparkles' : 'book'), v.stories[String(m)].title, fresh ? h('span', { class: 'v-new' }, 'New') : null], () => openStory(id, m, !fresh), `small ${fresh ? 'yellow' : 'blue'}`));
       }
       p.body.append(row);

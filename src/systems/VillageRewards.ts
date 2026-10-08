@@ -20,16 +20,18 @@ import { visiting } from './Visiting';
 import { hashString } from '../world/Procedural';
 import type { FriendshipState, Letter } from './State';
 
-export const STORY_HEARTS = [4, 8] as const;
+export const STORY_HEARTS = [2, 4, 6, 8, 10] as const;
+/** 1.9: the 2, 6 and 10 heart events have no keepsake; they pay a small thank-you instead. */
+const EVENT_THANKS: Record<number, { coins: number; gems: number }> = { 2: { coins: 100, gems: 0 }, 6: { coins: 300, gems: 1 }, 10: { coins: 600, gems: 3 } };
 const WEEK_DAYS = 7;
 
 /** What each milestone brings, in a short line for the villager page ("At 4 hearts: ..."). */
 export function milestoneText(v: VillagerDef, m: number): string {
-  if (m === 2) return `a letter from ${v.name}`;
+  if (m === 2) return `a letter and a short story with ${v.name}`;
   if (m === 4) return `a story with ${v.name} and a keepsake`;
-  if (m === 6) return v.perk6.text;
+  if (m === 6) return `${v.perk6.text}, and a story`;
   if (m === 8) return `a second story and a portrait of ${v.name}`;
-  return `best friends: a gift from ${v.name} every week`;
+  return `best friends: a story, and a gift from ${v.name} every week`;
 }
 
 /** Icon for a milestone row. */
@@ -128,6 +130,15 @@ class VillageRewards {
     const f = game.state.village.friends[id];
     if (!v || !f || !f.rewards.includes(hearts) || (f.stories ??= []).includes(hearts)) return null;
     f.stories.push(hearts);
+    const thanks = EVENT_THANKS[hearts];
+    if (thanks) {
+      game.addCoins(thanks.coins);
+      if (thanks.gems) game.addGems(thanks.gems);
+      game.bus.emit('toast', { title: `${v.name} says thank you`, sub: `${thanks.coins} coins${thanks.gems ? ` and ${thanks.gems} gem${thanks.gems === 1 ? '' : 's'}` : ''}`, icon: 'sparkle_heart' });
+      game.incStat('heart_events');
+      saves.save();
+      return null;
+    }
     const deco = hearts === 4 ? v.keepsake : v.portrait;
     if (!BUILDING[deco]) return null;
     game.state.storage[deco] = (game.state.storage[deco] ?? 0) + 1;
@@ -137,7 +148,7 @@ class VillageRewards {
   }
 
   /** Keepsakes earned with a villager (0-2). */
-  keepsakes(id: string): number { return (game.state.village.friends[id]?.stories ?? []).length; }
+  keepsakes(id: string): number { return (game.state.village.friends[id]?.stories ?? []).filter((m) => m === 4 || m === 8).length; }
 
   /** Letters that wait for a new day: birthday thanks, best-friend gifts, Pip's treasure. */
   daily(now = game.now()): void {

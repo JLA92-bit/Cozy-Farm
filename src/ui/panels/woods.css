@@ -24,3 +24,6 @@
 .ex-loot-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .ex-piece { display: flex; flex-direction: column; align-items: center; font-size: 12px; }
 .ex-piece img { width: 40px; height: 40px; }
+/* Help Wanted */
+.hw-card { display: flex; align-items: center; gap: 8px; padding: 8px; margin-bottom: 8px; }
+.hw-card.done { opacity: .6; }

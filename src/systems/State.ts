@@ -93,6 +93,10 @@ export interface SaveData {
   /** 1.9 festival days: best stars per festival ("year:season") and the stars already collected */
   /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */
   woods?: WoodsState;
+  /** 1.9 the day the pet's find was last claimed */
+  petfind?: { day: string };
+  /** 1.9 Help Wanted: which of today's three requests were filled */
+  helpwanted?: { day: string; done: number[] };
   /** 1.9 the Museum: item ids donated to each shelf, shelves already paid, and the Curator reward */
   museum?: { donated: Record<string, string[]>; done: string[]; curator: boolean };
   /** 1.9 the expedition board: villagers out on a trip */

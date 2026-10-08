@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { BUILDING } from '../data';
+import { BUILDING, ITEMS } from '../data';
 import { Character } from '../world/Character';
 import { Walker, besideBuilding, buildingCenter, walkable } from '../world/People';
 import { tileToWorld } from '../world/Grid';
 import { farmerLine, isNight, pick } from '../world/Chatter';
 import { game } from '../systems/Game';
+import { petFinds } from '../systems/PetFinds';
 import { audio } from '../systems/Audio';
 import type { PlacedBuilding } from '../systems/State';
 import { speech, type SayOpts } from '../ui/Speech';
@@ -123,14 +124,19 @@ export class Player {
     SPHERE.center.set(p.x, 0.75, p.z);
     SPHERE.radius = 0.6;
     let hit = ray.intersectsSphere(SPHERE);
+    let onPet = false;
     const pet = this.walker.char.pet;
-    if (!hit && pet) { SPHERE.center.set(pet.position.x, 0.3, pet.position.z); SPHERE.radius = 0.45; hit = ray.intersectsSphere(SPHERE); }
+    if (!hit && pet) { SPHERE.center.set(pet.position.x, 0.3, pet.position.z); SPHERE.radius = 0.45; hit = onPet = ray.intersectsSphere(SPHERE); }
     if (!hit) return null;
     return () => {
       const cam = this.scene.rig.camera.position;
       if (!this.walker.walking) this.walker.face(cam.x, cam.z);
       void this.walker.char.gesture(Math.random() < 0.5 ? 'jump' : 'emote-yes');
       this.walker.char.petCheer();
+      if (onPet) {
+        const f = petFinds.claim();
+        if (f) game.bus.emit('toast', { title: 'Your pet found something!', sub: f.coins ? `${f.coins} coins` : f.gems ? `${f.gems} gem` : `${f.item!.n} ${ITEMS[f.item!.id].name}`, icon: f.item ? ITEMS[f.item.id].icon : f.gems ? 'gem' : 'coin' });
+      }
       speech.say(this.walker.char.root, { ...farmerLine(), prio: 2 });
       audio.play('pop', { volume: 0.55 });
       this.wanderIn = Math.max(this.wanderIn, 6);
