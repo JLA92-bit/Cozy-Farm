@@ -524,8 +524,8 @@ Progress counts the stats `gold_<item>` kept by Quality.addRolled, so it starts 
 
 ## Marlow Pike's fish stall (1.8.7, `src/data/fishstall.json`, `src/systems/FishStall.ts`)
 
-A fish stall on the north beach by the dock, open once the player can fish (level 7). The player BUYS fish: common x6,
-uncommon x5 and rare x4 the barn price, so a sardine (barn 8) costs 48 and a rainbow trout (barn 44) 220. Prices are
+A fish stall on the north beach by the dock, open once the player can fish (level 7). The player BUYS fish: common x50,
+uncommon x40 and rare x30 the barn price, so a sardine (barn 8) costs 400 and a rainbow trout (barn 44) 1,760. He trades 7 am to 7 pm local time (`hours`); out of hours he is away and the stall is closed. Prices are
 always well above barn value, so fish cannot be bought and sold for profit. Stock is small and refreshes at local
 midnight: every common species the player can reach (1-3 each), three uncommon species (1-2 each), and a rare one on
 40% of days (1). Legendary and mythic fish are never sold. Pier fish appear once the Pier is rebuilt. The stock is

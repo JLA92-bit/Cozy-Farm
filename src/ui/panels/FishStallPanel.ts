@@ -19,31 +19,35 @@ export function openFishStall(): void {
   const render = () => {
     clear(p.body);
     const offers = fishstall.offers();
+    const open = fishstall.isOpen();
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px;gap:8px' },
-      h('div', { class: 'muted' }, `${fishstall.name} says: "Fresh off the boat. Not cheap, mind, but there is only so much to go round."`),
-      h('span', { class: 'timer-tag outlined' }, `New catch in ${formatTime(fishstall.restockIn())}`)));
+      h('div', { class: 'muted' }, open
+        ? `${fishstall.name} says: "Fresh off the boat. Dear? Aye, ridiculously. But there is only so much to go round."`
+        : `${fishstall.name} has gone home for the day. He trades ${fishstall.hoursText}.`),
+      h('span', { class: 'timer-tag outlined' }, open ? `New catch in ${formatTime(fishstall.restockIn())}` : `Opens in ${formatTime(fishstall.opensIn())}`)));
     if (!offers.length) { p.body.append(h('div', { class: 'center muted', style: 'padding:20px' }, 'Nothing on the slab today. Come back tomorrow.')); return; }
     const grid = h('div', { class: 'grid' });
     for (const o of offers) {
+      const closed = !open;
       const sold = o.left <= 0;
       const afford = game.coins >= o.price;
-      const sel = selected === o.id && !sold;
-      const card = h('div', { class: `card merchant-offer ${sold ? 'done' : 'clickable'} ${sel ? 'selected' : ''}` });
+      const sel = selected === o.id && !sold && !closed;
+      const card = h('div', { class: `card merchant-offer ${sold || closed ? 'done' : 'clickable'} ${sel ? 'selected' : ''}` });
       card.addEventListener('click', () => {
-        if (sold) return;
+        if (sold || closed) return;
         if (!sel) { selected = o.id; audio.play('select'); render(); return; }
         buy(o);
       });
       append(card, [
         itemIcon(o.id, 'card-icon'), h('div', { class: 'card-title' }, ITEMS[o.id].name),
-        h('div', { class: 'card-sub' }, sold ? 'Sold out' : `${RARITY[o.rarity]} - ${o.left} left`),
+        h('div', { class: 'card-sub' }, sold ? 'Sold out' : closed ? `${RARITY[o.rarity]} - closed` : `${RARITY[o.rarity]} - ${o.left} left`),
         requestedCount(o.id) ? h('div', { class: 'card-sub' }, 'Your orders want these!') : null,
-        sold ? h('div', { class: 'pill enough' }, 'Sold out') : h('div', { class: `pill ${afford ? '' : 'short'}` }, priceTag(o.price)),
+        sold ? h('div', { class: 'pill enough' }, 'Sold out') : closed ? h('div', { class: 'pill short' }, priceTag(o.price)) : h('div', { class: `pill ${afford ? '' : 'short'}` }, priceTag(o.price)),
         sel ? h('div', { class: `btn small ${afford ? 'yellow' : 'disabled'}`, style: 'pointer-events:none' }, afford ? 'Buy' : 'Need more coins') : null]);
       grid.append(card);
     }
     p.body.append(grid);
-    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:13px' }, 'Prices are steep: you will always get more fishing it yourself. Rare fish and a few of the best never reach the stall.'));
+    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:13px' }, 'Ridiculously dear: you will always do far better fishing it yourself. Legendary fish never reach the stall.'));
   };
   const buy = (o: FishOffer) => {
     if (!fishstall.buy(o.id)) {

@@ -2,7 +2,7 @@
  * 1.8.7 Marlow Pike's fish stall: the player BUYS fish here, at steep prices and in small daily stock. Prices are a
  * multiple of the barn price (fishstall.json), so fish can never be bought here and sold for profit. The stock is
  * chosen from the farm seed and the local day, so it is the same on every device and refreshes at local midnight;
- * only what was bought today is saved. Legendary and mythic fish are never for sale.
+ * only what was bought today is saved. Marlow trades only in his hours (`isOpen`). Legendary and mythic fish are never for sale.
  */
 import { FISH, FISHING, FISHSTALL, ITEMS } from '../data';
 import { game } from './Game';
@@ -18,6 +18,22 @@ class FishStallSystem {
   get open(): boolean { return game.level >= FISHING.level; }
 
   private day(now = game.now()): string { return localDay(now); }
+
+  /** Is Marlow trading right now (his hours are local time, in fishstall.json)? */
+  isOpen(now = game.now()): boolean {
+    const h = new Date(now).getHours();
+    return h >= FISHSTALL.hours.open && h < FISHSTALL.hours.close;
+  }
+  /** Milliseconds until he opens again (0 when open). */
+  opensIn(now = game.now()): number {
+    if (this.isOpen(now)) return 0;
+    const d = new Date(now);
+    const dayShift = d.getHours() >= FISHSTALL.hours.close ? 1 : 0;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + dayShift, FISHSTALL.hours.open).getTime() - now;
+  }
+  /** "7 am" / "7 pm" for the opening hours. */
+  hourText(h: number): string { return `${h % 12 || 12} ${h < 12 ? 'am' : 'pm'}`; }
+  get hoursText(): string { return `${this.hourText(FISHSTALL.hours.open)} to ${this.hourText(FISHSTALL.hours.close)}`; }
 
   /** Milliseconds until the stock refreshes (the next local midnight). */
   restockIn(now = game.now()): number {
@@ -57,7 +73,7 @@ class FishStallSystem {
 
   /** Buy one fish. Returns false when sold out, closed or the player cannot pay. */
   buy(id: string, at?: Vec): boolean {
-    if (!this.open) return false;
+    if (!this.open || !this.isOpen()) return false;
     const o = this.offers().find((x) => x.id === id);
     if (!o || o.left <= 0 || !game.spend(o.price)) return false;
     const day = this.day();

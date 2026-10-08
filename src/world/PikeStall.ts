@@ -41,6 +41,8 @@ export class PikeStall {
   private async sync(): Promise<void> {
     if (this.shown && !this.char && !this.loading) await this.build();
     this.group.visible = this.shown && !!this.char;
+    // Marlow stands at his stall only in his trading hours; out of hours the stall is shut and he has gone home
+    if (this.char) this.char.root.visible = fishstall.isOpen();
     if (!this.group.visible) this.box.makeEmpty();
   }
 
@@ -61,13 +63,13 @@ export class PikeStall {
       this.box.setFromCenterAndSize(new THREE.Vector3(SPOT.x - 0.3, BEACH_Y + 0.9, SPOT.z), new THREE.Vector3(3.6, 2.2, 1.8));
       this.scene.loop.wake(1);
       // a one-time hello the first time he is open: where to find him
-      if (hints.firstTime('intro:fishstall')) setTimeout(() => game.bus.emit('toast', { title: 'Marlow Pike is here!', sub: 'His fish stall is on the north beach by the dock. Tap him to buy fish. Fresh stock every day.', icon: 'fish' }), 3000);
+      if (hints.firstTime('intro:fishstall')) setTimeout(() => game.bus.emit('toast', { title: 'Marlow Pike is here!', sub: `His fish stall is by the dock on the north beach. He trades ${fishstall.hoursText}. Tap him to buy fish: ridiculously dear, fresh stock every day.`, icon: 'fish' }), 3000);
     } finally { this.loading = false; }
   }
 
   private frame(dt: number): void {
     const c = this.char;
-    if (!c || !this.group.visible) return;
+    if (!c || !this.group.visible || !fishstall.isOpen()) return;
     c.update(dt);
     this.nudgeIn -= dt;
     if (this.nudgeIn > 0) return;
@@ -83,7 +85,7 @@ export class PikeStall {
 
   greet(): void {
     const c = this.char;
-    if (c) {
+    if (c && fishstall.isOpen()) {
       speech.say(c.root, { icon: 'smile', text: pick(['Ahoy, friend!', 'Take a look!', 'Hello again!']), prio: 2 });
       void c.gesture('emote-yes');
     }
