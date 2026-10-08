@@ -32,7 +32,7 @@ export interface PlacedBuilding {
   buildEnd?: number;
   upgradeEnd?: number;
   /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest. rare (1.8.5): sown with Rosa's rare seeds, a bigger boost */
-  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; qfert?: boolean; rare?: boolean } | null;
+  plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; qfert?: boolean; rare?: boolean; /** planted in its own season (1.9): a little faster and a little better */ inSeason?: boolean } | null;
   tree?: { readyAt: number };
   animals?: { fedAt: number | null }[];
   queue?: QueueEntry[];
@@ -88,6 +88,8 @@ export interface SaveData {
   merchant: { bought: Record<string, number> };
   /** 1.8.7 Marlow Pike's fish stall: what was bought on which local day (stock refreshes each day) */
   fishstall?: { day: string; bought: Record<string, number> };
+  /** 1.9 seasons: the last season a letter was sent for ("year:season") */
+  seasons?: { letter: string };
   stats: Record<string, number>;
   achievements: Record<string, number>;
   quests: { daily: QuestState[]; dailyKey: string; weekly: QuestState[]; weeklyKey: string; weeklyBonusClaimed: boolean };

@@ -6,7 +6,8 @@ import { Feedback } from './Feedback';
 import { WorldUI } from './WorldUI';
 import { Panel } from './Panel';
 import { Effects } from '../world/Effects';
-import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND } from '../data';
+import { BUILDING, CROPS, CROP, ITEMS, TREE, LAND, SEASONS } from '../data';
+import { seasons } from '../systems/Seasons';
 import { game } from '../systems/Game';
 import { buildings, speedupCost } from '../systems/Buildings';
 import { farming, FERTILISER, fertStock, RARE_SEED } from '../systems/Farming';
@@ -235,20 +236,27 @@ class UIManager {
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
-        const poor = !locked && game.coins < c.seedCost;
+        // 1.9: a seasonal crop out of season shows greyed with when it is back
+        const off = !locked && !seasons.open(c.id);
+        const back = off ? seasons.nextSeasonFor(c.id) : null;
+        const poor = !locked && !off && game.coins < c.seedCost;
         const have = locked ? 0 : game.count(c.id);
-        const item = h('div', { class: `tray-item ${sel === c.id ? 'selected' : ''} ${locked ? 'locked' : ''} ${poor ? 'poor' : ''}`, dataset: { crop: c.id } },
-          itemIcon(c.id), h('div', null, locked ? `Lv ${c.level}` : formatTime(c.growSec * 1000)),
-          locked ? null : h('div', { class: 'tcount outlined' }, c.seedCost ? `${c.seedCost}` : 'Free'),
+        const inSeason = !locked && !off && seasons.bonus(c.id);
+        const item = h('div', { class: `tray-item ${sel === c.id ? 'selected' : ''} ${locked ? 'locked' : ''} ${off ? 'offseason' : ''} ${poor ? 'poor' : ''}`, dataset: { crop: c.id } },
+          itemIcon(c.id), h('div', null, locked ? `Lv ${c.level}` : off ? '' : formatTime(c.growSec * 1000 * (inSeason ? SEASONS.bonus.growMult : 1))),
+          off && back ? h('div', { class: 'tseason outlined' }, icon(SEASONS.seasons[back.season].icon)) : null,
+          inSeason ? h('div', { class: 'tseason in outlined', title: 'In season' }, icon(seasons.now().def.icon)) : null,
+          locked || off ? null : h('div', { class: 'tcount outlined' }, c.seedCost ? `${c.seedCost}` : 'Free'),
           have ? h('div', { class: 'thave outlined', title: 'In your barn' }, `${have}`) : null,
         );
-        if (!locked) {
+        if (!locked && !off) {
           const coin = icon('coin');
           coin.style.cssText = 'width:12px;height:12px;margin-right:1px';
           item.querySelector('.tcount')?.prepend(coin);
         }
         item.addEventListener('pointerdown', (e) => {
           if (locked) { this.feedback.toast(`${c.name} unlocks at level ${c.level}`, undefined, 'lock'); audio.play('error'); return; }
+          if (off) { this.feedback.toast(`${c.name} is out of season`, back ? `Back in ${SEASONS.seasons[back.season].name} (${back.days} day${back.days === 1 ? '' : 's'})` : undefined, back ? SEASONS.seasons[back.season].icon : 'lock'); audio.play('error'); return; }
           e.preventDefault();
           onPick(c.id);
           render(c.id);
@@ -272,7 +280,7 @@ class UIManager {
         queued = false;
         this.syncFertTile(tray);
         this.syncRareTile(tray);
-        tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked)').forEach((el) => {
+        tray.querySelectorAll<HTMLElement>('.tray-item:not(.locked):not(.offseason)').forEach((el) => {
           const c = CROP[el.dataset.crop ?? ''];
           if (!c) return;
           el.classList.toggle('poor', game.coins < c.seedCost);

@@ -6,6 +6,7 @@ import restorationJson from './restoration.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
+import seasonsJson from './seasons.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -175,6 +176,14 @@ export const SKILL_VALUES = skillsJson.values;
 export interface CraftRecipe { id: string; name: string; icon: string; kind: 'building' | 'item'; out: string; qty: number; coins: number; in: Record<string, number>; about: string }
 export const CRAFT_RECIPES = craftingJson.recipes as unknown as CraftRecipe[];
 export const HELPERS = craftingJson.helpers;
+
+/** 1.9 Seasons (seasons.json). */
+export type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
+export interface SeasonDef { name: string; icon: string; color: string; blurb: string }
+export const SEASONS = seasonsJson as unknown as {
+  epoch: string; daysPerSeason: number; order: SeasonId[]; seasons: Record<SeasonId, SeasonDef>;
+  bonus: { growMult: number; silver: number; gold: number }; yearRound: string[]; crops: Record<string, SeasonId[]>;
+};
 
 /** 1.8.7 Marlow Pike's fish stall (fishstall.json). */
 export const FISHSTALL = fishstallJson;

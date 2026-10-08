@@ -530,3 +530,10 @@ always well above barn value, so fish cannot be bought and sold for profit. Stoc
 50% of nights (1). Legendary and mythic fish are never sold. Pier fish appear once the Pier is rebuilt. The stock is
 seeded by the farm seed and the trading night; only that night's purchases are saved. It is a convenience for orders and
 bundles (and the Collection Book), not an income source: fishing the same fish is always cheaper in coins and pays XP.
+
+## 1.9 Seasons (stage 1)
+
+- 28-day year shared by all players (7 days per season, local calendar date from Monday 2026-01-05). Data: `src/data/seasons.json`.
+- Wheat, corn, carrot, turnip grow all year. Every other crop is plantable only in its seasons (each season keeps at least 12 crops open).
+- In season: grow time x0.9, +5% silver, +3% gold chance. Crops already planted keep growing across a season change.
+- Shop/orders only ask for crops that are in season or already held.

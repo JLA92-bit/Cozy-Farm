@@ -276,4 +276,22 @@ if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);
 }
+// 1.9 seasons: every crop is year-round or has seasons, every season keeps at least 12 crops open, epoch is a Monday
+{
+  const sd = read('seasons.json');
+  const cropIds = crops.map((c) => c.id);
+  for (const id of sd.yearRound) if (!cropIds.includes(id)) err(`seasons: year-round crop ${id} does not exist`);
+  for (const [id, list] of Object.entries(sd.crops)) {
+    if (!cropIds.includes(id)) err(`seasons: crop ${id} does not exist`);
+    if (sd.yearRound.includes(id)) err(`seasons: crop ${id} is both year-round and seasonal`);
+    if (!list.length || list.some((x) => !sd.order.includes(x))) err(`seasons: crop ${id} has bad seasons`);
+  }
+  for (const id of cropIds) if (!sd.yearRound.includes(id) && !sd.crops[id]) err(`seasons: crop ${id} has no season`);
+  for (const season of sd.order) {
+    const open = cropIds.filter((id) => sd.yearRound.includes(id) || (sd.crops[id] ?? []).includes(season)).length;
+    if (open < 12) err(`seasons: only ${open} crops open in ${season} (need 12)`);
+    if (!sd.seasons[season]) err(`seasons: missing season ${season}`);
+  }
+  if (new Date(sd.epoch + 'T00:00:00Z').getUTCDay() !== 1) err('seasons: epoch must be a Monday');
+}
 console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.length} animals, ${recipes.length} recipes, ${buildings.length} buildings, ${achievements.length} achievements, every level 2-${levels.maxLevel} unlocks something`);

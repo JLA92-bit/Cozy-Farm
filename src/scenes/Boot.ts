@@ -40,7 +40,8 @@ import { Panel } from '../ui/Panel';
 import { h } from '../ui/dom';
 import { Villagers } from '../world/Villagers';
 import { tutorial } from '../ui/Tutorial';
-import { ECONOMY } from '../data';
+import { ECONOMY, SEASONS } from '../data';
+import { seasons } from '../systems/Seasons';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
 import { startActivity } from '../online/Activity';
@@ -207,6 +208,7 @@ export async function boot(): Promise<void> {
   // a new farm already at level 3: its short village intro follows once the greetings are closed
   if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
+  setTimeout(() => seasons.announce(), 4000);
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
@@ -225,6 +227,7 @@ function watchDayAndResume(): void {
     day = d;
     quests.refresh(now);
     events.check(now);
+    seasons.announce();
     if (game.state.tutorial.done) {
       daily.check(now);
       ui.feedback.toast('Good morning!', 'A new day on the farm. Fresh daily quests are ready.', 'sunrise');
@@ -295,6 +298,10 @@ function wireProgression(): void {
     const b = buildings.bonuses();
     const c = ECONOMY.charm;
     ui.feedback.toast(`Charm ${buildings.charm()}`, `+${Math.round(b.growth * 100)}% crop speed, +${Math.round(b.orderCoins * 100)}% order coins, ${b.villagers} visitors. Every ${c.step} charm adds more!`, 'sparkle_heart');
+  });
+  ui.register('__season', () => {
+    const sn = seasons.now();
+    ui.feedback.toast(`${sn.def.name}, day ${sn.day} of ${SEASONS.daysPerSeason}`, `${seasons.describe()} Seasonal crops open: ${seasons.cropsIn().filter((c) => !SEASONS.yearRound.includes(c)).length}. Plant them in season for faster growth and better quality.`, sn.def.icon);
   });
   sideEntries.push(() => (daily.check() ? { id: 'daily', icon: 'calendar', label: 'Daily', color: 'yellow', badge: true } : null));
   sideEntries.push(() => (game.state.crates.length ? { id: 'crates', icon: 'gift', label: `Crates`, color: 'purple', badge: true } : null));

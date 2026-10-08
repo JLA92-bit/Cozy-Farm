@@ -61,6 +61,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.skills = repairSkills(s.skills);
   out.restoration = repairRestoration(s.restoration);
   out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
+  out.seasons = isObj(s.seasons) && typeof s.seasons.letter === 'string' ? { letter: s.seasons.letter } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
   return sanitize(out, base);
 }
