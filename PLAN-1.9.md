@@ -1,116 +1,139 @@
-# Cozy Acres 1.9 plan: Seasons and the Almanac
+# Cozy Acres 1.9 plan: A Year in the Valley
 
-Status (8 Oct 2026): plan only, nothing built. Everything in the 1.8 design brief is live except the items below. Size guide: S = under a day, M = a few days, L = a week or more of agent work.
+Status (8 Oct 2026): plan only, nothing built. This replaces the first draft. Inspiration: Stardew Valley's seasons, festivals, foraging, museum and living village, kept cozy, mobile-friendly and with no combat, no romance and no marriage (owner's rule).
+
+Size guide: S = under a day, M = a few days, L = a week or more of agent work.
 
 ## 1. What 1.9 is
 
-1.9 gives the farm a year. Four seasons change how the farm looks and what is best to grow, a new Almanac shows the whole year at a glance, and the Collection Book grows from 7 pages to a full record of everything the player has found, grown, built and befriended. A small set of carry-over jobs from 1.8 rides along.
+1.9 is one big release, built in stages but deployed once. It gives the valley a year to live through: four seasons with real teeth, festival days that turn the village square into a playable event, a wild woods to forage in with a museum that rewards every find, and villagers who live their own days. The Almanac and a much fuller Collection Book tie it together. Four existing 1.8 ideas that were never built (dashboard controls, selectable paths, welcome flow, tidy-ups) ride along.
 
-| Release | Contents | Size |
+There is no staged deploy. Each stage below is built, tested and committed locally in order; one push at the end ships 1.9.0 as a single update with one big "What's new" card. A check-in with Josh after any stage is possible whenever wanted.
+
+| Pillar | What the player gets | Size |
 | --- | --- | --- |
-| 1.9.0 | Seasons: look, in-season crops, seasonal fish and orders, hemisphere setting | L |
-| 1.9.1 | Almanac page and the fuller Collection Book (new pages and rewards) | M |
-| 1.9.2 | Dashboard controls (events, market day, weather days, letters) and polish carry-overs | M |
-
-Each release is pushed separately and only after "yes push".
+| A. A Real Year | Seasons, in-season crops, greenhouse, seasonal fish and forage, farm look per season | L |
+| B. Festival Days | A playable festival in the square once every season | L |
+| C. The Wild Woods | Foraging, dig spots, the Museum, expedition board | L |
+| D. Neighbours | Villager schedules, heart events, Help Wanted board, a pet | L |
+| E. Almanac and Collection | A year-at-a-glance page and a Collection Book with about 12 pages | M |
+| F. Dashboard and polish | The dashboard controls promised in the 1.8 brief, carry-overs | M |
 
 ## 2. What already exists (checked in code)
 
-- `src/data/events.json`: four real-calendar events (Spring Blossom 15 Mar - 30 Apr, Summer Fair 15 Jun - 31 Aug, Harvest Festival 20 Sep - 10 Nov, Winter Wonderland 1 Dec - 10 Jan) with tokens, quests and decorations. `Progression.ts` (seasonal events section) picks the current one by local date.
-- `src/scenes/Boot.ts` already drifts leaves, snow or petals during an event (`SEASON` colour table, `Effects.ts`).
-- `src/systems/Weather.ts`: sunny, rain, mist per local day from the farm seed (rain = crops 5% faster).
-- `Progression.ts` collection: `collectionEntries()` and `BOOK_PAGES` (Crops, Fruit, Animal goods, Goods, Animals, Styles, Fish), page rewards in `rewards.json`, claim flow in `ProgressionPanels.ts`.
-- Book pages from 1.8 (`BookPages18.ts`): Calendar, Letters, Village Guide.
-- `qualityBoosts` (Quality.ts), `plantGrowthMult` (Weather.ts) and `cropGrowMult` (SkillEffects.ts) are the hooks seasons plug into, so no core rewrite is needed.
-- Hints: `hints.firstTime` one-time tips (Hints.ts). Every new feature gets one.
+- `src/data/events.json`: four real-date events (Spring Blossom, Summer Fair, Harvest Festival, Winter Wonderland) with tokens, quests and decorations; `Progression.ts` picks the current one by local date; `Boot.ts` drifts seasonal particles.
+- `src/systems/Weather.ts`: sunny, rain, mist per local day; rain makes crops 5% faster.
+- The village square scene (`SquareView.ts`, `Square.ts`): six rebuilt lots, villagers standing in it, bunting and a golden statue after the festival, a camera, taps and labels. This is the stage for festivals.
+- Villagers (`Village.ts`, `VillageRewards.ts`, `Villagers.ts`, `villagers.json`): six villagers with hearts, gifts, letters, story cards at 4 and 8 hearts, keepsakes, perks; they already walk the farm.
+- Daily finds and the mailbox (`Daily18.ts`), Ask a friend, Mail.
+- Collection Book (`Progression.ts` `BOOK_PAGES`, claim flow in `ProgressionPanels.ts`), Book pages (`BookPages18.ts`).
+- Fishing with two spots (`FishSpots.ts`), skills with perks, restoration rooms, mastery plaques, crafting, one-time tips (`Hints.ts`), layered placement (`occP` / `occD`).
+- Decor greenhouse (2x2, level 22) exists as a plain decoration.
 
-## 3. Phase A: Seasons (1.9.0)
+## 3. Pillar A: A Real Year (seasons with teeth)
 
-**Decision: seasons follow the real calendar** (local date, like the events), not an in-game clock. Players already see events that way, nothing needs saving, and a returning player always finds the farm "in the right season". Spring Mar-May, Summer Jun-Aug, Autumn Sep-Nov, Winter Dec-Feb. A Settings switch "Southern hemisphere" flips the four seasons by six months. The four existing events stay as the festivals inside each season.
+**Calendar.** A shared in-game year of 28 real days: Spring, Summer, Autumn, Winter, 7 days each, every season starting on a Monday. The calendar is counted from a fixed epoch (a Monday) in UTC, so every player and the dashboard see the same season on the same day and nothing needs saving. Day 7 of each season (Sunday) is the festival. Saturday stays market day. The four old real-date events become the four season festivals (the tokens, quests and decorations are kept and move onto the festival Sunday and the days before it).
 
-**Data (new `src/data/seasons.json`, validated by `scripts/validate-data.mjs`)**
-- Season dates and names, ground and foliage tints, particle colours, sky tint, weather odds per season (more rain in spring, more mist in autumn, snow flurries only visual in winter).
-- Per crop: its two "in season" seasons. All 21 crops get a pair (for example wheat summer and autumn, strawberry spring and summer, pumpkin autumn and winter, lavender spring and summer).
-- Seasonal fish: two dock fish and two pier fish per season that only bite then.
-- Season quests (3 per season) and a season reward (a decoration, kept forever).
+**Crops.** Each of the 21 crops grows in two seasons and can only be planted then. Every season has at least 12 crops open, so nobody is ever stuck, and the first crops (wheat, corn) are open year-round. A crop already planted keeps growing when the season ends (no crop dies; this is the cozy version). The seed tray shows an In season tag and sorts available crops first, and the locked ones show when they return.
 
-**Rules (kept gentle, never a lockout)**
-- Any crop can be planted in any season. A crop planted in season grows 10% faster and has +5% silver and +3% gold chance. Out of season is exactly today's game. Existing balance and the economy simulator stay valid.
-- Seasonal fish are extra species, not replacements, so no year-round fish disappears.
-- Orders and the truck lean towards in-season crops (weighted, never required).
-- Skills and perks stack with the season bonus (add to `qualityBoosts` and the grow multiplier).
+**Greenhouse.** The decor greenhouse becomes a working building: a 2x2 production-style building with 4 plots that ignore seasons. A new unlock for the late game. (Old decor greenhouses stay as decor; the new building has its own id.)
 
-**Look (the risky part, GPU-safe)**
-- Ground and tree tints through the existing vertex palette, not new shaders (the Terrain and FarmView `onBeforeCompile` code is the area that caused the Pixel white screen in 1.8.0, so no new GLSL).
-- Tree colours: autumn orange, winter bare-ish (lower leaf scale), spring blossom. Particles reuse `Effects.ts`.
-- Test on Low, Medium and High and with the GPU guard.
+**Fish and forage.** Two extra dock and two extra pier fish per season that bite only then (extra species, nothing year-round disappears). Seasonal forage for Pillar C.
 
-**Code**
-- `src/systems/Seasons.ts` (current season, hemisphere, in-season check, effects); `SeasonEffects.ts` small and import-light like `SkillEffects.ts`.
-- Save: one optional field for the hemisphere, repair rule in `Save.ts` `withDefaults`.
-- UI: a season badge in the HUD (icon and name), the crop picker shows an "In season" tag, the seed tray sorts in-season crops first, season intro letter from Hazel on the first day of each season (one letter, no spam).
+**Look.** Ground and tree tints per season through vertex colours (no new shaders: the shader code in `Terrain.ts` and `FarmView.ts` is the area that caused the 1.8.0 white screen). Autumn leaves, winter snow dusting and bare-ish trees, spring blossom, summer bloom. Particles reuse `Effects.ts`.
 
-Size: L.
+**Code.** `src/data/seasons.json` (dates, tints, crop seasons, fish seasons, festival days, season quests), `src/systems/Seasons.ts` plus a small `SeasonEffects.ts` (like `SkillEffects.ts`), a HUD season badge, a Hazel letter on the first day of each season (one letter), `Farming.canPlant` season rule, shop and seed tray changes. Save: one optional field for the greenhouse and nothing else (the season is derived from the clock).
 
-## 4. Phase B: Almanac and the fuller Collection Book (1.9.1)
+**Risks.** Players returning after weeks see several seasons pass (fine, crops keep growing); season boundary at UTC midnight shows different local times (show the season change at local midnight of the player's day, still the same season everywhere that day); balance (in-season crops get a small growth and quality bonus, tune with `npm run simulate-economy`).
 
-**Almanac (new Book page)**: the year on one screen. Four season panels with what is in season (crops, fish, events), villager birthdays, the Saturday market day, and a "this season you have found X of Y" line. It replaces nothing: the Calendar page stays for dated things.
+## 4. Pillar B: Festival Days
 
-**Collection Book pages (data-driven, same claim flow, new rewards in `rewards.json`)**
-- Seasonal finds: one page per season (seasonal fish, event decorations, season reward). 4 pages.
-- Decorations: every decoration type the player has ever placed (`game.discover` already records it).
-- Buildings and workshops: every building built, and every recipe made once (goods page already exists, this adds recipes).
-- Villagers: portraits, keepsakes and letters collected.
-- Mastery: plaques earned (1.8.6).
-- Fish by spot: Dock and Pier sections.
-- Each page shows found / total, new entries get the "New" dot, a completed page pays gems or a crate once. A final "Master Collector" reward when every page is done.
+Four festivals, one per season, on the season's Sunday. On a festival day the square button on the farm shows a flag, and entering the square shows the festival: bunting, stalls, the villagers dressed up and standing in set places, a festival board, and one mini-game. Each lasts the whole day and can be played any time that day.
 
-**Needs checking first**: how many entries a page can hold before the grid gets slow on Low (paging or lazy rendering), and that old saves already have the right `collection` keys (they do for items, animals and cosmetics; decorations and recipes need a one-off backfill from `state.buildings` and `stats`).
+| Season | Festival | Mini-game | Prize |
+| --- | --- | --- | --- |
+| Spring | Egg Hunt | Find hidden eggs across the square and the farm edge in a time limit | Spring ribbon, decoration, seeds |
+| Summer | Fishing Derby | One timed cast session at the square pier, biggest fish wins | Summer ribbon, rare bait, decoration |
+| Autumn | Harvest Fair | Show a crop and a good for judging by the villagers (quality counts: silver and gold score more) | Autumn ribbon, decoration, a gem |
+| Winter | Feast of Lights | Everyone brings a dish to the feast table; the more variety, the more hearts with every villager | Winter ribbon, lantern decoration |
 
-Size: M.
+Ribbons go on a ribbon wall in the Almanac. The mini-games are short (under two minutes), have a skip-free retry, and are forgiving on touch. Rewards are generous but one-off per festival; a missed festival returns next year (4 weeks later), and the Almanac shows what was missed.
 
-## 5. Phase C: Dashboard controls and polish (1.9.2)
+**Code.** `src/data/festivals.json` (rules, prizes, texts), `src/systems/Festivals.ts` (state machine, scoring), `src/scenes/FestivalScene.ts` reusing `SquareView` with a festival layer (stalls, props, villager positions), mini-game panels in `src/ui/panels/Festival*.ts`. Save: ribbons earned and the festival days already played, optional with repair rules. Events logged to the dashboard.
 
-**From the 1.8 brief, not yet built or checked:**
-- Schedule events and the village market day from the dashboard (today events are fixed dates in `events.json` and market day is every Saturday).
-- Send a letter to every player's mailbox (the 1.8 letters-to-everyone feature exists; confirm it has a dashboard form).
-- Set the weather for special days.
-- Needs a small server config table and a marked section in `supabase/schema.sql`, a client fetch with an offline default (the game must work with no config), an admin view, and the dashboard page "1.9 Seasons" (season spread, in-season harvest share, Almanac and Collection completion).
-- Re-check `store/data-safety.md` (aggregate counts only).
+## 5. Pillar C: The Wild Woods (foraging, the Museum, expeditions)
 
-**Carry-overs from 1.8.5 and 1.8.6**
-- Paths under objects cannot be selected until the object is moved off them: add a second tap or a "path under this" button on the object card.
-- Welcome flow card for the square, skills, and 1.9 (letters cover it today).
-- Spread the six head-start tip letters over days (old known issue).
-- Practice-mode neighbour "Old Tom" rename; `help_received` over-count; duplicated villager look tables.
-- Update `CLAUDE.md`, `BALANCE.md`, `ADMIN.md`.
+**The Woods.** A new area reached from the farm (a path and signpost like the one to the square, a second small scene). It has forage spots that refill daily (seasonal forage: spring greens and blossoms, summer berries and shells, autumn mushrooms and nuts, winter roots and holly), a few dig spots (tap to dig) that give clay, minerals, fossils and rare artifacts, and a quiet pond. Foraged items are quality items (silver and gold chances, boosted by a new Foraging skill: the sixth skill, levels 1-10, 4 perks).
 
-Size: M.
+**The Museum.** A seventh lot in the village square (a new restoration room, the Museum, unlocked by a bundle of one of each of a set of finds). Donate fish, gold goods, minerals, fossils and artifacts; each shelf that fills pays a reward. Donated pieces show in the Museum 3D lot (shelves fill up) and count in the Collection Book.
 
-## 6. Release rules for every phase (from CLAUDE.md)
+**Expedition board.** A noticeboard at the Woods where villagers go out on timed expeditions (2, 6 or 12 hours) and return with ore, gems, minerals and artifacts. It replaces Stardew's mines with an idle, combat-free version that fits mobile. Each villager is better at some expeditions (Bram finds ore, Pip finds shiny things); sending someone you are close to takes a little less time.
 
-1. `npx tsc --noEmit`, `npm run validate-data` after data edits, `npm run build`, `bash scripts/pages/build.sh`, `npm run simulate-economy` (season bonuses must not move income more than a few percent).
-2. Test Low, Medium and High, and that the blank-frame guard still passes with the new tints.
-3. Load an old save and a 1.8.6 save, confirm nothing is lost; run `tools/playtest.mjs`.
-4. Bump `package.json` and the newest `src/data/changelog.json` entry together (1.9.0, 1.9.1, 1.9.2) with highlights and sections.
-5. A one-time tip for every new feature (`INTROS` and `CROP_TIPS` in `Hints.ts`).
-6. Two lines on what goes live, then wait for "yes push".
+**Code.** `src/data/woods.json` (spots, forage tables by season, dig tables, artifacts, museum shelves), `src/systems/Woods.ts`, `Museum.ts`, `Expeditions.ts`, a new Foraging skill in `skills.json`, `src/scenes/Woods.ts` and `src/world/WoodsView.ts` (real KayKit and Kenney models: trees, rocks, mushrooms, a pond), panels `MuseumPanel.ts` and `ExpeditionPanel.ts`. Save: forage day state, finds, museum donations, expeditions in progress, optional with repair rules. Server: none (per player).
 
-## 7. Decisions needed from Josh
+## 6. Pillar D: Neighbours (living villagers)
 
-1. **Season clock:** real calendar (recommended) or an in-game clock where a season lasts, say, 7 real days?
-2. **Hemisphere:** a Settings switch (recommended) or follow the device's guess?
-3. **How strict:** gentle bonuses only (recommended, no lockouts), or some crops only growable in season?
-4. **Season look:** how strong should the farm change be (light tint, or full autumn trees and bare winter trees)?
-5. **Seasonal fish:** add four extra species per season (recommended), or leave fish alone in 1.9?
-6. **Collection pages:** the list in section 4, or trim it?
-7. **Dashboard controls:** do you want these in 1.9.2, or later?
-8. **Release split:** three releases as above, or seasons and Almanac together?
+- **Schedules.** Each villager has a daily routine (home, the square, the Pier, the market, the Woods) driven by time of day, weather and season, so a player can go looking for someone and find them somewhere different. They still visit the farm. Data in `villagers.json` (`schedule`), logic in `Villagers.ts`.
+- **Heart events.** A short picture-card event at 2, 4, 6, 8 and 10 hearts (the 4 and 8 heart stories exist; add 2, 6 and 10, and let some events have a small choice that changes the reply and a few friendship points). No romance, ever.
+- **Help Wanted board.** A daily board of three villager requests ("bring me 3 blueberries", "a gold-star cake"), refreshed each day, paying coins, gems and friendship, built on the existing order and bundle code. Seasonal requests join in.
+- **A pet.** A dog or cat (chosen once, changeable) that follows the player on the farm, finds a small item most days, and can be petted. Pets in `cosmetics.json` are only costumes today; this adds a real companion.
+- **Birthday festival cameo.** Birthdays get a small square scene with the villager and a cake.
 
-## 8. Risks
+Size: L. Save: pet choice, request state, event choices, all optional.
 
-- New tints on the terrain and trees are the same area as the 1.8.0 white-screen bug; stay on vertex colours and keep the guard test.
-- A season change at midnight local time while the game is open: the HUD badge and tints must refresh without a reload (Boot's day-tick already handles quests and events, hook there).
-- Players near a season boundary can see two seasons in a week; bonuses are small so it feels fair.
-- Collection pages with hundreds of entries on Low-end phones: page or lazy-render the grid.
-- Balance: seasonal fish and in-season bonuses add income; tune against `npm run simulate-economy` and `BALANCE.md`.
+## 7. Pillar E: Almanac and the fuller Collection Book
+
+**Almanac** (new Book page): the year on one screen. Four season panels with crops, fish and forage in season, the festival and its ribbon, birthdays, the market day, and "this season you have found X of Y". It also shows the ribbon wall.
+
+**Collection Book pages (data-driven, same claim flow, rewards in `rewards.json`):** Crops, Fruit, Animal goods, Goods, Animals, Styles, Fish (existing 7) plus Foraged, Minerals and Fossils, Artifacts, Decorations, Buildings and Recipes, Villagers (portraits, keepsakes, events seen), Mastery plaques, Ribbons and Festivals, and Seasonal finds (four pages). About 12 more. A final Master Collector reward when all are done.
+
+**Checks needed first:** how many entries a page can hold before the grid is slow on Low (paging or lazy rendering), and a one-off backfill for old saves (decorations, buildings and recipes from `state.buildings` and `stats`).
+
+## 8. Pillar F: Dashboard controls and polish
+
+- From the 1.8 brief, not yet built: schedule the market day and special events, set the weather for special days, send a letter to everyone (confirm the form exists). A small server config table and a marked section in `supabase/schema.sql` (safe to re-run), a client fetch with an offline default so the game never depends on it, an admin view, and a dashboard page "1.9 Year" (season share, festival play rates, woods and museum progress, help board completion).
+- Paths under objects selectable (a "path under this" button on the object card).
+- Welcome flow card covering the square, skills and 1.9.
+- Spread the six head-start tip letters over days; rename the practice-mode "Old Tom"; fix the `help_received` over-count; unify the villager look tables.
+- Update `CLAUDE.md`, `BALANCE.md`, `ADMIN.md`, `store/data-safety.md` if anything new is collected.
+
+## 9. Build order (internal; one deploy at the end)
+
+1. Calendar and Seasons core (A: clock, data, crop season rule, seed tray, HUD badge, tests).
+2. Greenhouse building, seasonal fish and the look per season.
+3. Festival framework in the square, then the four festivals one by one.
+4. The Woods scene, forage, dig spots, Foraging skill.
+5. Museum lot and expedition board.
+6. Villager schedules, heart events, Help Wanted, pet.
+7. Almanac and the new Collection Book pages, backfill.
+8. Dashboard controls and the carry-over jobs.
+9. One-time tips for every new feature (`INTROS` and `CROP_TIPS` in `Hints.ts`), the 1.9.0 changelog card with sections, docs, balance pass.
+10. Full test pass, then the single push.
+
+Each stage ends with: `npx tsc --noEmit`, `npm run validate-data`, `npm run build`, a headless test, Low / Medium / High, an old-save load, and a local commit.
+
+## 10. Release rules (from CLAUDE.md)
+
+`npm run simulate-economy` must not move income more than a few percent; test Low, Medium and High with the blank-frame guard; load an old save and a 1.8.6 save; bump `package.json` and `changelog.json` together to 1.9.0; two lines on what goes live, then wait for "yes push". Run the new `supabase/schema.sql` section in Supabase when 1.9 ships.
+
+## 11. Decisions needed from Josh
+
+1. **Season length:** 7 real days each (a 28-day year, recommended) or longer?
+2. **Season rule:** crops only plantable in season (recommended, with the greenhouse as the way round it), or gentle bonuses only?
+3. **Shared clock:** one worldwide calendar from a fixed epoch (recommended) or each farm starts its own year when it was created?
+4. **Old events:** fold the four real-date events into the season festivals (recommended)?
+5. **Foraging skill:** a sixth skill (recommended)?
+6. **Museum:** a seventh square lot (recommended)?
+7. **Expeditions:** keep them idle and timer-based (recommended), or drop them from 1.9?
+8. **Pet:** dog and cat choice at launch?
+9. **Heart events:** add 2, 6 and 10 heart events now?
+10. **Dashboard controls:** include them in 1.9 (needs a Supabase section)?
+
+## 12. Risks
+
+- This is the biggest release so far. The build order keeps every stage shippable-looking and tested, and the single deploy is gated on Josh's "yes push".
+- New tints and the Woods scene are the same area as the 1.8.0 white-screen bug: vertex colours only, no new shaders, merge static meshes for draw calls (Medium was 326 before it was merged in the square).
+- A hard season rule can frustrate players; every season keeps 12 or more crops open and the greenhouse is the escape.
+- Villager schedules can break existing farm walkers and the daily finds code; keep schedules additive and test the mailbox and visit flows.
+- Collection pages with hundreds of entries on low-end phones: page the grid.
+- Balance: seasonal fish, forage, expeditions and festival prizes all add income and gems; budget them in `BALANCE.md` and the simulator before release.

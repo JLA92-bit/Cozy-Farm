@@ -164,7 +164,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
 - [ ] After 14 days: apply for production, add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
-- [ ] Ideas still not started: seasons and a fuller Collection Book (1.9), a level 20-50 map. Design brief: https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
+- [ ] 1.9 "A Year in the Valley" is planned in `PLAN-1.9.md` (seasons, festival days in the square, the Wild Woods and Museum, living villagers, Almanac and a fuller Collection Book; one deploy at the end, not built yet). Design brief: https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
 - [ ] Later: iOS. A plain web wrapper risks App Store guideline 4.2 rejection. Capacitor with native features (push, offline bundle, Sign in with Apple) is the likely route. Meanwhile iPhone players can **Add to Home Screen** from Safari.
 
 ---
