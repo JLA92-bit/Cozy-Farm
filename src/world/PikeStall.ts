@@ -16,7 +16,7 @@ import type { FarmScene } from '../scenes/FarmScene';
 
 /** Sand level of the north beach (see Terrain.ts), where the stall stands beside the dock. */
 const BEACH_Y = -0.95;
-const SPOT = { x: DOCK.x + 3.9, z: DOCK.z0 + 0.35 };
+const SPOT = { x: DOCK.x + 6.6, z: DOCK.z0 + 0.35 };
 /** Where Marlow stands at his stall. */
 const POST: Pt3 = [SPOT.x - 1.3, BEACH_Y, SPOT.z + 0.1];
 /** The beach path between the dock and his stall. */
@@ -92,7 +92,7 @@ export class PikeStall {
       this.scene.scene.add(c.root);
       this.char = c;
       // the stall can be tapped any time (by day the closed shop shows his hours)
-      this.box.setFromCenterAndSize(new THREE.Vector3(SPOT.x - 0.3, BEACH_Y + 0.9, SPOT.z), new THREE.Vector3(3.6, 2.2, 1.8));
+      this.box.setFromCenterAndSize(new THREE.Vector3(SPOT.x - 0.5, BEACH_Y + 1.2, SPOT.z + 0.3), new THREE.Vector3(5.2, 3.2, 3.4));
       this.scene.loop.wake(1);
       // a one-time hello the first time he is open: where to find him
       if (hints.firstTime('intro:fishstall')) setTimeout(() => game.bus.emit('toast', { title: 'Marlow Pike is here!', sub: `His fish stall is by the dock on the north beach. He is a night trader: ${fishstall.hoursText}. He arrives and leaves by boat. Ridiculously dear, fresh stock every night.`, icon: 'fish' }), 3000);
