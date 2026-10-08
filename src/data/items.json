@@ -715,6 +715,30 @@
    "sell": 330,
    "icon": "blueberry_muffin"
   },
+  "clay": {
+   "name": "Potter's Clay",
+   "cat": "goods",
+   "sell": 70,
+   "icon": "clay"
+  },
+  "clay_pot": {
+   "name": "Clay Pot",
+   "cat": "goods",
+   "sell": 260,
+   "icon": "clay_pot"
+  },
+  "glazed_tile": {
+   "name": "Glazed Tile",
+   "cat": "goods",
+   "sell": 300,
+   "icon": "glazed_tile"
+  },
+  "blue_vase": {
+   "name": "Blue Vase",
+   "cat": "goods",
+   "sell": 560,
+   "icon": "blue_vase"
+  },
   "honey": {
    "name": "Honey",
    "cat": "goods",

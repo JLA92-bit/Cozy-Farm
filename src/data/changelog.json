@@ -24,6 +24,10 @@
      "text": "Blueberries (level 30): a new crop, with blueberry juice and blueberry muffins"
     },
     {
+     "icon": "flower_pot",
+     "text": "Pottery Kiln (level 34): fire potter's clay into pots, vases and glazed tiles, plus a new Glazed Tiles path"
+    },
+    {
      "icon": "sparkles",
      "text": "New Village Hero title on your farmer screen once you have rebuilt every room of the square"
     }

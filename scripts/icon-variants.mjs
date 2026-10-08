@@ -27,6 +27,8 @@ export const FISHING_ICONS = {
   juice_box: 'beverage-box', juice_cup: 'cup-with-straw',
   // Blueberries
   blueberry: 'blueberries',
+  // Pottery Kiln
+  flower_pot: 'potted-plant', clay: 'brick',
 };
 
 /**
@@ -68,6 +70,9 @@ export const ICON_VARIANTS = {
   // the Beehive house
   blueberry_juice: { base: 'beverage-box', hue: 150, badge: 'blueberries' },
   blueberry_muffin: { base: 'cupcake', badge: 'blueberries' },
+  clay_pot: { base: 'potted-plant', hue: 0, badge: 'sparkles' },
+  glazed_tile: { base: 'brick', hue: 190, sat: 0.7, light: 1.15, badge: 'sparkles' },
+  blue_vase: { base: 'amphora', hue: 200, sat: 1.1 },
   apple_juice: { base: 'beverage-box', hue: 0, badge: 'red-apple' },
   orange_juice: { base: 'beverage-box', hue: 10, sat: 1.15, badge: 'tangerine' },
   berry_juice: { base: 'beverage-box', hue: -35, badge: 'strawberry' },

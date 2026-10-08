@@ -345,6 +345,18 @@ export const PATH_MODELS: Record<string, () => THREE.BufferGeometry> = {
     return b.build();
   },
 
+  path_glazed: () => {
+    // glazed pottery tiles: three by three, alternating blue and cream with a golden centre tile
+    const b = bed('#e8dcc2');
+    const o: Lay = { grout: 0.03, h: 0.03, bevel: 0.012, colors: ['#3f8fd9'] };
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+      const centre = r === 1 && c === 1;
+      const colour = centre ? '#f2c14e' : (r + c) % 2 ? '#f7efdc' : '#3f8fd9';
+      lay(b, rect(-H + c / 3, -H + r / 3, -H + (c + 1) / 3, -H + (r + 1) / 3), { ...o, colors: [colour] }, r * 3 + c);
+    }
+    return b.build();
+  },
+
   path_golden: () => {
     const b = bed('#a97d2a');
     runningBond(b, 0.25, 0.125, { grout: 0.016, h: 0.022, bevel: 0.01, colors: ['#ffd24a', '#f5c23a', '#ffdd6a', '#ecb52f', '#ffe48a'] });

@@ -489,3 +489,9 @@ the jams made from the same fruit, so it is a faster, cheaper alternative rather
 
 Blueberry (crop, level 30, seed 21, 4.5 hours, 2 per harvest, sells 112, xp 28) sits between watermelon and radish
 on the same curve (about 25 coins/hour per field like its neighbours). Blueberry muffin (Bakery, level 30) sells 330.
+
+## Pottery Kiln (1.8.6, building `pottery_kiln`, level 34, 9,000 coins)
+
+Four recipes: potter's clay (3 beets make 2, 15 min), clay pot (2 clay, 40 min, sells 260), glazed tile (1 clay +
+1 sugar, 45 min, 300, level 35) and blue vase (3 clay + 2 blueberries, 90 min, 560, level 36). Clay sells for 70 so
+making it is never worth more than selling beets. The Glazed Tiles path (level 34, 60 coins) is plain decor.

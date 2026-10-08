@@ -601,6 +601,10 @@
     {"id": "grape_juice", "building": "juice_press", "level": 27, "in": {"grapes": 3}, "item": "grape_juice", "out": 1, "sec": 2100, "xp": 24},
     {"id": "orange_juice", "building": "juice_press", "level": 28, "in": {"orange": 3}, "item": "orange_juice", "out": 1, "sec": 2400, "xp": 28},
     {"id": "blueberry_juice", "building": "juice_press", "level": 30, "in": {"blueberry": 3}, "item": "blueberry_juice", "out": 1, "sec": 2700, "xp": 30},
-    {"id": "blueberry_muffin", "building": "bakery", "level": 30, "in": {"wheat": 3, "blueberry": 2, "butter": 1}, "item": "blueberry_muffin", "out": 1, "sec": 2400, "xp": 26}
+    {"id": "blueberry_muffin", "building": "bakery", "level": 30, "in": {"wheat": 3, "blueberry": 2, "butter": 1}, "item": "blueberry_muffin", "out": 1, "sec": 2400, "xp": 26},
+    {"id": "clay", "building": "pottery_kiln", "level": 34, "in": {"beet": 3}, "item": "clay", "out": 2, "sec": 900, "xp": 14},
+    {"id": "clay_pot", "building": "pottery_kiln", "level": 34, "in": {"clay": 2}, "item": "clay_pot", "out": 1, "sec": 2400, "xp": 24},
+    {"id": "glazed_tile", "building": "pottery_kiln", "level": 35, "in": {"clay": 1, "sugar": 1}, "item": "glazed_tile", "out": 1, "sec": 2700, "xp": 26},
+    {"id": "blue_vase", "building": "pottery_kiln", "level": 36, "in": {"clay": 3, "blueberry": 2}, "item": "blue_vase", "out": 1, "sec": 5400, "xp": 40}
   ]
 }
