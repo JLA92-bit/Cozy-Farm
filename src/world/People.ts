@@ -24,6 +24,20 @@ export function walkable(x: number, z: number, stand = false): boolean {
   return !!def.path || (!!def.gate && !stand) || b.type === 'plot';
 }
 
+/**
+ * Like `walkable`, but also over land the player has not bought yet (open ground only, no wild obstacles or
+ * buildings in the way). Visitors who arrive by boat use it to cross the wild land between the dock and the farm.
+ */
+export function walkableOpen(x: number, z: number): boolean {
+  if (!inMap(x, z) || game.occO[z * MAP + x]) return false;
+  const uid = game.occB[z * MAP + x];
+  if (!uid) return true;
+  const b = game.byUid(uid);
+  if (!b) return true;
+  const def = BUILDING[b.type];
+  return !!def.path || !!def.gate || b.type === 'plot';
+}
+
 /** A free tile next to a building's footprint, closest to `from`. */
 export function besideBuilding(b: PlacedBuilding, from: [number, number]): [number, number] | null {
   const [w, d] = rotatedSize(BUILDING[b.type].size, b.rot);
@@ -72,9 +86,9 @@ export class Walker {
   }
 
   /** Walk to a tile; returns false if unreachable. */
-  walkTo(tx: number, tz: number, onArrive?: () => void): boolean {
+  walkTo(tx: number, tz: number, onArrive?: () => void, canWalk: (x: number, z: number) => boolean = walkable): boolean {
     const [sx, sz] = this.tile;
-    const p = findPath(THREE.MathUtils.clamp(sx, 0, MAP - 1), THREE.MathUtils.clamp(sz, 0, MAP - 1), tx, tz, walkable);
+    const p = findPath(THREE.MathUtils.clamp(sx, 0, MAP - 1), THREE.MathUtils.clamp(sz, 0, MAP - 1), tx, tz, canWalk, 6000);
     if (!p) return false;
     this.path = p.slice(1).map(([x, z]) => new THREE.Vector3(tileToWorld(x) + (Math.random() - 0.5) * 0.2, 0, tileToWorld(z) + (Math.random() - 0.5) * 0.2));
     this.onArrive = onArrive ?? null;

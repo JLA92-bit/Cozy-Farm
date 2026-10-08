@@ -158,9 +158,10 @@ export async function boot(): Promise<void> {
   visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
   const pike = new PikeStall(scene);
+  Object.assign(window as unknown as Record<string, unknown>, { __pike: pike, __visitors: visitors });
   const squarePick = ui.extraPick; // the way to the village square (set by initSquare)
   ui.extraPick = (ray) => {
-    if (ray.intersectsBox(visitors.merchantBox) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
+    if (visitors.merchantHit(ray) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
     return pike.pick(ray) ?? villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
   };
   scene.onTick((now) => { buildings.tick(now); crafting.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });

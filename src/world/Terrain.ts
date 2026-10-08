@@ -146,6 +146,8 @@ export class Terrain {
       b.block(1.3, 0.08, 0.8, k % 2 ? PAL.wood : PAL.woodLight, [dx, deckY, zz]);
       if (k % 2 === 0) for (const sx of [-0.6, 0.6]) b.block(0.14, 1.0, 0.14, PAL.woodDark, [dx + sx, deckY - 0.9, zz]);
     }
+    // wooden steps from the dock up onto the farm's north edge (visitors arriving by boat climb them)
+    for (let k = 0; k < 4; k++) b.block(1.3, 0.35 + (k + 1) * 0.22, 0.3, k % 2 ? PAL.wood : PAL.woodLight, [dx, deckY - 0.1, dz0 + 0.25 + k * 0.28]);
     b.block(0.12, 0.5, 0.12, PAL.woodDark, [dx + 0.6, deckY, dz0 - 4.6]).cyl(0.1, 0.1, 0.06, '#e2d3b0', [dx + 0.6, deckY + 0.5, dz0 - 4.6], 6);
     const cliff = new THREE.Mesh(b.build(), material);
     cliff.receiveShadow = true;

@@ -4,17 +4,37 @@ import { assets } from '../core/Assets';
 import { game } from '../systems/Game';
 import { merchant } from '../systems/Economy';
 import { Character } from './Character';
+import { Walker, walkable, walkableOpen, walkers } from './People';
 import { tileToWorld, footprintCenter } from './Grid';
+import { Boat, LANDING_TILE, STEPS_UP, dockWalk, walkAlong } from './Boats';
+
+/** The merchant's boat ties up on the west side of the dock (Marlow Pike's is on the east side). */
+const WEST = dockWalk(-1);
 import { audio } from '../systems/Audio';
 import { speech } from '../ui/Speech';
 import { ui } from '../ui/UI';
 import { pick } from './Chatter';
 import type { FarmScene } from '../scenes/FarmScene';
 
-/** The travelling merchant's cart and the delivery truck parked at the depot. */
+type MPhase = 'away' | 'arriving' | 'here' | 'leaving';
+
+/** The travelling merchant's look. */
+const MERCHANT_LOOK = { body: 'male-e', skin: '#c98a5e', hair: '#5a3a22', top: '#a77bf3', bottom: '#3b3b45', hat: 'top', accessory: 'scarf', pet: 'none' } as const;
+
+/**
+ * The travelling merchant and the delivery truck parked at the depot. The merchant sails in to the dock when a
+ * visit begins, climbs the steps onto the farm, sets up his cart and then roams the farm until his visit ends;
+ * then he walks back to the dock and sails away (1.8.7).
+ */
 export class Visitors {
-  private merchantGroup: THREE.Group | null = null;
-  private merchantChar: Character | null = null;
+  private cart: THREE.Object3D | null = null;
+  private walker: Walker | null = null;
+  private mPhase: MPhase = 'away';
+  private mStarted = false;
+  private mBusy = false;
+  private roamIn = 4;
+  private roamN = 0;
+  private cartSpotAt: [number, number] = [0, 0];
   private truckObj: THREE.Object3D | null = null;
   private truckState = '';
   /** Loaded crates stacked beside the truck: one instanced draw call. */
@@ -27,36 +47,74 @@ export class Visitors {
   private readonly tmpP = new THREE.Vector3();
   private readonly tmpS = new THREE.Vector3();
   private readonly crateAnim = { k: 1 };
-  /** characters still animating (the merchant, also while walking off) */
-  private animated = new Set<Character>();
   private nudgeIn = 30;
-  private spawning = false;
+  /** where the merchant stands now (tap target) and his parked cart */
   merchantBox = new THREE.Box3();
+  private cartBox = new THREE.Box3();
   /** called with the merchant's parking spot so whoever stands there can step aside */
   onMerchantArrive: ((pos: THREE.Vector3) => void) | null = null;
 
   constructor(private scene: FarmScene, private spot: () => [number, number]) {
     scene.onTick(() => { void this.sync(); });
-    scene.onFrame((dt) => {
-      for (const c of this.animated) c.update(dt);
+    scene.onFrame((dt) => this.frame(dt));
+  }
+
+  private frame(dt: number): void {
+    const w = this.walker;
+    if (!w) return;
+    w.update(dt);
+    if (this.mPhase === 'here') {
+      const p = w.char.root.position;
+      this.merchantBox.setFromCenterAndSize(this.tmpP.set(p.x, 0.8, p.z), this.tmpS.set(1.8, 1.8, 1.8));
       this.nudge(dt);
-    });
+      this.roam(dt);
+    }
+  }
+
+  /** Tap test for the merchant or his cart. */
+  merchantHit(ray: THREE.Ray): boolean {
+    return this.mPhase === 'here' && (ray.intersectsBox(this.merchantBox) || ray.intersectsBox(this.cartBox));
   }
 
   /** Every so often the merchant calls out, so players notice the visit. */
   private nudge(dt: number): void {
-    const c = this.merchantChar;
-    if (!c || this.spawning) return;
+    const c = this.walker?.char;
+    if (!c) return;
     this.nudgeIn -= dt;
     if (this.nudgeIn > 0) return;
     this.nudgeIn = 35 + Math.random() * 25;
     if (speech.say(c.root, { icon: pick(['gift', 'bags', 'sparkles']), text: pick(['Psst! Rare goods!', 'Come take a look!', 'Special prices today!', 'Fresh from far away!']) })) void c.gesture('interact-right');
   }
 
+  /** While he is here the merchant wanders the farm, pausing now and then, and goes back to his cart often. */
+  private roam(dt: number): void {
+    const w = this.walker;
+    if (!w || w.walking) return;
+    this.roamIn -= dt;
+    if (this.roamIn > 0) return;
+    this.roamN++;
+    const [cx, cz] = this.cartSpotAt;
+    const home = this.roamN % 3 === 0;
+    let target: [number, number] | null = home ? [cx, cz + 1] : null;
+    for (let i = 0; i < 24 && !target; i++) {
+      const tx = cx + Math.round((Math.random() - 0.5) * 22), tz = cz + Math.round((Math.random() - 0.5) * 22);
+      if (walkable(tx, tz, true)) target = [tx, tz];
+    }
+    if (!target) { this.roamIn = 5; return; }
+    this.roamIn = 99;
+    const ok = w.walkTo(target[0], target[1], () => {
+      this.roamIn = 6 + Math.random() * 8;
+      void w.char.gesture(Math.random() < 0.5 ? 'emote-yes' : 'interact-right');
+    });
+    if (!ok) this.roamIn = 4;
+  }
+
   /** The merchant greets you when tapped (the shop panel opens right after). */
   greetMerchant(): void {
-    const c = this.merchantChar;
+    const c = this.walker?.char;
     if (!c) return;
+    this.walker?.halt();
+    this.roamIn = Math.max(this.roamIn, 12);
     speech.say(c.root, { icon: 'smile', text: pick(['Welcome, friend!', 'Have a look!', 'Hello again!']), prio: 2 });
     void c.gesture('emote-yes');
     this.nudgeIn = Math.max(this.nudgeIn, 40);
@@ -64,70 +122,103 @@ export class Visitors {
 
   async sync(): Promise<void> {
     const present = merchant.visit().present;
-    if (present && !this.merchantGroup) await this.spawnMerchant();
-    else if (!present && this.merchantGroup) this.despawnMerchant();
+    if (!this.mStarted) {
+      // the game was opened during a visit: he is already on the farm by his cart, no boat
+      this.mStarted = true;
+      if (present) await this.setUpHere(false);
+    } else if (present && this.mPhase === 'away' && !this.mBusy) void this.arrive();
+    else if (!present && this.mPhase === 'here' && !this.mBusy) void this.leave();
     await this.syncTruck();
     await this.syncCrates();
   }
 
-  private async spawnMerchant(): Promise<void> {
-    this.spawning = true;
-    const group = new THREE.Group();
-    this.merchantGroup = group;
-    const [x, z] = this.spot();
-    const cart = await assets.mesh('prop/cart_high');
-    cart.scale.setScalar(1.2);
-    cart.position.set(-0.6, 0, -0.9);
-    cart.rotation.y = Math.PI / 2;
-    group.add(cart);
-    const c = await Character.create({ body: 'male-e', skin: '#c98a5e', hair: '#5a3a22', top: '#a77bf3', bottom: '#3b3b45', hat: 'top', accessory: 'scarf', pet: 'none' }, 1.55);
-    if (this.merchantGroup !== group) { c.dispose(); this.spawning = false; return; } // left again while loading
-    c.root.rotation.y = Math.PI / 2; // facing the way he walks in (+x)
-    group.add(c.root);
-    this.merchantChar = c;
-    this.animated.add(c);
-    group.position.set(tileToWorld(x), 0, tileToWorld(z));
-    this.scene.scene.add(group);
-    this.merchantBox.setFromCenterAndSize(group.position.clone().setY(0.8), new THREE.Vector3(2.2, 1.8, 2.2));
-    c.play('walk');
-    this.onMerchantArrive?.(group.position);
-    const endX = group.position.x;
-    group.position.x -= 8;
-    gsap.to(group.position, {
-      x: endX, duration: 2.6, ease: 'power1.out',
-      onUpdate: () => { cart.rotation.z = Math.sin(group.position.x * 6) * 0.03; this.scene.loop.wake(0.3); },
-      onComplete: () => {
-        cart.rotation.z = 0;
-        c.play('idle');
-        gsap.to(c.root.rotation, { y: Math.PI / 4, duration: 0.4, ease: 'power2.out' });
-        void c.gesture('emote-yes');
-        speech.say(c.root, { icon: 'bags', text: 'Fresh wares today!', prio: 2, dur: 3.5 });
-        audio.play('jingle', { volume: 0.35 });
-        this.spawning = false;
-        this.nudgeIn = 30;
-        this.scene.loop.wake(1);
-      },
-    });
+  private async makeMerchant(): Promise<Character> {
+    const c = await Character.create({ ...MERCHANT_LOOK }, 1.55);
+    this.walker = new Walker(c, this.scene.scene);
+    return c;
   }
 
-  private despawnMerchant(): void {
-    const g = this.merchantGroup!;
-    const c = this.merchantChar;
-    this.merchantGroup = null;
-    this.merchantChar = null;
-    this.merchantBox.makeEmpty();
-    this.spawning = false;
-    if (!c) { this.scene.scene.remove(g); return; } // still loading
-    gsap.killTweensOf(g.position);
-    speech.say(c.root, { icon: 'wave', text: 'See you soon!', prio: 2 });
-    void c.gesture('emote-yes', 'walk');
-    gsap.to(c.root.rotation, { y: -Math.PI / 2, duration: 0.4, delay: 0.9 });
-    gsap.to(g.position, {
-      x: g.position.x - 10, duration: 2.6, delay: 1.1, ease: 'power1.in',
-      onStart: () => c.play('walk'),
-      onUpdate: () => this.scene.loop.wake(0.3),
-      onComplete: () => { this.scene.scene.remove(g); this.animated.delete(c); c.dispose(); },
+  private async makeCart(pop: boolean): Promise<void> {
+    const [x, z] = this.spot();
+    this.cartSpotAt = [x, z];
+    const cart = await assets.mesh('prop/cart_high');
+    cart.scale.setScalar(pop ? 0.01 : 1.2);
+    cart.position.set(tileToWorld(x) - 0.6, 0, tileToWorld(z) - 0.9);
+    cart.rotation.y = Math.PI / 2;
+    this.scene.scene.add(cart);
+    this.cart = cart;
+    this.cartBox.setFromCenterAndSize(new THREE.Vector3(tileToWorld(x) - 0.4, 0.7, tileToWorld(z) - 0.9), new THREE.Vector3(2.2, 1.6, 2.2));
+    if (pop) gsap.to(cart.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.55, ease: 'back.out(2.2)', onUpdate: () => this.scene.loop.wake(0.2) });
+  }
+
+  /** Set the merchant and his cart up on the farm without a boat (opening the game during a visit). */
+  private async setUpHere(withBoat: boolean): Promise<void> {
+    this.mBusy = true;
+    const [x, z] = this.spot();
+    await this.makeCart(withBoat);
+    const c = this.walker?.char ?? await this.makeMerchant();
+    if (!withBoat) {
+      this.walker!.placeAt(x, z);
+      c.root.rotation.y = Math.PI / 4;
+    }
+    this.onMerchantArrive?.(c.root.position.clone());
+    this.mPhase = 'here';
+    this.roamIn = 3 + Math.random() * 4;
+    this.nudgeIn = 30;
+    this.mBusy = false;
+    this.scene.loop.wake(1);
+  }
+
+  /** A visit begins: a boat brings him to the dock, he climbs onto the farm, walks to his cart and starts to roam. */
+  private async arrive(): Promise<void> {
+    this.mBusy = true;
+    this.mPhase = 'arriving';
+    const boat = new Boat(this.scene, -1);
+    const c = await this.makeMerchant();
+    boat.board(c, [0, 0.1]);
+    await boat.sailIn();
+    speech.say(c.root, { icon: 'bags', text: 'Fresh wares today!', prio: 2, dur: 3.5 });
+    audio.play('jingle', { volume: 0.35 });
+    boat.unboard(c);
+    void (async () => { await new Promise((r) => setTimeout(r, 1800)); await boat.sailAway(); boat.dispose(); })();
+    await walkAlong(c, [...WEST, ...STEPS_UP], 1.9, this.scene);
+    // on to the cart across the open land
+    const [x, z] = this.spot();
+    const w = this.walker!;
+    await new Promise<void>((resolve) => {
+      if (!w.walkTo(x, z, () => resolve(), walkableOpen)) { w.placeAt(x, z); resolve(); }
     });
+    await this.setUpHere(true);
+    void c.gesture('emote-yes');
+  }
+
+  /** The visit ends: he walks back to the dock, boards a boat and sails away (his cart goes with him). */
+  private async leave(): Promise<void> {
+    this.mBusy = true;
+    this.mPhase = 'leaving';
+    const w = this.walker;
+    this.merchantBox.makeEmpty();
+    if (!w) { this.mPhase = 'away'; this.mBusy = false; return; }
+    const c = w.char;
+    w.halt();
+    speech.say(c.root, { icon: 'wave', text: 'See you soon!', prio: 2, dur: 3 });
+    const boat = new Boat(this.scene, -1);
+    const sail = boat.sailIn(3.6);
+    await new Promise<void>((resolve) => {
+      if (!w.walkTo(LANDING_TILE[0], LANDING_TILE[1], () => resolve(), walkableOpen)) { w.placeAt(LANDING_TILE[0], LANDING_TILE[1]); resolve(); }
+    });
+    const back: [number, number, number][] = [...STEPS_UP].slice(0, 4).reverse().concat([WEST[1], WEST[0]]);
+    await walkAlong(c, back, 1.9, this.scene);
+    await sail;
+    boat.board(c, [0, 0.1]);
+    if (this.cart) { const cart = this.cart; this.cart = null; this.cartBox.makeEmpty(); gsap.to(cart.scale, { x: 0.01, y: 0.01, z: 0.01, duration: 0.5, ease: 'back.in(2)', onComplete: () => { this.scene.scene.remove(cart); } }); }
+    await boat.sailAway();
+    boat.dispose();
+    walkers.delete(w);
+    c.dispose();
+    this.walker = null;
+    this.mPhase = 'away';
+    this.mBusy = false;
   }
 
   private async syncTruck(): Promise<void> {

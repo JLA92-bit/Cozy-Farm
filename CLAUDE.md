@@ -186,6 +186,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-08: 1.8.8 (local): boats (`world/Boats.ts`): the travelling merchant sails to the dock, climbs the new dock steps (Terrain.ts), sets up his cart and roams the farm (`Visitors.ts`); Marlow Pike arrives and leaves by boat (`PikeStall.ts`). `walkableOpen` lets arrivals cross unbought land.
 - 2026-10-08: 1.8.7 (local): Marlow Pike's fish stall on the north beach (`PikeStall.ts`, `systems/FishStall.ts`, `fishstall.json`, `FishStallPanel.ts`): buy fish at 4-6x barn price, small daily stock.
 - 2026-10-08: One-time tips (toasts via `hints.firstTime`, `src/systems/Hints.ts`) for the 1.8.5/1.8.6 buildings, new crops, layered placement and Mastery. Add an entry to `INTROS`/`CROP_TIPS` for any new building or crop.
 - 2026-10-08: 1.8.6: Pottery Kiln, Horses and Stable (horse model from `scripts/make-horse.mjs`), Peas and Lavender, Mastery plaques (Me > Mastery). Local until pushed. Beehive House uses id `beehive_house` (decor `beehive` already existed); `validate-data` now rejects duplicate building ids.
