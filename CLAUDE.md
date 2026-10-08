@@ -148,6 +148,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 - **Economy:** only the barn pays star prices; orders, truck, stall and market take normal items first at normal price (`BALANCE.md`).
 - **Gift codes** are client-side and capped at 500 coins; bigger amounts use server reward codes or dashboard gifts.
 - **Pre-push checks:** `npx tsc --noEmit`, `npm run validate-data`, `bash scripts/pages/build.sh` (builds game, admin and website into `dist/`).
+- **Layered placement (1.8.6):** `game.occB` holds the main object on a tile, `occP` the path under it, `occD` an `onField` item (scarecrow, sign, sprinkler...) standing on a field tile. Use `game.canPlace`/`tileFree(x, z, uid, type)`, `buildingAt` (main), `pathAt`, `overlayAt`. `FarmView.liftFor` raises objects onto fields (0.17) and paths (0.045).
 - **Debug in the browser:** `window.__game`, `window.__ui`, `window.__scene`.
 - **Playwright** reports panel buttons as "not stable"; tests use `force: true` or DOM clicks.
 

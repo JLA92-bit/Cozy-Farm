@@ -47,6 +47,8 @@ export interface BuildingDef {
   group?: string; paint?: string; sign?: boolean;
   /** 1.8.5: only for sale once this room of the village square is rebuilt (restoration.json) */
   room?: string;
+  /** 1.8.6: may stand on a field tile (scarecrows and other small things that make a field look lived in) */
+  onField?: boolean;
   /** 1.8.5: made at Bram's forge (crafting.json), never bought: it arrives in storage and is placed from there */
   craft?: boolean;
   /** fences: joins up with neighbours sharing the same link family; gates are walkable and swing open */

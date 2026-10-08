@@ -179,6 +179,10 @@ const SMOKE: Record<string, 'always' | 'busy'> = { farmhouse: 'always', bakery: 
 interface Puff { sprite: THREE.Sprite; life: number; max: number; vx: number; size: number }
 
 /** Instance-pool keys for crop stage models: tinted variants get their own pool. */
+/** 1.8.6 layered placement: how far an object rises when it stands on a field or on a path. */
+const FIELD_LIFT = 0.17;
+const PATH_LIFT = 0.045;
+
 function cropModelKey(model: string, tint?: string): string { return tint ? `${model}|${tint}` : model; }
 
 export class FarmView {
@@ -340,6 +344,34 @@ export class FarmView {
     if (isLinked(def)) this.relinkAround(b.x, b.z);
     if (animate) this.squash(view);
     this.updateDynamic(view, this.g.now(), true);
+    const [rw, rd] = rotatedSize(def.size, b.rot);
+    this.relift(b.x, b.z, rw, rd);
+  }
+
+  /**
+   * How high an object stands: on a field it sits on top of the soil, on a path on top of the paving, so neither
+   * disappears into the ground (1.8.6 layered placement).
+   */
+  private liftFor(b: PlacedBuilding, def: BuildingDef): number {
+    if (def.path) return 0;
+    const [w, d] = rotatedSize(def.size, b.rot);
+    let lift = 0;
+    for (let z = b.z; z < b.z + d; z++) for (let x = b.x; x < b.x + w; x++) {
+      const i = z * MAP + x;
+      if (this.g.occD[i] === b.uid) return FIELD_LIFT;
+      if (this.g.occP[i]) lift = PATH_LIFT;
+    }
+    return lift;
+  }
+
+  /** Objects over a changed spot may need to step up onto a new path or down again. */
+  private relift(x: number, z: number, w: number, d: number): void {
+    for (const v of this.views.values()) {
+      if (v.def.path || v.def.id === 'plot' || !v.at) continue;
+      const [vw, vd] = rotatedSize(v.def.size, v.b.rot);
+      if (v.b.x >= x + w || v.b.x + vw <= x || v.b.z >= z + d || v.b.z + vd <= z) continue;
+      if (Math.abs(this.liftFor(v.b, v.def) - v.center.y) > 1e-4) this.place(v);
+    }
   }
 
   /** Compute the world transform for a building view and (re)attach its visual. */
@@ -352,8 +384,9 @@ export class FarmView {
     view.styleKey = style;
     view.at = [b.x, b.z];
     const [w, d] = rotatedSize(def.size, b.rot);
-    view.center.set(footprintCenter(b.x, w), 0, footprintCenter(b.z, d));
-    view.box.set(new THREE.Vector3(b.x - HALF, 0, b.z - HALF), new THREE.Vector3(b.x - HALF + w, Math.max(0.4, view.height), b.z - HALF + d));
+    const lift = this.liftFor(b, def);
+    view.center.set(footprintCenter(b.x, w), lift, footprintCenter(b.z, d));
+    view.box.set(new THREE.Vector3(b.x - HALF, lift, b.z - HALF), new THREE.Vector3(b.x - HALF + w, lift + Math.max(0.4, view.height), b.z - HALF + d));
     this.blobDirty = true;
     if (!visual) return;
     if (this.hidden.has(b.uid)) {
@@ -644,6 +677,8 @@ export class FarmView {
     this.views.delete(uid);
     this.blobDirty = true;
     if (isLinked(view.def)) this.relinkAround(view.b.x, view.b.z);
+    const [rw, rd] = rotatedSize(view.def.size, view.b.rot);
+    this.relift(view.b.x, view.b.z, rw, rd);
   }
 
   refreshBuilding(b: PlacedBuilding, moved = false): void {
@@ -656,6 +691,9 @@ export class FarmView {
     this.place(view);
     if (isLinked(view.def)) { this.relinkAround(before[0], before[1]); this.relinkAround(b.x, b.z); }
     this.updateDynamic(view, this.g.now(), true);
+    const [rw, rd] = rotatedSize(view.def.size, b.rot);
+    this.relift(before[0], before[1], rw, rd);
+    this.relift(b.x, b.z, rw, rd);
   }
 
   // ------------------------------------------------------------------ crops, trees, animals

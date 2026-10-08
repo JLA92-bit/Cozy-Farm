@@ -46,7 +46,7 @@ export class Interaction implements WorldHandler {
     const v = this.scene.farm.pickBuilding(this.scene.ray(p));
     if (v) return v.b;
     const t = this.scene.tileAt(p);
-    return t ? game.buildingAt(t[0], t[1]) ?? null : null;
+    return t ? game.buildingAt(t[0], t[1]) ?? game.pathAt(t[0], t[1]) ?? null : null;
   }
   /** Plot/tree under the pointer using the ground tile only (precise for swipes). */
   private plotAt(p: Pointer): PlacedBuilding | null {
@@ -72,7 +72,9 @@ export class Interaction implements WorldHandler {
     if (ui.world.hidePopup()) return;
     const extra = ui.extraPick?.(this.scene.ray(p));
     if (extra && m.kind === 'idle') { extra(); return; }
-    const b = this.pickBuilding(p);
+    let b = this.pickBuilding(p);
+    // sowing: a scarecrow standing in the field must not stop the field underneath from being tapped
+    if (m.kind === 'plant' && b && BUILDING[b.type].onField) b = this.plotAt(p) ?? b;
     if (m.kind === 'edit') {
       if (b && !BUILDING[b.type].path) this.startMove(b.uid, true);
       else if (b) this.startMove(b.uid, true);
@@ -436,7 +438,7 @@ export class Interaction implements WorldHandler {
       const tile = m.foot.children[i++] as THREE.Mesh;
       if (!tile) continue;
       tile.position.set(tx + 0.5, 0.03, tz + 0.5);
-      const ok = game.tileFree(x + tx, z + tz, m.uid ?? 0);
+      const ok = game.tileFree(x + tx, z + tz, m.uid ?? 0, m.type);
       (tile.material as THREE.MeshBasicMaterial).color.set(ok ? '#4cff6a' : '#ff4c4c');
     }
     ui.setPlacementValid(valid);

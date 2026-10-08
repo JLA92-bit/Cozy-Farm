@@ -67,6 +67,10 @@ export class Game {
   occB = new Int32Array(MAP * MAP);
   /** obstacle id + 1 occupying each tile. */
   occO = new Int32Array(MAP * MAP);
+  /** 1.8.6 ground layer: uid of the path laid on each tile (paths can lie under any object but fields and trees). */
+  occP = new Int32Array(MAP * MAP);
+  /** 1.8.6 overlay layer: uid of a scarecrow or similar item standing on a field tile (the field itself is in occB). */
+  occD = new Int32Array(MAP * MAP);
   private unlockedSet = new Set<string>();
 
   now(): number { return Date.now() + (this.state?.debugTimeOffset ?? 0); }
@@ -89,14 +93,49 @@ export class Game {
   rebuildOccupancy(): void {
     this.occB.fill(0);
     this.occO.fill(0);
-    for (const b of this.state.buildings) this.markBuilding(b, b.uid);
+    this.occP.fill(0);
+    this.occD.fill(0);
+    // items that may stand on a field go last, so they can tell whether a field is under them
+    for (const b of this.state.buildings) if (!BUILDING[b.type].onField) this.markBuilding(b, b.uid);
+    for (const b of this.state.buildings) if (BUILDING[b.type].onField) this.markBuilding(b, b.uid);
     for (const o of this.state.obstacles) this.occO[o.z * MAP + o.x] = o.id + 1;
   }
 
+  /**
+   * Write a building into (value = its uid) or clear it from (value = 0) the occupancy layers: paths go in the ground
+   * layer, an item that may stand on a field goes in the overlay layer when a field is under it, everything else in
+   * the main layer. Clearing a field hands the items that stood on it back to the main layer.
+   */
   markBuilding(b: PlacedBuilding, value: number): void {
     const def = BUILDING[b.type];
     const [w, d] = rotatedSize(def.size, b.rot);
-    for (let z = b.z; z < b.z + d; z++) for (let x = b.x; x < b.x + w; x++) if (inMap(x, z)) this.occB[z * MAP + x] = value;
+    for (let z = b.z; z < b.z + d; z++) for (let x = b.x; x < b.x + w; x++) {
+      if (!inMap(x, z)) continue;
+      const i = z * MAP + x;
+      if (value === 0) {
+        if (this.occP[i] === b.uid) this.occP[i] = 0;
+        if (this.occD[i] === b.uid) this.occD[i] = 0;
+        if (this.occB[i] === b.uid) {
+          this.occB[i] = 0;
+          if (this.occD[i]) { this.occB[i] = this.occD[i]; this.occD[i] = 0; }
+        }
+      } else if (def.path) this.occP[i] = value;
+      else if (def.onField && this.occB[i] && this.occB[i] !== value && this.byUid(this.occB[i])?.type === 'plot') this.occD[i] = value;
+      else this.occB[i] = value;
+    }
+  }
+
+  /** The path laid on a tile (it may have an object on top). */
+  pathAt(tx: number, tz: number): PlacedBuilding | undefined {
+    if (!inMap(tx, tz)) return undefined;
+    const uid = this.occP[tz * MAP + tx];
+    return uid ? this.byUid(uid) : undefined;
+  }
+  /** The scarecrow or similar item standing on a field tile. */
+  overlayAt(tx: number, tz: number): PlacedBuilding | undefined {
+    if (!inMap(tx, tz)) return undefined;
+    const uid = this.occD[tz * MAP + tx];
+    return uid ? this.byUid(uid) : undefined;
   }
 
   buildingAt(tx: number, tz: number): PlacedBuilding | undefined {
@@ -118,17 +157,37 @@ export class Game {
     const [w, d] = rotatedSize(def.size, rot);
     for (let tz = z; tz < z + d; tz++) {
       for (let tx = x; tx < x + w; tx++) {
-        if (!this.tileFree(tx, tz, ignoreUid)) return false;
+        if (!this.tileFree(tx, tz, ignoreUid, type)) return false;
       }
     }
     return true;
   }
-  tileFree(tx: number, tz: number, ignoreUid = 0): boolean {
+  /**
+   * Can this tile take `type` (or, with no type, any plain object)? Paths lie in their own layer: they may go under
+   * any object except fields and trees, and any object may stand on a path (fields and trees may not). An item that
+   * may stand on a field can also use a field tile that has nothing on it yet.
+   */
+  tileFree(tx: number, tz: number, ignoreUid = 0, type?: string): boolean {
     if (!inMap(tx, tz)) return false;
     if (!this.unlockedSet.has(chunkOf(tx, tz))) return false;
-    const b = this.occB[tz * MAP + tx];
-    if (b && b !== ignoreUid) return false;
     if (this.occO[tz * MAP + tx]) return false;
+    const def = type ? BUILDING[type] : undefined;
+    const i = tz * MAP + tx;
+    const b = this.occB[i];
+    const onB = b && b !== ignoreUid ? this.byUid(b) : undefined;
+    const solid = !!def && (def.id === 'plot' || !!def.tree);
+    if (def?.path) {
+      const p = this.occP[i];
+      if (p && p !== ignoreUid) return false;
+      return !onB || !(onB.type === 'plot' || BUILDING[onB.type].tree);
+    }
+    const p = this.occP[i];
+    if (solid && p && p !== ignoreUid) return false;
+    if (onB) {
+      if (!def?.onField || onB.type !== 'plot') return false;
+      const o = this.occD[i];
+      return !o || o === ignoreUid;
+    }
     return true;
   }
 

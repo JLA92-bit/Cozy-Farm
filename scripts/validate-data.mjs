@@ -24,6 +24,7 @@ const manifestUrl = new URL('../public/assets/manifest.json', import.meta.url);
 const models = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).models : null;
 const icons = existsSync(manifestUrl) ? JSON.parse(readFileSync(manifestUrl, 'utf8')).icons : null;
 const BUILDING = Object.fromEntries(buildings.map((b) => [b.id, b]));
+for (const b of buildings) if (b.onField && (b.cat !== 'decor' || b.size[0] !== 1 || b.size[1] !== 1)) err(`onField building ${b.id} must be a 1x1 decoration`);
 { const seen = new Set(); for (const b of buildings) { if (seen.has(b.id)) err(`duplicate building id ${b.id}`); seen.add(b.id); } }
 const model = (id, where) => {
   if (!models || !id) return;

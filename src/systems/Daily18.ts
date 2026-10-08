@@ -156,7 +156,7 @@ class DailySystem {
   // ------------------------------------------------------------------ finds
   /** Can a find lie on this tile? Owned, empty ground (no building, path or wild spot). */
   private groundFree(x: number, z: number): boolean {
-    return inMap(x, z) && game.isUnlocked(chunkOf(x, z)) && !game.occO[z * MAP + x] && !game.occB[z * MAP + x];
+    return inMap(x, z) && game.isUnlocked(chunkOf(x, z)) && !game.occO[z * MAP + x] && !game.occB[z * MAP + x] && !game.occP[z * MAP + x];
   }
   /** Can people walk over this tile (to reach a find)? */
   private passable(x: number, z: number): boolean {

@@ -40,6 +40,10 @@
      "text": "Mastery (level 40): grow gold crops and make gold goods to master every crop and workshop, for coins, gems and Mastery Plaques. See Me > Mastery"
     },
     {
+     "icon": "seedling",
+     "text": "Neater farms: lay paths under benches, lanterns and other things, and stand scarecrows, signs, sprinklers and other small items right in your fields"
+    },
+    {
      "icon": "sparkles",
      "text": "New Village Hero title on your farmer screen once you have rebuilt every room of the square"
     }
