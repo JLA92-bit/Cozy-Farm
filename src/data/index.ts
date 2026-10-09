@@ -117,6 +117,8 @@ export const FISHING = fishJson as unknown as {
   rarityChance: Record<FishRarity, number>; times: Record<FishTime, [number, number]>;
   /** Mythic fish only bite once the player has caught a legendary one. */
   mythicNeedsLegendary?: boolean;
+  /** 1.9: chance that a cast (that is not junk) goes to this season's species instead of the year-round ones */
+  seasonBonus?: number;
   bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
   reel: { zone: number[]; fishSpeed: number[]; fillPerSec: number; drainPerSec: number; start: number; assistZone: number };
   recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];

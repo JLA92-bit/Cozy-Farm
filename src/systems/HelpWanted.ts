@@ -47,7 +47,8 @@ class HelpWantedSystem {
       used.add(item);
       const sell = ITEMS[item].sell;
       const star: 0 | 2 = r() < 0.17 ? 2 : 0;
-      const n = star ? 1 : sell > 150 ? 1 + Math.floor(r() * 2) : sell > 60 ? 2 + Math.floor(r() * 2) : 3 + Math.floor(r() * 3);
+      const fishy = ITEMS[item].cat === 'fish';
+      const n = star ? 1 : fishy ? 1 + Math.floor(r() * 2) : sell > 150 ? 1 + Math.floor(r() * 2) : sell > 60 ? 2 + Math.floor(r() * 2) : 3 + Math.floor(r() * 3);
       const coins = Math.round(sell * n * (star ? 3.2 : 1.6));
       out.push({ i, who, item, n, star, coins, points: star ? 20 : 12, gems: star ? 1 : r() < 0.2 ? 1 : 0, done: st.done.includes(i) });
     }

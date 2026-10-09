@@ -7,6 +7,7 @@
   "junkChance": 0.12,
   "rarityChance": { "common": 0.61, "uncommon": 0.26, "rare": 0.09, "legendary": 0.03, "mythic": 0.01 },
   "mythicNeedsLegendary": true,
+  "seasonBonus": 0.08,
   "times": { "morning": [0.88, 0.12], "day": [0.12, 0.6], "dusk": [0.6, 0.72], "night": [0.72, 0.88] },
   "bite": { "waitSec": [2.2, 6], "windowSec": [1.6, 1.4, 1.25, 1.1, 0.95], "triesPerCast": 3 },
   "reel": {

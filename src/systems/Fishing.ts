@@ -118,7 +118,10 @@ class FishingSystem {
       for (const j of FISHING.junk) { x -= j.weight; if (x <= 0) { pick = j; break; } }
       return { kind: 'junk', id: pick.id, def: pick, size: this.size(pick.size ?? [0, 0], rnd) };
     }
-    const pool = this.biting();
+    // 1.9: seasonal species are a small separate chance, so they never thin out the everyday fish that orders ask for
+    const all = this.biting();
+    const seasonal = all.filter((f) => f.season), plain = all.filter((f) => !f.season);
+    const pool = seasonal.length && (!plain.length || rnd() < (FISHING.seasonBonus ?? 0.08)) ? seasonal : plain;
     // pick a rarity tier first (only tiers with something biting), then a species in it
     const tiers = (Object.keys(FISHING.rarityChance) as FishDef['rarity'][]).filter((r) => pool.some((f) => f.rarity === r));
     // 1.8 weather: rare fish bite a little more often in the rain

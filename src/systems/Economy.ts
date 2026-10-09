@@ -117,7 +117,8 @@ export class OrderSystem {
         if (used.has(item)) continue;
         used.add(item);
         const value = ITEMS[item].sell;
-        const cap = Math.max(1, Math.round(maxQty() * (value > 150 ? 0.4 : value > 60 ? 0.7 : 1)));
+        // fish cost casts and bait to get, so orders ask for fewer of them (as the truck does)
+        const cap = Math.max(1, Math.round(maxQty() * (value > 150 ? 0.4 : value > 60 ? 0.7 : 1) * (ITEMS[item].cat === 'fish' ? 0.5 : 1)));
         lines.push({ item, qty: 1 + Math.floor(r() * cap) });
       }
     }

@@ -549,3 +549,7 @@ bundles (and the Collection Book), not an income source: fishing the same fish i
 - **Help Wanted**: 3 requests a day paying 1.6x the barn price of what is asked (3.2x for a gold-star request) plus 12-20 friendship and sometimes a gem. Items must be obtainable now, so it never asks for out-of-season crops.
 - **Heart events** 2/6/10: thank-you 100 / 300+1 gem / 600+3 gems, once each per villager (one-off about 6,000 coins and 24 gems across all six).
 - **Pet find**: once a day, 45% 60-150 coins, 10% 1 gem, the rest a small item (acorns, shells, petals, bait, a rare seed).
+
+### Fish ratios (1.9 fix)
+- Seasonal species were first mixed into the normal tiers, which thinned every everyday common fish by 17-25%. They now have their own 8% chance per non-junk cast (`seasonBonus` in `fish.json`), so sardine, shrimp, crab, mackerel and the other year-round commons are back within about 5% of their 1.8 rates (about 11% of casts each by day at level 20, 13% at night).
+- Orders now ask for half as many fish as other goods of the same price, and Help Wanted asks for 1-2 of a fish, because fish cost casts and bait to get.
