@@ -655,6 +655,12 @@
    "sell": 3,
    "icon": "worm"
   },
+  "lucky_bait": {
+   "name": "Lucky Bait",
+   "cat": "feed",
+   "sell": 8,
+   "icon": "lucky_bait"
+  },
   "fertiliser": {
    "name": "Fertiliser",
    "cat": "feed",

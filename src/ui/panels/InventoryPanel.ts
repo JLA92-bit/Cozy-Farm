@@ -41,7 +41,7 @@ const EMPTY: Record<string, string> = {
 
 const inCat = (id: string, t: string): boolean => {
   const c = ITEMS[id]?.cat;
-  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed') || (t === 'fish' && id === 'bait') || (t === 'finds' && ['forage', 'mineral', 'fossil', 'artifact'].includes(c ?? ''));
+  return t === 'all' || c === t || (t === 'crop' && c === 'fruit') || (t === 'goods' && c === 'feed') || (t === 'fish' && (id === 'bait' || id === 'lucky_bait')) || (t === 'finds' && ['forage', 'mineral', 'fossil', 'artifact'].includes(c ?? ''));
 };
 
 export function openInventory(tab = 'all'): void {

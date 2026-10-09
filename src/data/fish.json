@@ -4,6 +4,7 @@
   "freeCastsPerDay": 5,
   "baitItem": "bait",
   "baitShop": { "qty": 5, "coins": 25 },
+  "luckyBait": { "item": "lucky_bait", "qty": 3, "coins": 120, "needBoost": 1.5, "luckyBoost": 4 },
   "junkChance": 0.12,
   "rarityChance": { "common": 0.61, "uncommon": 0.26, "rare": 0.09, "legendary": 0.03, "mythic": 0.01 },
   "mythicNeedsLegendary": true,

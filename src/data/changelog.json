@@ -1,6 +1,32 @@
 {
  "releases": [
   {
+   "version": "1.9.1",
+   "date": "2026-10-09",
+   "title": "Better Fishing",
+   "icon": "fishing_pole",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fish",
+     "text": "Fish that an order or a Help Wanted request needs now bite more readily, and glow in the Biting list while you fish"
+    },
+    {
+     "icon": "lucky_bait",
+     "text": "New Lucky Bait (tap the golden worm while fishing, 3 for 120 coins): when something you need is biting, it makes that fish about three times more likely. It is only used up when it can help"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Everyday fish are back to their old catch rates (the new seasonal fish have their own small chance), and orders ask for fewer fish"
+    },
+    {
+     "icon": "snowflake",
+     "text": "The season badge on the top bar is smaller so it is no longer cut off. Tap it for the full season"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.9.0",
    "date": "2026-10-08",
    "title": "A Year in the Valley",

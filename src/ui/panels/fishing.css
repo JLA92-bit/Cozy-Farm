@@ -152,3 +152,8 @@
 .card.fish-card.r-rare { border-color: var(--rare); }
 .card.fish-card.r-legendary { border-color: var(--legendary); box-shadow: 0 0 8px rgba(255, 176, 32, .55); }
 .card.fish-card.r-mythic { border-color: var(--mythic); box-shadow: 0 0 10px rgba(214, 120, 255, .65); background: linear-gradient(160deg, #fff6fd, #f1ebff); }
+
+/* 1.9 Lucky Bait chip and the fish you need */
+.fish-lucky { cursor: pointer; pointer-events: auto; border: 2px solid var(--outline); }
+.fish-lucky.armed { background: #ffe58a; box-shadow: 0 0 0 2px #ffb300; }
+.fish-biting .fb-fish.need { border-color: #ffb300; box-shadow: 0 0 0 2px #ffe58a; background: #fff3c4; }

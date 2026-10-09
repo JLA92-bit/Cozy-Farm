@@ -553,3 +553,7 @@ bundles (and the Collection Book), not an income source: fishing the same fish i
 ### Fish ratios (1.9 fix)
 - Seasonal species were first mixed into the normal tiers, which thinned every everyday common fish by 17-25%. They now have their own 8% chance per non-junk cast (`seasonBonus` in `fish.json`), so sardine, shrimp, crab, mackerel and the other year-round commons are back within about 5% of their 1.8 rates (about 11% of casts each by day at level 20, 13% at night).
 - Orders now ask for half as many fish as other goods of the same price, and Help Wanted asks for 1-2 of a fish, because fish cost casts and bait to get.
+
+### Lucky Bait and order-aware fishing (1.9.1)
+- A fish needed by an active order or an unfilled Help Wanted request is weighted 1.5x in the catch roll (tier chances scale with it too). Level 20 by day: mackerel goes from about 11% to about 16% of casts while an order wants it.
+- Lucky Bait (3 for 120 coins at the fishing screen, `luckyBait` in `fish.json`): weight 4x for needed fish, about 31% for the same mackerel. It is used up only when a needed fish is biting at that moment, and handed back if the line is reeled in before a bite. Sells for 8 coins.

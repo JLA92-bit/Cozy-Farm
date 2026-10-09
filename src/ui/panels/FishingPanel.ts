@@ -38,6 +38,10 @@ class FishingController {
   private step: Step = 'idle';
   private t = 0;
   private paid: 'free' | 'bait' | null = null;
+  /** 1.9 Lucky Bait: armed by the player, and whether this cast used one */
+  private luckyArmed = false;
+  private luckyUsed = false;
+  private luckyEl!: HTMLElement;
   private catch: Catch | null = null;
   private tries = 0;
   private nibbles: number[] = [];
@@ -166,7 +170,7 @@ class FishingController {
   close(): void {
     if (!this.el || !this.view) return;
     // reeled in before anything bit: the cast is free
-    if (this.paid && (this.step === 'cast' || this.step === 'wait')) fishing.refund(this.paid);
+    if (this.paid && (this.step === 'cast' || this.step === 'wait')) { fishing.refund(this.paid); if (this.luckyUsed) { game.addItem(FISHING.luckyBait.item, 1); this.luckyUsed = false; } }
     this.paid = null;
     this.catch = null;
     this.holding = false;
@@ -198,9 +202,10 @@ class FishingController {
     this.castsEl = h('div', { class: 'fish-chip' });
     this.timeEl = h('div', { class: 'fish-chip' });
     this.bitingEl = h('div', { class: 'fish-biting', 'aria-label': 'Biting now' });
+    this.luckyEl = h('button', { class: 'fish-chip fish-lucky', type: 'button', onclick: () => this.tapLucky() });
     const close = button('✕', () => this.close(), 'red round fish-close', { 'aria-label': 'Stop fishing' });
     const buy = button([h('span', { class: 'fish-buy-plus outlined' }, '+'), icon('worm'), priceTag(FISHING.baitShop.coins)], () => this.buyBait(), 'small yellow fish-buy', { 'aria-label': `Buy ${FISHING.baitShop.qty} bait`, title: `Buy ${FISHING.baitShop.qty} bait` });
-    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, this.timeEl, this.castsEl, buy, close), this.bitingEl);
+    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, this.timeEl, this.castsEl, this.luckyEl, buy, close), this.bitingEl);
     this.prompt = h('div', { class: 'fish-prompt outlined' });
     this.sub = h('div', { class: 'fish-sub outlined' });
     this.zoneEl = h('div', { class: 'fr-zone' });
@@ -247,8 +252,17 @@ class FishingController {
       this.castsEl.append(icon('worm'), h('span', null, `x${fmt(bait)}`));
       this.castsEl.setAttribute('aria-label', `${free} free casts left today, ${bait} bait`);
     }
+    const lucky = fishing.lucky, wanted = fishing.wantedBiting;
+    const lk = `${lucky}|${this.luckyArmed}|${wanted}`;
+    if (this.luckyEl.dataset.key !== lk) {
+      this.luckyEl.dataset.key = lk;
+      clear(this.luckyEl).append(icon(ITEMS[FISHING.luckyBait.item].icon), h('span', null, lucky ? `x${fmt(lucky)}` : '+'));
+      this.luckyEl.classList.toggle('armed', this.luckyArmed && lucky > 0);
+      this.luckyEl.setAttribute('aria-label', lucky ? `Lucky Bait, ${lucky} left, ${this.luckyArmed ? 'on' : 'off'}` : `Buy ${FISHING.luckyBait.qty} Lucky Bait`);
+      this.luckyEl.title = lucky ? 'Lucky Bait: much better odds of the fish you need for orders' : `Buy ${FISHING.luckyBait.qty} Lucky Bait for ${FISHING.luckyBait.coins} coins`;
+    }
     const time = fishing.time;
-    const key = `${time}|${game.level}|${Object.keys(fishing.st.caught).length}|${fishing.mythicAwake}`;
+    const key = `${time}|${game.level}|${Object.keys(fishing.st.caught).length}|${fishing.mythicAwake}|${[...fishing.needed()].join(',')}`;
     if (key === this.lastTimeKey) return;
     this.lastTimeKey = key;
     clear(this.timeEl).append(icon(TIME_ICON[time]), h('span', { class: 'fc-time' }, TIME_LABEL[time]));
@@ -262,8 +276,26 @@ class FishingController {
       const seen = !!fishing.st.caught[f.id];
       const ic = icon(ITEMS[f.id].icon);
       ic.title = seen ? ITEMS[f.id].name : '???';
-      list.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}` }, ic));
+      const need = fishing.needed().has(f.id);
+      if (need) ic.title = `${ic.title} (you need this one)`;
+      list.append(h('span', { class: `fb-fish ${seen ? '' : 'unseen'} r-${f.rarity}${need ? ' need' : ''}` }, ic));
     }
+  }
+
+  /** Tap the Lucky Bait chip: switch it on or off, or buy some when there is none. */
+  private tapLucky(): void {
+    if (fishing.lucky <= 0) {
+      const { qty, coins } = FISHING.luckyBait;
+      if (!ui.needCoins(coins) || !fishing.buyLucky()) return;
+      this.luckyArmed = true;
+      haptics.play('light');
+      ui.feedback.toast(`+${qty} Lucky Bait`, 'On: it helps when you need a fish for an order', ITEMS[FISHING.luckyBait.item].icon);
+    } else {
+      this.luckyArmed = !this.luckyArmed;
+      audio.play('select', { volume: 0.5 });
+      ui.feedback.floatText(window.innerWidth / 2, window.innerHeight * 0.3, this.luckyArmed ? (fishing.wantedBiting ? 'Lucky Bait on' : 'Lucky Bait on (nothing you need is biting yet)') : 'Lucky Bait off', undefined, '#ffe58a');
+    }
+    this.refreshTop();
   }
 
   private buyBait(): void {
@@ -325,7 +357,15 @@ class FishingController {
       this.setStep('idle');
       return;
     }
-    this.catch = fishing.roll();
+    // Lucky Bait is only used up when something you need is biting, so it is never wasted
+    this.luckyUsed = false;
+    if (this.luckyArmed && fishing.lucky > 0 && fishing.wantedBiting) {
+      game.addItem(FISHING.luckyBait.item, -1);
+      this.luckyUsed = true;
+      if (fishing.lucky <= 0) this.luckyArmed = false;
+    }
+    this.catch = fishing.roll(Math.random, this.luckyUsed);
+    this.refreshTop();
     this.tries = FISHING.bite.triesPerCast;
     view.setPhase('cast');
     void player.walker.char.gesture('interact-right', 'sit');

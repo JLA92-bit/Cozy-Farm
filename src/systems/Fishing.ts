@@ -110,7 +110,7 @@ class FishingSystem {
   }
 
   /** What is on the hook this cast. */
-  roll(rnd: () => number = Math.random): Catch {
+  roll(rnd: () => number = Math.random, lucky = false): Catch {
     if (rnd() < FISHING.junkChance) {
       const total = FISHING.junk.reduce((s, j) => s + j.weight, 0);
       let x = rnd() * total;
@@ -122,18 +122,44 @@ class FishingSystem {
     const all = this.biting();
     const seasonal = all.filter((f) => f.season), plain = all.filter((f) => !f.season);
     const pool = seasonal.length && (!plain.length || rnd() < (FISHING.seasonBonus ?? 0.08)) ? seasonal : plain;
+    // 1.9: fish you need (on an order or a Help Wanted request) bite more readily; Lucky Bait makes that much stronger
+    const need = this.needed();
+    const boost = need.size ? (lucky ? FISHING.luckyBait.luckyBoost : FISHING.luckyBait.needBoost) : 1;
+    const wt = (f: FishDef): number => (need.has(f.id) ? boost : 1);
     // pick a rarity tier first (only tiers with something biting), then a species in it
     const tiers = (Object.keys(FISHING.rarityChance) as FishDef['rarity'][]).filter((r) => pool.some((f) => f.rarity === r));
     // 1.8 weather: rare fish bite a little more often in the rain
     const rain = weatherToday() === 'rain';
-    const chance = (r: FishDef['rarity']) => FISHING.rarityChance[r] * (rain && isRareTier(r) ? RAIN_RARE_FISH : 1) * rarityBoost(r);
+    const tierMean = (r: FishDef['rarity']): number => { const l = pool.filter((f) => f.rarity === r); return l.reduce((a, f) => a + wt(f), 0) / Math.max(1, l.length); };
+    const chance = (r: FishDef['rarity']) => FISHING.rarityChance[r] * (rain && isRareTier(r) ? RAIN_RARE_FISH : 1) * rarityBoost(r) * tierMean(r);
     const total = tiers.reduce((s, r) => s + chance(r), 0);
     let x = rnd() * total;
     let tier = tiers[0];
     for (const r of tiers) { x -= chance(r); if (x <= 0) { tier = r; break; } }
     const list = pool.filter((f) => f.rarity === tier);
-    const def = list[Math.floor(rnd() * list.length)] ?? FISH.sardine;
+    let y = rnd() * list.reduce((a, f) => a + wt(f), 0);
+    let def: FishDef = list[list.length - 1] ?? FISH.sardine;
+    for (const f of list) { y -= wt(f); if (y <= 0) { def = f; break; } }
     return { kind: 'fish', id: def.id, def, size: this.size(def.size, rnd) };
+  }
+
+  /** Fish items wanted right now by an order or an unfilled Help Wanted request. */
+  needed(): Set<string> {
+    const out = new Set<string>();
+    for (const o of game.state.orders?.list ?? []) for (const l of o.lines) if (FISH[l.item] && game.count(l.item) < l.qty) out.add(l.item);
+    const hw = game.state.helpwanted;
+    if (hw?.reqs && hw.day === localDay(game.now())) hw.reqs.forEach((r, i) => { if (FISH[r.item] && !r.star && !hw.done.includes(i) && game.count(r.item) < r.n) out.add(r.item); });
+    return out;
+  }
+  /** Is something you need biting right now (so Lucky Bait would do something)? */
+  get wantedBiting(): boolean { const n = this.needed(); return this.biting().some((f) => n.has(f.id)); }
+  get lucky(): number { return game.count(FISHING.luckyBait.item); }
+  buyLucky(): boolean {
+    const { qty, coins, item } = FISHING.luckyBait;
+    if (!game.spend(coins)) return false;
+    game.addItem(item, qty);
+    game.bus.emit('sfx', { name: 'purchase' });
+    return true;
   }
 
   /** Sizes lean small: big ones are a treat. */

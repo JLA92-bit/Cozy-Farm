@@ -71,6 +71,8 @@ export const ICON_VARIANTS = {
   spider_crab: { base: 'crab', hue: -25, sat: 0.9, light: 0.95 },
   tuna: { base: 'fish', hue: 225, sat: 1.1, light: 0.7 },
   golden_crab: { base: 'crab', hue: 45, sat: 1.2, light: 1.15, badge: 'sparkles' },
+  // 1.9 Lucky Bait (a golden worm)
+  lucky_bait: { base: 'worm', hue: 40, sat: 1.4, light: 1.2, badge: 'sparkles' },
   // 1.9 seasonal fish
   smelt: { base: 'fish', hue: 60, sat: 0.5, light: 1.15 },
   blossom_carp: { base: 'fish', hue: -35, sat: 0.9, light: 1.1, flip: true, badge: 'cherry-blossom' },
