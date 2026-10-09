@@ -44,7 +44,7 @@ export interface Overview {
   generatedAt: string;
   players: number; accounts: number; anonymousNoFarm: number; google: number; cloudSaves: number; snapshots: number;
   pushPlayers: number; pushDevices: number; new1: number; new7: number; new30: number;
-  active1: number; active7: number; active30: number; seen7: number; minutes1: number; minutes7: number; sessions7: number;
+  active1: number; active24?: number; active7: number; active30: number; seen7: number; minutes1: number; minutes7: number; sessions7: number;
   gifts7: number; listingsOpen: number; sales7: number; helps7: number; likes7: number; feedbackNew: number; giftsPending: number;
   hidden: number; lastBackup: string | null; backups: number;
   daily: { day: string; active: number; minutes: number; sessions: number; new: number }[];

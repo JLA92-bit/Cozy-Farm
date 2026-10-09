@@ -1707,6 +1707,8 @@ begin
     'new7',  (select count(*) from public.profiles p where p.created_at > now() - interval '7 days'),
     'new30', (select count(*) from public.profiles p where p.created_at > now() - interval '30 days'),
     'active1',  (select count(distinct d.user_id) from public.player_days d where d.day = today),
+    -- rolling 24 hours (last time each player's farm reported in), not the UTC calendar day
+    'active24', (select count(distinct d.user_id) from public.player_days d where d.last_at > now() - interval '24 hours'),
     'active7',  (select count(distinct d.user_id) from public.player_days d where d.day > today - 7),
     'active30', (select count(distinct d.user_id) from public.player_days d where d.day > today - 30),
     'seen7',    (select count(*) from public.profiles p where p.updated_at > now() - interval '7 days'),
