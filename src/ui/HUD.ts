@@ -93,7 +93,7 @@ export class HUD {
     this.nameEl.textContent = p.name;
     (this.charmEl.lastChild as HTMLElement).textContent = String(buildings.charm());
     const sn = seasons.now();
-    this.seasonEl.replaceChildren(icon(sn.def.icon), h('span', null, `${sn.def.name} ${sn.day}/${SEASONS.daysPerSeason}`));
+    this.seasonEl.replaceChildren(icon(sn.def.icon), h('span', null, `${sn.day}/${SEASONS.daysPerSeason}`));
     this.seasonEl.setAttribute('aria-label', seasons.describe());
     const need = game.xpToNext();
     const pct = p.level >= MAX_LEVEL ? 100 : Math.min(100, (p.xp / Math.max(1, need)) * 100);
