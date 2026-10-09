@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.9.2",
+   "date": "2026-10-09",
+   "title": "No More Seasons",
+   "icon": "sun",
+   "color": "yellow",
+   "highlights": [
+    {
+     "icon": "seedling",
+     "text": "The seasons are gone for now: every crop can be planted all year again, and the season badge and the changing look of the farm have been removed"
+    },
+    {
+     "icon": "ribbon",
+     "text": "Festivals stay, one every 7 days in turn, and the new fish and wild plants are available all year"
+    },
+    {
+     "icon": "coin",
+     "text": "The Glass Frame is gone too. If you bought one, your 900 coins are returned"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.9.1",
    "date": "2026-10-09",
    "title": "Better Fishing",

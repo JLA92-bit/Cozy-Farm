@@ -7,7 +7,6 @@ import { VILLAGERS } from '../data';
 import { Character } from './Character';
 import { museum } from '../systems/Museum';
 import { expeditions } from '../systems/Expeditions';
-import { seasons } from '../systems/Seasons';
 import { rng } from './Procedural';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
@@ -80,9 +79,6 @@ export class WoodsView {
     const g = this.group;
     g.position.set(WOODS_AT.x, 0, WOODS_AT.z);
     const top = grassTop(0, 0, R_ISLAND);
-    // the season's turf colour (same lean as the farm's ground, see Terrain.ts)
-    const look = seasons.now().def.look, lean = new THREE.Color(look.grass), col = top.geometry.attributes.color as THREE.BufferAttribute, c = new THREE.Color();
-    for (let i = 0; i < col.count; i++) { c.setRGB(col.getX(i), col.getY(i), col.getZ(i)).lerp(lean, look.grassMix); col.setXYZ(i, c.r, c.g, c.b); }
     g.add(top, islandBase(0, 0));
     const pond = new THREE.Mesh(pondGeometry(POND.r), assets.vertexMaterial);
     pond.position.set(POND.x, 0.02, POND.z);
@@ -204,7 +200,7 @@ export class WoodsView {
     const glintGeo = new THREE.OctahedronGeometry(0.13, 0);
     // one geometry per wild plant, shared by every spot
     const geos = new Map<string, THREE.BufferGeometry>();
-    for (const list of Object.values(WOODS.foragedBySeason)) for (const e of list) if (!geos.has(e.id)) geos.set(e.id, forageGeometry(e.kind, FORAGE_COLOR[e.id] ?? '#7fd05a', e.id));
+    for (const e of WOODS.foraged) if (!geos.has(e.id)) geos.set(e.id, forageGeometry(e.kind, FORAGE_COLOR[e.id] ?? '#7fd05a', e.id));
     spots.forage.forEach((p, i) => {
       const group = new THREE.Group();
       group.position.set(p.x, 0.02, p.y);

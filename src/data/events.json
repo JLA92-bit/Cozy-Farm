@@ -1,33 +1,33 @@
 {
-  "_comment": "Seasonal events. From 1.9 each one runs for the whole of its valley season (spring_blossom, summer_fair, harvest_festival, winter_wonderland; see eventForDate), so start/end are no longer used and the quest targets are sized for one 7-day season. During an event, harvests can drop the event token; tokens buy limited decorations and cosmetics.",
+  "_comment": "Seasonal events by calendar date (MM-DD, inclusive, may wrap the new year). During an event, harvests can drop the event token; tokens buy limited decorations and cosmetics.",
   "events": [
     { "id": "harvest_festival", "name": "Harvest Festival", "start": "09-20", "end": "11-10", "token": "acorn", "icon": "maple", "color": "#e8833a",
       "blurb": "Autumn is here! Find acorns while harvesting and trade them for festive treats.",
       "quests": [
-        { "text": "Harvest {n} crops", "stat": "crops_harvested", "n": 24, "reward": { "tokens": 10, "coins": 300 } },
-        { "text": "Collect {n} acorns", "stat": "event_tokens", "n": 12, "reward": { "gems": 5 } },
-        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 6, "reward": { "tokens": 15, "crate": "epic" } }
+        { "text": "Harvest {n} crops", "stat": "crops_harvested", "n": 60, "reward": { "tokens": 10, "coins": 300 } },
+        { "text": "Collect {n} acorns", "stat": "event_tokens", "n": 30, "reward": { "gems": 5 } },
+        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 15, "reward": { "tokens": 15, "crate": "epic" } }
       ] },
     { "id": "winter_wonderland", "name": "Winter Wonderland", "start": "12-01", "end": "01-10", "token": "snowflake_token", "icon": "snowflake", "color": "#7cc8ff",
       "blurb": "Snow on the fields! Collect snowflakes for cosy winter decorations.",
       "quests": [
-        { "text": "Harvest {n} crops", "stat": "crops_harvested", "n": 24, "reward": { "tokens": 10, "coins": 300 } },
-        { "text": "Produce {n} goods", "stat": "items_produced", "n": 10, "reward": { "gems": 5 } },
-        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 6, "reward": { "tokens": 15, "crate": "epic" } }
+        { "text": "Harvest {n} crops", "stat": "crops_harvested", "n": 60, "reward": { "tokens": 10, "coins": 300 } },
+        { "text": "Produce {n} goods", "stat": "items_produced", "n": 25, "reward": { "gems": 5 } },
+        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 15, "reward": { "tokens": 15, "crate": "epic" } }
       ] },
     { "id": "spring_blossom", "name": "Spring Blossom", "start": "03-15", "end": "04-30", "token": "petal", "icon": "blossom", "color": "#ff9fc2",
       "blurb": "Blossoms everywhere! Gather petals for springtime decorations.",
       "quests": [
-        { "text": "Plant {n} seeds", "stat": "plants_planted", "n": 24, "reward": { "tokens": 10, "coins": 300 } },
-        { "text": "Place {n} decorations", "stat": "decorations_placed", "n": 3, "reward": { "gems": 5 } },
-        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 6, "reward": { "tokens": 15, "crate": "epic" } }
+        { "text": "Plant {n} seeds", "stat": "plants_planted", "n": 60, "reward": { "tokens": 10, "coins": 300 } },
+        { "text": "Place {n} decorations", "stat": "decorations_placed", "n": 8, "reward": { "gems": 5 } },
+        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 15, "reward": { "tokens": 15, "crate": "epic" } }
       ] },
     { "id": "summer_fair", "name": "Summer Fair", "start": "06-15", "end": "08-31", "token": "seashell", "icon": "sun", "color": "#ffc93c",
       "blurb": "Sunny days at the fair. Collect seashells for beachy decor.",
       "quests": [
-        { "text": "Pick {n} fruit", "stat": "fruit_harvested", "n": 16, "reward": { "tokens": 10, "coins": 300 } },
-        { "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": 8, "reward": { "gems": 5 } },
-        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 6, "reward": { "tokens": 15, "crate": "epic" } }
+        { "text": "Pick {n} fruit", "stat": "fruit_harvested", "n": 40, "reward": { "tokens": 10, "coins": 300 } },
+        { "text": "Sell {n} items at your stall", "stat": "stall_sales", "n": 20, "reward": { "gems": 5 } },
+        { "text": "Complete {n} orders", "stat": "orders_completed", "n": 15, "reward": { "tokens": 15, "crate": "epic" } }
       ] }
   ]
 }

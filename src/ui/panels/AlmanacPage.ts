@@ -1,41 +1,36 @@
-import { h, icon, itemIcon, clear } from '../dom';
+import { h, icon, clear } from '../dom';
 import type { Panel } from '../Panel';
-import { CROP, FESTIVALS, FISHING, SEASONS, WOODS, type SeasonId } from '../../data';
+import { CYCLE, FESTIVALS, type FestivalSlot } from '../../data';
 import { game } from '../../systems/Game';
-import { seasons } from '../../systems/Seasons';
+import { cycleNow, cycleOnDay } from '../../systems/FestivalCycle';
 import { roomDone } from '../../systems/RestorationEffects';
 import { gameConfig } from '../../online/GameConfig';
+import { dayNumber } from '../../systems/Weather';
+import { localDay } from '../../systems/Progression';
 import './woods.css';
 
-/** The Almanac (1.9): the year on one page. Four season cards and the ribbon wall. */
-export function renderAlmanac(p: Panel): void {
-  clear(p.body);
-  const now = seasons.now();
-  p.body.append(h('div', { class: 'al-head' }, icon(now.def.icon, 'al-icon'),
-    h('div', null, h('div', { class: 'al-title' }, `${now.def.name}, day ${now.day} of ${SEASONS.daysPerSeason}`),
-      h('div', { class: 'muted' }, `The valley's year has ${SEASONS.order.length * SEASONS.daysPerSeason} days. The last day of every season is a festival.${roomDone('treasury') ? ` Market day is ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][gameConfig.marketDay ?? 6]}.` : ''}`))));
-  for (const sid of SEASONS.order) p.body.append(card(sid, sid === now.id));
-  // the ribbon wall
-  const wall = h('div', { class: 'al-ribbons' });
-  SEASONS.order.forEach((sid, i) => {
-    const f = FESTIVALS.festivals[sid];
-    const got = Object.keys(game.state.festivals?.done ?? {}).filter((k) => Number(k.split(':')[1]) === i && (game.state.festivals!.done[k] ?? 0) > 0).length;
-    wall.append(h('div', { class: `al-ribbon ${got ? 'got' : ''}` }, icon('ribbon'), h('div', null, f.ribbon), h('div', { class: 'muted' }, got ? `x${got}` : 'not yet')));
-  });
-  p.body.append(h('div', { class: 'section-title' }, 'Ribbon wall'), wall);
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** Days from today until a festival slot next falls (0 = today). */
+function daysUntil(slot: FestivalSlot): number {
+  const today = dayNumber(localDay(game.now()));
+  for (let d = 0; d < CYCLE.slots.length * CYCLE.festivalEvery; d++) { const c = cycleOnDay(today + d); if (c.festival && c.slot === slot) return d; }
+  return 0;
 }
 
-function card(sid: SeasonId, current: boolean): HTMLElement {
-  const def = SEASONS.seasons[sid];
-  const crops = Object.keys(CROP).filter((c) => !SEASONS.yearRound.includes(c) && (SEASONS.crops[c] ?? []).includes(sid) && CROP[c].level <= game.level);
-  const fish = FISHING.species.filter((f) => f.season === sid).map((f) => f.id);
-  const forage = WOODS.foragedBySeason[sid].map((e) => e.id);
-  const found = [...fish, ...forage].filter((i) => game.state.collection[`item:${i}`]).length;
-  const f = FESTIVALS.festivals[sid];
-  const row = (label: string, ids: string[]) => ids.length ? h('div', { class: 'al-row' }, h('span', { class: 'al-label' }, label), ...ids.map((i) => itemIcon(i, 'al-item'))) : null;
-  return h('div', { class: `card al-season ${current ? 'now' : ''}`, style: `--sc:${def.color}` },
-    h('div', { class: 'row between' }, h('div', { class: 'al-name' }, icon(def.icon, 'al-icon'), def.name, current ? h('span', { class: 'al-now' }, 'Now') : null), h('div', { class: 'muted' }, `${found}/${fish.length + forage.length} finds`)),
-    h('div', { class: 'muted' }, def.blurb),
-    row('Crops', crops), row('Fish', fish), row('Forage', forage),
-    h('div', { class: 'al-row' }, icon(f.icon, 'al-item'), h('span', null, `${f.name} on day ${SEASONS.daysPerSeason}`)));
+/** The Almanac (1.9): the festival calendar and the ribbon wall. */
+export function renderAlmanac(p: Panel): void {
+  clear(p.body);
+  const now = cycleNow();
+  p.body.append(h('div', { class: 'al-head' }, icon('ribbon', 'al-icon'),
+    h('div', null, h('div', { class: 'al-title' }, now.festival ? `${FESTIVALS.festivals[now.slot].name} is today!` : `Next festival in ${now.daysLeft} ${now.daysLeft === 1 ? 'day' : 'days'}`),
+      h('div', { class: 'muted' }, `A festival comes round every ${CYCLE.festivalEvery} days, one of four in turn.${roomDone('treasury') ? ` Market day is ${WEEKDAYS[gameConfig.marketDay ?? 6]}.` : ''}`))));
+  for (const slot of [...CYCLE.slots].sort((a, b) => daysUntil(a) - daysUntil(b))) {
+    const f = FESTIVALS.festivals[slot], d = daysUntil(slot);
+    const got = Object.keys(game.state.festivals?.done ?? {}).filter((k) => CYCLE.slots[Number(k.split(':')[1])] === slot && (game.state.festivals!.done[k] ?? 0) > 0).length;
+    p.body.append(h('div', { class: `card al-season ${d === 0 ? 'now' : ''}`, style: '--sc:#e8833a' },
+      h('div', { class: 'row between' }, h('div', { class: 'al-name' }, icon(f.icon, 'al-icon'), f.name, d === 0 ? h('span', { class: 'al-now' }, 'Today') : null), h('div', { class: 'muted' }, d === 0 ? '' : `in ${d} ${d === 1 ? 'day' : 'days'}`)),
+      h('div', { class: 'muted' }, f.blurb),
+      h('div', { class: 'al-row' }, icon('ribbon', 'al-item'), h('span', null, got ? `${f.ribbon} won ${got > 1 ? `x${got}` : ''}` : `${f.ribbon}: not won yet`))));
+  }
 }

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { ITEMS, WOODS } from '../data';
 import { game } from '../systems/Game';
 import { woods } from '../systems/Woods';
-import { seasons } from '../systems/Seasons';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { MODELS, WoodsView, type WoodsHit } from '../world/WoodsView';
@@ -213,11 +212,10 @@ function bannerText(): string { return woods.describe(); }
 
 function makeBanner(): HTMLElement {
   const home = button([icon('house'), h('span', null, 'Back to the farm')], () => void leaveWoods(), 'green visit-home', { 'aria-label': 'Back to your farm' });
-  const s = seasons.now();
   return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner wd-banner' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Wild Woods'),
-      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon(s.def.icon), bannerText()))),
+      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon('mushroom'), bannerText()))),
     home);
 }
 

@@ -272,12 +272,12 @@ releases?.forEach((r, i) => {
   }
 }
 
-// 1.9 woods: every item exists with the right category, every season has forage
+// 1.9 woods: every item exists with the right category
 {
-  const wd = read('woods.json'), sd = read('seasons.json'), items = read('items.json').items;
-  for (const season of sd.order) {
-    const list = wd.foragedBySeason[season] ?? [];
-    if (list.length < 3) err(`woods: ${season} needs at least 3 forage items`);
+  const wd = read('woods.json'), items = read('items.json').items;
+  {
+    const list = wd.foraged ?? [];
+    if (list.length < 3) err('woods: needs at least 3 forage items');
     for (const e of list) {
       if (!items[e.id] || items[e.id].cat !== 'forage') err(`woods: forage ${e.id} must be an item with cat "forage"`);
       if (!['leaf', 'flower', 'berry', 'mushroom', 'nut', 'root'].includes(e.kind)) err(`woods: forage ${e.id} has unknown kind ${e.kind}`);
@@ -313,28 +313,15 @@ if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);
 }
-// 1.9 seasons: every crop is year-round or has seasons, every season keeps at least 12 crops open, epoch is a Monday
+// 1.9 festival cycle: the epoch is a Monday, one slot per festival
 {
-  const sd = read('seasons.json');
-  const cropIds = crops.map((c) => c.id);
-  for (const id of sd.yearRound) if (!cropIds.includes(id)) err(`seasons: year-round crop ${id} does not exist`);
-  for (const [id, list] of Object.entries(sd.crops)) {
-    if (!cropIds.includes(id)) err(`seasons: crop ${id} does not exist`);
-    if (sd.yearRound.includes(id)) err(`seasons: crop ${id} is both year-round and seasonal`);
-    if (!list.length || list.some((x) => !sd.order.includes(x))) err(`seasons: crop ${id} has bad seasons`);
-  }
-  for (const id of cropIds) if (!sd.yearRound.includes(id) && !sd.crops[id]) err(`seasons: crop ${id} has no season`);
-  for (const season of sd.order) {
-    const open = cropIds.filter((id) => sd.yearRound.includes(id) || (sd.crops[id] ?? []).includes(season)).length;
-    if (open < 12) err(`seasons: only ${open} crops open in ${season} (need 12)`);
-    if (!sd.seasons[season]) err(`seasons: missing season ${season}`);
-  }
-  if (new Date(sd.epoch + 'T00:00:00Z').getUTCDay() !== 1) err('seasons: epoch must be a Monday');
-  for (const [id, f] of Object.entries(sd.seasons)) if (!f.look?.grass || !f.look?.pollen || !f.look?.sky) err(`seasons: ${id} needs a look`);
+  const cd = read('cycle.json');
+  if (new Date(cd.epoch + 'T00:00:00Z').getUTCDay() !== 1) err('cycle: epoch must be a Monday');
+  if (!(cd.festivalEvery >= 2)) err('cycle: festivalEvery must be at least 2');
 }
-// 1.9 festivals: one per season, prizes exist, stars ascend
+// 1.9 festivals: one per slot of the cycle, prizes exist, stars ascend
 {
-  const fd = read('festivals.json'), sd = read('seasons.json');
+  const fd = read('festivals.json'), sd = { order: read('cycle.json').slots };
   const bIds = buildings.map((b) => b.id), itemIds = Object.keys(read('items.json').items);
   for (const season of sd.order) {
     const f = fd.festivals[season];

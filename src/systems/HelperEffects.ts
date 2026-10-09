@@ -30,14 +30,6 @@ export function sprinklerGrowMult(plot: PlacedBuilding): number {
   return 1;
 }
 
-/** A built glass frame stands on this field (1.9): the field ignores the seasons. */
-export function underGlass(plot: PlacedBuilding): boolean {
-  const now = game.now();
-  return game.state.buildings.some((g) => g.type === 'glass_frame' && isBuilt(g, now) && g.x === plot.x && g.z === plot.z);
-}
-/** Does the farm own any glass frame? (the seed tray then lets off-season crops be picked) */
-export const hasGlass = (): boolean => game.state.buildings.some((g) => g.type === 'glass_frame');
-
 /** Animal homes in reach of an auto-feeder. */
 export function homesInReach(feeder: PlacedBuilding): PlacedBuilding[] {
   const range = HELPERS.autoFeederRange + reachBonus();

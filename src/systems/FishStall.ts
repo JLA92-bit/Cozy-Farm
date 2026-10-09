@@ -5,7 +5,6 @@
  * only what was bought today is saved. Marlow trades only in his hours (`isOpen`). Legendary and mythic fish are never for sale.
  */
 import { FISH, FISHING, FISHSTALL, ITEMS } from '../data';
-import { seasons } from './Seasons';
 import { game } from './Game';
 import { localDay } from './Progression';
 import { roomDone } from './RestorationEffects';
@@ -55,7 +54,7 @@ class FishStallSystem {
     const day = this.day(now);
     const r = rng(hashString(`${game.state.seed}:fishstall:${day}`));
     const pierOpen = roomDone('pier');
-    const can = (f: (typeof FISHING.species)[number]) => f.level <= game.level && (f.spot !== 'pier' || pierOpen) && (!f.season || f.season === seasons.id);
+    const can = (f: (typeof FISHING.species)[number]) => f.level <= game.level && (f.spot !== 'pier' || pierOpen);
     const pick = <T,>(list: T[], n: number): T[] => {
       const a = [...list];
       const out: T[] = [];

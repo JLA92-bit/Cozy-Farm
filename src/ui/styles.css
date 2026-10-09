@@ -1016,11 +1016,4 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .hero-title svg, .hero-title img { width: 24px; height: 24px; }
 .hero-title small { flex-basis: 100%; font-weight: 600; font-size: 13px; opacity: .8; }
 
-/* 1.9 seasons: seed tray tags and the top-bar season pill */
-.tray-item.offseason { opacity: .55; filter: grayscale(.7); }
-.tray-item .tseason { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-.tray-item .tseason img, .tray-item .tseason svg { width: 18px; height: 18px; }
-.tray-item .tseason.in { filter: drop-shadow(0 0 3px #fff7); }
-.season-pill { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px 0 2px; border-radius: 10px; background: rgba(255,255,255,.85); border: 2px solid var(--outline); font-size: 11px; line-height: 1.5; white-space: nowrap; flex: 0 0 auto; pointer-events: auto; cursor: pointer; transition: transform .3s cubic-bezier(.34, 1.9, .6, 1), scale .3s cubic-bezier(.34, 1.9, .6, 1); }
-.season-pill:active { scale: .92; transition-duration: .06s; }
-.season-pill img, .season-pill svg { width: 16px; height: 16px; }
+.tray-item .tray-item .tray-item 

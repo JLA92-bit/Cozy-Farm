@@ -1,5 +1,4 @@
-import { FISH, FISHING, ITEMS, SEASONS, type FishDef, type FishTime, type JunkDef } from '../data';
-import { seasons } from './Seasons';
+import { FISH, FISHING, ITEMS, type FishDef, type FishTime, type JunkDef } from '../data';
 import { game } from './Game';
 import { localDay } from './Progression';
 import { RAIN_RARE_FISH, weatherToday } from './Weather';
@@ -106,7 +105,7 @@ class FishingSystem {
   /** Species that can bite right now (level and time of day; mythic ones once awake). */
   biting(time = this.time): FishDef[] {
     const awake = this.mythicAwake;
-    return FISHING.species.filter((f) => (f.spot ?? 'dock') === this.spot && (!f.season || f.season === seasons.id) && f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
+    return FISHING.species.filter((f) => (f.spot ?? 'dock') === this.spot && f.level <= game.level && f.times.includes(time) && (awake || f.rarity !== 'mythic'));
   }
 
   /** What is on the hook this cast. */
@@ -118,10 +117,10 @@ class FishingSystem {
       for (const j of FISHING.junk) { x -= j.weight; if (x <= 0) { pick = j; break; } }
       return { kind: 'junk', id: pick.id, def: pick, size: this.size(pick.size ?? [0, 0], rnd) };
     }
-    // 1.9: seasonal species are a small separate chance, so they never thin out the everyday fish that orders ask for
+    // 1.9: the extra kinds are a small separate chance, so they never thin out the everyday fish that orders ask for
     const all = this.biting();
-    const seasonal = all.filter((f) => f.season), plain = all.filter((f) => !f.season);
-    const pool = seasonal.length && (!plain.length || rnd() < (FISHING.seasonBonus ?? 0.08)) ? seasonal : plain;
+    const extra = all.filter((f) => f.extra), plain = all.filter((f) => !f.extra);
+    const pool = extra.length && (!plain.length || rnd() < (FISHING.extraChance ?? 0.08)) ? extra : plain;
     // 1.9: fish you need (on an order or a Help Wanted request) bite more readily; Lucky Bait makes that much stronger
     const need = this.needed();
     const boost = need.size ? (lucky ? FISHING.luckyBait.luckyBoost : FISHING.luckyBait.needBoost) : 1;
@@ -218,16 +217,15 @@ class FishingSystem {
   /** Common fish that bite at any time of day and were caught before: fair game for orders and the truck. */
   orderable(): string[] {
     if (!this.unlocked) return [];
-    return FISHING.species.filter((f) => f.rarity === 'common' && (!f.season || f.season === seasons.id) && f.level <= game.level && f.times.length === TIME_ORDER.length && this.st.caught[f.id]).map((f) => f.id);
+    return FISHING.species.filter((f) => f.rarity === 'common' && !f.extra && f.level <= game.level && f.times.length === TIME_ORDER.length && this.st.caught[f.id]).map((f) => f.id);
   }
 
   /** Where and when a fish bites, for hints: "Night, level 12". */
   whenText(id: string): string {
     const f = FISH[id];
     if (!f) return 'Fished up at the dock';
-    const sn = f.season ? `${SEASONS.seasons[f.season].name} only. ` : '';
-    if (f.spot === 'pier') return `${sn}At Old Tom's Pier, ${f.times.length === TIME_ORDER.length ? 'any time' : f.times.map((t) => TIME_LABEL[t].toLowerCase()).join(', ')}, from level ${f.level}`;
-    const when = sn + (f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', '));
+    if (f.spot === 'pier') return `At Old Tom's Pier, ${f.times.length === TIME_ORDER.length ? 'any time' : f.times.map((t) => TIME_LABEL[t].toLowerCase()).join(', ')}, from level ${f.level}`;
+    const when = f.times.length === TIME_ORDER.length ? 'Any time' : f.times.map((t) => TIME_LABEL[t]).join(', ');
     if (f.level > game.level) return `${when}, from level ${f.level}`;
     return f.rarity === 'mythic' && !this.mythicAwake ? `${when}, after a legendary catch` : when;
   }

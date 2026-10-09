@@ -88,9 +88,7 @@ export interface SaveData {
   merchant: { bought: Record<string, number> };
   /** 1.8.7 Marlow Pike's fish stall: what was bought on which local day (stock refreshes each day) */
   fishstall?: { day: string; bought: Record<string, number> };
-  /** 1.9 seasons: the last season a letter was sent for ("year:season") */
-  seasons?: { letter: string };
-  /** 1.9 festival days: best stars per festival ("year:season") and the stars already collected */
+  /** 1.9 festival days: best stars per festival ("cycle:week") and the stars already collected */
   /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */
   woods?: WoodsState;
   /** 1.9 the day the pet's find was last claimed */

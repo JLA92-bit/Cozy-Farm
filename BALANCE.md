@@ -531,19 +531,11 @@ always well above barn value, so fish cannot be bought and sold for profit. Stoc
 seeded by the farm seed and the trading night; only that night's purchases are saved. It is a convenience for orders and
 bundles (and the Collection Book), not an income source: fishing the same fish is always cheaper in coins and pays XP.
 
-## 1.9 Seasons (stage 1)
+## 1.9 Extra fish, Festivals, Woods, Museum, Expeditions, Help Wanted
 
-- 28-day year shared by all players (7 days per season, local calendar date from Monday 2026-01-05). Data: `src/data/seasons.json`.
-- Wheat, corn, carrot, turnip grow all year. Every other crop is plantable only in its seasons (each season keeps at least 12 crops open).
-- In season: grow time x0.9, +5% silver, +3% gold chance. Crops already planted keep growing across a season change.
-- Shop/orders only ask for crops that are in season or already held.
-
-## 1.9 Glass Frame, seasonal fish, Festivals, Woods, Museum, Expeditions, Help Wanted
-
-- **Glass Frame** (level 22, 900 coins): stands on a 2x2 field; that field ignores the season rule and still gets the in-season grow and quality bonus. Seeds still cost the normal price.
-- **Seasonal fish**: 16 species (2 dock + 2 pier per season) bite only in their season. Sell 11-60 coins, so about as valuable as the all-year fish of the same tier. Fish Collector medal top tier raised to 45 kinds.
-- **Festivals** (last day of each season): best of any tries counts, prize paid once. 1 star 300 coins; 2 stars 600 coins + 3 gems + decoration; 3 stars 1000 coins + 6 gems + decoration + a small extra (rare seeds / bait / 3 gems). Four per year, so about 4k coins and 40 gems a year at most.
-- **Woods** (level 14): up to 14 forage spots a day (75% active), sell 9-28 coins each (gold star x1.5); 4 digs a day (6 with Deep Digger). Dig table: 58% mineral (30-120), 20% fossil (70-140), 12% artifact (110-500), 10% clay. About 300-600 coins of finds a day if every spot is used.
+- **Extra fish**: 16 extra kinds (marked `extra` in `fish.json`) share a separate 8% chance per non-junk cast. They sell 11-60 coins, about the same as the all-year fish of their tier. Fish Collector medal top tier is 45 kinds.
+- **Festivals** (every 7th day, the four in turn): best of any tries counts, prize paid once. 1 star 300 coins; 2 stars 600 coins + 3 gems + decoration; 3 stars 1000 coins + 6 gems + decoration + a small extra (rare seeds / bait / 3 gems). Four per year, so about 4k coins and 40 gems a year at most.
+- **Woods** (level 14): up to 14 forage spots a day (all twelve plants, all year) (75% active), sell 9-28 coins each (gold star x1.5); 4 digs a day (6 with Deep Digger). Dig table: 58% mineral (30-120), 20% fossil (70-140), 12% artifact (110-500), 10% clay. About 300-600 coins of finds a day if every spot is used.
 - **Museum**: 44 pieces over six shelves. Shelf rewards total 12,800 coins and 43 gems, Curator adds 6,000 coins, 25 gems and a Grand Fountain. Pieces are given away for good, so the cost is their sell value (about 6,000 coins in all).
 - **Expeditions** (2 places): 2 h = 3 finds, 6 h = 6, 12 h = 10, weighted to minerals. Roughly the value of the player digging themselves, but no tapping. Friends return sooner (4 hearts x0.85, 8 hearts x0.75).
 - **Help Wanted**: 3 requests a day paying 1.6x the barn price of what is asked (3.2x for a gold-star request) plus 12-20 friendship and sometimes a gem. Items must be obtainable now, so it never asks for out-of-season crops.
@@ -557,3 +549,6 @@ bundles (and the Collection Book), not an income source: fishing the same fish i
 ### Lucky Bait and order-aware fishing (1.9.1)
 - A fish needed by an active order or an unfilled Help Wanted request is weighted 1.5x in the catch roll (tier chances scale with it too). Level 20 by day: mackerel goes from about 11% to about 16% of casts while an order wants it.
 - Lucky Bait (3 for 120 coins at the fishing screen, `luckyBait` in `fish.json`): weight 4x for needed fish, about 31% for the same mackerel. It is used up only when a needed fish is biting at that moment, and handed back if the line is reeled in before a bite. Sells for 8 coins.
+
+### Seasons removed (1.9.2)
+The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season pages) were removed. Crops grow all year at their normal times and quality chances. Anyone who had bought a Glass Frame is refunded 900 coins each when their save loads. The token events are back on their real-date windows.

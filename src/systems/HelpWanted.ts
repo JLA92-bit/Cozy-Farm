@@ -2,12 +2,11 @@
  * 1.9 Help Wanted: a board of three villager requests each day ("bring me 3 blueberries", "a gold-star cake"). What is
  * asked for comes from the farm seed and the date, so it is the same on every device; only which ones were done today
  * is saved. A request pays coins, friendship with whoever asked and now and then a gem. Items must be things the
- * player can really get now (in-season crops, goods they can make, forage once they have been to the woods).
+ * player can really get now (crops, goods they can make, forage once they have been to the woods).
  */
 import { ITEMS, ITEM_LEVEL, VILLAGER, VILLAGERS, WOODS } from '../data';
 import { game } from './Game';
 import { saves } from './Save';
-import { seasons } from './Seasons';
 import { obtainableItems } from './Economy';
 import { localDay } from './Progression';
 import { village } from './Village';
@@ -33,7 +32,7 @@ class HelpWantedSystem {
     const st = this.st();
     // fixed for the day once made, so what you can currently obtain cannot change a request half way through
     if (st.reqs?.length === PER_DAY) return st.reqs.map((r, i) => ({ ...r, i, done: st.done.includes(i) }));
-    const pool = [...obtainableItems(), ...(woods.visited ? WOODS.foragedBySeason[seasons.id].map((e) => e.id) : [])].filter((i) => ITEMS[i]);
+    const pool = [...obtainableItems(), ...(woods.visited ? WOODS.foraged.map((e) => e.id) : [])].filter((i) => ITEMS[i]);
     if (!pool.length) return [];
     const out: HelpRequest[] = [];
     const used = new Set<string>();

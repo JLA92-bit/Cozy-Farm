@@ -157,8 +157,6 @@ export class Game {
   canPlace(type: string, x: number, z: number, rot: number, ignoreUid = 0): boolean {
     const def = BUILDING[type];
     const [w, d] = rotatedSize(def.size, rot);
-    // 1.9: a glass frame covers exactly one field, so it must sit square on one
-    if (type === 'glass_frame' && !this.state.buildings.some((b) => b.type === 'plot' && b.x === x && b.z === z)) return false;
     for (let tz = z; tz < z + d; tz++) {
       for (let tx = x; tx < x + w; tx++) {
         if (!this.tileFree(tx, tz, ignoreUid, type)) return false;

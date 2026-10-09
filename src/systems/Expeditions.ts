@@ -6,7 +6,6 @@
 import { EXPEDITIONS, VILLAGER, WOODS, type FindKind } from '../data';
 import { game } from './Game';
 import { saves } from './Save';
-import { seasons } from './Seasons';
 import { village } from './Village';
 import { woods } from './Woods';
 import { logEvent } from '../online/Events';
@@ -63,7 +62,7 @@ class ExpeditionSystem {
     for (let i = 0; i < trip.items; i++) {
       let x = r() * total, kind: FindKind | 'forage' = 'mineral';
       for (const e of w) { x -= e.w; if (x <= 0) { kind = e.k; break; } }
-      const table = kind === 'forage' ? WOODS.foragedBySeason[seasons.id].map((e) => ({ id: e.id, w: e.w })) : WOODS.finds[kind];
+      const table = kind === 'forage' ? WOODS.foraged.map((e) => ({ id: e.id, w: e.w })) : WOODS.finds[kind];
       let y = r() * table.reduce((a, b) => a + b.w, 0), item = table[table.length - 1].id;
       for (const e of table) { y -= e.w; if (y <= 0) { item = e.id; break; } }
       got.set(item, (got.get(item) ?? 0) + 1);

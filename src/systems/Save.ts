@@ -61,7 +61,6 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.skills = repairSkills(s.skills);
   out.restoration = repairRestoration(s.restoration);
   out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
-  out.seasons = isObj(s.seasons) && typeof s.seasons.letter === 'string' ? { letter: s.seasons.letter } : undefined;
   out.festivals = isObj(s.festivals) ? { best: countMap(s.festivals.best, () => true), done: countMap(s.festivals.done, () => true), seen: typeof s.festivals.seen === 'string' ? s.festivals.seen : '', played: countMap(s.festivals.played, () => true) } : undefined;
   out.woods = isObj(s.woods) ? {
     day: typeof s.woods.day === 'string' ? s.woods.day : '',
@@ -172,7 +171,10 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   const uids = new Set<number>();
   let maxUid = 0;
   const fixed: PlacedBuilding[] = [];
+  // the Glass Frame (1.9) was removed with the seasons: anyone who bought one is paid back what it cost
+  let glassRefund = 0;
   for (const b of Array.isArray(out.buildings) ? out.buildings : []) {
+    if (isObj(b) && b.type === 'glass_frame') { glassRefund++; continue; }
     if (!isObj(b) || !BUILDING[b.type] || !Number.isFinite(b.x) || !Number.isFinite(b.z)) { dropped.push(`building ${isObj(b) ? b.type : '?'}`); continue; }
     b.rot = ((Math.floor(finite(b.rot, 0)) % 4) + 4) % 4;
     b.level = Math.max(1, Math.floor(finite(b.level, 1, 1)));
@@ -206,6 +208,8 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   });
 
   out.inventory = countMap(out.inventory, (k) => !!ITEMS[k]);
+  if (isObj(out.storage) && Number.isFinite((out.storage as Record<string, unknown>).glass_frame)) glassRefund += Math.max(0, Math.floor((out.storage as Record<string, number>).glass_frame));
+  if (glassRefund) p.coins += glassRefund * 900;
   out.storage = countMap(out.storage, (k) => !!BUILDING[k]);
   out.land.unlocked = strArr(out.land.unlocked);
   if (!out.land.unlocked.length) out.land.unlocked = [...base.land.unlocked];

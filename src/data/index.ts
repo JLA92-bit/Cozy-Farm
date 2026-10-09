@@ -11,7 +11,7 @@ import expeditionsJson from './expeditions.json';
 import schedulesJson from './schedules.json';
 import woodsJson from './woods.json';
 import festivalsJson from './festivals.json';
-import seasonsJson from './seasons.json';
+import cycleJson from './cycle.json';
 import animalsJson from './animals.json';
 import itemsJson from './items.json';
 import recipesJson from './recipes.json';
@@ -109,7 +109,7 @@ export const LAND = landJson;
 
 export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
 export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary' | 'mythic';
-export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number; /** where it bites: the dock (default) or Old Tom's Pier (1.8.5) */ spot?: 'dock' | 'pier'; /** 1.9: only bites in this season */ season?: SeasonId }
+export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number; /** where it bites: the dock (default) or Old Tom's Pier (1.8.5) */ spot?: 'dock' | 'pier'; /** 1.9: an extra kind of fish that shares a small separate chance per cast */ extra?: boolean }
 export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
 /** Fishing at the dock (fish.json). */
 export const FISHING = fishJson as unknown as {
@@ -117,8 +117,8 @@ export const FISHING = fishJson as unknown as {
   rarityChance: Record<FishRarity, number>; times: Record<FishTime, [number, number]>;
   /** Mythic fish only bite once the player has caught a legendary one. */
   mythicNeedsLegendary?: boolean;
-  /** 1.9: chance that a cast (that is not junk) goes to this season's species instead of the year-round ones */
-  seasonBonus?: number;
+  /** 1.9: chance that a cast (that is not junk) goes to the extra kinds instead of the everyday ones */
+  extraChance?: number;
   /** 1.9: a fish on one of your orders or Help Wanted requests bites needBoost times as readily; with Lucky Bait luckyBoost times */
   luckyBait: { item: string; qty: number; coins: number; needBoost: number; luckyBoost: number };
   bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
@@ -186,13 +186,9 @@ export interface CraftRecipe { id: string; name: string; icon: string; kind: 'bu
 export const CRAFT_RECIPES = craftingJson.recipes as unknown as CraftRecipe[];
 export const HELPERS = craftingJson.helpers;
 
-/** 1.9 Seasons (seasons.json). */
-export type SeasonId = 'spring' | 'summer' | 'autumn' | 'winter';
-export interface SeasonDef { name: string; icon: string; color: string; blurb: string; /** how the farm looks: grass and sky tints (vertex colours and lights only) and the colour of the drifting motes */ look: { grass: string; grassMix: number; pollen: string; sky: string; skyMix: number } }
-export const SEASONS = seasonsJson as unknown as {
-  epoch: string; daysPerSeason: number; order: SeasonId[]; seasons: Record<SeasonId, SeasonDef>;
-  bonus: { growMult: number; silver: number; gold: number }; yearRound: string[]; crops: Record<string, SeasonId[]>;
-};
+/** 1.9 festival rhythm (cycle.json): one festival every 7 days, the four festivals in turn. The slot names are only keys. */
+export type FestivalSlot = 'spring' | 'summer' | 'autumn' | 'winter';
+export const CYCLE = cycleJson as unknown as { epoch: string; festivalEvery: number; slots: FestivalSlot[] };
 
 /** 1.8.7 Marlow Pike's fish stall (fishstall.json). */
 export const FISHSTALL = fishstallJson;
@@ -250,23 +246,23 @@ export function itemXp(item: string): number {
   return Math.max(1, Math.round((ITEMS[item]?.sell ?? 1) / ECONOMY.orders.xpDivisor));
 }
 
-/** 1.9 Festival Days (festivals.json): one per season, on its last day. */
+/** 1.9 Festival Days (festivals.json): one every 7 days, the four in turn. */
 export interface FestivalDef {
   id: string; name: string; icon: string; game: 'eggs' | 'derby' | 'fair' | 'feast'; ribbon: string; blurb: string; rules: string;
   stars: [number, number, number]; seconds?: number; eggs?: number; bushes?: number; casts?: number; dishes?: number;
   prize: { decor: string; item?: { id: string; n: number }; gems?: number };
 }
 export const FESTIVALS = festivalsJson as unknown as {
-  festivals: Record<SeasonId, FestivalDef>; prizes: { coins: number; gems?: number }[]; feastPoints: { love: number; like: number; other: number };
+  festivals: Record<FestivalSlot, FestivalDef>; prizes: { coins: number; gems?: number }[]; feastPoints: { love: number; like: number; other: number };
 };
 
-/** 1.9 The Wild Woods (woods.json): seasonal forage, dig finds, how many spots there are each day. */
+/** 1.9 The Wild Woods (woods.json): wild forage, dig finds, how many spots there are each day. */
 export type ForageKind = 'leaf' | 'flower' | 'berry' | 'mushroom' | 'nut' | 'root';
 export type FindKind = 'mineral' | 'fossil' | 'artifact';
 export const WOODS = woodsJson as unknown as {
   level: number; forage: { spots: number; chance: number };
   dig: { spots: number; perDay: number; table: Record<FindKind | 'clay', number>; luckyMult: number }; clayItem: string;
-  foragedBySeason: Record<SeasonId, { id: string; kind: ForageKind; w: number }[]>;
+  foraged: { id: string; kind: ForageKind; w: number }[];
   finds: Record<FindKind, { id: string; w: number }[]>;
 };
 

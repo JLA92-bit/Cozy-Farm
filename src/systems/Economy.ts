@@ -11,7 +11,6 @@ import { HAZEL_PRICE_MULT, hasPerk } from './Perks';
 import { recipeAvailable } from './Production';
 import { marketOrderMult, marketStallMult, truckPayMult } from './RestorationEffects';
 import { truckCooldownMult } from './HelperEffects';
-import { seasons } from './Seasons';
 import { village } from './Village';
 
 // ======================================================================== obtainable items
@@ -22,8 +21,7 @@ export const extraObtainable: (() => string[])[] = [];
 export function obtainableItems(): string[] {
   const lv = game.level;
   const out = new Set<string>();
-  // 1.9: out-of-season crops are not asked for unless the player already holds some
-  for (const c of CROPS) if (c.level <= lv && (seasons.open(c.id) || game.count(c.id) > 0)) out.add(c.id);
+  for (const c of CROPS) if (c.level <= lv) out.add(c.id);
   for (const fn of extraObtainable) for (const i of fn()) out.add(i);
   for (const t of TREES) if (game.buildingsOf(t.id).length) out.add(t.item);
   for (const a of ANIMALS) if (game.buildingsOf(a.house).some((b) => (b.animals?.length ?? 0) > 0)) out.add(a.product);

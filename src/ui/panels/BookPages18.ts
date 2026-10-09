@@ -5,7 +5,7 @@ import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear } from '../dom';
 import { ui } from '../UI';
 import { FESTIVALS, ITEMS, VILLAGER, VILLAGERS } from '../../data';
-import { seasonOnDay } from '../../systems/Seasons';
+import { cycleOnDay } from '../../systems/FestivalCycle';
 import { game } from '../../systems/Game';
 import { mail } from '../../systems/Mail';
 import { daily18 } from '../../systems/Daily18';
@@ -63,9 +63,9 @@ function renderCalendar(p: Panel): void {
   for (const d of DOW) grid.append(h('div', { class: 'cal-dow' }, d));
   const lead = (first.getDay() + 6) % 7;
   for (let i = 0; i < lead; i++) grid.append(h('div', { class: 'cal-day blank' }));
-  // 1.9: the valley's festival days (the last day of each season) in this month
+  // 1.9: the valley's festival days (every 7th day) in this month
   const monthEvents: { day: number; name: string; icon: string }[] = [];
-  for (let d = 1; d <= days; d++) { const sn = seasonOnDay(dayNumber(localDay(new Date(y, m, d).getTime()))); if (sn.festival) { const f = FESTIVALS.festivals[sn.id]; monthEvents.push({ day: d, name: f.name, icon: f.icon }); } }
+  for (let d = 1; d <= days; d++) { const sn = cycleOnDay(dayNumber(localDay(new Date(y, m, d).getTime()))); if (sn.festival) { const f = FESTIVALS.festivals[sn.slot]; monthEvents.push({ day: d, name: f.name, icon: f.icon }); } }
   for (let d = 1; d <= days; d++) {
     const date = new Date(y, m, d);
     const key = localDay(date.getTime());

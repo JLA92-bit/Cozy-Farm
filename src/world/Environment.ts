@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { HALF, MAP } from './Grid';
 import { geo, PAL, rng } from './Procedural';
-import { seasons } from '../systems/Seasons';
 import { assets } from '../core/Assets';
 
 /** Lights, sky colour, gentle day/night cycle and ambient life (clouds, birds, butterflies). */
@@ -64,11 +63,6 @@ export class Environment {
     this.sun.shadow.normalBias = 0.03;
     scene.add(this.sun, this.sun.target);
     scene.add(this.group);
-    // 1.9 season look: a lean in the sky, the ground bounce light and the drifting motes (petals, leaves, snow)
-    const look = seasons.now().def.look;
-    this.skyDay.lerp(new THREE.Color(look.sky), look.skyMix);
-    this.hemi.groundColor.lerp(new THREE.Color(look.grass), look.grassMix * 0.5);
-    this.pollenCol.set(look.pollen);
     scene.fog = new THREE.Fog(this.skyDay, 70, 160);
     scene.background = this.sky;
   }

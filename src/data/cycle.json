@@ -1,0 +1,6 @@
+{
+  "_comment": "1.9 festival rhythm: a shared 28-day cycle counted from a Monday, one festival every 7 days (the last day of each week of the cycle). The four slots are the four festivals in festivals.json, in order. There are no seasons: this only says when a festival falls.",
+  "epoch": "2026-01-05",
+  "festivalEvery": 7,
+  "slots": ["spring", "summer", "autumn", "winter"]
+}

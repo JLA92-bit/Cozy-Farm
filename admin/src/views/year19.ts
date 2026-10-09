@@ -11,7 +11,7 @@ interface V19 {
   helpWanted: { players: number; filled: number };
 }
 
-const FESTIVALS: Record<string, string> = { egg_hunt: 'Egg Hunt (spring)', fishing_derby: 'Fishing Derby (summer)', harvest_fair: 'Harvest Fair (autumn)', feast_of_lights: 'Feast of Lights (winter)' };
+const FESTIVALS: Record<string, string> = { egg_hunt: 'Egg Hunt', fishing_derby: 'Fishing Derby', harvest_fair: 'Harvest Fair', feast_of_lights: 'Feast of Lights' };
 const SHELVES: Record<string, string> = { minerals: 'Minerals', fossils: 'Fossils', artifacts: 'Old Artifacts', forage: "Forager's Cabinet", fish: 'Great Catches', gold: 'Gold Star Case' };
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -57,7 +57,7 @@ export async function year19View(host: HTMLElement): Promise<void> {
           o.festivals.length ? h('table', { class: 'table compact' },
             h('thead', null, h('tr', null, h('th', null, 'Festival'), h('th', { class: 'r' }, 'Players'), h('th', { class: 'r' }, 'Plays'), h('th', { class: 'r' }, 'Prizes'), h('th', { class: 'r' }, '3 stars'))),
             h('tbody', null, o.festivals.map((f) => h('tr', null, h('td', null, FESTIVALS[f.festival] ?? f.festival), h('td', { class: 'r' }, num(f.players)), h('td', { class: 'r' }, num(f.plays)), h('td', { class: 'r' }, num(f.collected)), h('td', { class: 'r' }, num(f.threeStar))))))
-            : h('p', { class: 'muted' }, 'No festival played yet. Festivals fall on the last day of each season.')),
+            : h('p', { class: 'muted' }, 'No festival played yet. A festival comes round every 7 days.')),
         h('section', { class: 'card' }, h('h3', null, `Museum shelves completed (${days} days)`),
           o.museum.shelves.length ? h('table', { class: 'table compact' },
             h('thead', null, h('tr', null, h('th', null, 'Shelf'), h('th', { class: 'r' }, 'Players'))),

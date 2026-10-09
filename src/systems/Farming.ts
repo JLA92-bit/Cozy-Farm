@@ -8,9 +8,7 @@ import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
 import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
 import { RESTORATION, HELPERS } from '../data';
-import { craftFertMult, sprinklerGrowMult, underGlass, hasGlass } from './HelperEffects';
-import { seasons } from './Seasons';
-import { SEASONS } from '../data';
+import { craftFertMult, sprinklerGrowMult } from './HelperEffects';
 
 /** 1.8 fertiliser: the item and what one does to the harvest of the field it was sown with. */
 export const FERTILISER = 'fertiliser';
@@ -25,14 +23,12 @@ const FERT_BOOST = { silver: 0.1, gold: 0.05 };
 let harvestingFert = false;
 let harvestingRare = false;
 let harvestingQFert = false;
-let harvestingInSeason = false;
 qualityBoosts.push((source) => (source === 'crop' && harvestingFert ? FERT_BOOST : null));
 qualityBoosts.push((source) => {
   if (source !== 'crop' || !harvestingQFert) return null;
   const m = craftFertMult();
   return { silver: HELPERS.qualityFertiliser.silver * m, gold: HELPERS.qualityFertiliser.gold * m };
 });
-qualityBoosts.push((source) => (source === 'crop' && harvestingInSeason ? { silver: SEASONS.bonus.silver, gold: SEASONS.bonus.gold } : null));
 qualityBoosts.push((source) => (source === 'crop' && harvestingRare ? RESTORATION.rewards.rareSeedBoost : null));
 
 export class FarmingSystem {
@@ -47,10 +43,6 @@ export class FarmingSystem {
     if (b.type !== 'plot' || b.plot) return { ok: false, reason: 'Field is busy' };
     if (!isBuilt(b, game.now())) return { ok: false, reason: 'Still being built' };
     if (game.level < def.level) return { ok: false, reason: `Unlocks at level ${def.level}` };
-    if (!seasons.open(crop) && !underGlass(b)) {
-      const back = seasons.nextSeasonFor(crop);
-      return { ok: false, reason: back ? `${def.name} is out of season. Back in ${SEASONS.seasons[back.season].name} (${back.days} day${back.days === 1 ? '' : 's'})${hasGlass() ? ', or sow it under a glass frame' : ''}` : `${def.name} is out of season` };
-    }
     if (game.coins < def.seedCost) return { ok: false, reason: 'Not enough coins' };
     return { ok: true };
   }
@@ -60,9 +52,8 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * (seasons.seasonal(crop) ? SEASONS.bonus.growMult : 1)));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b)));
     b.plot = { crop, plantedAt: game.now(), growSec };
-    if (seasons.seasonal(crop)) b.plot.inSeason = true;
     if (this.useFert && fertStock() > 0) {
       const q = game.count(QUALITY_FERT) > 0;
       game.addItem(q ? QUALITY_FERT : FERTILISER, -1);
@@ -94,8 +85,7 @@ export class FarmingSystem {
     harvestingFert = !!b.plot.fert && !b.plot.qfert;
     harvestingQFert = !!b.plot.qfert;
     harvestingRare = !!b.plot.rare;
-    harvestingInSeason = !!b.plot.inSeason;
-    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; harvestingQFert = false; harvestingRare = false; harvestingInSeason = false; }
+    try { addRolled('crop', def.id, qty, at); } finally { harvestingFert = false; harvestingQFert = false; harvestingRare = false; }
     game.addXp(def.xp, at);
     if (double) game.bus.emit('toast', { title: 'Big Harvest!', sub: 'A double crop', icon: 'basket' });
     if (Math.random() < seedSaverChance()) { game.addCoins(def.seedCost, at); game.bus.emit('toast', { title: 'Seed Saver', sub: `Your seed money came back (${def.seedCost})`, icon: 'seed' }); }

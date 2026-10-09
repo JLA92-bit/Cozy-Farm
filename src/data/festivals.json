@@ -1,29 +1,29 @@
 {
-  "_comment": "1.9 Festival Days: one per season, on the last day (Sunday). One mini-game each, best of any number of tries counts, prizes are paid once when the player collects. stars needs [1 star, 2 stars, 3 stars] scores. See BALANCE.md > Festivals.",
+  "_comment": "1.9 Festival Days: one every 7 days (a Sunday), the four in turn. One mini-game each, best of any number of tries counts, prizes are paid once when the player collects. stars needs [1 star, 2 stars, 3 stars] scores. See BALANCE.md > Festivals.",
   "festivals": {
     "spring": {
-      "id": "egg_hunt", "name": "Egg Hunt", "icon": "egg", "game": "eggs", "ribbon": "Spring Ribbon",
+      "id": "egg_hunt", "name": "Egg Hunt", "icon": "egg", "game": "eggs", "ribbon": "Egg Hunt Ribbon",
       "blurb": "Hazel has hidden eggs all over the square. Find as many as you can before the bell rings!",
       "rules": "Tap the bushes to look for eggs. 8 eggs are hiding among 20 bushes, and you have 40 seconds.",
       "seconds": 40, "eggs": 8, "bushes": 20, "stars": [3, 5, 7],
       "prize": { "decor": "blossom_tree", "item": { "id": "rare_seed", "n": 3 } }
     },
     "summer": {
-      "id": "fishing_derby", "name": "Fishing Derby", "icon": "fishing_pole", "game": "derby", "ribbon": "Summer Ribbon",
+      "id": "fishing_derby", "name": "Fishing Derby", "icon": "fishing_pole", "game": "derby", "ribbon": "Fishing Derby Ribbon",
       "blurb": "Marlow and the village are fishing off the square pier. Biggest catch wins!",
       "rules": "Five casts. Tap when the marker is in the green to cast far and land a big fish.",
       "casts": 5, "stars": [200, 330, 430],
       "prize": { "decor": "watering_fountain", "item": { "id": "bait", "n": 10 } }
     },
     "autumn": {
-      "id": "harvest_fair", "name": "Harvest Fair", "icon": "maple", "game": "fair", "ribbon": "Autumn Ribbon",
+      "id": "harvest_fair", "name": "Harvest Fair", "icon": "maple", "game": "fair", "ribbon": "Harvest Fair Ribbon",
       "blurb": "The villagers judge the best crop and the best good in the valley. Silver and gold stars score more!",
       "rules": "Pick one crop and one good from your barn to show. They come back to the barn afterwards.",
       "stars": [45, 65, 85],
       "prize": { "decor": "harvest_scarecrow", "gems": 3 }
     },
     "winter": {
-      "id": "feast_of_lights", "name": "Feast of Lights", "icon": "candle", "game": "feast", "ribbon": "Winter Ribbon",
+      "id": "feast_of_lights", "name": "Feast of Lights", "icon": "candle", "game": "feast", "ribbon": "Feast of Lights Ribbon",
       "blurb": "The whole village shares a feast by lantern light. The more different dishes on the table, the happier everyone is.",
       "rules": "Bring up to 6 different dishes from your barn. Each one is eaten, and every villager remembers who brought their favourite.",
       "dishes": 6, "stars": [2, 4, 6],

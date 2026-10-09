@@ -1,14 +1,13 @@
 /**
  * 1.9 The Wild Woods: a small island reached from the farm's south beach. Each day some forage spots hold a wild plant
- * for the season (spring greens and blossoms, summer berries, autumn mushrooms and nuts, winter roots and holly) and
+ * (greens, flowers, berries, mushrooms, nuts and roots) and
  * a few dig spots hold a find (minerals, fossils, artifacts). What is where comes from the farm seed and the date, so it
  * is the same on every device; only what was taken today is saved (`state.woods`). Foraging and digging grow the
  * Foraging skill. Finds count towards the Museum and the Collection Book through `woods.found`.
  */
-import { ITEMS, SEASONS, WOODS, type FindKind, type ForageKind } from '../data';
+import { ITEMS, WOODS, type FindKind, type ForageKind } from '../data';
 import { game, type Vec } from './Game';
 import { saves } from './Save';
-import { seasons } from './Seasons';
 import { localDay } from './Progression';
 import { rollQuality, type Quality } from './Quality';
 import { extraDigs, keenEyesChance, luckyFinds } from './SkillEffects';
@@ -42,7 +41,7 @@ class WoodsSystem {
 
   /** Today's forage spots (which hold something, what, and which are already picked). */
   forage(): ForageSpot[] {
-    const w = this.st(), s = seasons.id, list = WOODS.foragedBySeason[s];
+    const w = this.st(), list = WOODS.foraged;
     const out: ForageSpot[] = [];
     for (let i = 0; i < WOODS.forage.spots; i++) {
       const r = rng(hashString(`${game.state.seed}:forage:${w.day}:${i}`));
@@ -106,15 +105,13 @@ class WoodsSystem {
   foundIds(): string[] { return Object.keys(game.state.woods?.found ?? {}).filter((k) => ITEMS[k]); }
 
   /** Items of a family, for the Almanac and Collection Book. */
-  forageIds(season?: keyof typeof WOODS.foragedBySeason): string[] {
-    return (season ? WOODS.foragedBySeason[season] : Object.values(WOODS.foragedBySeason).flat()).map((e) => e.id);
-  }
+  forageIds(): string[] { return WOODS.foraged.map((e) => e.id); }
   findIds(kind: FindKind): string[] { return WOODS.finds[kind].map((e) => e.id); }
 
   /** One line for the farm-side sign: what is on offer today. */
   describe(): string {
     const spots = this.forage().filter((s) => s.active && !s.picked).length;
-    return `${SEASONS.seasons[seasons.id].name} in the woods: ${spots} forage spots, ${this.digsLeft()} digs left today.`;
+    return `${spots} forage spots and ${this.digsLeft()} digs left today.`;
   }
 
   /** First time in the woods: one tip. */

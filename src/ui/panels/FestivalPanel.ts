@@ -15,7 +15,7 @@ const DERBY_FISH = ['an old boot', 'a tiny minnow', 'a perch', 'a trout', 'a fat
 /** The festival of the day: lobby, one mini-game, result and prize. */
 export function openFestival(): void {
   const t = festivals.today();
-  if (!t) { ui.feedback.toast('No festival today', 'Festivals fall on the last day of every season.', 'calendar'); return; }
+  if (!t) { ui.feedback.toast('No festival today', 'A festival comes round every 7 days. See the Almanac in the Book.', 'calendar'); return; }
   const def = t.def;
   const p = new Panel({ title: def.name, icon: def.icon, color: 'pink', size: 'medium', wallet: true });
   let stop: (() => void) | null = null;

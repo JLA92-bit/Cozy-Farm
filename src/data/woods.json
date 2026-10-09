@@ -1,15 +1,23 @@
 {
-  "_comment": "1.9 The Wild Woods: forage spots (seasonal, refill every day), dig spots (finds: minerals, fossils, artifacts) and the expedition board. Items live in items.json (cat forage|mineral|fossil|artifact) and their icons are made in scripts/icon-variants.mjs. kind picks the 3D shape of a forage spot. w = weight in its table. See BALANCE.md > Woods.",
+  "_comment": "1.9 The Wild Woods: forage spots (refill every day), dig spots (finds: minerals, fossils, artifacts) and the expedition board. Items live in items.json (cat forage|mineral|fossil|artifact) and their icons are made in scripts/icon-variants.mjs. kind picks the 3D shape of a forage spot. w = weight in its table. See BALANCE.md > Woods.",
   "level": 14,
   "forage": { "spots": 14, "chance": 0.75 },
   "dig": { "spots": 8, "perDay": 4, "table": { "mineral": 0.58, "fossil": 0.2, "artifact": 0.12, "clay": 0.1 }, "luckyMult": 1.6 },
   "clayItem": "clay",
-  "foragedBySeason": {
-    "spring": [ { "id": "wild_leek", "kind": "leaf", "w": 5 }, { "id": "dandelion", "kind": "flower", "w": 6 }, { "id": "daffodil", "kind": "flower", "w": 3 } ],
-    "summer": [ { "id": "raspberry", "kind": "berry", "w": 5 }, { "id": "wild_rose", "kind": "flower", "w": 3 }, { "id": "fern_frond", "kind": "leaf", "w": 5 } ],
-    "autumn": [ { "id": "chanterelle", "kind": "mushroom", "w": 4 }, { "id": "hazelnut", "kind": "nut", "w": 6 }, { "id": "blackberry", "kind": "berry", "w": 5 } ],
-    "winter": [ { "id": "winter_root", "kind": "root", "w": 5 }, { "id": "holly", "kind": "leaf", "w": 4 }, { "id": "snow_yam", "kind": "root", "w": 3 } ]
-  },
+  "foraged": [
+    {"id": "wild_leek", "kind": "leaf", "w": 5},
+    {"id": "dandelion", "kind": "flower", "w": 6},
+    {"id": "daffodil", "kind": "flower", "w": 3},
+    {"id": "raspberry", "kind": "berry", "w": 5},
+    {"id": "wild_rose", "kind": "flower", "w": 3},
+    {"id": "fern_frond", "kind": "leaf", "w": 5},
+    {"id": "chanterelle", "kind": "mushroom", "w": 4},
+    {"id": "hazelnut", "kind": "nut", "w": 6},
+    {"id": "blackberry", "kind": "berry", "w": 5},
+    {"id": "winter_root", "kind": "root", "w": 5},
+    {"id": "holly", "kind": "leaf", "w": 4},
+    {"id": "snow_yam", "kind": "root", "w": 3}
+  ],
   "finds": {
     "mineral": [ { "id": "copper_ore", "w": 30 }, { "id": "iron_ore", "w": 24 }, { "id": "quartz", "w": 18 }, { "id": "topaz", "w": 6 }, { "id": "amethyst", "w": 4 } ],
     "fossil": [ { "id": "ammonite", "w": 10 }, { "id": "fossil_fern", "w": 8 }, { "id": "fossil_bone", "w": 6 }, { "id": "amber", "w": 3 } ],

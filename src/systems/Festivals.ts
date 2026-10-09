@@ -1,25 +1,25 @@
 /**
- * 1.9 Festival Days: the last day of every season (Sunday) is a festival with one short mini-game (festivals.json).
+ * 1.9 Festival Days: every 7th day (a Sunday) is a festival with one short mini-game (festivals.json).
  * The player may play as often as they like that day; the best result counts and the prize (coins, gems, a
  * decoration and a ribbon) is paid once, when they collect it. The mini-games themselves live in
  * ui/panels/FestivalPanel.ts; this file keeps the rules, the stars and the prizes.
  */
-import { FESTIVALS, BUILDING, ITEMS, SEASONS, type FestivalDef } from '../data';
+import { FESTIVALS, BUILDING, ITEMS, CYCLE, type FestivalDef } from '../data';
 import { game } from './Game';
 import { saves } from './Save';
-import { seasons } from './Seasons';
+import { cycleNow } from './FestivalCycle';
 import { logEvent } from '../online/Events';
 
-export interface FestivalNow { key: string; def: FestivalDef; season: string; year: number }
+export interface FestivalNow { key: string; def: FestivalDef; slot: string; cycle: number }
 
 class FestivalSystem {
   private get st() { return (game.state.festivals ??= { best: {}, done: {}, seen: '' }); }
 
   /** Today's festival (null on every other day). */
   today(): FestivalNow | null {
-    const s = seasons.now();
+    const s = cycleNow();
     if (!s.festival) return null;
-    return { key: `${s.year}:${s.index}`, def: FESTIVALS.festivals[s.id], season: s.id, year: s.year };
+    return { key: `${s.cycle}:${s.index}`, def: FESTIVALS.festivals[s.slot], slot: s.slot, cycle: s.cycle };
   }
 
   stars(def: FestivalDef, score: number): 0 | 1 | 2 | 3 {
@@ -56,7 +56,7 @@ class FestivalSystem {
   private payout(key: string): { stars: number; coins: number; gems: number; decor: string; item?: { id: string; n: number } } | null {
     if (this.collected(key)) return null;
     const stars = this.best(key);
-    const sid = SEASONS.order[Number(key.split(':')[1])];
+    const sid = CYCLE.slots[Number(key.split(':')[1])];
     const def = sid ? FESTIVALS.festivals[sid] : undefined;
     if (!def || stars < 1) return null;
     const p = FESTIVALS.prizes[stars - 1];

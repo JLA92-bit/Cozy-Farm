@@ -1,8 +1,7 @@
 import gsap from 'gsap';
 import { h, icon, fmt, button, badgeText, setIcon } from './dom';
 import { game } from '../systems/Game';
-import { MAX_LEVEL, SEASONS } from '../data';
-import { seasons } from '../systems/Seasons';
+import { MAX_LEVEL } from '../data';
 import { buildings } from '../systems/Buildings';
 
 export interface HudActions {
@@ -19,7 +18,6 @@ export class HUD {
   readonly xpText: HTMLElement;
   readonly nameEl: HTMLElement;
   readonly charmEl: HTMLElement;
-  readonly seasonEl: HTMLElement;
   readonly coinsEl: HTMLElement;
   readonly gemsEl: HTMLElement;
   readonly coinsVal: HTMLElement;
@@ -52,8 +50,7 @@ export class HUD {
     this.xpText = h('div', { class: 'xp-text outlined' }, '0/0');
     this.nameEl = h('span', { class: 'name-text' }, 'Farmer');
     this.charmEl = h('span', { class: 'charm-pill', onclick: (e: MouseEvent) => { e.stopPropagation(); actions.open('__charm'); } }, icon('sparkle_heart'), h('span', null, '0'));
-    this.seasonEl = h('span', { class: 'season-pill', role: 'button', 'aria-label': 'Season', onclick: (e: MouseEvent) => { e.stopPropagation(); actions.open('__season'); } }, icon('sun'), h('span', null, ''));
-    const xp = h('div', { class: 'xp-wrap' }, h('div', { class: 'player-name outlined' }, this.nameEl, this.charmEl, this.seasonEl), h('div', { class: 'xp-bar' }, this.xpFill, this.xpText));
+    const xp = h('div', { class: 'xp-wrap' }, h('div', { class: 'player-name outlined' }, this.nameEl, this.charmEl), h('div', { class: 'xp-bar' }, this.xpFill, this.xpText));
     this.coinsVal = h('span', { class: 'outlined' }, '0');
     this.gemsVal = h('span', { class: 'outlined' }, '0');
     this.coinsEl = h('div', { class: 'currency coins', role: 'button', 'aria-label': 'Coins', onclick: () => actions.open('inventory') }, icon('coin'), this.coinsVal);
@@ -92,9 +89,6 @@ export class HUD {
     this.levelEl.textContent = String(p.level);
     this.nameEl.textContent = p.name;
     (this.charmEl.lastChild as HTMLElement).textContent = String(buildings.charm());
-    const sn = seasons.now();
-    this.seasonEl.replaceChildren(icon(sn.def.icon), h('span', null, `${sn.day}/${SEASONS.daysPerSeason}`));
-    this.seasonEl.setAttribute('aria-label', seasons.describe());
     const need = game.xpToNext();
     const pct = p.level >= MAX_LEVEL ? 100 : Math.min(100, (p.xp / Math.max(1, need)) * 100);
     this.xpFill.style.width = `${pct}%`;

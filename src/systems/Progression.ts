@@ -1,10 +1,8 @@
 import {
   ACHIEVEMENTS, ACHIEVEMENT_REWARDS, ANIMALS, BUILDINGS, COSMETICS, CROP, CROPS, EVENTS, FARMHOUSE, ITEMS, LAND, LEVEL_DATA,
-  QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING, VILLAGERS, SEASONS, FESTIVALS, FISHING, WOODS, type SeasonId,
+  QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING, VILLAGERS, FESTIVALS, CYCLE,
 } from '../data';
 import { game } from './Game';
-import { seasonOnDay } from './Seasons';
-import { dayNumber } from './Weather';
 import type { QuestState } from './State';
 import { rng, hashString } from '../world/Procedural';
 
@@ -310,12 +308,11 @@ export function collectionEntries(): CollectionEntry[] {
       : it.cat === 'forage' ? 'Foraged' : it.cat === 'mineral' || it.cat === 'fossil' ? 'Minerals' : it.cat === 'artifact' ? 'Artifacts' : 'Goods';
     out.push({ key: `item:${it.id}`, kind: 'item', id: it.id, name: it.name, icon: it.icon, group });
   }
-  // 1.9: keepsakes and portraits from the villagers, festival ribbons and the four seasonal pages
+  // 1.9: keepsakes and portraits from the villagers and festival ribbons
   for (const v of VILLAGERS) for (const [hearts, deco] of [[4, v.keepsake], [8, v.portrait]] as const) {
     if (BUILDING[deco]) out.push({ key: `keepsake:${v.id}_${hearts}`, kind: 'keepsake', id: `${v.id}_${hearts}`, name: BUILDING[deco].name, icon: `building:${deco}`, group: 'Villagers' });
   }
-  for (const sid of SEASONS.order) out.push({ key: `ribbon:${sid}`, kind: 'ribbon', id: sid, name: FESTIVALS.festivals[sid].ribbon, icon: 'ribbon', group: 'Ribbons' });
-  for (const [id, sid] of seasonalItems()) out.push({ key: `season:${id}`, kind: 'season', id, name: ITEMS[id].name, icon: ITEMS[id].icon, group: SEASON_PAGES[sid] });
+  for (const sid of CYCLE.slots) out.push({ key: `ribbon:${sid}`, kind: 'ribbon', id: sid, name: FESTIVALS.festivals[sid].ribbon, icon: 'ribbon', group: 'Ribbons' });
   for (const a of ANIMALS) out.push({ key: `animal:${a.id}`, kind: 'animal', id: a.id, name: a.name, icon: `model:${a.model}`, group: 'Animals' });
   for (const c of [...COSMETICS.hats, ...COSMETICS.accessories, ...COSMETICS.pets]) {
     if (c.id === 'none') continue;
@@ -325,15 +322,7 @@ export function collectionEntries(): CollectionEntry[] {
 }
 
 /** Collection Book pages: finishing every entry on a page pays a one-off reward. */
-export const SEASON_PAGES: Record<SeasonId, string> = { spring: 'Spring finds', summer: 'Summer finds', autumn: 'Autumn finds', winter: 'Winter finds' };
-/** Seasonal fish and wild plants with the season they belong to (1.9). */
-export function seasonalItems(): [string, SeasonId][] {
-  const out: [string, SeasonId][] = [];
-  for (const f of FISHING.species) if (f.season) out.push([f.id, f.season]);
-  for (const sid of SEASONS.order) for (const e of WOODS.foragedBySeason[sid]) out.push([e.id, sid]);
-  return out;
-}
-export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles', 'Fish', 'Foraged', 'Minerals', 'Artifacts', 'Villagers', 'Ribbons', 'Spring finds', 'Summer finds', 'Autumn finds', 'Winter finds'] as const;
+export const BOOK_PAGES = ['Crops', 'Fruit', 'Animal goods', 'Goods', 'Animals', 'Styles', 'Fish', 'Foraged', 'Minerals', 'Artifacts', 'Villagers', 'Ribbons'] as const;
 type PageReward = { gems?: number; crate?: string };
 let bookCache: CollectionEntry[] | null = null;
 export const book = {
@@ -375,9 +364,8 @@ export const book = {
 export function syncCollection19(): void {
   // entries the player already earned count without a "New!" tag
   const quiet = (id: string, kind: string) => { const k = `${kind}:${id}`; if (!game.state.collection[k]) game.state.collection[k] = game.state.seen.collectionSeenAt ?? 1; };
-  for (const [id] of seasonalItems()) if (game.state.collection[`item:${id}`]) quiet(id, 'season');
   for (const v of VILLAGERS) for (const m of game.state.village.friends[v.id]?.stories ?? []) if (m === 4 || m === 8) quiet(`${v.id}_${m}`, 'keepsake');
-  for (const k of Object.keys(game.state.festivals?.done ?? {})) { const sid = SEASONS.order[Number(k.split(':')[1])]; if (sid && (game.state.festivals!.done[k] ?? 0) > 0) quiet(sid, 'ribbon'); }
+  for (const k of Object.keys(game.state.festivals?.done ?? {})) { const sid = CYCLE.slots[Number(k.split(':')[1])]; if (sid && (game.state.festivals!.done[k] ?? 0) > 0) quiet(sid, 'ribbon'); }
 }
 
 /** Mark cosmetics that are now unlocked as discovered. */
@@ -388,11 +376,16 @@ export function syncCosmeticDiscovery(isUnlocked: (id: string, unlock: { level?:
 }
 
 // ======================================================================== seasonal events
-/** 1.9: the seasonal events follow the valley's seasons (one each) instead of real dates. */
-const EVENT_OF_SEASON: Record<SeasonId, string> = { spring: 'spring_blossom', summer: 'summer_fair', autumn: 'harvest_festival', winter: 'winter_wonderland' };
 export function eventForDate(now: number): EventDef | null {
-  const id = EVENT_OF_SEASON[seasonOnDay(dayNumber(localDay(now))).id];
-  return EVENTS.find((e) => e.id === id) ?? null;
+  const d = new Date(now);
+  const md = (d.getMonth() + 1) * 100 + d.getDate();
+  for (const e of EVENTS) {
+    const [sm, sd] = e.start.split('-').map(Number), [em, ed] = e.end.split('-').map(Number);
+    const s = sm * 100 + sd, en = em * 100 + ed;
+    const inside = s <= en ? md >= s && md <= en : md >= s || md <= en;
+    if (inside) return e;
+  }
+  return null;
 }
 
 export class EventSystem {
@@ -417,11 +410,15 @@ export class EventSystem {
     for (let i = 0; i < e.quests.length; i++) if (!st.questsClaimed.includes(i) && this.questProgress(i) >= e.quests[i].n) n++;
     return n;
   }
-  /** Milliseconds until the current event ends (end of the season's last day). */
+  /** Milliseconds until the current event ends (end of its last day). */
   timeLeft(now = game.now()): number {
-    if (!this.current) return 0;
+    const e = this.current;
+    if (!e) return 0;
+    const [em, ed] = e.end.split('-').map(Number);
     const d = new Date(now);
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1 + seasonOnDay(dayNumber(localDay(now))).daysLeft).getTime() - now;
+    let end = new Date(d.getFullYear(), em - 1, ed + 1).getTime();
+    if (end <= now) end = new Date(d.getFullYear() + 1, em - 1, ed + 1).getTime();
+    return end - now;
   }
   questProgress(i: number): number {
     const e = this.current;
