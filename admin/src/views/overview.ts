@@ -26,6 +26,7 @@ export async function overviewView(host: HTMLElement): Promise<void> {
     const g = o.players ? Math.round((o.google / o.players) * 100) : 0;
     host.append(h('div', { class: 'tiles' },
       tile('Players', num(o.players), `${num(o.new7)} new this week`, '#/players'),
+      tile('Played in the last 24 hours', o.active24 === undefined ? '-' : num(o.active24), o.active24 === undefined ? 'run the latest supabase/schema.sql to turn this on' : 'rolling, any time of day'),
       tile('Played today', num(o.active1), `${num(o.active7)} this week, ${num(o.active30)} this month`),
       tile('Play time today', minutes(o.minutes1), `${minutes(o.minutes7)} this week`),
       tile('Avg per player (7 days)', o.active7 ? minutes(o.minutes7 / o.active7) : '-', `${num(o.sessions7)} sessions`),
