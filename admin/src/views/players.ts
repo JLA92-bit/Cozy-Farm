@@ -71,6 +71,11 @@ function render(d: PlayerDetail, redraw: () => Promise<void>): HTMLElement[] {
   const days = new Map(d.days.map((x) => [x.day, { minutes: x.minutes, sessions: x.sessions }]));
   const totalMin = d.days.reduce((a, x) => a + x.minutes, 0);
   const lastDay = d.days[0];
+  // play time is recorded per UTC day, so the last 24 hours is today so far plus the part of yesterday that is still inside the window
+  const now = new Date(), utcDay = (offset: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - offset)).toISOString().slice(0, 10);
+  const minToday = d.days.find((x) => x.day === utcDay(0))?.minutes ?? 0, minYesterday = d.days.find((x) => x.day === utcDay(1))?.minutes ?? 0;
+  const dayFraction = (now.getUTCHours() * 60 + now.getUTCMinutes()) / 1440;
+  const last24 = minToday + minYesterday * (1 - dayFraction);
 
   const act = async (fn: () => Promise<unknown>, ok: string) => { try { await fn(); toast(ok); await redraw(); refreshBadges(); } catch (e) { fail(e); } };
 
@@ -142,6 +147,7 @@ function render(d: PlayerDetail, redraw: () => Promise<void>): HTMLElement[] {
   const stat = (k: string, v: string) => h('div', { class: 'stat' }, h('div', { class: 'stat-label' }, k), h('div', { class: 'stat-value' }, v));
   const stats = h('div', { class: 'stats card' },
     stat('Level', num(p?.level ?? 0)), stat('Total XP', num(p?.total_xp ?? 0)), stat('Charm', num(p?.charm ?? 0)), stat('Farm value', num(p?.farm_value ?? 0)),
+    stat('Played last 24 hours', `${minutes(Math.round(last24))} (est.)`), stat('Played today (UTC)', minutes(minToday)),
     stat('Days played', num(d.days.length)), stat('Play time', minutes(totalMin)), stat('Last played', ago(lastDay?.day ?? p?.updated_at)), stat('Joined', date(p?.created_at ?? d.auth?.created_at)),
     stat('Where', lastDay?.platform ? PLATFORM[lastDay.platform] ?? lastDay.platform : '-'), stat('Version', lastDay?.version ?? '-'),
     stat('Gifts sent / got', `${num(d.giftsSent)} / ${num(d.giftsReceived)}`), stat('Help given / got', `${num(d.helpGiven)} / ${num(d.helpReceived)}`));
