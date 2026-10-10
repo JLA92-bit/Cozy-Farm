@@ -78,6 +78,7 @@ export class Interaction implements WorldHandler {
     // sowing: a scarecrow standing in the field must not stop the field underneath from being tapped
     if (m.kind === 'plant' && b && BUILDING[b.type].onField) b = this.plotAt(p) ?? b;
     if (m.kind === 'edit') {
+      if (this.multi) { if (b) this.toggleSelect(b); return; }
       if (b && !BUILDING[b.type].path) this.startMove(b.uid, true);
       else if (b) this.startMove(b.uid, true);
       return;
@@ -319,9 +320,13 @@ export class Interaction implements WorldHandler {
     this.mode = { kind: 'edit' };
     this.scene.farm.terrain.gridLines.visible = true;
     ui.setModeBanner(hints.explain('build_mode', 'move') ? 'Build mode: tap a building to move it' : 'Build mode', () => this.exitEdit());
+    this.endMulti();
+    ui.setEditBar({ select: () => this.beginMulti() });
   }
   exitEdit(): void {
     if (this.mode.kind === 'place') this.cancelPlacement();
+    this.endMulti();
+    ui.setEditBar(null);
     this.mode = { kind: 'idle' };
     this.scene.farm.terrain.gridLines.visible = false;
     ui.setModeBanner(null);
@@ -520,6 +525,54 @@ export class Interaction implements WorldHandler {
       if (type === 'plot' && !fromStorage && atFarmhouseCap(def)) fieldsHint(true);
     }
     if (m.returnToEdit) this.enterEdit();
+  }
+
+  // ------------------------------------------------------------ multi-select (1.10)
+  /** Selected uids with their yellow footprint markers; null when not multi-selecting. */
+  private multi: Map<number, THREE.Group> | null = null;
+
+  private beginMulti(): void {
+    if (this.mode.kind !== 'edit') return;
+    this.multi = new Map();
+    ui.setModeBanner('Tap pieces to select them, then Store', () => this.exitEdit());
+    this.refreshMultiBar();
+  }
+  private refreshMultiBar(): void {
+    ui.setEditBar({ cancel: () => { this.endMulti(); this.enterEdit(); }, store: () => this.storeMany(), count: this.multi?.size ?? 0 });
+  }
+  private toggleSelect(b: PlacedBuilding): void {
+    const multi = this.multi;
+    if (!multi) return;
+    const def = BUILDING[b.type];
+    if (!isStorable(def) || b.plot) { ui.feedback.toast("Can't store this", def.name, 'cross'); audio.play('error'); return; }
+    const had = multi.get(b.uid);
+    if (had) { this.scene.scene.remove(had); multi.delete(b.uid); }
+    else {
+      const [w, d] = rotatedSize(def.size, b.rot);
+      const g = this.makeFoot(w, d);
+      g.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) (m.material as THREE.MeshBasicMaterial).color.set('#ffd84c'); });
+      g.position.set(b.x - HALF, 0, b.z - HALF);
+      this.scene.scene.add(g);
+      multi.set(b.uid, g);
+    }
+    audio.play('select', { volume: 0.5 });
+    haptics.play('tap');
+    this.refreshMultiBar();
+  }
+  private endMulti(): void {
+    if (!this.multi) return;
+    for (const g of this.multi.values()) this.scene.scene.remove(g);
+    this.multi = null;
+  }
+  private storeMany(): void {
+    const multi = this.multi;
+    if (!multi?.size) return;
+    let n = 0;
+    for (const uid of [...multi.keys()]) if (buildings.store(uid)) n++;
+    this.endMulti();
+    ui.feedback.toast(n ? `Stored ${n} piece${n === 1 ? '' : 's'}` : "Couldn't store those", n ? 'Find them in your inventory' : undefined, n ? 'package' : 'cross');
+    if (n) { audio.play('collect'); haptics.play('light'); }
+    this.enterEdit();
   }
 
   storeSelected(): void {

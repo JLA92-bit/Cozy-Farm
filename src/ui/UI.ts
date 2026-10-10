@@ -41,6 +41,7 @@ class UIManager {
   private tray: HTMLElement | null = null;
   private trayUnsub: (() => void)[] = [];
   private placementBar: HTMLElement | null = null;
+  private editBar: HTMLElement | null = null;
   private confirmBtn: HTMLButtonElement | null = null;
   private banner: HTMLElement | null = null;
   private tickHooks: ((now: number) => void)[] = [];
@@ -389,6 +390,7 @@ class UIManager {
   // ------------------------------------------------------------------ placement bar
   showPlacementBar(a: { confirm: () => void; rotate: () => void; cancel: () => void; store?: () => void; name: string }): void {
     this.hidePlacementBar();
+    this.setEditBar(null);
     this.confirmBtn = button('✔', a.confirm, 'round', { 'aria-label': 'Place' });
     const bar = h('div', { class: 'action-bar' },
       button('✕', a.cancel, 'red round', { 'aria-label': 'Cancel' }),
@@ -409,6 +411,19 @@ class UIManager {
     this.root?.classList.remove('mode-place');
     this.confirmBtn = null;
     if (this.interaction?.mode.kind !== 'edit') this.setModeBanner(null);
+  }
+
+  /** Build mode shortcuts (1.10): "Select many" normally, and Store (n) / Cancel while multi-selecting. */
+  setEditBar(a: { select?: () => void; store?: () => void; cancel?: () => void; count?: number } | null): void {
+    this.editBar?.remove();
+    this.editBar = null;
+    if (!a) return;
+    const bar = h('div', { class: 'action-bar edit-bar' });
+    if (a.select) bar.append(button([icon('package'), ' Select many'], a.select, 'yellow'));
+    if (a.cancel) bar.append(button('✕', a.cancel, 'red round', { 'aria-label': 'Cancel selection' }));
+    if (a.store) bar.append(button([icon('package'), ` Store (${a.count ?? 0})`], a.store, `yellow ${a.count ? '' : 'disabled'}`));
+    this.editBar = bar;
+    this.root.append(bar);
   }
 
   setModeBanner(text: string | null, onClose?: (() => void) | null): void {

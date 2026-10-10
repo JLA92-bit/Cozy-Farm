@@ -26,6 +26,10 @@
     {
      "icon": "sparkles",
      "text": "14 new decorations, and a new Farm look setting (Settings) that tints your farm to a season if you like. It is only for looks"
+    },
+    {
+     "icon": "package",
+     "text": "Build mode has Select many: tap several pieces (decor, fences, paths) and store them all in one go"
     }
    ],
    "sections": []
