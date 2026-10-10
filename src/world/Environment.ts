@@ -183,8 +183,10 @@ export class Environment {
     fog.color.copy(this.sky);
     // evening haze: the distance melts into warm peach at dusk and soft blue at night
     // rain and mist pull the haze closer (scaled, so it stays sane at night too)
-    fog.near = (70 - night * 32 - dusk * 18) * (1 - rainK * 0.42 - mistK * 0.85);
-    fog.far = (160 - night * 50 - dusk * 30) * (1 - rainK * 0.33 - mistK * (0.62 - night * 0.15));
+    // 1.10: the haze starts much further out (it only softens the far horizon), so the whole farm stays clear at any
+    // zoom, at night and in rain or mist. Mist and rain still read through the sky colour, not by hiding the farm
+    fog.near = (100 - night * 18 - dusk * 10) * (1 - rainK * 0.12 - mistK * 0.25);
+    fog.far = (230 - night * 40 - dusk * 20) * (1 - rainK * 0.1 - mistK * 0.25);
     // the village square is viewed from further away: keep its own island clear of the haze
     if (this.fogFloor > 0) { fog.near = Math.max(fog.near, this.fogFloor); fog.far = Math.max(fog.far, fog.near + 60); }
     // soft moonlit blue at night (still readable), warm peach at golden hour; a little greyer when it rains

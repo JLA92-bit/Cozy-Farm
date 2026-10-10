@@ -30,6 +30,10 @@
     {
      "icon": "package",
      "text": "Build mode has Select many: tap several pieces (decor, fences, paths) and store them all in one go"
+    },
+    {
+     "icon": "sun",
+     "text": "The haze is much thinner: you can see the whole farm clearly when zoomed out, at night, and in rain or mist"
     }
    ],
    "sections": []
