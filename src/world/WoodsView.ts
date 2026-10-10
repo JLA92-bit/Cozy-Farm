@@ -8,6 +8,7 @@ import { Character } from './Character';
 import { museum } from '../systems/Museum';
 import { expeditions } from '../systems/Expeditions';
 import { rng } from './Procedural';
+import { currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
 import { FORAGE_COLOR, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, pedestalGeometry, pondGeometry } from './models/woods';
@@ -61,6 +62,8 @@ export class WoodsView {
   private folk = new Map<string, { char: Character; pick: THREE.Mesh }>();
   private folkBusy = false;
   private folkIn = 0;
+  private top?: THREE.Mesh;
+  private plainTop?: Float32Array;
   private gems: { gem: THREE.Mesh; shelf: string }[] = [];
   private flag?: THREE.Object3D;
   private boardDot?: THREE.Mesh;
@@ -79,6 +82,9 @@ export class WoodsView {
     const g = this.group;
     g.position.set(WOODS_AT.x, 0, WOODS_AT.z);
     const top = grassTop(0, 0, R_ISLAND);
+    this.top = top;
+    this.plainTop = Float32Array.from((top.geometry.attributes.color as THREE.BufferAttribute).array as Float32Array);
+    this.setLook(currentLook());
     g.add(top, islandBase(0, 0));
     const pond = new THREE.Mesh(pondGeometry(POND.r), assets.vertexMaterial);
     pond.position.set(POND.x, 0.02, POND.z);
@@ -234,6 +240,19 @@ export class WoodsView {
       this.pickers.push(pick);
       this.digNodes.push({ i, mound, dug, glint, pick, at: new THREE.Vector3(p.x, 0.5, p.y) });
     });
+  }
+
+  /** 1.10 farm look: lean the island's grass toward a season (null = normal). */
+  setLook(look: { grass: string; grassMix: number } | null): void {
+    const col = this.top?.geometry.attributes.color as THREE.BufferAttribute | undefined, plain = this.plainTop;
+    if (!col || !plain) return;
+    const lean = look ? new THREE.Color(look.grass) : null, c = new THREE.Color();
+    for (let i = 0; i < col.count; i++) {
+      c.setRGB(plain[i * 3], plain[i * 3 + 1], plain[i * 3 + 2]);
+      if (lean && look) c.lerp(lean, look.grassMix);
+      col.setXYZ(i, c.r, c.g, c.b);
+    }
+    col.needsUpdate = true;
   }
 
   /** Villagers whose routine puts them in the woods right now stand about the island (made the first time they are needed). */

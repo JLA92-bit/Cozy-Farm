@@ -2,6 +2,8 @@ import { Panel } from '../Panel';
 import { h, icon, button, clear } from '../dom';
 import { ui } from '../UI';
 import { settings, saveSettings, shadowsWanted } from '../../systems/Settings';
+import { LOOK_CHOICES } from '../../world/FarmLook';
+import { applyFarmLook } from '../../scenes/FarmLookApply';
 import { audio, haptics } from '../../systems/Audio';
 import { saves } from '../../systems/Save';
 import { game } from '../../systems/Game';
@@ -72,6 +74,20 @@ export function openSettings(): void {
       ui.scene.renderer.setShadowsPref(v);
       ui.scene.refreshShadows();
     })),
+    row('Farm look', (() => {
+      const seg = h('div', { class: 'segmented', style: 'flex-wrap:wrap' });
+      for (const c of LOOK_CHOICES) {
+        const b = h('button', { class: (settings.farmLook ?? 'off') === c.id ? 'active' : '' }, c.label);
+        b.addEventListener('click', () => {
+          settings.farmLook = c.id;
+          saveSettings(settings);
+          seg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+          applyFarmLook(ui.scene);
+        });
+        seg.append(b);
+      }
+      return seg;
+    })()),
     row('Show FPS', toggle(settings.showFps, (v) => { settings.showFps = v; saveSettings(settings); ui.setFps(v); })),
     hintsRow(),
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),

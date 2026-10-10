@@ -36,6 +36,7 @@ let saved: { target: THREE.Vector3; distance: number; min: number; max: number; 
 let banner: HTMLElement | null = null;
 
 export function isInWoods(): boolean { return inWoods; }
+export function woodsView(): WoodsView | null { return view; }
 
 /** Called once at boot (after the farm scene exists). */
 export function initWoods(scene: FarmScene, interaction: Interaction): void {

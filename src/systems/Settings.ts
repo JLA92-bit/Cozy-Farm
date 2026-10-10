@@ -6,7 +6,9 @@ export interface Settings { music: number; sfx: number; haptics: boolean; qualit
   /** Shadows switch. Left unset until the player (or the blank-screen fallback) sets it; unset means "automatic". */
   shadows?: boolean;
   /** The quality the GPU blank-screen check has already passed (or been overridden by the player) at. */
-  gpuChecked?: Quality }
+  gpuChecked?: Quality;
+  /** 1.10 optional cosmetic season look for the farm ('off' by default) */
+  farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter' }
 const KEY = 'cozy-acres-settings';
 
 function reducedMotion(): boolean {

@@ -67,6 +67,19 @@ export class Environment {
     scene.background = this.sky;
   }
 
+  /** 1.10 farm look: lean the sky, the ground bounce light and the drifting specks toward a season (null = normal). */
+  setLook(look: { grass: string; grassMix: number; sky: string; skyMix: number; pollen: string } | null): void {
+    this.skyDay.set('#8fd3f4');
+    this.hemi.groundColor.set('#7da35a');
+    this.pollenCol.set('#fffbe6');
+    if (look) {
+      this.skyDay.lerp(new THREE.Color(look.sky), look.skyMix);
+      this.hemi.groundColor.lerp(new THREE.Color(look.grass), look.grassMix * 0.5);
+      this.pollenCol.set(look.pollen);
+    }
+    this.moteNight = -1; // the specks pick up their colour again
+  }
+
   /** The haze never starts closer than this (0 = normal). Set while looking at the village square. */
   fogFloor = 0;
 

@@ -10,6 +10,8 @@ import { mastery } from '../systems/Mastery';
 import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { initWoods } from './Woods';
+import { applyFarmLook } from './FarmLookApply';
+import { currentLook } from '../world/FarmLook';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
@@ -147,6 +149,7 @@ export async function boot(): Promise<void> {
   // complete anything that finished while the game was closed
   buildings.tick(game.now());
   await scene.farm.build();
+  applyFarmLook(scene);
   buildings.updateGauges();
   await player.init(scene);
   events.check();
@@ -292,13 +295,14 @@ function wireProgression(): void {
   const SEASON: Record<string, string[]> = { harvest_festival: ['#e8833a', '#d9473a', '#f2b33a'], winter_wonderland: ['#ffffff'], spring_blossom: ['#ffb3cf', '#ffd6e6'] };
   let driftT = 0;
   scene.onFrame((dt) => {
-    const cols = events.current ? SEASON[events.current.id] : undefined;
+    const look = currentLook();
+    const cols = look ? look.fall ?? undefined : events.current ? SEASON[events.current.id] : undefined;
     if (!cols || scene.renderer.profile.ambientLife < 0.5) return;
     driftT -= dt;
     if (driftT > 0) return;
     driftT = 0.9;
     const t = scene.rig.target;
-    ui.effects.drift(t.clone().set(t.x + (Math.random() - 0.5) * 10, 9, t.z + (Math.random() - 0.5) * 10), cols[Math.floor(Math.random() * cols.length)], events.current!.id === 'winter_wonderland' ? 'light_01' : 'circle_05', 2);
+    ui.effects.drift(t.clone().set(t.x + (Math.random() - 0.5) * 10, 9, t.z + (Math.random() - 0.5) * 10), cols[Math.floor(Math.random() * cols.length)], look ? look.fallTex : events.current!.id === 'winter_wonderland' ? 'light_01' : 'circle_05', 2);
   });
   ui.register('__charm', () => {
     const b = buildings.bonuses();

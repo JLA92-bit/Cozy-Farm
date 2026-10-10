@@ -36,6 +36,8 @@ export class Terrain {
   readonly gridLines: THREE.LineSegments;
   private colors: Float32Array;
   private baseColors: Float32Array;
+  /** the grass colours before any 1.10 farm look is leaned in */
+  private plainColors: Float32Array;
   private waterUniforms = {
     uTime: { value: 0 }, uDeep: { value: new THREE.Color(PAL.waterDeep) }, uShallow: { value: new THREE.Color(PAL.water) },
     uShore: { value: new THREE.Color('#8ae6dc') }, uLight: { value: 1 }, uSky: { value: new THREE.Color('#8fd3f4') }, uDay: { value: 1 },
@@ -84,6 +86,7 @@ export class Terrain {
     g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     this.colors = new Float32Array(cols);
     this.baseColors = new Float32Array(cols);
+    this.plainColors = new Float32Array(cols);
     g.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
     g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array((positions.length / 3) * 2), 2));
     g.computeVertexNormals();
@@ -323,6 +326,16 @@ export class Terrain {
     const mesh = new THREE.Mesh(b.build(), material);
     mesh.name = 'islands';
     return mesh;
+  }
+
+  /** 1.10 farm look: lean the whole turf toward a season's grass colour (null = the normal look). Call refreshLand() after. */
+  setLook(look: { grass: string; grassMix: number } | null): void {
+    const lean = look ? new THREE.Color(look.grass) : null, c = new THREE.Color();
+    for (let i = 0; i < this.plainColors.length; i += 3) {
+      c.setRGB(this.plainColors[i], this.plainColors[i + 1], this.plainColors[i + 2]);
+      if (lean && look) c.lerp(lean, look.grassMix);
+      this.baseColors[i] = c.r; this.baseColors[i + 1] = c.g; this.baseColors[i + 2] = c.b;
+    }
   }
 
   /** Tint locked chunks, highlight purchasable ones, grow wild meadow on land you don't own yet. */
