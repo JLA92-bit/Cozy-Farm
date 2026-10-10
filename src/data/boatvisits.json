@@ -1,0 +1,28 @@
+{
+  "_comment": "1.10 Boat Visitors: on two days a week (picked from the farm seed) a visitor's boat ties up at the dock from 10am to 5pm with a themed wish list. They ask for 3 kinds of goods from the theme that the farm can make or grow now, and pay 1.9x the barn price plus gems. Only the visitor's own look and the items are set here. See BALANCE.md > Boat visitors.",
+  "level": 10,
+  "daysPerWeek": 2,
+  "hours": [10, 17],
+  "coinMult": 1.9,
+  "gems": 2,
+  "themes": [
+    { "id": "bakers", "name": "Baker's Cruise", "icon": "bread", "greeting": "Ahoy! Our ovens are empty and the crew is hungry.",
+      "look": { "body": "female-b", "skin": "#f6c9a0", "hair": "#8a5a3a", "top": "#ff8fb4", "bottom": "#3b3b45", "hat": "none", "accessory": "none", "pet": "none" },
+      "items": ["bread", "cookie", "corn_bread", "carrot_cake", "pancakes", "strawberry_cake", "apple_pie", "cherry_pie", "croissant", "baguette", "cupcake", "doughnut"] },
+    { "id": "anglers", "name": "Angler's Cruise", "icon": "fish", "greeting": "Ahoy! The sea is empty today. Can you spare some fish?",
+      "look": { "body": "male-c", "skin": "#c98a5e", "hair": "#3a2a1a", "top": "#3fa9f5", "bottom": "#2b4a6b", "hat": "cap", "accessory": "none", "pet": "none" },
+      "items": ["sardine", "shrimp", "crab", "mackerel", "sea_snail", "bluegill", "anchovy"] },
+    { "id": "orchard", "name": "Orchard Cruise", "icon": "apple", "greeting": "Ahoy! We are making a fruit basket for the whole ship.",
+      "look": { "body": "female-d", "skin": "#e0a878", "hair": "#d9473a", "top": "#6cc644", "bottom": "#5a3a22", "hat": "none", "accessory": "none", "pet": "none" },
+      "items": ["apple", "cherry", "grapes", "pear", "orange", "lemon", "banana", "coconut", "blueberry", "strawberry"] },
+    { "id": "dairy", "name": "Dairy Cruise", "icon": "milk", "greeting": "Ahoy! A long voyage needs milk and cheese.",
+      "look": { "body": "male-a", "skin": "#f6c9a0", "hair": "#cfd2d6", "top": "#ffffff", "bottom": "#2b4a6b", "hat": "none", "accessory": "none", "pet": "none" },
+      "items": ["milk", "cream", "butter", "cheese", "goat_cheese", "ice_cream", "custard", "egg"] },
+    { "id": "garden", "name": "Garden Cruise", "icon": "carrot", "greeting": "Ahoy! Our galley wants fresh vegetables.",
+      "look": { "body": "female-a", "skin": "#c98a5e", "hair": "#2a1a10", "top": "#ffc93c", "bottom": "#3b5a2a", "hat": "none", "accessory": "none", "pet": "none" },
+      "items": ["carrot", "tomato", "pumpkin", "cabbage", "onion", "beet", "eggplant", "pepper", "broccoli", "radish", "cauliflower", "pea", "lavender", "sunflower", "potato", "pineapple", "leek", "corn", "turnip"] },
+    { "id": "sweets", "name": "Sweet Tooth Cruise", "icon": "cupcake", "greeting": "Ahoy! The captain has a sweet tooth, and so do I.",
+      "look": { "body": "male-e", "skin": "#e0a878", "hair": "#8a3a2a", "top": "#b06ad9", "bottom": "#3b3b45", "hat": "none", "accessory": "none", "pet": "none" },
+      "items": ["cookie", "strawberry_jam", "apple_jam", "caramel", "chocolate", "doughnut", "cupcake", "ice_cream", "pancakes", "berry_tart", "grape_jam", "honey"] }
+  ]
+}

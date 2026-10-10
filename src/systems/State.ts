@@ -89,6 +89,8 @@ export interface SaveData {
   merchant: { bought: Record<string, number> };
   /** 1.8.7 Marlow Pike's fish stall: what was bought on which local day (stock refreshes each day) */
   fishstall?: { day: string; bought: Record<string, number> };
+  /** 1.10 Boat Visitors: today's wish list (cached so it does not change) and whether it was delivered */
+  boatvisit?: { day: string; theme: string; want: Record<string, number>; done: boolean };
   /** 1.9 festival days: best stars per festival ("cycle:week") and the stars already collected */
   /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */
   woods?: WoodsState;

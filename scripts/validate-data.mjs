@@ -333,6 +333,20 @@ if (errors.length) {
   }
   if (fd.prizes.length !== 3) err('festivals: prizes needs 3 tiers');
 }
+{
+  const bv = read('boatvisits.json'), items = read('items.json').items;
+  if (!(bv.daysPerWeek >= 1 && bv.daysPerWeek <= 7)) err('boatvisits: daysPerWeek must be 1-7');
+  if (!(bv.hours[0] < bv.hours[1])) err('boatvisits: hours must ascend');
+  if (!(bv.coinMult >= 1 && bv.coinMult <= 3)) err('boatvisits: coinMult out of range');
+  const seen = new Set();
+  for (const t of bv.themes) {
+    if (seen.has(t.id)) err(`boatvisits: duplicate theme ${t.id}`);
+    seen.add(t.id);
+    if (t.items.length < 5) err(`boatvisits: ${t.id} needs at least 5 items`);
+    for (const i of t.items) if (!items[i]) err(`boatvisits: ${t.id} item ${i} does not exist`);
+    if (/\u2014/.test(JSON.stringify(t))) err(`boatvisits: ${t.id} has an em dash`);
+  }
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

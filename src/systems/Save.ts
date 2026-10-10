@@ -61,6 +61,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.skills = repairSkills(s.skills);
   out.restoration = repairRestoration(s.restoration);
   out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
+  out.boatvisit = isObj(s.boatvisit) && typeof s.boatvisit.day === 'string' && typeof s.boatvisit.theme === 'string' ? { day: s.boatvisit.day, theme: s.boatvisit.theme, want: countMap(s.boatvisit.want, (k) => !!ITEMS[k]), done: s.boatvisit.done === true } : undefined;
   out.festivals = isObj(s.festivals) ? { best: countMap(s.festivals.best, () => true), done: countMap(s.festivals.done, () => true), seen: typeof s.festivals.seen === 'string' ? s.festivals.seen : '', played: countMap(s.festivals.played, () => true) } : undefined;
   out.woods = isObj(s.woods) ? {
     day: typeof s.woods.day === 'string' ? s.woods.day : '',

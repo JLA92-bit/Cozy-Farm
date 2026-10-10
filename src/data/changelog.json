@@ -1,6 +1,36 @@
 {
  "releases": [
   {
+   "version": "1.10.0",
+   "date": "2026-10-10",
+   "title": "More to Grow, Bake and Love",
+   "icon": "sparkles",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "sunflower",
+     "text": "Four new late-game crops: sunflowers, potatoes, pineapples and leeks (levels 41 to 47)"
+    },
+    {
+     "icon": "croissant",
+     "text": "13 new recipes: croissants, baguettes, cupcakes, doughnuts, sandwiches, salads and more"
+    },
+    {
+     "icon": "hug",
+     "text": "Bunnies! A new Rabbit Hutch (level 21) gives soft angora. Every animal can now be named and patted once a day; hearts grow and make better produce"
+    },
+    {
+     "icon": "fish",
+     "text": "Boat Visitors: on two days a week a themed boat ties up at the dock from 10 am to 5 pm. Hand over their wish list for coins and gems"
+    },
+    {
+     "icon": "sparkles",
+     "text": "14 new decorations, and a new Farm look setting (Settings) that tints your farm to a season if you like. It is only for looks"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.9.2",
    "date": "2026-10-09",
    "title": "No More Seasons",

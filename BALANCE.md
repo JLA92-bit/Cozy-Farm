@@ -552,3 +552,10 @@ bundles (and the Collection Book), not an income source: fishing the same fish i
 
 ### Seasons removed (1.9.2)
 The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season pages) were removed. Crops grow all year at their normal times and quality chances. Anyone who had bought a Glass Frame is refunded 900 coins each when their save loads. The token events are back on their real-date windows.
+
+## 1.10 More to Grow, Bake and Love
+- **Crops (levels 41/43/45/47):** sunflower 190, potato 215, pineapple 255, leek 295 coins; grow 9 to 14 hours. Dish items sell about 2.3x their ingredients.
+- **Rabbit** (Rabbit Hutch level 21, `rabbit_hutch`, feed `rabbit_feed` from the Feed Mill): angora 130 coins every 70 minutes.
+- **Animal friendship** (`src/systems/Animals.ts`): name an animal, pat it once a day; each heart raises the chance of a better quality product (via `qualityBoosts`). Max 5 hearts.
+- **Boat Visitors** (`boatvisits.json`, `src/systems/BoatVisit.ts`): level 10, two days a week (from the farm seed), 10 am to 5 pm local. Three goods from the day's theme that the farm can make now; pays 1.9x barn value plus 2 gems, once per visit day. Barn star prices are not used, so it cannot beat the barn by more than the 1.9x bonus on a few items a day.
+- **Farm look** (`settings.farmLook`): cosmetic tint and falling particles only, no gameplay effect.
