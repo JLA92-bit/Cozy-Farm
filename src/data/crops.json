@@ -370,6 +370,78 @@
     "model": "crop/leafs_b",
     "produce": "proc/lavender"
    }
+  },
+  {
+   "id": "sunflower",
+   "name": "Sunflower",
+   "level": 41,
+   "seedCost": 34,
+   "growSec": 32400,
+   "yield": 2,
+   "xp": 44,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/sunflower"
+   }
+  },
+  {
+   "id": "potato",
+   "name": "Potato",
+   "level": 43,
+   "seedCost": 36,
+   "growSec": 36000,
+   "yield": 2,
+   "xp": 48,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/potato"
+   }
+  },
+  {
+   "id": "pineapple",
+   "name": "Pineapple",
+   "level": 45,
+   "seedCost": 42,
+   "growSec": 43200,
+   "yield": 2,
+   "xp": 54,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/pineapple"
+   }
+  },
+  {
+   "id": "leek",
+   "name": "Leek",
+   "level": 47,
+   "seedCost": 46,
+   "growSec": 50400,
+   "yield": 2,
+   "xp": 60,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/leek"
+   }
   }
  ],
  "trees": [

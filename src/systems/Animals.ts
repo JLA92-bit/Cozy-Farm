@@ -5,6 +5,17 @@ import type { PlacedBuilding } from './State';
 import { animalState, isBuilt } from './Timers';
 import { addRolled } from './Quality';
 import { claimShepherdBonus, happyHerdChance } from './SkillEffects';
+import { qualityBoosts } from './Quality';
+import { localDay } from './Progression';
+import { saves } from './Save';
+import { hashString } from '../world/Procedural';
+
+/** 1.10 animal friendship: friendly names, hearts from a daily pat (3 love points a heart, 5 hearts at most) and better quality when collecting from happy animals. */
+const NAMES = ['Clover', 'Biscuit', 'Daisy', 'Mochi', 'Pepper', 'Maple', 'Pumpkin', 'Honey', 'Button', 'Poppy', 'Waffles', 'Nutmeg', 'Peanut', 'Sprout', 'Marshmallow', 'Ginger', 'Truffle', 'Cocoa', 'Bean', 'Pudding', 'Olive', 'Fudge', 'Sunny', 'Thistle', 'Bramble', 'Cricket', 'Dumpling', 'Juniper', 'Pebble', 'Tulip'];
+export const LOVE_PER_HEART = 3;
+export const MAX_ANIMAL_HEARTS = 5;
+let collectLove = 0;
+qualityBoosts.push((source) => (source === 'animal' && collectLove > 0 ? { silver: 0.15 * collectLove, gold: 0.05 * collectLove } : null));
 
 export class AnimalSystem {
   owned(animal: string): number {
@@ -33,13 +44,39 @@ export class AnimalSystem {
     }
     const cost = this.price(animal);
     if (!game.spend(cost)) return { ok: false, reason: 'Not enough coins' };
-    (b.animals ??= []).push({ fedAt: null });
+    const list = (b.animals ??= []);
+    list.push({ fedAt: null, name: NAMES[hashString(`${game.state.seed}:${b.uid}:${list.length}:${game.stat('animals_bought')}`) % NAMES.length] });
+    game.incStat('animals_bought');
     game.discover(animal, 'animal');
     buildings.updateGauges();
     game.bus.emit('animal:bought', { b, animal });
     game.bus.emit('building:changed', { b });
     game.bus.emit('sfx', { name: def.sound });
     return { ok: true, home: b };
+  }
+
+  /** The animal's name (older animals are named the first time anyone asks). */
+  nameOf(b: PlacedBuilding, i: number): string {
+    const a = b.animals?.[i];
+    if (!a) return '';
+    if (!a.name) { a.name = NAMES[hashString(`${game.state.seed}:${b.uid}:${i}`) % NAMES.length]; saves.save(); }
+    return a.name;
+  }
+  hearts(b: PlacedBuilding, i: number): number { return Math.min(MAX_ANIMAL_HEARTS, Math.floor((b.animals?.[i]?.love ?? 0) / LOVE_PER_HEART)); }
+  canPat(b: PlacedBuilding, i: number): boolean { const a = b.animals?.[i]; return !!a && a.petDay !== localDay(game.now()); }
+  /** A pat on one animal: one love point a day. Returns the new heart count, or -1 if already patted today. */
+  patOne(b: PlacedBuilding, i: number): number {
+    const a = b.animals?.[i];
+    if (!a || !this.canPat(b, i)) return -1;
+    const before = this.hearts(b, i);
+    a.petDay = localDay(game.now());
+    a.love = Math.min(LOVE_PER_HEART * MAX_ANIMAL_HEARTS, (a.love ?? 0) + 1);
+    game.incStat('animal_pats');
+    game.bus.emit('sfx', { name: ANIMAL[BUILDING[b.type].animal!].sound });
+    if (this.hearts(b, i) > before) game.bus.emit('toast', { title: `${this.nameOf(b, i)} loves you more!`, sub: `${this.hearts(b, i)} of ${MAX_ANIMAL_HEARTS} hearts: better quality products`, icon: 'heart' });
+    game.bus.emit('building:changed', { b });
+    saves.save();
+    return this.hearts(b, i);
   }
 
   counts(b: PlacedBuilding): { hungry: number; producing: number; ready: number } {
@@ -73,9 +110,10 @@ export class AnimalSystem {
   collectAll(b: PlacedBuilding, at?: Vec): number {
     const def = ANIMAL[BUILDING[b.type].animal!];
     const now = game.now();
-    let n = 0;
+    let n = 0, loveSum = 0;
     (b.animals ?? []).forEach((a, i) => {
       if (animalState(b, i, now) !== 'ready') return;
+      loveSum += this.hearts(b, i) / MAX_ANIMAL_HEARTS;
       // Happy Herd: sometimes the animal carries on without needing new feed
       a.fedAt = Math.random() < happyHerdChance() ? now : null;
       n++;
@@ -85,7 +123,8 @@ export class AnimalSystem {
       // Shepherd: once a day, one bonus product
       const bonus = claimShepherdBonus() ? 1 : 0;
       if (bonus) game.bus.emit('toast', { title: 'Shepherd', sub: `A bonus ${ITEMS[def.product]?.name ?? 'product'}`, icon: 'sheep' });
-      addRolled('animal', def.product, n + bonus, at);
+      collectLove = loveSum / n;
+      try { addRolled('animal', def.product, n + bonus, at); } finally { collectLove = 0; }
       game.addXp(def.xp * n, at);
       game.incStat('animal_products', n);
       game.incStat(`collect_${def.product}`, n);

@@ -162,6 +162,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .btn.red { --c: var(--btn-red); --d: var(--btn-red-dark); }
 .btn.purple { --c: var(--btn-purple); --d: var(--btn-purple-dark); }
 .btn.grey { --c: var(--btn-grey); --d: var(--btn-grey-dark); }
+.btn.pink { --c: #ff8fb4; --d: #d9618a; }
 .btn.small { min-height: 40px; font-size: 15px; padding: 4px 10px; border-radius: 12px; }
 .btn.round { width: var(--hud-btn); height: var(--hud-btn); padding: 0; border-radius: 50%; }
 .btn.wide { width: 100%; }
@@ -297,6 +298,12 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .animal-card .animal-progress { width: 100%; height: 18px; margin-top: 2px; }
 .animal-card .animal-hungry { color: #c0563a; font-family: var(--font-display); }
 .animal-card .animal-ready { color: #3d8f22; font-family: var(--font-display); }
+.animal-card .animal-name { font-weight: 800; }
+.animal-card .animal-hearts { display: flex; justify-content: center; gap: 1px; }
+.animal-card .animal-heart { width: 13px; height: 13px; filter: grayscale(1) opacity(.3); }
+.animal-card .animal-heart.on { filter: none; }
+.animal-card .animal-pat { margin-top: 4px; gap: 3px; padding: 2px 8px; font-size: 12px; }
+.animal-card .animal-pat img { width: 14px; height: 14px; }
 .animal-card .animal-badge { position: absolute; top: -8px; right: -8px; width: 30px; height: 30px; background: #fff; border: 2px solid var(--outline); border-radius: 50%; padding: 2px; box-sizing: border-box; }
 .animal-card.done .animal-badge { animation: bob 1.6s ease-in-out infinite; }
 .animal-card .animal-badge.dim { filter: grayscale(.8) opacity(.6); }

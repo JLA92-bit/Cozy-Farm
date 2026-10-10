@@ -106,6 +106,7 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   roadside_stall: { title: 'Your own stall!', sub: 'Set a price and passers-by buy from it.', skill: 'stall' },
   // 1.8.5 and 1.8.6 buildings: no `skill`, so players who know the basics still hear about what is new
   village_kitchen: { title: 'A hearty kitchen!', sub: 'Cook pizza, pasta, soup and more. Pea soup needs peas from level 38.', icon: 'stew' },
+  rabbit_hutch: { title: 'Bunnies!', sub: 'Feed them bunny feed from the Feed Mill and collect soft angora wool.', icon: 'rabbit' },
   beehive_house: { title: 'Bees at work!', sub: 'Tap it and pick a recipe: apples become honey, then candles and honey butter.', icon: 'honey_pot' },
   juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
   pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },
@@ -118,6 +119,10 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   blueberry: { title: 'Blueberries!', sub: 'Press them into juice, or bake blueberry muffins. Pottery vases use them too.' },
   pea: { title: 'Peas!', sub: 'Cook pea soup at the Village Kitchen.' },
   lavender: { title: 'Lavender!', sub: 'Make lavender honey and lavender candles at the Beehive House.' },
+  sunflower: { title: 'Sunflowers!', sub: 'Stir them into sunflower honey at the Beehive House.' },
+  potato: { title: 'Potatoes!', sub: 'Cook a hearty potato soup at the Village Kitchen.' },
+  pineapple: { title: 'Pineapples!', sub: 'Press them into pineapple juice at the Juice Press.' },
+  leek: { title: 'Leeks!', sub: 'Bake a leek pie at the Bakery.' },
 };
 
 let wired = false;

@@ -121,6 +121,11 @@ export const ICON_VARIANTS = {
   silver_mirror: { base: 'mirror' },
   old_compass: { base: 'compass', sat: 0.8, light: 0.9 },
   lost_crown: { base: 'crown', sat: 0.8, light: 0.9, badge: 'sparkles' },
+  // 1.10 late crops and new dishes
+  leek: { base: 'leafy-green', hue: 12, sat: 0.55, light: 1.3 },
+  pineapple_juice: { base: 'beverage-box', hue: 45, badge: 'pineapple' },
+  leek_pie: { base: 'pie', hue: 70, badge: 'leafy-green' },
+  sunflower_honey: { base: 'honey-pot', hue: 15, sat: 1.2, badge: 'sunflower' },
   // the Beehive house
   blueberry_juice: { base: 'beverage-box', hue: 150, badge: 'blueberries' },
   blueberry_muffin: { base: 'cupcake', badge: 'blueberries' },

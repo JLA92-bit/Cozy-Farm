@@ -182,7 +182,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     else uids.add(b.uid);
     if (b.plot && (!isObj(b.plot) || !CROP[b.plot.crop] || !Number.isFinite(b.plot.plantedAt) || !(b.plot.growSec > 0))) b.plot = null;
     if (b.tree && !Number.isFinite(b.tree.readyAt)) b.tree = { readyAt: 0 };
-    if (b.animals) b.animals = (Array.isArray(b.animals) ? b.animals : []).filter(isObj).map((a) => ({ fedAt: Number.isFinite(a.fedAt) ? a.fedAt as number : null }));
+    if (b.animals) b.animals = (Array.isArray(b.animals) ? b.animals : []).filter(isObj).map((a) => ({ fedAt: Number.isFinite(a.fedAt) ? a.fedAt as number : null, ...(typeof a.name === 'string' && a.name ? { name: a.name.slice(0, 16) } : {}), ...(Number.isFinite(a.love) && (a.love as number) > 0 ? { love: Math.min(99, Math.floor(a.love as number)) } : {}), ...(typeof a.petDay === 'string' ? { petDay: a.petDay } : {}) }));
     if (b.queue) b.queue = (Array.isArray(b.queue) ? b.queue : []).filter((e) => isObj(e) && RECIPE[e.recipe] && Number.isFinite(e.start) && Number.isFinite(e.end));
     if (b.ready) b.ready = strArr(b.ready).filter((i) => ITEMS[i]);
     // 1.8 star quality: fertilised fields, star-ingredient jobs and the star goods waiting to be collected

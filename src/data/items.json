@@ -1188,6 +1188,114 @@
    "cat": "fish",
    "sell": 430,
    "icon": "whale"
+  },
+  "sunflower": {
+   "name": "Sunflower",
+   "cat": "crop",
+   "sell": 190,
+   "icon": "sunflower"
+  },
+  "potato": {
+   "name": "Potato",
+   "cat": "crop",
+   "sell": 215,
+   "icon": "potato"
+  },
+  "pineapple": {
+   "name": "Pineapple",
+   "cat": "crop",
+   "sell": 255,
+   "icon": "pineapple"
+  },
+  "leek": {
+   "name": "Leek",
+   "cat": "crop",
+   "sell": 295,
+   "icon": "leek"
+  },
+  "baguette": {
+   "name": "Baguette",
+   "cat": "goods",
+   "sell": 175,
+   "icon": "baguette"
+  },
+  "croissant": {
+   "name": "Croissant",
+   "cat": "goods",
+   "sell": 340,
+   "icon": "croissant"
+  },
+  "doughnut": {
+   "name": "Doughnut",
+   "cat": "goods",
+   "sell": 230,
+   "icon": "doughnut"
+  },
+  "cupcake": {
+   "name": "Cupcake",
+   "cat": "goods",
+   "sell": 360,
+   "icon": "cupcake"
+  },
+  "chocolate": {
+   "name": "Chocolate",
+   "cat": "goods",
+   "sell": 260,
+   "icon": "chocolate"
+  },
+  "custard": {
+   "name": "Custard",
+   "cat": "goods",
+   "sell": 280,
+   "icon": "custard"
+  },
+  "sandwich": {
+   "name": "Sandwich",
+   "cat": "goods",
+   "sell": 460,
+   "icon": "sandwich"
+  },
+  "salad": {
+   "name": "Garden Salad",
+   "cat": "goods",
+   "sell": 380,
+   "icon": "salad"
+  },
+  "potato_soup": {
+   "name": "Potato Soup",
+   "cat": "goods",
+   "sell": 900,
+   "icon": "bowl"
+  },
+  "pineapple_juice": {
+   "name": "Pineapple Juice",
+   "cat": "goods",
+   "sell": 900,
+   "icon": "pineapple_juice"
+  },
+  "leek_pie": {
+   "name": "Leek Pie",
+   "cat": "goods",
+   "sell": 880,
+   "icon": "leek_pie"
+  },
+  "sunflower_honey": {
+   "name": "Sunflower Honey",
+   "cat": "goods",
+   "sell": 620,
+   "icon": "sunflower_honey"
+  },
+  "angora": {
+   "name": "Angora Wool",
+   "cat": "animal",
+   "sell": 130,
+   "icon": "yarn"
+  },
+  "rabbit_feed": {
+   "name": "Bunny Feed",
+   "cat": "feed",
+   "sell": 24,
+   "icon": "model:proc/feed_rabbit"
   }
  }
 }

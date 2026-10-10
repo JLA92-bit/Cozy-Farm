@@ -622,6 +622,19 @@
     {"id": "blue_vase", "building": "pottery_kiln", "level": 36, "in": {"clay": 3, "blueberry": 2}, "item": "blue_vase", "out": 1, "sec": 5400, "xp": 40},
     {"id": "pea_soup", "building": "village_kitchen", "level": 38, "in": {"pea": 4, "onion": 1, "cream": 1}, "item": "pea_soup", "out": 1, "sec": 2400, "xp": 34},
     {"id": "lavender_honey", "building": "beehive_house", "level": 38, "in": {"honey": 1, "lavender": 2}, "item": "lavender_honey", "out": 1, "sec": 2100, "xp": 32},
-    {"id": "lavender_candle", "building": "beehive_house", "level": 39, "in": {"beeswax_candle": 1, "lavender": 3}, "item": "lavender_candle", "out": 1, "sec": 3600, "xp": 44}
+    {"id": "lavender_candle", "building": "beehive_house", "level": 39, "in": {"beeswax_candle": 1, "lavender": 3}, "item": "lavender_candle", "out": 1, "sec": 3600, "xp": 44},
+    {"id": "baguette", "building": "bakery", "level": 34, "in": {"wheat": 4, "butter": 1}, "item": "baguette", "out": 1, "sec": 1800, "xp": 24},
+    {"id": "croissant", "building": "bakery", "level": 36, "in": {"wheat": 3, "butter": 1, "sugar": 1}, "item": "croissant", "out": 1, "sec": 3000, "xp": 34},
+    {"id": "doughnut", "building": "bakery", "level": 38, "in": {"wheat": 2, "egg": 2, "sugar": 1}, "item": "doughnut", "out": 1, "sec": 2700, "xp": 28},
+    {"id": "cupcake", "building": "bakery", "level": 40, "in": {"wheat": 2, "egg": 1, "sugar": 1, "cream": 1}, "item": "cupcake", "out": 1, "sec": 3300, "xp": 38},
+    {"id": "leek_pie", "building": "bakery", "level": 48, "in": {"leek": 2, "butter": 1, "wheat": 2}, "item": "leek_pie", "out": 1, "sec": 4800, "xp": 70},
+    {"id": "chocolate", "building": "sugar_mill", "level": 41, "in": {"sugar": 2, "milk": 2}, "item": "chocolate", "out": 1, "sec": 3000, "xp": 30},
+    {"id": "custard", "building": "dairy", "level": 38, "in": {"milk": 2, "egg": 2, "sugar": 1}, "item": "custard", "out": 1, "sec": 3000, "xp": 30},
+    {"id": "sandwich", "building": "village_kitchen", "level": 42, "in": {"bread": 2, "cheese": 1, "tomato": 1}, "item": "sandwich", "out": 1, "sec": 2400, "xp": 42},
+    {"id": "potato_soup", "building": "village_kitchen", "level": 43, "in": {"potato": 3, "onion": 1, "cream": 1}, "item": "potato_soup", "out": 1, "sec": 2700, "xp": 50},
+    {"id": "salad", "building": "village_kitchen", "level": 44, "in": {"broccoli": 2, "carrot": 2, "tomato": 2, "radish": 1}, "item": "salad", "out": 1, "sec": 2100, "xp": 38},
+    {"id": "pineapple_juice", "building": "juice_press", "level": 46, "in": {"pineapple": 3}, "item": "pineapple_juice", "out": 1, "sec": 2700, "xp": 48},
+    {"id": "sunflower_honey", "building": "beehive_house", "level": 41, "in": {"honey": 1, "sunflower": 2}, "item": "sunflower_honey", "out": 1, "sec": 2400, "xp": 40},
+    {"id": "rabbit_feed", "building": "feed_mill", "level": 21, "in": {"carrot": 2, "wheat": 2}, "item": "rabbit_feed", "out": 3, "sec": 960, "xp": 9}
   ]
 }

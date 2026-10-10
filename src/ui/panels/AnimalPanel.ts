@@ -3,7 +3,7 @@ import { h, icon, itemIcon, button, clear, priceTag, stableRefresh } from '../do
 import { ui } from '../UI';
 import { ANIMAL, BUILDING, ITEMS } from '../../data';
 import { game } from '../../systems/Game';
-import { animals } from '../../systems/Animals';
+import { animals, MAX_ANIMAL_HEARTS } from '../../systems/Animals';
 import { buildings } from '../../systems/Buildings';
 import { audio, haptics } from '../../systems/Audio';
 import { animalProduceMs, animalReadyAt, animalState, formatTime, isBuilt } from '../../systems/Timers';
@@ -39,7 +39,17 @@ export function openAnimalHome(b: PlacedBuilding): void {
       const badge = st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null;
       if (badge) badge.classList.add('animal-badge');
       if (badge && st === 'hungry' && !hasFeed) badge.classList.add('dim');
-      grid.append(h('div', { class: `card animal-card ${st === 'ready' ? 'done' : ''} ${onclick ? 'clickable' : ''}`, onclick }, icon(`model:${a.model}`, 'card-icon'), status, badge));
+      // 1.10 friendship: a name, hearts and a daily pat
+      const hearts = animals.hearts(b, i), canPat = animals.canPat(b, i);
+      const heartRow = h('div', { class: 'animal-hearts', role: 'img', 'aria-label': `${hearts} of ${MAX_ANIMAL_HEARTS} hearts` }, ...Array.from({ length: MAX_ANIMAL_HEARTS }, (_, k) => icon('heart', `animal-heart${k < hearts ? ' on' : ''}`)));
+      const pat = h('button', { class: `btn small ${canPat ? 'pink' : 'disabled'} animal-pat`, type: 'button', 'aria-label': canPat ? `Pat ${animals.nameOf(b, i)}` : `${animals.nameOf(b, i)} has had a pat today`, onclick: (e: Event) => {
+        e.stopPropagation();
+        if (animals.patOne(b, i) < 0) return;
+        ui.effects.hearts(ui.scene.farm.anchor(b.uid));
+        audio.play('select', { volume: 0.5 });
+        render();
+      } }, icon('heart'), canPat ? 'Pat' : 'Patted');
+      grid.append(h('div', { class: `card animal-card ${st === 'ready' ? 'done' : ''} ${onclick ? 'clickable' : ''}`, onclick }, icon(`model:${a.model}`, 'card-icon'), h('div', { class: 'card-sub animal-name' }, animals.nameOf(b, i)), heartRow, status, pat, badge));
     });
     for (let i = list.length; i < cap; i++) {
       grid.append(h('div', { class: 'card clickable', style: 'opacity:.8', onclick: () => buy() }, h('div', { class: 'card-title', style: 'font-size:30px;margin:8px' }, '+'), h('div', { class: 'card-sub' }, 'Buy'), h('div', { class: 'pill' }, priceTag(animals.price(a.id)))));

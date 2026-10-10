@@ -90,6 +90,20 @@
    "variant": "duck"
   },
   {
+   "id": "rabbit",
+   "name": "Bunny",
+   "level": 21,
+   "house": "rabbit_hutch",
+   "cost": 1300,
+   "feed": "rabbit_feed",
+   "product": "angora",
+   "produceSec": 4200,
+   "xp": 16,
+   "model": "pet/bunny",
+   "scale": 0.5,
+   "sound": "chicken"
+  },
+  {
    "id": "horse",
    "name": "Horse",
    "level": 36,

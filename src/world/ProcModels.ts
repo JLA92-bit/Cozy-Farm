@@ -164,6 +164,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   pen_sheep: () => penBuilder('#8fd16a', '#3fa9f5', '#bfe8ff'),
   pen_pig: () => penBuilder('#a07850', PAL.orange, '#8a5a33'),
   pen_goat: () => penBuilder('#9bc66a', '#6a7d8f', '#bfe8ff'),
+  pen_rabbit: () => penBuilder('#b6e08a', '#e59ab8', '#fff3c4'),
   pen_duck: () => penDuck(),
   pen_horse: () => penHorse(),
   haybale: () => geo()
@@ -303,6 +304,23 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     }
     return b.build();
   },
+  sunflower: () => {
+    const b = geo();
+    b.cyl(0.03, 0.04, 0.5, '#5f9a3a', [0, 0, 0], 6);
+    b.sphere(0.07, '#8b5a2b', [0, 0.52, 0.02], 1, [1, 1, 0.5]);
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; b.sphere(0.07, '#ffd23a', [Math.cos(a) * 0.15, 0.52 + Math.sin(a) * 0.15, 0], 1, [1, 1.3, 0.5]); }
+    b.sphere(0.12, '#6b4220', [0, 0.52, 0.04], 1, [1, 1, 0.5]);
+    b.cone(0.12, 0.1, '#5f9a3a', [-0.1, 0.18, 0], 5, [0, 0, 1.2]);
+    return b.build();
+  },
+  potato: () => {
+    const b = geo();
+    for (const [x, z, s, c] of [[-0.12, 0.02, 1, '#c99a5a'], [0.1, -0.04, 0.85, '#b9884a'], [0.02, 0.13, 0.7, '#d4a86a']] as [number, number, number, string][]) {
+      b.sphere(0.13 * s, c, [x, 0.12 * s, z], 1, [1.25, 0.85, 1]);
+      b.sphere(0.012, '#7a5a2a', [x + 0.04, 0.2 * s, z + 0.03], 0);
+    }
+    return b.build();
+  },
   wool: () => {
     const b = geo();
     for (const p of [[0, 0.22, 0], [0.18, 0.2, 0.05], [-0.16, 0.2, 0.06], [0.04, 0.3, -0.12], [0.02, 0.36, 0.08]] as V3[]) b.sphere(0.16, PAL.wool, p, 1);
@@ -317,6 +335,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   feed_goat: () => sack('#9bd16a'),
   feed_duck: () => sack('#f2d16a'),
   feed_horse: () => sack('#c9a35a'),
+  feed_rabbit: () => sack('#e8c5a0'),
   // 1.8: a brown-tagged sack with a little green sprout on top
   fertiliser: () => sack('#8a5a2e', true),
   fertiliser_q: () => sack('#d99a16', true),

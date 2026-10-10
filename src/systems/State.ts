@@ -34,7 +34,8 @@ export interface PlacedBuilding {
   /** fert (1.8): sown with fertiliser, better odds of silver and gold at harvest. rare (1.8.5): sown with Rosa's rare seeds, a bigger boost */
   plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; qfert?: boolean; rare?: boolean; /** planted in its own season (1.9): a little faster and a little better */ inSeason?: boolean } | null;
   tree?: { readyAt: number };
-  animals?: { fedAt: number | null }[];
+  /** 1.10 animal friendship: a name, love points (a daily pat gives one) and the day of the last pat */
+  animals?: { fedAt: number | null; name?: string; love?: number; petDay?: string }[];
   queue?: QueueEntry[];
   ready?: string[];
   /** 1.8: how many of the ready goods (per item) were made from star ingredients, as [silver, gold] */
