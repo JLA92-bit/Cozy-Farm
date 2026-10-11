@@ -242,7 +242,7 @@ function makeBanner(): HTMLElement {
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Village Square'),
       h('div', { class: 'visit-sub' }, h('span', { class: 'sq-progress' }, icon('sparkle_heart'), restoration.festivalOn() ? 'Village Hero: all rooms rebuilt' : `${done} of ${ROOMS.length} rooms rebuilt`))),
-    fest ? button([icon(fest.def.icon), h('span', null, fest.def.name)], () => ui.open('festival'), 'yellow visit-home', { 'aria-label': `Join the ${fest.def.name}` }) : null,
+    fest ? button([icon(fest.def.icon), h('span', null, fest.def.name)], () => ui.open('festival'), 'yellow visit-home sq-fest', { 'aria-label': `Join the ${fest.def.name}` }) : null,
     home);
 }
 

@@ -65,6 +65,17 @@
   .sq-banner .visit-home { transform: scale(.88); transform-origin: right center; }
 }
 
+/* narrow phones: the title, the festival button and Back to the farm must share one slim row. The festival button
+   shrinks to its icon and the title keeps whole words, so it is never squeezed into one letter per line (1.10) */
+@media (max-width: 520px) {
+  .sq-banner { gap: 6px; padding-left: 10px; }
+  .sq-banner .visit-title { min-width: 8.5em; }
+  .sq-banner .visit-name { overflow-wrap: normal; font-size: 16px; }
+  .sq-banner .sq-fest span { display: none; }
+  .sq-banner .sq-fest { padding: 6px 10px; }
+  .sq-banner .visit-home { font-size: 15px; padding: 6px 10px; }
+}
+
 /* narrow phones: smaller room labels so neighbours do not overlap */
 @media (max-width: 520px) {
   .sq-label { min-width: 96px; max-width: 132px; padding: 3px 6px 4px; }

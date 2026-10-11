@@ -38,6 +38,10 @@
     {
      "icon": "hug",
      "text": "Fixed helping friends: fields, buildings and scarecrows on top of paths or fields were missing on visited farms, so the Water / Feed / Tend buttons never appeared there"
+    },
+    {
+     "icon": "house",
+     "text": "Fixed the Village Square top bar on narrow phones, where the title was squeezed into one letter per line and covered the village"
     }
    ],
    "sections": []
