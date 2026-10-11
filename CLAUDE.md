@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 10 October 2026 (game version 1.10.0 built locally; live is 1.9.2). Owner: Josh Makes Games.
+Last updated: 10 October 2026 (game version 1.10.0, pushed). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.10.0 "More to Grow, Bake and Love"** (local until pushed; live is 1.9.2) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.10.0 "More to Grow, Bake and Love"** (pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
-**1.10.0 added (local):** four crops (levels 41-47), 13 recipes, Rabbit Hutch and bunnies, animal names/pats/hearts (`Animals.ts`), 14 decor pieces, Boat Visitors (`boatvisits.json`, `BoatVisit.ts`, `world/BoatVisitor.ts`, `BoatVisitPanel.ts`: two days a week, east berth, 10am-5pm) and a cosmetic Farm look setting (`world/FarmLook.ts`). Balance: `BALANCE.md`.
+**1.10.0 added (pushed 11 Oct):** four crops (levels 41-47), 13 recipes, Rabbit Hutch and bunnies, animal names/pats/hearts (`Animals.ts`), 14 decor pieces, Boat Visitors (`boatvisits.json`, `BoatVisit.ts`, `world/BoatVisitor.ts`, `BoatVisitPanel.ts`: two days a week, east berth, 10am-5pm) and a cosmetic Farm look setting (`world/FarmLook.ts`). Balance: `BALANCE.md`.
 
 **1.9.x added:** (1.9.2 REMOVED the seasons again: no seasonal crops, badge, tints, Glass Frame or season Collection pages; a Glass Frame in an old save is refunded 900 coins in `Save.ts`.) A festival cycle (`cycle.json`, `FestivalCycle.ts`: a shared 28-day cycle, a festival every 7th day, four in turn), 16 extra fish (`extra` in `fish.json`, a separate 8% chance), Lucky Bait and order-aware fishing (1.9.1), Festival Days (`festivals.json`, `Festivals.ts`, `ui/panels/FestivalPanel.ts`: Egg Hunt, Fishing Derby, Harvest Fair, Feast of Lights), the Wild Woods island (`woods.json`, `Woods.ts`, `world/WoodsView.ts`, `scenes/Woods.ts`, `WoodsGate.ts` on the south beach; forage, dig spots, Foraging skill), Museum (`museum.json`, `Museum.ts`) and expedition board (`expeditions.json`, `Expeditions.ts`) in the woods, Help Wanted (`HelpWanted.ts`), heart events at 2/6/10 (`stories` in `villagers.json`), pet finds (`PetFinds.ts`), 9 new Collection Book pages + Master Collector + Almanac page (`AlmanacPage.ts`), dashboard page "1.9 Year" and server game settings (`online/GameConfig.ts`, `game_config` table). Villager routines are light (`schedules.json`, `Schedules.ts`: villagers appear in the Wild Woods by time of day and each villager page says where they are; they do not move on the farm or in the square). Not built from `PLAN-1.9.md`: the four real-date token events are not merged into the festivals, no decorations/buildings/recipes book pages, Museum is in the woods not a seventh square lot. Balance: `BALANCE.md`.
 
@@ -190,7 +190,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-10-10: 1.10.0 (local): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
+- 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
 - 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.
 - 2026-10-08: 1.9.0 (pushed): seasons, festivals, Wild Woods, Museum, expeditions, Help Wanted, collection pages, dashboard page and settings. Run the `1.9 a year in the valley` section of `supabase/schema.sql` after pushing.
 - 2026-10-08: 1.8.9 (local): placing paths and fences continues in a line (`Interaction.nextInRun`): the next ghost sits beside the last piece and keeps its direction.
