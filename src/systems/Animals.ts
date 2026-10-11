@@ -12,6 +12,8 @@ import { hashString } from '../world/Procedural';
 
 /** 1.10 animal friendship: friendly names, hearts from a daily pat (3 love points a heart, 5 hearts at most) and better quality when collecting from happy animals. */
 const NAMES = ['Clover', 'Biscuit', 'Daisy', 'Mochi', 'Pepper', 'Maple', 'Pumpkin', 'Honey', 'Button', 'Poppy', 'Waffles', 'Nutmeg', 'Peanut', 'Sprout', 'Marshmallow', 'Ginger', 'Truffle', 'Cocoa', 'Bean', 'Pudding', 'Olive', 'Fudge', 'Sunny', 'Thistle', 'Bramble', 'Cricket', 'Dumpling', 'Juniper', 'Pebble', 'Tulip'];
+/** Every farm's first nine animals get these, one each, in an order picked from the farm seed (so a different animal on each farm). */
+const SPECIAL_NAMES = ['Tex', 'Sonny', 'Mack', 'Lane', 'Arlie', 'Alby', 'Jax', 'Perry', 'Letty'];
 export const LOVE_PER_HEART = 3;
 export const MAX_ANIMAL_HEARTS = 5;
 let collectLove = 0;
@@ -45,7 +47,7 @@ export class AnimalSystem {
     const cost = this.price(animal);
     if (!game.spend(cost)) return { ok: false, reason: 'Not enough coins' };
     const list = (b.animals ??= []);
-    list.push({ fedAt: null, name: NAMES[hashString(`${game.state.seed}:${b.uid}:${list.length}:${game.stat('animals_bought')}`) % NAMES.length] });
+    list.push({ fedAt: null, name: this.freshName(`${b.uid}:${list.length}:${game.stat('animals_bought')}`) });
     game.incStat('animals_bought');
     game.discover(animal, 'animal');
     buildings.updateGauges();
@@ -59,8 +61,34 @@ export class AnimalSystem {
   nameOf(b: PlacedBuilding, i: number): string {
     const a = b.animals?.[i];
     if (!a) return '';
-    if (!a.name) { a.name = NAMES[hashString(`${game.state.seed}:${b.uid}:${i}`) % NAMES.length]; saves.save(); }
+    if (!a.name) { a.name = this.freshName(`${b.uid}:${i}`, a); saves.save(); }
+    // animals that were given a random name before the special names existed swap it (until each special name is in use)
+    else if (!a.love && !SPECIAL_NAMES.includes(a.name)) {
+      const next = this.freeSpecial(a);
+      if (next) { a.name = next; saves.save(); }
+    }
     return a.name;
+  }
+
+  private namesInUse(except?: object): Set<string> {
+    const used = new Set<string>();
+    for (const x of game.state.buildings) for (const an of x.animals ?? []) if (an.name && an !== except) used.add(an.name);
+    return used;
+  }
+  /** The next special name no animal on the farm has yet, in this farm's own order. */
+  private freeSpecial(except?: object): string | null {
+    const used = this.namesInUse(except);
+    const order = [...SPECIAL_NAMES].sort((x, y) => hashString(`${game.state.seed}:name:${x}`) - hashString(`${game.state.seed}:name:${y}`));
+    return order.find((n) => !used.has(n)) ?? null;
+  }
+  /** A new animal's name: the special names first, then a random friendly one that is not already taken. */
+  private freshName(key: string, except?: object): string {
+    const special = this.freeSpecial(except);
+    if (special) return special;
+    const used = this.namesInUse(except);
+    const pool = NAMES.filter((n) => !used.has(n));
+    const from = pool.length ? pool : NAMES;
+    return from[hashString(`${game.state.seed}:${key}`) % from.length];
   }
   hearts(b: PlacedBuilding, i: number): number { return Math.min(MAX_ANIMAL_HEARTS, Math.floor((b.animals?.[i]?.love ?? 0) / LOVE_PER_HEART)); }
   canPat(b: PlacedBuilding, i: number): boolean { const a = b.animals?.[i]; return !!a && a.petDay !== localDay(game.now()); }
