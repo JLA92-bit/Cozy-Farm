@@ -22,7 +22,7 @@ type PlaceMode = {
 };
 type Mode = { kind: 'idle' } | { kind: 'edit' } | PlaceMode | { kind: 'plant'; crop: string | null };
 
-type Swipe = { kind: 'harvest' | 'plant'; crop?: string; count: number; visited: Set<number>; stopped?: boolean };
+type Swipe = { kind: 'harvest' | 'plant' | 'select'; crop?: string; count: number; visited: Set<number>; stopped?: boolean; type?: string; add?: boolean };
 
 export class Interaction implements WorldHandler {
   mode: Mode = { kind: 'idle' };
@@ -148,7 +148,16 @@ export class Interaction implements WorldHandler {
       }
       return 'pan';
     }
-    if (m.kind === 'edit') return 'pan';
+    if (m.kind === 'edit') {
+      // multi-select: a swipe that starts on a piece selects (or unselects) every piece of that same kind it passes over
+      const first = this.multi ? this.pickBuilding(p) : null;
+      if (first && this.multi && this.selectable(first)) {
+        this.swipe = { kind: 'select', type: first.type, add: !this.multi.has(first.uid), count: 0, visited: new Set() };
+        this.toolDrag(p);
+        return 'tool';
+      }
+      return 'pan';
+    }
     const b = this.plotAt(p);
     const now = game.now();
     if (b && ((b.plot && plotReady(b, now)) || (BUILDING[b.type].tree && treeReady(b, now)))) {
@@ -190,6 +199,7 @@ export class Interaction implements WorldHandler {
       return;
     }
     if (!this.swipe) return;
+    if (this.swipe.kind === 'select') { this.selectDrag(p, this.swipe); return; }
     const b = this.plotAt(p);
     if (!b || this.swipe.visited.has(b.uid)) return;
     if (this.swipe.kind === 'harvest') {
@@ -217,6 +227,7 @@ export class Interaction implements WorldHandler {
         haptics.play('success');
       }
     }
+    if (this.swipe?.kind === 'select') { this.swipe = null; return; }
     if (this.swipe) ui.feedback.endCombo();
     const planted = this.swipe?.kind === 'plant' && this.swipe.count > 0;
     this.swipe = null;
@@ -534,17 +545,28 @@ export class Interaction implements WorldHandler {
   private beginMulti(): void {
     if (this.mode.kind !== 'edit') return;
     this.multi = new Map();
-    ui.setModeBanner('Tap pieces to select them, then Store', () => this.exitEdit());
+    ui.setModeBanner('Swipe across pieces of one kind to select them, then Store', () => this.exitEdit());
     this.refreshMultiBar();
   }
   private refreshMultiBar(): void {
     ui.setEditBar({ cancel: () => { this.endMulti(); this.enterEdit(); }, store: () => this.storeMany(), count: this.multi?.size ?? 0 });
   }
+  private selectable(b: PlacedBuilding): boolean { return isStorable(BUILDING[b.type]) && !b.plot; }
+  /** While swiping: select (or unselect) every piece of the starting kind under the finger, on any layer of the tile. */
+  private selectDrag(p: Pointer, sw: Swipe): void {
+    const t = this.scene.tileAt(p);
+    if (!t || !this.multi) return;
+    const tile = [game.buildingAt(t[0], t[1]), game.overlayAt(t[0], t[1]), game.pathAt(t[0], t[1])];
+    const b = tile.find((x): x is PlacedBuilding => !!x && x.type === sw.type);
+    if (!b || sw.visited.has(b.uid) || !this.selectable(b)) return;
+    sw.visited.add(b.uid);
+    if (this.multi.has(b.uid) !== !!sw.add) this.toggleSelect(b);
+  }
   private toggleSelect(b: PlacedBuilding): void {
     const multi = this.multi;
     if (!multi) return;
     const def = BUILDING[b.type];
-    if (!isStorable(def) || b.plot) { ui.feedback.toast("Can't store this", def.name, 'cross'); audio.play('error'); return; }
+    if (!this.selectable(b)) { ui.feedback.toast("Can't store this", def.name, 'cross'); audio.play('error'); return; }
     const had = multi.get(b.uid);
     if (had) { this.scene.scene.remove(had); multi.delete(b.uid); }
     else {
@@ -555,7 +577,7 @@ export class Interaction implements WorldHandler {
       this.scene.scene.add(g);
       multi.set(b.uid, g);
     }
-    audio.play('select', { volume: 0.5 });
+    audio.play('select', { volume: 0.5, throttleMs: 40 });
     haptics.play('tap');
     this.refreshMultiBar();
   }
