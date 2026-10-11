@@ -123,6 +123,8 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   potato: { title: 'Potatoes!', sub: 'Cook a hearty potato soup at the Village Kitchen.' },
   pineapple: { title: 'Pineapples!', sub: 'Press them into pineapple juice at the Juice Press.' },
   leek: { title: 'Leeks!', sub: 'Bake a leek pie at the Bakery.' },
+  mushroom: { title: 'Mushrooms!', sub: 'Cook mushroom soup and garden wraps at the Village Kitchen.' },
+  giant_pumpkin: { title: 'Giant Pumpkins!', sub: 'Bake a pumpkin spice cake at the Bakery.' },
 };
 
 let wired = false;

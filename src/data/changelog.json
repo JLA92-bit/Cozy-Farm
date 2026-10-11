@@ -1,6 +1,36 @@
 {
  "releases": [
   {
+   "version": "1.11.0",
+   "date": "2026-10-11",
+   "title": "The Master Farm",
+   "icon": "glowing_star",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "glowing_star",
+     "text": "Levels 51 to 60 are here! The level cap is raised from 50 to 60, with coins and gems at every level"
+    },
+    {
+     "icon": "mushroom",
+     "text": "Two new crops: mushrooms (level 51) and giant pumpkins (level 54)"
+    },
+    {
+     "icon": "birthday_cake",
+     "text": "7 new dishes: muffins, waffles, mushroom soup, garden wraps, watermelon juice, pumpkin spice cake and the Celebration Cake"
+    },
+    {
+     "icon": "house",
+     "text": "Farmhouse levels 9 and 10 (player levels 52 and 58) raise every limit again, including a fourth workshop of each kind"
+    },
+    {
+     "icon": "tree",
+     "text": "Six new decorations, from an Old Oak and a Little Grove to a golden Grand Master Statue at level 60"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.10.0",
    "date": "2026-10-10",
    "title": "More to Grow, Bake and Love",

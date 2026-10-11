@@ -1,6 +1,6 @@
 {
  "_comment": "xpToNext = XP needed to reach the next level. coins/gems = reward on reaching this level. Unlocks are derived from the 'level' field of every crop, building, recipe, animal and cosmetic.",
- "maxLevel": 50,
+ "maxLevel": 60,
  "levels": [
   {
    "level": 1,
@@ -298,9 +298,69 @@
   },
   {
    "level": 50,
-   "xpToNext": 0,
+   "xpToNext": 35700,
    "coins": 1350,
    "gems": 5
+  },
+  {
+   "level": 51,
+   "xpToNext": 37840,
+   "coins": 1275,
+   "gems": 1
+  },
+  {
+   "level": 52,
+   "xpToNext": 40110,
+   "coins": 1300,
+   "gems": 1
+  },
+  {
+   "level": 53,
+   "xpToNext": 42520,
+   "coins": 1325,
+   "gems": 1
+  },
+  {
+   "level": 54,
+   "xpToNext": 45070,
+   "coins": 1350,
+   "gems": 1
+  },
+  {
+   "level": 55,
+   "xpToNext": 47770,
+   "coins": 1475,
+   "gems": 5
+  },
+  {
+   "level": 56,
+   "xpToNext": 50640,
+   "coins": 1400,
+   "gems": 1
+  },
+  {
+   "level": 57,
+   "xpToNext": 53680,
+   "coins": 1425,
+   "gems": 1
+  },
+  {
+   "level": 58,
+   "xpToNext": 56900,
+   "coins": 1450,
+   "gems": 1
+  },
+  {
+   "level": 59,
+   "xpToNext": 60310,
+   "coins": 1475,
+   "gems": 1
+  },
+  {
+   "level": 60,
+   "xpToNext": 0,
+   "coins": 1600,
+   "gems": 10
   }
  ],
  "orderSlots": {
@@ -317,6 +377,7 @@
   "3": "Roadside Stall unlocked: sell at your own prices",
   "8": "Truck Depot: big delivery orders",
   "5": "Upgrade your Farmhouse to raise limits",
-  "50": "Master Farmer! Everything is unlocked."
+  "50": "Level 50 is not the end: the Master Farm opens up to level 60!",
+  "60": "Grand Master Farmer! Everything is unlocked."
  }
 }

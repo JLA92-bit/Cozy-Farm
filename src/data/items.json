@@ -1296,6 +1296,60 @@
    "cat": "feed",
    "sell": 24,
    "icon": "model:proc/feed_rabbit"
+  },
+  "mushroom": {
+   "name": "Mushroom",
+   "cat": "crop",
+   "sell": 340,
+   "icon": "mushroom"
+  },
+  "giant_pumpkin": {
+   "name": "Giant Pumpkin",
+   "cat": "crop",
+   "sell": 400,
+   "icon": "giant_pumpkin"
+  },
+  "muffin": {
+   "name": "Muffin",
+   "cat": "goods",
+   "sell": 520,
+   "icon": "muffin"
+  },
+  "waffle": {
+   "name": "Waffle",
+   "cat": "goods",
+   "sell": 610,
+   "icon": "waffle"
+  },
+  "mushroom_soup": {
+   "name": "Mushroom Soup",
+   "cat": "goods",
+   "sell": 1350,
+   "icon": "mushroom_soup"
+  },
+  "garden_wrap": {
+   "name": "Garden Wrap",
+   "cat": "goods",
+   "sell": 1500,
+   "icon": "stuffed_flatbread"
+  },
+  "watermelon_juice": {
+   "name": "Watermelon Juice",
+   "cat": "goods",
+   "sell": 1000,
+   "icon": "watermelon_juice"
+  },
+  "pumpkin_spice_cake": {
+   "name": "Pumpkin Spice Cake",
+   "cat": "goods",
+   "sell": 1700,
+   "icon": "pumpkin_spice_cake"
+  },
+  "celebration_cake": {
+   "name": "Celebration Cake",
+   "cat": "goods",
+   "sell": 2100,
+   "icon": "birthday_cake"
   }
  }
 }

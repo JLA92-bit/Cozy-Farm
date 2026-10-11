@@ -123,6 +123,13 @@ export const ICON_VARIANTS = {
   lost_crown: { base: 'crown', sat: 0.8, light: 0.9, badge: 'sparkles' },
   // 1.10 late crops and new dishes
   leek: { base: 'leafy-green', hue: 12, sat: 0.55, light: 1.3 },
+  // 1.11 the Master Farm (levels 51-60)
+  giant_pumpkin: { base: 'jack-o-lantern', badge: 'sparkles' },
+  muffin: { base: 'cupcake', hue: 28, sat: 0.9 },
+  waffle: { base: 'pancakes', hue: 22, sat: 1.1, flip: true },
+  mushroom_soup: { base: 'pot-of-food', badge: 'mushroom' },
+  watermelon_juice: { base: 'juice_cup', badge: 'watermelon' },
+  pumpkin_spice_cake: { base: 'shortcake', badge: 'jack-o-lantern' },
   pineapple_juice: { base: 'beverage-box', hue: 45, badge: 'pineapple' },
   leek_pie: { base: 'pie', hue: 70, badge: 'leafy-green' },
   sunflower_honey: { base: 'honey-pot', hue: 15, sat: 1.2, badge: 'sunflower' },

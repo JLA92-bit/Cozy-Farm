@@ -635,6 +635,13 @@
     {"id": "salad", "building": "village_kitchen", "level": 44, "in": {"broccoli": 2, "carrot": 2, "tomato": 2, "radish": 1}, "item": "salad", "out": 1, "sec": 2100, "xp": 38},
     {"id": "pineapple_juice", "building": "juice_press", "level": 46, "in": {"pineapple": 3}, "item": "pineapple_juice", "out": 1, "sec": 2700, "xp": 48},
     {"id": "sunflower_honey", "building": "beehive_house", "level": 41, "in": {"honey": 1, "sunflower": 2}, "item": "sunflower_honey", "out": 1, "sec": 2400, "xp": 40},
-    {"id": "rabbit_feed", "building": "feed_mill", "level": 21, "in": {"carrot": 2, "wheat": 2}, "item": "rabbit_feed", "out": 3, "sec": 960, "xp": 9}
+    {"id": "rabbit_feed", "building": "feed_mill", "level": 21, "in": {"carrot": 2, "wheat": 2}, "item": "rabbit_feed", "out": 3, "sec": 960, "xp": 9},
+    {"id": "muffin", "building": "bakery", "level": 52, "in": {"wheat": 3, "egg": 1, "sugar": 1}, "item": "muffin", "out": 1, "sec": 3300, "xp": 40},
+    {"id": "mushroom_soup", "building": "village_kitchen", "level": 53, "in": {"mushroom": 3, "onion": 1, "cream": 1}, "item": "mushroom_soup", "out": 1, "sec": 3000, "xp": 56},
+    {"id": "waffle", "building": "bakery", "level": 54, "in": {"wheat": 3, "egg": 2, "syrup": 1}, "item": "waffle", "out": 1, "sec": 3600, "xp": 46},
+    {"id": "watermelon_juice", "building": "juice_press", "level": 55, "in": {"watermelon": 4, "sugar": 1}, "item": "watermelon_juice", "out": 1, "sec": 3000, "xp": 52},
+    {"id": "garden_wrap", "building": "village_kitchen", "level": 56, "in": {"wheat": 3, "mushroom": 2, "broccoli": 2, "cheese": 1}, "item": "garden_wrap", "out": 1, "sec": 3300, "xp": 60},
+    {"id": "pumpkin_spice_cake", "building": "bakery", "level": 57, "in": {"giant_pumpkin": 2, "wheat": 3, "egg": 2, "sugar": 2}, "item": "pumpkin_spice_cake", "out": 1, "sec": 4500, "xp": 66},
+    {"id": "celebration_cake", "building": "bakery", "level": 59, "in": {"wheat": 4, "egg": 3, "sugar": 3, "strawberry": 2, "cream": 1}, "item": "celebration_cake", "out": 1, "sec": 6600, "xp": 90}
   ]
 }

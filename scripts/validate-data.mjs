@@ -1,5 +1,5 @@
 // Validates the JSON game data in src/data: parses every file, checks cross-references
-// (items, buildings, models, recipes) and that every level from 2 to 50 unlocks something.
+// (items, buildings, models, recipes) and that every level from 2 to the max level unlocks something.
 // Run with `npm run validate-data` (also runs in CI before the build).
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 

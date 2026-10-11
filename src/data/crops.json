@@ -442,6 +442,42 @@
     "model": "crop/leafs_b",
     "produce": "food/leek"
    }
+  },
+  {
+   "id": "mushroom",
+   "name": "Mushroom",
+   "level": 51,
+   "seedCost": 52,
+   "growSec": 57600,
+   "yield": 2,
+   "xp": 66,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/mushroom"
+   }
+  },
+  {
+   "id": "giant_pumpkin",
+   "name": "Giant Pumpkin",
+   "level": 54,
+   "seedCost": 58,
+   "growSec": 64800,
+   "yield": 2,
+   "xp": 72,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/pumpkin-basic"
+   }
   }
  ],
  "trees": [

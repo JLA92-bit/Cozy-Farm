@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 10 October 2026 (game version 1.10.0, pushed). Owner: Josh Makes Games.
+Last updated: 11 October 2026 (game version 1.11.0 built locally; live is 1.10.0). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.10.0 "More to Grow, Bake and Love"** (pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.11.0 "The Master Farm"** (local until pushed; live is 1.10.0) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.11.0 added (local):** the level cap is now 60 (`levels.json` `maxLevel`; players at 50 carry on), mushroom and giant pumpkin crops, 7 dishes, Farmhouse levels 9-10 (a fourth workshop of each kind at 10), six decor pieces incl. the Grand Master Statue. Balance: `BALANCE.md`.
 
 **1.10.0 added (pushed 11 Oct):** four crops (levels 41-47), 13 recipes, Rabbit Hutch and bunnies, animal names/pats/hearts (`Animals.ts`), 14 decor pieces, Boat Visitors (`boatvisits.json`, `BoatVisit.ts`, `world/BoatVisitor.ts`, `BoatVisitPanel.ts`: two days a week, east berth, 10am-5pm) and a cosmetic Farm look setting (`world/FarmLook.ts`). Balance: `BALANCE.md`.
 
@@ -190,6 +192,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-11: 1.11.0 (local): levels 51-60 (see section 1).
 - 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
 - 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.
 - 2026-10-08: 1.9.0 (pushed): seasons, festivals, Wild Woods, Museum, expeditions, Help Wanted, collection pages, dashboard page and settings. Run the `1.9 a year in the valley` section of `supabase/schema.sql` after pushing.

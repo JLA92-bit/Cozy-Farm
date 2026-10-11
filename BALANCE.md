@@ -560,3 +560,10 @@ The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season p
 - **Boat Visitors** (`boatvisits.json`, `src/systems/BoatVisit.ts`): level 10, two days a week (from the farm seed), 10 am to 5 pm local. Three goods from the day's theme that the farm can make now; pays 1.9x barn value plus 2 gems, once per visit day. Barn star prices are not used, so it cannot beat the barn by more than the 1.9x bonus on a few items a day.
 - **Haze (fog)** is pushed far out (`Environment.ts`): near 100 / far 230 by day, mist 61 / 142 at worst, so the farm stays clear at max zoom.
 - **Farm look** (`settings.farmLook`): cosmetic tint and falling particles only, no gameplay effect.
+
+## 1.11 The Master Farm (levels 51-60)
+- **Level cap 60** (`levels.json`): xpToNext keeps the ~6% growth (35,700 at 50 up to 60,310 at 59; about 450,000 XP for all ten). Coins 1,275-1,600 per level, 1 gem each, 5 at 55 and 10 at 60. Players already at 50 simply start earning XP towards 51.
+- **Crops:** mushroom (L51, sells 340, 16h) and giant pumpkin (L54, sells 400, 18h).
+- **Dishes (7):** muffin 520, waffle 610, mushroom soup 1,350, garden wrap 1,500, watermelon juice 1,000, pumpkin spice cake 1,700, Celebration Cake 2,100 (the simulator flagged 2,400 as 2x its bakery peers, so it was cut and made slower).
+- **Farmhouse 9 and 10** (player levels 52 and 58, 250k and 400k coins): plots 80/90, trees 34/40, animal homes 3/4, workshops 3/4 (a fourth Bakery at level 10), decor 320/400.
+- **Decor:** Old Oak, Camper's Tent, Palm Tree, Little Grove, Ancient Elm and the Grand Master Statue (level 60, 250k).
