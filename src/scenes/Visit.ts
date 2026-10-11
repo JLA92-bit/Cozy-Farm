@@ -397,7 +397,9 @@ function inspect(p: Pointer): void {
   }
   const v = a.view.pickBuilding(ray);
   const t = scene.tileAt(p);
-  const b = v?.b ?? (t ? a.g.buildingAt(t[0], t[1]) : undefined);
+  let b = v?.b ?? (t ? a.g.buildingAt(t[0], t[1]) : undefined);
+  // a scarecrow or sprinkler standing on a field must not stop the field underneath from being helped
+  if (b && BUILDING[b.type]?.onField && t) b = a.g.buildingAt(t[0], t[1]) ?? b;
   if (b) {
     const d = describe(b, now);
     const bv = a.view.views.get(b.uid);

@@ -34,6 +34,10 @@
     {
      "icon": "sun",
      "text": "The haze is much thinner: you can see the whole farm clearly when zoomed out, at night, and in rain or mist"
+    },
+    {
+     "icon": "hug",
+     "text": "Fixed helping friends: fields, buildings and scarecrows on top of paths or fields were missing on visited farms, so the Water / Feed / Tend buttons never appeared there"
     }
    ],
    "sections": []

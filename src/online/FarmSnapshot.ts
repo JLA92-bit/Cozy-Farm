@@ -149,7 +149,13 @@ export function sanitizeSnapshot(raw: unknown, now: number = Date.now()): FarmSn
   if (!land.size) LAND.startChunks.forEach((c) => land.add(c));
 
   // buildings first (a tile holds one thing), then obstacles on whatever is still free
-  const taken = new Uint8Array(MAP * MAP);
+  // 1.10: three layers like the game itself (see Game.occB/occP/occD): paths lie under objects, and a scarecrow or
+  // sprinkler stands on a field. A single layer here used to drop whatever came second, which could remove a whole
+  // field or building from a visited farm (and with it the Help button).
+  const taken = new Uint8Array(MAP * MAP); // main objects (and obstacles)
+  const takenPath = new Uint8Array(MAP * MAP);
+  const takenOver = new Uint8Array(MAP * MAP);
+  const plotTile = new Uint8Array(MAP * MAP);
   const b: SnapBuilding[] = [];
   for (const e of raw.b.slice(0, SNAPSHOT_LIMITS.buildings)) {
     if (!Array.isArray(e) || typeof e[0] !== 'string') continue;
@@ -159,10 +165,14 @@ export function sanitizeSnapshot(raw: unknown, now: number = Date.now()): FarmSn
     if (x !== e[1] || z !== e[2]) continue; // not a whole number inside the map
     const [w, d] = rotatedSize(def.size, rot);
     if (x < 0 || z < 0 || x + w > MAP || z + d > MAP) continue;
+    const layer = def.path ? takenPath : def.onField ? takenOver : taken;
     let free = true;
-    for (let tz = z; tz < z + d && free; tz++) for (let tx = x; tx < x + w; tx++) if (taken[tz * MAP + tx]) { free = false; break; }
+    for (let tz = z; tz < z + d && free; tz++) for (let tx = x; tx < x + w; tx++) {
+      const i = tz * MAP + tx;
+      if (layer[i] || (def.onField && !plotTile[i])) { free = false; break; }
+    }
     if (!free) continue;
-    for (let tz = z; tz < z + d; tz++) for (let tx = x; tx < x + w; tx++) taken[tz * MAP + tx] = 1;
+    for (let tz = z; tz < z + d; tz++) for (let tx = x; tx < x + w; tx++) { const i = tz * MAP + tx; layer[i] = 1; if (def.id === 'plot') plotTile[i] = 1; }
     const src = isObj(e[4]) ? e[4] : {};
     const out: SnapExtra = {};
     if (src.c === 1) out.c = 1;
@@ -188,7 +198,7 @@ export function sanitizeSnapshot(raw: unknown, now: number = Date.now()): FarmSn
   for (const e of Array.isArray(raw.obs) ? raw.obs.slice(0, SNAPSHOT_LIMITS.obstacles) : []) {
     if (!Array.isArray(e) || typeof e[0] !== 'string' || !types[e[0]]) continue;
     const x = int(e[1], -1, MAP, -1), z = int(e[2], -1, MAP, -1);
-    if (x !== e[1] || z !== e[2] || x < 0 || z < 0 || x >= MAP || z >= MAP || taken[z * MAP + x]) continue;
+    if (x !== e[1] || z !== e[2] || x < 0 || z < 0 || x >= MAP || z >= MAP || taken[z * MAP + x] || takenPath[z * MAP + x]) continue;
     taken[z * MAP + x] = 1;
     const n = types[e[0]].models.length;
     obs.push([e[0], x, z, ((int(e[3], 0, 1000, 0) % n) + n) % n]);
