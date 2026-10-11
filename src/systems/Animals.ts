@@ -12,7 +12,7 @@ import { hashString } from '../world/Procedural';
 
 /** 1.10 animal friendship: friendly names, hearts from a daily pat (3 love points a heart, 5 hearts at most) and better quality when collecting from happy animals. */
 const NAMES = ['Clover', 'Biscuit', 'Daisy', 'Mochi', 'Pepper', 'Maple', 'Pumpkin', 'Honey', 'Button', 'Poppy', 'Waffles', 'Nutmeg', 'Peanut', 'Sprout', 'Marshmallow', 'Ginger', 'Truffle', 'Cocoa', 'Bean', 'Pudding', 'Olive', 'Fudge', 'Sunny', 'Thistle', 'Bramble', 'Cricket', 'Dumpling', 'Juniper', 'Pebble', 'Tulip'];
-/** Every farm's first nine animals get these, one each, in an order picked from the farm seed (so a different animal on each farm). */
+/** Extra names mixed in with the others: every farm's name order is shuffled from its seed, so they land on different animals on each farm. */
 const SPECIAL_NAMES = ['Tex', 'Sonny', 'Mack', 'Lane', 'Arlie', 'Alby', 'Jax', 'Perry', 'Letty'];
 export const LOVE_PER_HEART = 3;
 export const MAX_ANIMAL_HEARTS = 5;
@@ -62,11 +62,6 @@ export class AnimalSystem {
     const a = b.animals?.[i];
     if (!a) return '';
     if (!a.name) { a.name = this.freshName(`${b.uid}:${i}`, a); saves.save(); }
-    // animals that were given a random name before the special names existed swap it (until each special name is in use)
-    else if (!a.love && !SPECIAL_NAMES.includes(a.name)) {
-      const next = this.freeSpecial(a);
-      if (next) { a.name = next; saves.save(); }
-    }
     return a.name;
   }
 
@@ -75,21 +70,14 @@ export class AnimalSystem {
     for (const x of game.state.buildings) for (const an of x.animals ?? []) if (an.name && an !== except) used.add(an.name);
     return used;
   }
-  /** The next special name no animal on the farm has yet, in this farm's own order. */
-  private freeSpecial(except?: object): string | null {
-    const used = this.namesInUse(except);
-    const order = [...SPECIAL_NAMES].sort((x, y) => hashString(`${game.state.seed}:name:${x}`) - hashString(`${game.state.seed}:name:${y}`));
-    return order.find((n) => !used.has(n)) ?? null;
-  }
-  /** A new animal's name: the special names first, then a random friendly one that is not already taken. */
+  /** A new animal's name: the next one not yet used on the farm, from a per-farm shuffle of every name (so the special ones turn up at random). */
   private freshName(key: string, except?: object): string {
-    const special = this.freeSpecial(except);
-    if (special) return special;
     const used = this.namesInUse(except);
-    const pool = NAMES.filter((n) => !used.has(n));
-    const from = pool.length ? pool : NAMES;
-    return from[hashString(`${game.state.seed}:${key}`) % from.length];
+    const order = [...NAMES, ...SPECIAL_NAMES].sort((x, y) => hashString(`${game.state.seed}:name:${x}`) - hashString(`${game.state.seed}:name:${y}`));
+    const free = order.filter((n) => !used.has(n));
+    return (free.length ? free : order)[free.length ? 0 : hashString(`${game.state.seed}:${key}`) % order.length];
   }
+
   hearts(b: PlacedBuilding, i: number): number { return Math.min(MAX_ANIMAL_HEARTS, Math.floor((b.animals?.[i]?.love ?? 0) / LOVE_PER_HEART)); }
   canPat(b: PlacedBuilding, i: number): boolean { const a = b.animals?.[i]; return !!a && a.petDay !== localDay(game.now()); }
   /** A pat on one animal: one love point a day. Returns the new heart count, or -1 if already patted today. */
