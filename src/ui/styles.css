@@ -847,6 +847,11 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .lb-week-title { font-family: var(--font-display); font-size: 17px; }
 .lb-tracker { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 12px; border-radius: 16px; border: 3px solid var(--outline); background: linear-gradient(#efe4ff, #d9c6ff); box-shadow: 0 3px 0 var(--outline); }
 .lb-tracker .grow { flex: 1 1 auto; min-width: 0; }
+.lb-trophies { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: -4px 0 12px; }
+.lb-trophies-title { font-family: var(--font-display); font-size: 14px; color: var(--ink-soft); margin-right: 2px; }
+.lb-trophy { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px 3px 6px; border-radius: 999px; border: 2px solid var(--outline); background: #e8e0cf; color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 700; filter: grayscale(1); opacity: .7; cursor: pointer; }
+.lb-trophy .icon { width: 20px; height: 20px; }
+.lb-trophy.got { background: linear-gradient(#fff3bf, #ffd35c); color: var(--ink); filter: none; opacity: 1; box-shadow: 0 2px 0 var(--outline); }
 .lb-track-title { font-family: var(--font-display); font-size: 20px; color: #fff; -webkit-text-stroke: 2px var(--outline); paint-order: stroke fill; }
 .lb-track-sub { font-size: 14px; color: var(--ink); margin: 1px 0 5px; overflow-wrap: anywhere; }
 .lb-track-bar { height: 14px; }

@@ -9,6 +9,7 @@ import { KEEPSAKE_PROC } from './models/keepsakes';
 import { FOUNDING_PROC } from './models/FoundingSign';
 import { HELPER_PROC } from './models/helpers';
 import { FESTIVAL_PROC } from './models/festival';
+import { RANK_PROC } from './models/ranks';
 import { BEEHIVE_PROC } from './models/beehive';
 import { JUICEPRESS_PROC } from './models/juicepress';
 import { KILN_PROC } from './models/kiln';
@@ -381,6 +382,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...KEEPSAKE_PROC,
   ...HELPER_PROC,
   ...FESTIVAL_PROC,
+  ...RANK_PROC,
   ...BEEHIVE_PROC,
   ...JUICEPRESS_PROC,
   ...KILN_PROC,

@@ -6,6 +6,8 @@ import { sideEntries } from '../SideBar';
 import { game } from '../../systems/Game';
 import { online } from '../../online/Online';
 import { thumbs } from '../../world/Thumbs';
+import { ranks, trophyId, tierFor, TIERS, MIN_PLAYERS, BOARD_NAMES, type RankTier } from '../../systems/Ranks';
+import { BUILDING } from '../../data';
 import type { LeaderboardKind, PlayerProfile } from '../../online/types';
 import {
   BOARD_LIMIT, cachedBoard, chase, fetchBoard, friendIds, isFriend, playerCardHooks, safeLook, score, weekLeftMs, type Board,
@@ -118,6 +120,7 @@ function openLeaderboard(arg?: unknown): void {
       return;
     }
     p.body.append(trackerEl(board));
+    p.body.append(trophyEl(board.kind));
     const friends = friendIds();
     const list = h('div', { class: 'list lb-list' });
     board.rows.forEach((row, i) => list.append(rowEl(row, i + 1, board!, friends, i < PORTRAIT_ROWS)));
@@ -148,6 +151,24 @@ function openLeaderboard(arg?: unknown): void {
     el.addEventListener('click', () => openPlayerCard(row));
     el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayerCard(row); } });
     return el;
+  };
+
+  /** The four places that earn a big-number trophy on this board, lit once earned. */
+  const trophyEl = (kind: LeaderboardKind): HTMLElement => {
+    const box = h('div', { class: 'lb-trophies' }, h('span', { class: 'lb-trophies-title' }, 'Trophies'));
+    for (const tier of TIERS) {
+      const got = ranks.has(kind, tier as RankTier);
+      const label = tier === 10 ? 'Top 10' : `#${tier}`;
+      const chip = h('button', { class: `lb-trophy${got ? ' got' : ''}`, type: 'button', 'aria-label': `${label} trophy${got ? ' earned' : ' not earned yet'}` },
+        icon(tier === 10 ? 'trophy' : `medal${tier}`), h('span', null, label));
+      chip.addEventListener('click', () => ui.feedback.toast(
+        got ? `${label} trophy earned` : `${label} trophy`,
+        got ? `${BUILDING[trophyId(kind, tier as RankTier)]?.name ?? 'Trophy'} is yours to place on your farm` : `Reach ${tier === 10 ? 'the top 10' : `#${tier}`} on the ${BOARD_NAMES[kind]} board (it needs ${MIN_PLAYERS}+ farmers)`,
+        'trophy'));
+      box.append(chip);
+    }
+    void tierFor;
+    return box;
   };
 
   const trackerEl = (b: Board): HTMLElement => {

@@ -146,7 +146,9 @@ export async function fetchBoard(kind: LeaderboardKind): Promise<Board> {
     const rows = await online.leaderboard(kind, BOARD_LIMIT + 1);
     const at = Date.now();
     writeCache(kind, at, rows);
-    return assemble(kind, rows, at, false);
+    const board = assemble(kind, rows, at, false);
+    void import('../systems/Ranks').then(({ ranks }) => ranks.consider(board)).catch(() => undefined);
+    return board;
   } catch (e) {
     const c = cachedBoard(kind);
     if (c) return c;

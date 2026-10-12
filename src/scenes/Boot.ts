@@ -32,6 +32,7 @@ import { Visitors } from '../world/Visitors';
 import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
 import '../ui/panels/BoatVisitPanel';
+import { ranks } from '../systems/Ranks';
 import { BoatVisitor } from '../world/BoatVisitor';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
@@ -197,6 +198,7 @@ export async function boot(): Promise<void> {
   startOnlineSync();
   startActivity();
   startNotifications();
+  ranks.start();
   wireAccountNudge();
   ui.setFps(settings.showFps);
   const dailyReady = daily.check();
