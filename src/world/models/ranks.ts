@@ -49,9 +49,9 @@ export function rankGeometry(board: string, tier: number): THREE.BufferGeometry 
   // a flag in the board's colour on a little pole
   b.cyl(0.015, 0.015, 0.7, '#7b6a4f', [0.42, 0.37, 0], 6);
   b.block(0.2, 0.14, 0.02, ACCENT[board] ?? '#ffffff', [0.52, 0.93, 0]);
-  // bigger than life: the point is bragging rights, so it fills a 2x2 footprint
+  // bigger than life: the point is bragging rights, so it fills a 3x3 footprint
   const g = b.build();
-  g.scale(1.7, 1.7, 1.7);
+  g.scale(3.1, 3.1, 3.1);
   return g;
 }
 

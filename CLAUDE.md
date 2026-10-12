@@ -22,7 +22,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
-**1.12.0 added (local):** leaderboard trophies (`Ranks.ts`, `models/ranks.ts`, `rank_<board>_<1|2|3|10>` decor, earned from real board ranks with 20+ farmers, once, kept in storage; Leaders panel shows them). Balance: `BALANCE.md`.
+**1.12.0 added (local):** leaderboard trophies (`Ranks.ts`, `models/ranks.ts`, `rank_<board>_<1|2|3|10>` decor, earned from real board ranks with 6+ farmers, once, kept in storage; Leaders panel shows them). Balance: `BALANCE.md`.
 
 **1.11.0 added (pushed 11 Oct):** the level cap is now 60 (`levels.json` `maxLevel`; players at 50 carry on), mushroom and giant pumpkin crops, 7 dishes, Farmhouse levels 9-10 (a fourth workshop of each kind at 10), six decor pieces incl. the Grand Master Statue. Balance: `BALANCE.md`.
 

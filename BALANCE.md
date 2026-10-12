@@ -569,6 +569,6 @@ The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season p
 - **Decor:** Old Oak, Camper's Tent, Palm Tree, Little Grove, Ancient Elm and the Grand Master Statue (level 60, 250k).
 
 ## 1.12 Leaderboard trophies (`src/systems/Ranks.ts`, `src/world/models/ranks.ts`)
-- 16 decorations (`rank_<board>_<place>`, group `trophies`, never sold): for each of the four boards a big gold 1, silver 2, bronze 3 and green Top 10 (ranks 4-10) on a 2x2 podium with a flag in the board's colour. Charm 150/120/100/60 each.
-- Earned once and kept for good, into storage. A board needs at least 20 farmers (`MIN_PLAYERS`) so early on a small server nobody is handed first place. Practice mode never counts.
+- 16 decorations (`rank_<board>_<place>`, group `trophies`, never sold): for each of the four boards a big gold 1, silver 2, bronze 3 and green Top 10 (ranks 4-10) on a 3x3 podium with a flag in the board's colour. Charm 150/120/100/60 each.
+- Earned once and kept for good, into storage. A board needs at least 6 farmers (`MIN_PLAYERS`) so early on a small server nobody is handed first place. Practice mode never counts.
 - Checked whenever the Leaders panel loads a board and about once an hour while playing (`ranks.start()`). The rank comes from the real board data but the save is on the player's device, like everything else here, so a modified client could fake one: it is cosmetic only.

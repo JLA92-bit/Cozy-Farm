@@ -12,7 +12,7 @@ import { online } from '../online/Online';
 import { fetchBoard, type Board } from '../online/Leaderboard';
 import type { LeaderboardKind } from '../online/types';
 
-export const MIN_PLAYERS = 20;
+export const MIN_PLAYERS = 6;
 export const BOARD_NAMES: Record<LeaderboardKind, string> = { level: 'Level', farmValue: 'Farm Value', charm: 'Charm', weeklyXp: 'Weekly XP' };
 export const BOARDS: LeaderboardKind[] = ['level', 'farmValue', 'charm', 'weeklyXp'];
 export const TIERS = [1, 2, 3, 10] as const;
