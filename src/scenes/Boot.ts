@@ -31,6 +31,7 @@ import { orders, truck, merchant } from '../systems/Economy';
 import { Visitors } from '../world/Visitors';
 import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
+import '../ui/panels/CarePanel';
 import '../ui/panels/BoatVisitPanel';
 import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';

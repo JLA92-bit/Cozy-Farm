@@ -20,7 +20,9 @@ export function wearRow(b: PlacedBuilding, refresh: () => void): HTMLElement | n
     h('div', { class: 'grow' },
       h('div', { class: 'wear-title' }, (BUILDING[b.type].cat === 'animal' ? LABEL_HOME : LABEL)[stage]),
       h('div', { class: 'progress wear-bar' }, h('div', { class: 'fill', style: `width:${Math.max(3, Math.round(left))}%` }), h('div', { class: 'label' }, `Condition ${Math.round(left)}%`))));
-  if (upkeep.canRepair(b)) {
+  if (upkeep.canRepair(b) && !upkeep.hasCarpenter()) {
+    row.append(h('div', { class: 'card-sub', style: 'max-width:42%' }, game.level >= BUILDING.carpenter.level ? "Build the Carpenter's Workshop to repair" : `Carpenter's Workshop unlocks at level ${BUILDING.carpenter.level}`));
+  } else if (upkeep.canRepair(b)) {
     const cost = upkeep.repairCost(b);
     row.append(button(['Repair', priceTag(cost)], () => {
       if (!upkeep.repair(b)) { ui.feedback.toast('Not enough coins', undefined, 'cross'); audio.play('error'); return; }

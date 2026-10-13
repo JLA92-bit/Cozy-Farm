@@ -31,6 +31,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
     const grid = h('div', { class: 'grid tight' });
     const hasFeed = game.count(a.feed) > 0;
     const treat = (i: number) => {
+      if (!upkeep.hasVet()) { ui.feedback.toast("Needs the Vet's Cottage", game.level >= BUILDING.vet_cottage.level ? 'Build one from the shop' : `Unlocks at level ${BUILDING.vet_cottage.level}`, 'cross'); audio.play('error'); return; }
       if (!upkeep.treat(b, i)) { ui.feedback.toast('Not enough coins', undefined, 'cross'); audio.play('error'); return; }
       ui.effects.hearts(ui.scene.farm.anchor(b.uid));
       ui.feedback.toast('Feeling better!', undefined, 'heart');
@@ -55,7 +56,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
       const hearts = animals.hearts(b, i), canPat = animals.canPat(b, i);
       const heartRow = h('div', { class: 'animal-hearts', role: 'img', 'aria-label': `${hearts} of ${MAX_ANIMAL_HEARTS} hearts` }, ...Array.from({ length: MAX_ANIMAL_HEARTS }, (_, k) => icon('heart', `animal-heart${k < hearts ? ' on' : ''}`)));
       const ageTxt = an.born && upkeep.on ? (upkeep.isElder(an) ? 'Elder' : upkeep.ageDays(an) < 7 ? 'Young' : '') : '';
-      const pat = st === 'sick' ? h('button', { class: `btn small ${game.coins >= upkeep.treatCost(a.id) ? 'yellow' : 'disabled'} animal-pat`, type: 'button', onclick: (e: Event) => { e.stopPropagation(); treat(i); } }, 'Treat', priceTag(upkeep.treatCost(a.id)))
+      const pat = st === 'sick' ? h('button', { class: `btn small ${upkeep.hasVet() && game.coins >= upkeep.treatCost(a.id) ? 'yellow' : 'disabled'} animal-pat`, type: 'button', onclick: (e: Event) => { e.stopPropagation(); treat(i); } }, 'Treat', priceTag(upkeep.treatCost(a.id)))
         : h('button', { class: `btn small ${canPat ? 'pink' : 'disabled'} animal-pat`, type: 'button', 'aria-label': canPat ? `Pat ${animals.nameOf(b, i)}` : `${animals.nameOf(b, i)} has had a pat today`, onclick: (e: Event) => {
         e.stopPropagation();
         if (animals.patOne(b, i) < 0) return;

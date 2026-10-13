@@ -8,6 +8,7 @@ import { ANIMAL, BUILDING, UPKEEP } from '../data';
 import { gameConfig } from '../online/GameConfig';
 import { animals } from './Animals';
 import { game } from './Game';
+import { isBuilt } from './Timers';
 import { localDay } from './Progression';
 import { saves } from './Save';
 import type { PlacedBuilding } from './State';
@@ -18,7 +19,21 @@ export type WearStage = 'fine' | 'weathered' | 'worn' | 'broken';
 
 class UpkeepSystem {
   get strength(): number { return game.level >= UPKEEP.fromLevel ? gameConfig.upkeep : 0; }
+  get wanderDays(): number { return UPKEEP.animals.wanderAfterDays; }
   get on(): boolean { return this.strength > 0; }
+
+  /** The village vet and carpenter: treating and repairing need their buildings (built, not still under construction). */
+  hasVet(): boolean { return game.buildingsOf('vet_cottage').some((b) => isBuilt(b, game.now())); }
+  hasCarpenter(): boolean { return game.buildingsOf('carpenter').some((b) => isBuilt(b, game.now())); }
+  sickList(): { b: PlacedBuilding; i: number }[] {
+    const out: { b: PlacedBuilding; i: number }[] = [];
+    for (const b of game.state.buildings) (b.animals ?? []).forEach((a, i) => { if (a.sickAt) out.push({ b, i }); });
+    return out;
+  }
+  /** Buildings that need the carpenter: worn or broken, worst first. */
+  repairList(): PlacedBuilding[] {
+    return game.state.buildings.filter((b) => this.wears(b) && this.canRepair(b)).sort((a, b) => this.wearOf(b) - this.wearOf(a));
+  }
 
   wearOf(b: PlacedBuilding): number { return Math.min(100, b.wear ?? 0); }
   /** Only workshops and animal homes wear. */
@@ -35,7 +50,7 @@ class UpkeepSystem {
   }
   canRepair(b: PlacedBuilding): boolean { return this.wears(b) && this.wearOf(b) >= UPKEEP.wear.minRepair; }
   repair(b: PlacedBuilding): boolean {
-    if (!this.canRepair(b) || !game.spend(this.repairCost(b))) return false;
+    if (!this.hasCarpenter() || !this.canRepair(b) || !game.spend(this.repairCost(b))) return false;
     delete b.wear;
     game.incStat('repairs');
     game.bus.emit('building:changed', { b });
@@ -51,7 +66,7 @@ class UpkeepSystem {
   /** Cure a sick animal: its product timer carries on from where it paused. */
   treat(b: PlacedBuilding, i: number): boolean {
     const a = b.animals?.[i];
-    if (!a?.sickAt || !game.spend(this.treatCost(BUILDING[b.type].animal!))) return false;
+    if (!a?.sickAt || !this.hasVet() || !game.spend(this.treatCost(BUILDING[b.type].animal!))) return false;
     if (a.fedAt !== null) a.fedAt += game.now() - a.sickAt;
     delete a.sickAt; delete a.sickDays;
     game.incStat('animals_treated');
@@ -120,8 +135,8 @@ class UpkeepSystem {
     // those who wandered off earlier: the days to bring them back run down
     const up = game.state.upkeep!;
     up.lost = up.lost.filter((l) => { l.left = slow ? Math.max(Math.min(l.left, 2), l.left - rate * days) : l.left - 1; return l.left > 0; });
-    if (sick.length) game.bus.emit('toast', { title: sick.length === 1 ? `${sick[0]} is unwell${slow ? ' while you were away' : ''}` : `${sick.length} animals are unwell`, sub: 'Tap their home and treat them before they wander off.', icon: 'heart' });
-    if (away.length) game.bus.emit('toast', { title: away.length === 1 ? `${away[0]} wandered off` : `${away.length} animals wandered off`, sub: 'Open their home to bring them back for a small fee.', icon: 'info' });
+    if (sick.length) game.bus.emit('toast', { title: sick.length === 1 ? `${sick[0]} is unwell${slow ? ' while you were away' : ''}` : `${sick.length} animals are unwell`, sub: this.hasVet() ? 'Take them to the vet before they wander off.' : "Build the Vet's Cottage to treat them before they wander off.", icon: 'heart' });
+    if (away.length) game.bus.emit('toast', { title: away.length === 1 ? `${away[0]} wandered off` : `${away.length} animals wandered off`, sub: this.hasVet() ? 'The vet can help bring them back for a small fee.' : 'Open their home to bring them back for a small fee.', icon: 'info' });
     if (sick.length) game.incStat('animals_sick', sick.length);
     saves.save();
   }

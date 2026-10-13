@@ -76,6 +76,9 @@ const ftk = (id, name) => [id, path.join(FTK, `${name}.glb`), null, 'Kenney Fant
 const MODELS = [
   // buildings
   hex('bld/home_a', 'building_home_A_red'),
+  // 1.15 upkeep: the Vet's Cottage and the Carpenter's Workshop (ADD_ONLY=bld/vet,bld/lumbermill_red adds just these)
+  hex('bld/vet', 'building_home_A_blue'),
+  hex('bld/lumbermill_red', 'building_lumbermill_red'),
   hex('bld/home_b', 'building_home_B_red'),
   hex('bld/tavern', 'building_tavern_blue'),
   hex('bld/windmill', 'building_windmill_yellow'),
