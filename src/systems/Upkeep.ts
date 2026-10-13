@@ -89,8 +89,10 @@ class UpkeepSystem {
   }
 
   /** One day of upkeep. Exposed for tests. */
-  step(): void {
-    const s = this.strength;
+  step(rate = 1, days = 1): void {
+    // rate < 1 is time spent away: slower, and it can never make an animal wander off or let a wanderer be gone
+    const slow = rate < 1;
+    const s = this.strength * rate * days;
     const sick: string[] = [];
     const away: string[] = [];
     for (const b of game.state.buildings) {
@@ -99,15 +101,16 @@ class UpkeepSystem {
         const a = b.animals![i];
         if (!a.born) a.born = game.now();
         if (a.sickAt) {
-          a.sickDays = (a.sickDays ?? 0) + 1;
-          if (a.sickDays >= UPKEEP.animals.wanderAfterDays) {
+          a.sickDays = (a.sickDays ?? 0) + rate * days;
+          if (slow) a.sickDays = Math.max(a.sickDays - rate * days, Math.min(a.sickDays, UPKEEP.animals.wanderAfterDays - 2));
+          else if (a.sickDays >= UPKEEP.animals.wanderAfterDays) {
             const nm = animals.nameOf(b, i);
             game.state.upkeep!.lost.push({ animal: BUILDING[b.type].animal!, name: nm, love: a.love, born: a.born, left: UPKEEP.animals.returnWithinDays });
             b.animals!.splice(i, 1);
             away.push(nm);
             game.bus.emit('building:changed', { b });
           }
-        } else if (Math.random() < this.chance(b, a, animals.hearts(b, i))) {
+        } else if (Math.random() < this.chance(b, a, animals.hearts(b, i)) * rate * days) {
           a.sickAt = game.now(); a.sickDays = 0;
           sick.push(animals.nameOf(b, i));
           game.bus.emit('building:changed', { b });
@@ -116,14 +119,14 @@ class UpkeepSystem {
     }
     // those who wandered off earlier: the days to bring them back run down
     const up = game.state.upkeep!;
-    up.lost = up.lost.filter((l) => { l.left -= 1; return l.left > 0; });
-    if (sick.length) game.bus.emit('toast', { title: sick.length === 1 ? `${sick[0]} is unwell` : `${sick.length} animals are unwell`, sub: 'Tap their home and treat them before they wander off.', icon: 'heart' });
+    up.lost = up.lost.filter((l) => { l.left = slow ? Math.max(Math.min(l.left, 2), l.left - rate * days) : l.left - 1; return l.left > 0; });
+    if (sick.length) game.bus.emit('toast', { title: sick.length === 1 ? `${sick[0]} is unwell${slow ? ' while you were away' : ''}` : `${sick.length} animals are unwell`, sub: 'Tap their home and treat them before they wander off.', icon: 'heart' });
     if (away.length) game.bus.emit('toast', { title: away.length === 1 ? `${away[0]} wandered off` : `${away.length} animals wandered off`, sub: 'Open their home to bring them back for a small fee.', icon: 'info' });
     if (sick.length) game.incStat('animals_sick', sick.length);
     saves.save();
   }
 
-  private check(): void {
+  check(): void {
     const today = localDay(game.now());
     let up = game.state.upkeep;
     if (!up) {
@@ -139,8 +142,12 @@ class UpkeepSystem {
     // animals bought since the last check get a birthday
     for (const b of game.state.buildings) for (const a of b.animals ?? []) if (!a.born) a.born = game.now();
     if (up.day === today) return;
+    // days missed since the game was last opened still count, at a slower rate and up to a limit
+    const missed = Math.max(0, Math.round((new Date(`${today}T12:00:00`).getTime() - new Date(`${up.day}T12:00:00`).getTime()) / DAY) - 1);
     up.day = today;
-    if (this.on) this.step(); else saves.save();
+    if (!this.on) { saves.save(); return; }
+    if (missed > 0) this.step(UPKEEP.away.rate, Math.min(missed, UPKEEP.away.maxDays));
+    this.step();
   }
 
   init(): void {

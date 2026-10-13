@@ -46,7 +46,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
         const left = animalReadyAt(b, i) - now;
         const pct = Math.round(100 * (1 - left / (animalProduceMs(a))));
         status = h('div', { class: 'progress animal-progress' }, h('div', { class: 'fill', style: `width:${Math.max(4, Math.min(100, pct))}%` }), h('div', { class: 'label' }, formatTime(left)));
-      } else if (st === 'sick') status = h('div', { class: 'card-sub animal-sick' }, `Unwell (${Math.max(0, UPKEEP.animals.wanderAfterDays - (an.sickDays ?? 0))} days)`);
+      } else if (st === 'sick') status = h('div', { class: 'card-sub animal-sick' }, `Unwell (${Math.max(1, Math.ceil(UPKEEP.animals.wanderAfterDays - (an.sickDays ?? 0)))} days)`);
       else status = h('div', { class: `card-sub ${st === 'hungry' ? 'animal-hungry' : 'animal-ready'}` }, st === 'hungry' ? 'Hungry' : 'Ready!');
       const badge = st === 'ready' ? itemIcon(a.product) : st === 'hungry' ? itemIcon(a.feed) : null;
       if (badge) badge.classList.add('animal-badge');
@@ -72,7 +72,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
     const away = upkeep.lost().map((l, k) => ({ l, k })).filter(({ l }) => l.animal === a.id);
     if (away.length) {
       const strip = h('div', { class: 'lost-strip' }, h('div', { class: 'lost-title' }, 'Wandered off'));
-      for (const { l, k } of away) strip.append(button([`${l.name ?? a.name}`, `${l.left}d`, priceTag(upkeep.finderFee(a.id))], () => {
+      for (const { l, k } of away) strip.append(button([`${l.name ?? a.name}`, `${Math.ceil(l.left)}d`, priceTag(upkeep.finderFee(a.id))], () => {
         const r = upkeep.retrieve(k);
         if (!r.ok) { ui.feedback.toast(r.reason ?? 'Cannot', undefined, 'cross'); audio.play('error'); return; }
         ui.effects.hearts(ui.scene.farm.anchor(b.uid));

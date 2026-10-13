@@ -384,5 +384,6 @@ console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.le
   if (!(u.fromLevel >= 1) || !(u.animals.sickChance >= 0 && u.animals.sickChance <= 0.2)) err('upkeep: fromLevel or sickChance out of range');
   if (!(u.animals.wanderAfterDays >= 2) || !(u.animals.returnWithinDays >= 3)) err('upkeep: animals need at least 2 sick days before wandering and 3 days to return');
   if (!(u.wear.weathered < u.wear.worn && u.wear.worn <= u.wear.broken && u.wear.broken <= 100)) err('upkeep: wear stages must rise to at most 100');
+  if (!(u.away.rate >= 0 && u.away.rate < 1) || !(u.away.maxDays >= 1)) err('upkeep: away rate must be 0 to under 1 and maxDays at least 1');
   if (!(u.wear.perDay > 0 && u.wear.perDay <= 5)) err('upkeep: wear perDay out of range');
 }

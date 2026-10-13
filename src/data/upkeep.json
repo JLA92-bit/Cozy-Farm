@@ -1,5 +1,5 @@
 {
-  "_comment": "1.15 Upkeep. Everything counts in days the player actually plays (one step per local day the game is opened), so nobody loses anything while away. The remote dial (game_config 'upkeep') scales the chances and wear: 0 turns it off, 1 is normal, 2 is double. fromLevel: nothing happens before this player level.",
+  "_comment": "1.15 Upkeep. One full step per local day the game is opened. Days missed while away still count at away.rate (a quarter) for up to away.maxDays, but that can only make animals unwell and wear buildings: it never makes an animal wander off or lets a wanderer be gone. The remote dial (game_config 'upkeep') scales the chances and wear: 0 turns it off, 1 is normal, 2 is double. fromLevel: nothing happens before this player level.",
   "fromLevel": 12,
   "animals": {
     "sickChance": 0.02,
@@ -25,5 +25,6 @@
     "repairMin": 40,
     "minRepair": 8
   },
+  "away": { "rate": 0.25, "maxDays": 14 },
   "migrate": { "maxAgeDays": 45, "maxWear": 35 }
 }
