@@ -25,6 +25,10 @@ const CITY = path.join(CACHE, 'kaykit-city/addons/kaykit_city_builder_bits/Asset
 const KG = path.join(CACHE, 'kenney-glb/packs');
 const KM = path.join(CACHE, 'kenney-mirror');
 const FTK = path.join(KM, 'fantasy-town-kit-1.0/Models/GLTF format');
+// 1.14 new packs
+const KKR = path.join(CACHE, 'kaykit-restaurant/addons/kaykit_restaurant_bits/Assets/gltf');
+const KKH = path.join(CACHE, 'kaykit-halloween/addons/kaykit_halloween_bits/Assets/gltf');
+const KKF = path.join(CACHE, 'kaykit-furniture/addons/kaykit_furniture_bits/Assets/gltf');
 
 if (!fs.existsSync(CACHE)) {
   console.error('Missing .asset-cache - run scripts/fetch-assets.sh first');
@@ -56,6 +60,17 @@ const pet = (id, name) => [id, path.join(KG, 'cube-pets', `${name}.glb`), 'kenne
 const chr = (id, name) => [id, path.join(KG, 'mini-characters', `${name}.glb`), 'kenney-chars', 'Kenney Mini Characters'];
 const food = (id, name) => [id, path.join(KG, 'food-kit', `${name}.glb`), 'kenney-food', 'Kenney Food Kit'];
 const car = (id, name) => [id, path.join(KG, 'car-kit', `${name}.glb`), 'kenney-car', 'Kenney Car Kit'];
+const kkr = (id, name) => [id, findFile(KKR, `${name}.gltf`), 'kaykit-restaurant', 'KayKit Restaurant Bits'];
+const kkh = (id, name) => [id, findFile(KKH, `${name}.gltf`), 'kaykit-halloween', 'KayKit Halloween Bits'];
+const kkf = (id, name) => [id, findFile(KKF, `${name}.gltf`), 'kaykit-furniture', 'KayKit Furniture Bits'];
+const hol = (id, name) => [id, path.join(KM, 'kenney_holidaypack/Models/GLTF format', `${name}.glb`), null, 'Kenney Holiday Kit'];
+const golf = (id, name) => [id, path.join(KM, 'minigolf-kit-2.0/Models/GLTF format', `${name}.glb`), null, 'Kenney Minigolf Kit'];
+const hexd = (id, name) => [id, path.join(KM, 'kenney_hexagonkit_1/Models/GLTF format', `${name}.glb`), null, 'Kenney Hexagon Kit'];
+const wat = (id, n) => [id, path.join(KM, 'kenney_watercraft_updated/Models/glTF', `watercraftPack_${n}.gltf`), null, 'Kenney Watercraft Pack'];
+const pir = (id, name) => [id, path.join(KG, 'pirate-kit', `${name}.glb`), 'kenney-pirate', 'Kenney Pirate Kit'];
+const sub = (id, name) => [id, path.join(KG, 'city-kit-suburban', `${name}.glb`), 'kenney-suburban', 'Kenney City Kit Suburban'];
+const com = (id, name) => [id, path.join(KG, 'city-kit-commercial', `${name}.glb`), 'kenney-commercial', 'Kenney City Kit Commercial'];
+const cas = (id, name) => [id, path.join(KG, 'castle-kit', `${name}.glb`), 'kenney-castle', 'Kenney Castle Kit'];
 const ftk = (id, name) => [id, path.join(FTK, `${name}.glb`), null, 'Kenney Fantasy Town Kit'];
 
 const MODELS = [
@@ -225,6 +240,33 @@ const MODELS = [
     'mushroom', 'waffle', 'donut', 'corn', 'carrot', 'pumpkin-basic', 'pumpkin', 'leek', 'pineapple', 'bag', 'barrel',
     'chocolate', 'popsicle', 'ice-cream', 'whole-ham', 'sandwich', 'salad', 'skewer-vegetables', 'peanut-butter', 'bottle-oil', 'pot-stew', 'cake-birthday']
     .map((n) => food(`food/${n}`, n)),
+  // 1.14 The Grand Estate (levels 81-100): new crops, decor sets and boats. ADD_ONLY=<ids> adds just these.
+  ...['avocado', 'celery-stick', 'burger-cheese-double', 'hot-dog', 'fries', 'sundae', 'ginger-bread', 'mincemeat-pie', 'corn-dog', 'dim-sum', 'rice-ball', 'tajine', 'pizza', 'taco']
+    .map((n) => food(`food/${n === 'celery-stick' ? 'celery' : n === 'burger-cheese-double' ? 'burger' : n}`, n)),
+  kkr('food/lettuce', 'food_ingredient_lettuce'),
+  kkh('food/pumpkin_gold', 'pumpkin_yellow'),
+  ...['carrots', 'lettuce', 'tomatoes', 'potatoes', 'onions', 'buns', 'cheese', 'ham'].map((n) => kkr(`rest/crate_${n}`, `crate_${n}`)),
+  kkr('rest/jar_a', 'jar_A_large'), kkr('rest/jar_c', 'jar_C_large'), kkr('rest/jar_d', 'jar_D_large'),
+  kkr('rest/fridge', 'fridge_A_decorated'), kkr('rest/dishrack', 'dishrack_plates'),
+  kkh('hal/pumpkin', 'pumpkin_orange'), kkh('hal/jack', 'pumpkin_orange_jackolantern'), kkh('hal/jack_gold', 'pumpkin_yellow_jackolantern'),
+  kkh('hal/lantern_post', 'post_lantern'), kkh('hal/lantern', 'lantern_standing'), kkh('hal/candles', 'candle_triple'),
+  kkh('hal/arch', 'arch'), kkh('hal/arch_gate', 'arch_gate'), kkh('hal/fence', 'fence'), kkh('hal/fence_gate', 'fence_gate'),
+  kkh('hal/pine_orange', 'tree_pine_orange_large'), kkh('hal/pine_yellow', 'tree_pine_yellow_large'), kkh('hal/bench', 'bench'), kkh('hal/path', 'path_A'),
+  kkf('furn/table', 'table_medium'), kkf('furn/chair', 'chair_A_wood'), kkf('furn/couch', 'couch_pillows'), kkf('furn/lamp', 'lamp_standing'),
+  kkf('furn/cactus', 'cactus_medium_A'), kkf('furn/rug', 'rug_oval_A'), kkf('furn/shelf', 'shelf_B_large_decorated'),
+  kkf('furn/armchair', 'armchair_pillows'), kkf('furn/cabinet', 'cabinet_medium_decorated'),
+  ...['snowmanFancy', 'present', 'candyCane', 'lightsMulti', 'wreath', 'treeDecorated', 'treePineSnow', 'sled', 'trainLocomotive', 'trainWagon', 'trainTender', 'trackStraight', 'trackCorner', 'snowFort', 'lightpost', 'bench']
+    .map((n) => hol(`hol/${n}`, n)),
+  ...['windmill', 'castle', 'flag_red', 'flag_blue', 'flag_green', 'holeRound', 'tunnelWide', 'club_red', 'club_blue', 'ball_red', 'ball_blue', 'straight', 'corner', 'end', 'start', 'open', 'hillRound', 'bump']
+    .map((n) => golf(`golf/${n}`, n)),
+  pir('pir/row_boat', 'boat-row-large'), pir('pir/ship_small', 'ship-small'), pir('pir/ship_large', 'ship-large'), pir('pir/chest', 'chest'),
+  pir('pir/palm', 'palm-detailed-bend'), pir('pir/bottles', 'crate-bottles'), pir('pir/flag', 'flag-high-pennant'), pir('pir/dock', 'structure-platform-dock'),
+  ...['001', '025', '026', '003', '007', '023', '006', '005', '008', '017', '028', '027'].map((n) => wat(`boat/wc_${n}`, n)),
+  ...['a', 'c', 'e', 'h', 'k', 'm', 'o', 's', 'u'].map((n) => sub(`house/sub_${n}`, `building-type-${n}`)),
+  sub('house/planter', 'planter'), sub('house/path', 'path-stones-long'),
+  com('prop/parasol_a', 'detail-parasol-a'), com('prop/parasol_b', 'detail-parasol-b'), com('prop/awning', 'detail-awning-wide'),
+  ...['mill', 'sheep', 'market', 'village', 'farm', 'dock', 'house', 'mine', 'tower', 'cabin'].map((n) => hexd(`dio/${n}`, `building_${n}`)),
+  cas('cas/banner', 'flag-banner-long'), cas('cas/flag_wide', 'flag-wide'),
 ];
 
 // animations kept per model category (others are stripped to save bytes)
@@ -245,6 +287,8 @@ function kb(p) { return Math.round(fs.statSync(p).size / 1024); }
 // ADD_ONLY=id,id,... builds just those models and merges them into the existing manifest, so a new model can be
 // added without rebuilding (and re-compressing) everything. Needs the pack in .asset-cache (fetch-assets.sh).
 const ADD_ONLY = process.env.ADD_ONLY ? new Set(process.env.ADD_ONLY.split(',').map((s) => s.trim()).filter(Boolean)) : null;
+/** ADD_ONLY entries ending in * match by prefix (ADD_ONLY='rest/*,hal/*' adds every model of those groups). */
+const wanted = (id) => !ADD_ONLY || ADD_ONLY.has(id) || [...ADD_ONLY].some((p) => p.endsWith('*') && id.startsWith(p.slice(0, -1)));
 
 async function buildModels() {
   await MeshoptEncoder.ready;
@@ -254,7 +298,7 @@ async function buildModels() {
   const modelDir = path.join(OUT, 'models');
   if (!ADD_ONLY) fs.rmSync(modelDir, { recursive: true, force: true });
   let total = 0;
-  for (const [id, src, atlas, pack] of MODELS.filter(([id]) => !ADD_ONLY || ADD_ONLY.has(id))) {
+  for (const [id, src, atlas, pack] of MODELS.filter(([id]) => wanted(id))) {
     if (!fs.existsSync(src)) throw new Error(`missing source ${src}`);
     const doc = await io.read(src);
     const root = doc.getRoot();
@@ -520,8 +564,19 @@ function buildIcons() {
 if (ADD_ONLY) {
   const manifestPath = path.join(OUT, 'manifest.json');
   const old = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const { models } = await buildModels();
-  for (const id of ADD_ONLY) if (!models[id]) throw new Error(`ADD_ONLY: unknown model ${id}`);
+  const { models, atlases } = await buildModels();
+  // new shared atlases (palette textures of packs added since the last full build) go next to the existing ones
+  for (const [key, { image }] of Object.entries(atlases)) {
+    if (old.textures[key]) continue;
+    const dir = path.join(OUT, 'textures');
+    const tmp = path.join(dir, `${key}.src.png`);
+    fs.writeFileSync(tmp, image);
+    sh('ffmpeg', ['-y', '-v', 'error', '-i', tmp, '-vf', 'scale=512:512:flags=neighbor', path.join(dir, `${key}.png`)]);
+    fs.rmSync(tmp);
+    old.textures[key] = `textures/${key}.png`;
+    console.log('texture added', key);
+  }
+  for (const id of ADD_ONLY) if (!id.endsWith('*') && !models[id]) throw new Error(`ADD_ONLY: unknown model ${id}`);
   Object.assign(old.models, models);
   fs.writeFileSync(manifestPath, JSON.stringify(old));
   console.log('manifest updated with', Object.keys(models).join(', '));

@@ -18,6 +18,14 @@ shipped in `public/assets`.
 | Food Kit | Kenney | https://kenney.nl/assets/food-kit (GLB mirror: https://github.com/Hidencod/tge-assets) | CC0 1.0 | Produce on crops and fruit trees, products on display, harvest pop-ups, item thumbnails |
 | Car Kit | Kenney | https://kenney.nl/assets/car-kit (GLB mirror: https://github.com/Hidencod/tge-assets) | CC0 1.0 | Delivery truck, tractor, van |
 | Fantasy Town Kit | Kenney | https://kenney.nl/assets/fantasy-town-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Market stalls (order board, merchant), fountains, lanterns, carts, hedges, banners |
+| KayKit Restaurant Bits 1.0 | Kay Lousberg | https://kaylousberg.itch.io/kaykit-restaurant-bits (GitHub: https://github.com/KayKit-Game-Assets/KayKit-Restaurant-Bits-1.0) | CC0 1.0 | Produce crates, jars, fridge, dish rack, lettuce |
+| KayKit Halloween Bits 1.0 | Kay Lousberg | https://kaylousberg.itch.io/halloween-bits (GitHub: https://github.com/KayKit-Game-Assets/KayKit-Halloween-Bits-1.0) | CC0 1.0 | Pumpkins and jack-o'-lanterns, lanterns, candles, iron arch, fence and gate, autumn pines, golden pumpkin |
+| KayKit Furniture Bits 1.0 | Kay Lousberg | https://kaylousberg.itch.io/furniture-bits (GitHub: https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0) | CC0 1.0 | Porch furniture (table, chair, sofa, armchair, lamp, rug, shelf, cabinet, cactus pot) |
+| Holiday Kit | Kenney | https://kenney.nl/assets/holiday-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Winter decorations and the little railway |
+| Minigolf Kit | Kenney | https://kenney.nl/assets/minigolf-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Minigolf course pieces, windmill, castle, flags, clubs |
+| Watercraft Pack | Kenney | https://kenney.nl/assets/watercraft-pack (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Boats for the Boat Visitors |
+| Hexagon Kit | Kenney | https://kenney.nl/assets/hexagon-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Little hex diorama decorations |
+| Pirate Kit, City Kit (Suburban), City Kit (Commercial), Castle Kit | Kenney | https://kenney.nl/assets (GLB mirror: https://github.com/Hidencod/tge-assets) | CC0 1.0 | Dock, palm, chest and boats; village houses and planters; market parasols and awnings; banners |
 
 ## Textures and effects
 
