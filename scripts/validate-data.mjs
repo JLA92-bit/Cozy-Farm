@@ -356,6 +356,23 @@ if (errors.length) {
   if (!(levels.authoredMax >= e.tableMax && levels.authoredMax <= levels.maxLevel)) err('levels: authoredMax out of range');
   if (e.markerFrom <= e.tableMax || e.markerTo > levels.maxLevel || e.markerTo < e.markerFrom) err('levels: marker range out of range');
 }
+{
+  // 1.14 Master Challenges and the Gem Boutique
+  const md = read('master.json'), bd = read('buildings.json').buildings, ids = new Set(bd.map((b) => b.id));
+  const statsKnown = new Set(read('achievements.json').achievements.map((a) => a.stat));
+  if (md.challenges.length < 6) err('master: needs at least 6 challenges (3 are picked each week)');
+  const seen = new Set();
+  for (const c of md.challenges) {
+    if (seen.has(c.id)) err(`master: duplicate challenge ${c.id}`);
+    seen.add(c.id);
+    if (!c.text.includes('{n}') || !(c.base >= 1)) err(`master: challenge ${c.id} needs {n} in its text and a base`);
+    if (icons && !icons[c.icon]) err(`master: challenge ${c.id} has unknown icon ${c.icon}`);
+  }
+  for (const s of md.streaks) if (!ids.has(s.id)) err(`master: streak prize ${s.id} is not a building`);
+  if (md.boutique.items.length < md.boutique.slots) err('master: boutique needs at least as many items as slots');
+  for (const i of md.boutique.items) { if (!ids.has(i.id)) err(`master: boutique item ${i.id} is not a building`); if (!(i.price > 0)) err(`master: boutique item ${i.id} needs a price`); }
+  void statsKnown;
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

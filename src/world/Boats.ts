@@ -77,14 +77,23 @@ export function walkAlong(char: Character, pts: Pt3[], speed = 2.1, scene?: Farm
 /** A rowing boat that sails in to the dock and away again. Add a passenger with `board`. */
 export class Boat {
   readonly group = new THREE.Group();
-  private mesh: THREE.Mesh;
+  private mesh: THREE.Object3D;
   private t = Math.random() * 6;
   private gone = false;
 
-  constructor(private scene: FarmScene, readonly side: Berth = 1) {
-    this.mesh = new THREE.Mesh(boatGeometry(), assets.vertexMaterial);
-    this.mesh.castShadow = true;
-    this.mesh.scale.setScalar(1.25);
+  /**
+   * `hull` (1.14): a ready model (already scaled and set on the water line) used instead of the little wooden boat.
+   * Boat Visitors bring a boat of their own, picked per theme in boatvisits.json.
+   */
+  constructor(private scene: FarmScene, readonly side: Berth = 1, hull?: THREE.Object3D) {
+    if (hull) {
+      this.mesh = hull;
+    } else {
+      const m = new THREE.Mesh(boatGeometry(), assets.vertexMaterial);
+      m.castShadow = true;
+      m.scale.setScalar(1.25);
+      this.mesh = m;
+    }
     this.group.add(this.mesh);
     this.group.position.set(berthX(side), BOAT.y, BOAT.seaZ);
     this.group.rotation.y = 0;
@@ -94,9 +103,9 @@ export class Boat {
   }
 
   /** Put a character in the boat (it stays in the boat until `unboard`). */
-  board(char: Character, local: [number, number] = [0, 0.1]): void {
+  board(char: Character, local: [number, number] = [0, 0.1], y = 0.3): void {
     this.group.add(char.root);
-    char.root.position.set(local[0], 0.3, local[1]);
+    char.root.position.set(local[0], y, local[1]);
     char.root.rotation.y = 0;
     char.play('idle');
   }
@@ -121,6 +130,6 @@ export class Boat {
     this.gone = true;
     gsap.killTweensOf(this.group.position);
     this.scene.scene.remove(this.group);
-    this.mesh.geometry.dispose();
+    if ((this.mesh as THREE.Mesh).geometry) (this.mesh as THREE.Mesh).geometry.dispose();
   }
 }

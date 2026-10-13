@@ -24,7 +24,7 @@ let lastTab = '';
 
 const inTab = (b: BuildingDef, tab: string): boolean => {
   if (tab === 'event') return b.event === game.state.event?.id;
-  if (b.event || b.group === 'keepsakes' || b.group === 'trophies') return false; // keepsakes are villager gifts (1.8), never sold
+  if (b.event || b.group === 'keepsakes' || b.group === 'trophies' || b.group === 'boutique') return false; // keepsakes are villager gifts (1.8), never sold
   // 1.8.5 crafted helpers show up once the player has made one (they are never bought)
   if (b.craft && !game.state.storage[b.id] && !game.ownedCount(b.id)) return false;
   if (tab === 'animal') return b.cat === 'animal';

@@ -47,7 +47,16 @@
         "avocado_toast",
         "mincemeat_pie",
         "gingerbread"
-      ]
+      ],
+      "boat": {
+        "model": "boat/wc_005",
+        "scale": 0.22,
+        "seat": [
+          0,
+          0.7,
+          -0.3
+        ]
+      }
     },
     {
       "id": "anglers",
@@ -72,7 +81,16 @@
         "sea_snail",
         "bluegill",
         "anchovy"
-      ]
+      ],
+      "boat": {
+        "model": "pir/row_boat",
+        "scale": 1.0,
+        "seat": [
+          0,
+          0.35,
+          0
+        ]
+      }
     },
     {
       "id": "orchard",
@@ -102,7 +120,16 @@
         "strawberry",
         "watermelon_juice",
         "avocado"
-      ]
+      ],
+      "boat": {
+        "model": "boat/wc_028",
+        "scale": 1.3,
+        "seat": [
+          0,
+          0.3,
+          0
+        ]
+      }
     },
     {
       "id": "dairy",
@@ -131,7 +158,16 @@
         "hot_chocolate",
         "milkshake",
         "sundae"
-      ]
+      ],
+      "boat": {
+        "model": "boat/wc_006",
+        "scale": 0.22,
+        "seat": [
+          0,
+          0.7,
+          -0.3
+        ]
+      }
     },
     {
       "id": "garden",
@@ -174,7 +210,16 @@
         "celery",
         "lettuce",
         "golden_pumpkin"
-      ]
+      ],
+      "boat": {
+        "model": "boat/wc_023",
+        "scale": 0.42,
+        "seat": [
+          0,
+          0.7,
+          -0.45
+        ]
+      }
     },
     {
       "id": "sweets",
@@ -214,7 +259,16 @@
         "honey_cake",
         "sundae",
         "gingerbread"
-      ]
+      ],
+      "boat": {
+        "model": "boat/wc_008",
+        "scale": 1.3,
+        "seat": [
+          0,
+          0.5,
+          0.2
+        ]
+      }
     }
   ]
 }

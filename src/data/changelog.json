@@ -1,6 +1,36 @@
 {
  "releases": [
   {
+   "version": "1.14.0",
+   "date": "2026-10-14",
+   "title": "The Grand Estate",
+   "icon": "crown",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "crown",
+     "text": "New Master Board from level 50: three Master Challenges every Monday for coins and gems, a bonus crate when you finish them all, and a streak that wins a big-number prize"
+    },
+    {
+     "icon": "gem",
+     "text": "The Gem Boutique: gem-only decorations such as model ships, houseboats, a treasure chest and a little jetty. Six new things are on offer every Monday"
+    },
+    {
+     "icon": "leek",
+     "text": "Levels 81 to 100: avocado, celery, lettuce and golden pumpkins, 12 new dishes and Farmhouse levels 13 and 14"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Nearly 90 new decorations in sets: Produce Market, Harvest Night, a build-your-own Minigolf course, Porch, Farm Railway, Winter, Farm Kitchen and a Little Village of houses"
+    },
+    {
+     "icon": "fish",
+     "text": "Boat Visitors now arrive in a different boat for every theme"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.13.0",
    "date": "2026-10-13",
    "title": "Endless Levels",

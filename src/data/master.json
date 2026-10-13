@@ -1,0 +1,50 @@
+{
+  "_comment": "1.14 Master Challenges and the Gem Boutique (src/systems/Master.ts, Boutique.ts, ui/panels/MasterPanel.ts). Each Monday (UTC, the same week as the weekly leaderboard) the board posts 3 challenges picked from this pool with the farm seed. A challenge counts what you do that week (the game's own stats). Targets grow a little with level. Claiming pays coins and gems; finishing all 3 pays a bonus and a crate and adds a week to your streak. The boutique sells gem-only decorations: 6 of its items are on offer each week.",
+  "level": 50,
+  "targetPerLevel": 0.015,
+  "challenges": [
+    { "id": "orders", "stat": "orders_completed", "text": "Deliver {n} orders", "icon": "clipboard", "base": 12 },
+    { "id": "made", "stat": "items_produced", "text": "Make {n} dishes and goods", "icon": "hammer_wrench", "base": 25 },
+    { "id": "harvest", "stat": "crops_harvested", "text": "Harvest {n} crops", "icon": "wheat", "base": 250 },
+    { "id": "fruit", "stat": "fruit_harvested", "text": "Pick {n} fruit", "icon": "apple", "base": 80 },
+    { "id": "animals", "stat": "animal_products", "text": "Collect {n} animal goods", "icon": "chicken", "base": 60 },
+    { "id": "pats", "stat": "animal_pets", "text": "Pat your animals {n} times", "icon": "heart", "base": 15 },
+    { "id": "fish", "stat": "fish_caught", "text": "Catch {n} fish", "icon": "fish", "base": 20 },
+    { "id": "trucks", "stat": "truck_crates", "text": "Fill {n} truck crates", "icon": "truck", "base": 6 },
+    { "id": "plant", "stat": "plants_planted", "text": "Plant {n} seeds", "icon": "seedling", "base": 200 },
+    { "id": "quests", "stat": "quests_completed", "text": "Finish {n} quests", "icon": "memo", "base": 6 }
+  ],
+  "reward": { "coinsBase": 600, "coinsPerLevel": 40, "gems": 3 },
+  "allBonus": { "gems": 10, "crate": "epic" },
+  "streaks": [
+    { "weeks": 4, "id": "streak_4" },
+    { "weeks": 12, "id": "streak_12" },
+    { "weeks": 26, "id": "streak_26" },
+    { "weeks": 52, "id": "streak_52" }
+  ],
+  "boutique": {
+    "slots": 6,
+    "items": [
+      { "id": "boutique_sloop", "price": 60 },
+      { "id": "boutique_galleon", "price": 120 },
+      { "id": "boutique_galleon_grey", "price": 120 },
+      { "id": "boutique_ferry", "price": 80 },
+      { "id": "boutique_houseboat", "price": 80 },
+      { "id": "boutique_houseboat_green", "price": 80 },
+      { "id": "boutique_houseboat_sand", "price": 80 },
+      { "id": "boutique_cargo", "price": 90 },
+      { "id": "boutique_barge", "price": 70 },
+      { "id": "boutique_motorboat", "price": 60 },
+      { "id": "boutique_speedboat", "price": 60 },
+      { "id": "boutique_rowboat", "price": 40 },
+      { "id": "boutique_buoy", "price": 30 },
+      { "id": "boutique_chest", "price": 50 },
+      { "id": "boutique_bottles", "price": 35 },
+      { "id": "boutique_palm", "price": 45 },
+      { "id": "boutique_pennant", "price": 25 },
+      { "id": "boutique_dock", "price": 55 },
+      { "id": "boutique_banner", "price": 40 },
+      { "id": "boutique_club", "price": 20 }
+    ]
+  }
+}

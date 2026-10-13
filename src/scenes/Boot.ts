@@ -32,6 +32,7 @@ import { Visitors } from '../world/Visitors';
 import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
 import '../ui/panels/BoatVisitPanel';
+import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
 import { BoatVisitor } from '../world/BoatVisitor';

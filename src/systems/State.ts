@@ -94,6 +94,10 @@ export interface SaveData {
   ranks?: Record<string, number[]>;
   /** 1.13 endless levels: the highest level whose Level Marker has been handed out */
   endless?: { marker: number };
+  /** 1.14 Master Challenges: this week's picks, where each stat stood on Monday, what is claimed and the streak of perfect weeks */
+  master?: { week: string; base: Record<string, number>; ids: string[]; claimed: string[]; streak: number; best: number; done: boolean };
+  /** 1.14 Gem Boutique: the gem-only decorations bought so far (each can be bought once) */
+  boutique?: { owned: string[]; week?: string; weekBought?: string[] };
   boatvisit?: { day: string; theme: string; want: Record<string, number>; done: boolean };
   /** 1.9 festival days: best stars per festival ("cycle:week") and the stars already collected */
   /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */

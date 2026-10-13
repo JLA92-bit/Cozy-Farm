@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { assets } from '../core/Assets';
 import { game } from '../systems/Game';
 import { hints } from '../systems/Hints';
 import { boatvisit } from '../systems/BoatVisit';
@@ -50,9 +51,22 @@ export class BoatVisitor {
       const c = await Character.create(theme.look as unknown as CharacterLook, 1.2);
       this.char = c;
       this.themeId = theme.id;
-      const boat = new Boat(this.scene, 1);
+      // a boat of their own: the theme's model (scaled to about 3 tiles long), or the little wooden boat if it will not load
+      let hull: THREE.Object3D | undefined;
+      let seat: [number, number] = [0, 0.1], seatY = 0.3;
+      if (theme.boat) {
+        try {
+          const m = await assets.mesh(theme.boat.model);
+          m.scale.setScalar(theme.boat.scale);
+          m.castShadow = true;
+          hull = m;
+          seat = [theme.boat.seat[0], theme.boat.seat[2]];
+          seatY = theme.boat.seat[1];
+        } catch { hull = undefined; }
+      }
+      const boat = new Boat(this.scene, 1, hull);
       this.boat = boat;
-      boat.board(c, [0, 0.1]);
+      boat.board(c, seat, seatY);
       this.phase = 'arriving';
       // opening the game mid-visit: the boat is already tied up
       const quick = !this.started;
