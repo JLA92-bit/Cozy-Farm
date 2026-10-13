@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { Panel } from '../Panel';
 import { h, icon, button, clear, fmt, itemIcon } from '../dom';
 import { ui } from '../UI';
-import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, MAX_LEVEL, REWARDS, ITEMS, FISH, COSMETICS, BUILDINGS, type EventDef } from '../../data';
+import { ACHIEVEMENTS, ACHIEVEMENT, ACHIEVEMENT_REWARDS, LEVELS, LEVEL_DATA, MAX_LEVEL, REWARDS, ITEMS, FISH, COSMETICS, BUILDINGS, type EventDef } from '../../data';
 import { game } from '../../systems/Game';
 import { fishBookLine, isRareTier } from '../../systems/Fishing';
 import { achievements, book, BOOK_PAGES, crates, daily, events, quests, unlocksAt, type CrateReward, type UnlockEntry } from '../../systems/Progression';
@@ -168,7 +168,8 @@ export function openUnlockTree(): void {
   const p = new Panel({ title: 'Unlock Path', icon: 'map', color: 'purple' });
   const list = h('div', { class: 'list' });
   let current: HTMLElement | null = null;
-  for (let lv = 2; lv <= MAX_LEVEL; lv++) {
+  // endless levels: show the authored path and a little way past the player's own level
+  for (let lv = 2; lv <= Math.min(MAX_LEVEL, Math.max(LEVEL_DATA.authoredMax, game.level + 15)); lv++) {
     const un = unlocksAt(lv);
     if (!un.length) continue;
     const locked = lv > game.level;

@@ -87,9 +87,21 @@ export const RECIPES: RecipeDef[] = recipesJson.recipes as unknown as RecipeDef[
 export const BUILDINGS: BuildingDef[] = buildingsJson.buildings as BuildingDef[];
 export const FARMHOUSE = buildingsJson.farmhouse;
 export const UPGRADES = buildingsJson.upgrades;
-export const LEVELS: LevelDef[] = levelsJson.levels;
 export const LEVEL_DATA = levelsJson;
 export const MAX_LEVEL = levelsJson.maxLevel;
+export const ENDLESS = levelsJson.endless;
+/** 1.13: the table covers the authored levels; every level after it is worked out from the endless rules (levels.json), up to MAX_LEVEL. */
+export const LEVELS: LevelDef[] = (() => {
+  const out: LevelDef[] = [...levelsJson.levels];
+  const last = out[out.length - 1];
+  for (let level = last.level + 1; level <= MAX_LEVEL; level++) {
+    const xpToNext = level >= MAX_LEVEL ? 0 : Math.round((out[out.length - 1].xpToNext || last.xpToNext) + ENDLESS.xpPerLevel);
+    const coins = Math.min(ENDLESS.coinsMax, ENDLESS.coinsBase + (level - ENDLESS.tableMax) * ENDLESS.coinsPerLevel);
+    const gems = level % 10 === 0 ? ENDLESS.gemsEvery10 : level % 5 === 0 ? ENDLESS.gemsEvery5 : ENDLESS.gems;
+    out.push({ level, xpToNext, coins, gems });
+  }
+  return out;
+})();
 export const COSMETICS = cosmeticsJson as unknown as {
   avatars: AvatarDef[]; bodies: CosmeticDef[]; skinTones: string[]; hairColors: string[];
   outfitColors: { color: string; name?: string; unlock: Unlock }[];
@@ -217,6 +229,13 @@ export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<st
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;
 export const ANIMAL = Object.fromEntries(ANIMALS.map((a) => [a.id, a])) as Record<string, AnimalDef>;
 export const RECIPE = Object.fromEntries(RECIPES.map((r) => [r.id, r])) as Record<string, RecipeDef>;
+/** 1.13 Level Markers: a big number of your level, handed out at every level from markerFrom to markerTo (never sold). */
+for (let level = ENDLESS.markerFrom; level <= ENDLESS.markerTo; level++) {
+  BUILDINGS.push({
+    id: `marker_${level}`, name: `Level ${level} Marker`, cat: 'decor', size: [2, 2], level: 1, cost: 0, model: `proc:marker_${level}`, fit: 1,
+    charm: Math.min(400, 40 + level), cap: 'none', group: 'trophies', desc: `A big number for reaching level ${level}.`,
+  });
+}
 export const BUILDING = Object.fromEntries(BUILDINGS.map((b) => [b.id, b])) as Record<string, BuildingDef>;
 export const ACHIEVEMENT = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a])) as Record<string, AchievementDef>;
 

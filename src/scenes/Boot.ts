@@ -33,6 +33,7 @@ import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
 import '../ui/panels/BoatVisitPanel';
 import { ranks } from '../systems/Ranks';
+import { endless } from '../systems/Endless';
 import { BoatVisitor } from '../world/BoatVisitor';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
@@ -157,6 +158,7 @@ export async function boot(): Promise<void> {
   await player.init(scene);
   events.check();
   achievements.init();
+  endless.init();
   quests.init();
   orders.refresh();
   syncCosmeticDiscovery(cosmeticUnlocked);

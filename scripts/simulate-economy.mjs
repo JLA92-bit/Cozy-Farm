@@ -76,7 +76,7 @@ const TREE = Object.fromEntries(TREES.map((t) => [t.id, t]));
 const ANIMAL = Object.fromEntries(ANIMALS.map((a) => [a.id, a]));
 const RECIPE_OF = {};
 for (const r of RECIPES) RECIPE_OF[r.item] ??= r;
-const MAX_LEVEL = LV.maxLevel;
+const MAX_LEVEL = LV.endless.tableMax;
 const xpToNext = (l) => LV.levels[l - 1]?.xpToNext ?? 0;
 const sell = (i) => ITEMS[i]?.sell ?? 0;
 const itemXp = (i) => Math.max(1, Math.round(sell(i) / ECON.orders.xpDivisor));

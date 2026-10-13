@@ -9,7 +9,7 @@ import { KEEPSAKE_PROC } from './models/keepsakes';
 import { FOUNDING_PROC } from './models/FoundingSign';
 import { HELPER_PROC } from './models/helpers';
 import { FESTIVAL_PROC } from './models/festival';
-import { RANK_PROC } from './models/ranks';
+import { RANK_PROC, markerGeometry } from './models/ranks';
 import { BEEHIVE_PROC } from './models/beehive';
 import { JUICEPRESS_PROC } from './models/juicepress';
 import { KILN_PROC } from './models/kiln';
@@ -471,7 +471,8 @@ const procCache = new Map<string, THREE.BufferGeometry>();
 export function procGeometry(name: string): THREE.BufferGeometry {
   let g = procCache.get(name);
   if (!g) {
-    const fn = PROC[name];
+    const marker = /^marker_(\d{1,3})$/.exec(name);
+    const fn = marker ? () => markerGeometry(Number(marker[1])) : PROC[name];
     if (!fn) throw new Error(`no procedural model ${name}`);
     g = fn();
     procCache.set(name, g);

@@ -642,6 +642,18 @@
     {"id": "watermelon_juice", "building": "juice_press", "level": 55, "in": {"watermelon": 4, "sugar": 1}, "item": "watermelon_juice", "out": 1, "sec": 3000, "xp": 52},
     {"id": "garden_wrap", "building": "village_kitchen", "level": 56, "in": {"wheat": 3, "mushroom": 2, "broccoli": 2, "cheese": 1}, "item": "garden_wrap", "out": 1, "sec": 3300, "xp": 60},
     {"id": "pumpkin_spice_cake", "building": "bakery", "level": 57, "in": {"giant_pumpkin": 2, "wheat": 3, "egg": 2, "sugar": 2}, "item": "pumpkin_spice_cake", "out": 1, "sec": 4500, "xp": 66},
-    {"id": "celebration_cake", "building": "bakery", "level": 59, "in": {"wheat": 4, "egg": 3, "sugar": 3, "strawberry": 2, "cream": 1}, "item": "celebration_cake", "out": 1, "sec": 6600, "xp": 90}
+    {"id": "celebration_cake", "building": "bakery", "level": 59, "in": {"wheat": 4, "egg": 3, "sugar": 3, "strawberry": 2, "cream": 1}, "item": "celebration_cake", "out": 1, "sec": 6600, "xp": 90},
+    {"id": "spaghetti", "building": "village_kitchen", "level": 61, "in": {"wheat": 3, "tomato_sauce": 2, "cheese": 1}, "item": "spaghetti", "out": 1, "sec": 3000, "xp": 58},
+    {"id": "apple_crumble", "building": "bakery", "level": 63, "in": {"apple": 4, "wheat": 3, "butter": 2, "sugar": 1}, "item": "apple_crumble", "out": 1, "sec": 4200, "xp": 64},
+    {"id": "hot_chocolate", "building": "dairy", "level": 64, "in": {"milk": 3, "chocolate": 1, "sugar": 1}, "item": "hot_chocolate", "out": 1, "sec": 2700, "xp": 52},
+    {"id": "mushroom_pizza", "building": "village_kitchen", "level": 66, "in": {"wheat": 4, "mushroom": 2, "cheese": 2, "tomato": 2}, "item": "mushroom_pizza", "out": 1, "sec": 3900, "xp": 70},
+    {"id": "berry_cheesecake", "building": "bakery", "level": 67, "in": {"blueberry": 4, "cream": 2, "wheat": 3, "egg": 2, "sugar": 2}, "item": "berry_cheesecake", "out": 1, "sec": 5100, "xp": 76},
+    {"id": "lollipop", "building": "sugar_mill", "level": 68, "in": {"sugar": 3, "syrup": 2}, "item": "lollipop", "out": 1, "sec": 3000, "xp": 50},
+    {"id": "honey_cake", "building": "beehive_house", "level": 69, "in": {"honey": 2, "wheat": 3, "egg": 2, "butter": 1}, "item": "honey_cake", "out": 1, "sec": 4500, "xp": 68},
+    {"id": "pumpkin_soup", "building": "village_kitchen", "level": 71, "in": {"giant_pumpkin": 2, "cream": 1, "onion": 2}, "item": "pumpkin_soup", "out": 1, "sec": 3600, "xp": 72},
+    {"id": "chocolate_cake", "building": "bakery", "level": 72, "in": {"chocolate": 2, "wheat": 3, "egg": 2, "cream": 1}, "item": "chocolate_cake", "out": 1, "sec": 5400, "xp": 82},
+    {"id": "caramel_popcorn", "building": "sugar_mill", "level": 74, "in": {"corn": 4, "caramel": 1}, "item": "caramel_popcorn", "out": 1, "sec": 2400, "xp": 48},
+    {"id": "milkshake", "building": "dairy", "level": 76, "in": {"milk": 3, "ice_cream": 1, "strawberry": 2}, "item": "milkshake", "out": 1, "sec": 3000, "xp": 64},
+    {"id": "harvest_banquet", "building": "village_kitchen", "level": 78, "in": {"harvest_bento": 1, "mushroom_soup": 1, "pumpkin_pasta": 1, "bread": 2}, "item": "harvest_banquet", "out": 1, "sec": 7200, "xp": 96}
   ]
 }

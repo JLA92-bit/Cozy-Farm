@@ -12,14 +12,16 @@
       { "level": 7, "playerLevel": 36, "cost": 85000, "sec": 18000 },
       { "level": 8, "playerLevel": 44, "cost": 150000, "sec": 28800 },
       { "level": 9, "playerLevel": 52, "cost": 250000, "sec": 43200 },
-      { "level": 10, "playerLevel": 58, "cost": 400000, "sec": 57600 }
+      { "level": 10, "playerLevel": 58, "cost": 400000, "sec": 57600 },
+      { "level": 11, "playerLevel": 70, "cost": 600000, "sec": 72000 },
+      { "level": 12, "playerLevel": 80, "cost": 900000, "sec": 86400 }
     ],
     "caps": {
-      "plot": [14, 20, 28, 36, 44, 52, 60, 70, 80, 90],
-      "tree": [4, 6, 9, 12, 16, 20, 24, 30, 34, 40],
-      "animal": [1, 1, 2, 2, 2, 3, 3, 3, 3, 4],
-      "production": [1, 1, 1, 2, 2, 2, 2, 3, 3, 4],
-      "decor": [25, 40, 60, 85, 115, 150, 200, 260, 320, 400]
+      "plot": [14, 20, 28, 36, 44, 52, 60, 70, 80, 90, 100, 110],
+      "tree": [4, 6, 9, 12, 16, 20, 24, 30, 34, 40, 44, 48],
+      "animal": [1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5],
+      "production": [1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5],
+      "decor": [25, 40, 60, 85, 115, 150, 200, 260, 320, 400, 480, 560]
     }
   },
   "upgrades": {
@@ -222,6 +224,12 @@
     { "id": "rank_weeklyXp_1", "name": "Weekly XP No. 1", "cat": "decor", "size": [3, 3], "level": 1, "cost": 0, "model": "proc:rank_weeklyXp_1", "fit": 1, "charm": 150, "cap": "none", "group": "trophies", "desc": "Bragging rights: a big number for reaching first place on the Weekly XP leaderboard." },
     { "id": "rank_weeklyXp_2", "name": "Weekly XP No. 2", "cat": "decor", "size": [3, 3], "level": 1, "cost": 0, "model": "proc:rank_weeklyXp_2", "fit": 1, "charm": 120, "cap": "none", "group": "trophies", "desc": "Bragging rights: a big number for reaching second place on the Weekly XP leaderboard." },
     { "id": "rank_weeklyXp_3", "name": "Weekly XP No. 3", "cat": "decor", "size": [3, 3], "level": 1, "cost": 0, "model": "proc:rank_weeklyXp_3", "fit": 1, "charm": 100, "cap": "none", "group": "trophies", "desc": "Bragging rights: a big number for reaching third place on the Weekly XP leaderboard." },
-    { "id": "rank_weeklyXp_10", "name": "Weekly XP Top 10", "cat": "decor", "size": [3, 3], "level": 1, "cost": 0, "model": "proc:rank_weeklyXp_10", "fit": 1, "charm": 60, "cap": "none", "group": "trophies", "desc": "Bragging rights: a big number for reaching the top 10 on the Weekly XP leaderboard." }
+    { "id": "rank_weeklyXp_10", "name": "Weekly XP Top 10", "cat": "decor", "size": [3, 3], "level": 1, "cost": 0, "model": "proc:rank_weeklyXp_10", "fit": 1, "charm": 60, "cap": "none", "group": "trophies", "desc": "Bragging rights: a big number for reaching the top 10 on the Weekly XP leaderboard." },
+    { "id": "topiary_bush", "name": "Topiary Bush", "cat": "decor", "size": [1, 1], "level": 62, "cost": 16000, "model": "nat/bush_detailed", "fit": 0.9, "charm": 80, "cap": "decor", "group": "plants" },
+    { "id": "standing_stone", "name": "Standing Stone", "cat": "decor", "size": [1, 1], "level": 65, "cost": 18000, "model": "nat/rock_tall", "fit": 0.9, "charm": 90, "cap": "decor", "group": "statues", "desc": "An old stone that has seen a lot of harvests." },
+    { "id": "pine_grove", "name": "Pine Grove", "cat": "decor", "size": [2, 2], "level": 73, "cost": 30000, "model": "nat/trees_b_large", "fit": 0.95, "charm": 150, "cap": "decor", "group": "plants" },
+    { "id": "grand_harvest_cart", "name": "Grand Harvest Cart", "cat": "decor", "size": [2, 2], "level": 75, "cost": 24000, "model": "prop/cart_high", "fit": 0.9, "charm": 110, "cap": "decor", "group": "rustic" },
+    { "id": "stone_circle", "name": "Stone Circle", "cat": "decor", "size": [2, 2], "level": 77, "cost": 28000, "model": "nat/path_stonecircle", "fit": 0.95, "charm": 130, "cap": "decor", "group": "rustic", "desc": "A ring of stones for quiet evenings." },
+    { "id": "toadstool_circle", "name": "Toadstool Circle", "cat": "decor", "size": [2, 2], "level": 79, "cost": 32000, "model": "nat/mushroom_tan", "fit": 0.95, "charm": 160, "cap": "decor", "group": "themed", "desc": "Fairy set: a ring of toadstools." }
   ]
 }

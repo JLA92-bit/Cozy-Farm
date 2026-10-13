@@ -92,6 +92,8 @@ export interface SaveData {
   /** 1.10 Boat Visitors: today's wish list (cached so it does not change) and whether it was delivered */
   /** 1.12 leaderboard trophies earned: the places (1, 2, 3, 10) reached on each board */
   ranks?: Record<string, number[]>;
+  /** 1.13 endless levels: the highest level whose Level Marker has been handed out */
+  endless?: { marker: number };
   boatvisit?: { day: string; theme: string; want: Record<string, number>; done: boolean };
   /** 1.9 festival days: best stars per festival ("cycle:week") and the stars already collected */
   /** 1.9 the Wild Woods: what was taken today (day-stamped), and every item ever found there */

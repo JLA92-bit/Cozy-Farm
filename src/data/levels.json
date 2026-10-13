@@ -1,6 +1,6 @@
 {
  "_comment": "xpToNext = XP needed to reach the next level. coins/gems = reward on reaching this level. Unlocks are derived from the 'level' field of every crop, building, recipe, animal and cosmetic.",
- "maxLevel": 60,
+ "maxLevel": 999,
  "levels": [
   {
    "level": 1,
@@ -358,7 +358,7 @@
   },
   {
    "level": 60,
-   "xpToNext": 0,
+   "xpToNext": 62810,
    "coins": 1600,
    "gems": 10
   }
@@ -379,5 +379,19 @@
   "5": "Upgrade your Farmhouse to raise limits",
   "50": "Level 50 is not the end: the Master Farm opens up to level 60!",
   "60": "Grand Master Farmer! Everything is unlocked."
+ },
+ "authoredMax": 80,
+ "endless": {
+  "_comment": "1.13 Endless levels: there is no top. Levels past the table follow these rules. XP to the next level grows by xpPerLevel each level; coins grow slowly to a ceiling; every 5th level pays 3 gems and every 10th 8. From markerFrom to markerTo every level also hands out a Level Marker decoration (a big number of that level). Authored content (crops, dishes, decor, Farmhouse levels) keeps being added at fixed levels and `authoredMax` says how far that goes: the validator needs every level up to it to unlock something real.",
+  "tableMax": 60,
+  "xpPerLevel": 2500,
+  "coinsBase": 1600,
+  "coinsPerLevel": 20,
+  "coinsMax": 5000,
+  "gems": 1,
+  "gemsEvery5": 3,
+  "gemsEvery10": 8,
+  "markerFrom": 61,
+  "markerTo": 300
  }
 }

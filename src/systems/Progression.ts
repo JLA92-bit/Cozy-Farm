@@ -1,5 +1,5 @@
 import {
-  ACHIEVEMENTS, ACHIEVEMENT_REWARDS, ANIMALS, BUILDINGS, COSMETICS, CROP, CROPS, EVENTS, FARMHOUSE, ITEMS, LAND, LEVEL_DATA,
+  ACHIEVEMENTS, ACHIEVEMENT_REWARDS, ANIMALS, ENDLESS, BUILDINGS, COSMETICS, CROP, CROPS, EVENTS, FARMHOUSE, ITEMS, LAND, LEVEL_DATA,
   QUESTS, RECIPES, REWARDS, TREES, type EventDef, type QuestTemplate, BUILDING, VILLAGERS, FESTIVALS, CYCLE,
 } from '../data';
 import { game } from './Game';
@@ -23,6 +23,7 @@ export function unlocksAt(level: number): UnlockEntry[] {
   for (const list of [COSMETICS.hats, COSMETICS.accessories, COSMETICS.pets]) for (const c of list) if (c.unlock.level === level) out.push({ kind: 'Style', id: c.id, name: c.name, icon: c.model ? `model:${c.model}` : 'hat', level });
   for (const o of COSMETICS.outfitColors) if (o.unlock.level === level) out.push({ kind: 'Style', id: o.color, name: `${o.name ?? 'New'} outfit colour`, icon: 'paint', level });
   for (const f of FARMHOUSE.levels) if (f.playerLevel === level && f.level > 1) out.push({ kind: 'Upgrade', id: `fh${f.level}`, name: `Farmhouse level ${f.level}`, icon: 'house', level });
+  if (level >= ENDLESS.markerFrom && level <= ENDLESS.markerTo) out.push({ kind: 'Decor', id: `marker_${level}`, name: `Level ${level} Marker`, icon: `building:marker_${level}`, level });
   const slots = (LEVEL_DATA.orderSlots as Record<string, number>)[String(level)];
   if (slots && level > 1) out.push({ kind: 'Orders', id: `slots${slots}`, name: `${slots} order slots`, icon: 'clipboard', level });
   // land expansions open up every few levels

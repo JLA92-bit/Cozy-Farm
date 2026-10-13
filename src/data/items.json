@@ -1350,6 +1350,78 @@
    "cat": "goods",
    "sell": 2100,
    "icon": "birthday_cake"
+  },
+  "spaghetti": {
+   "name": "Spaghetti",
+   "cat": "goods",
+   "sell": 1600,
+   "icon": "spaghetti_dish"
+  },
+  "apple_crumble": {
+   "name": "Apple Crumble",
+   "cat": "goods",
+   "sell": 1900,
+   "icon": "apple_crumble"
+  },
+  "hot_chocolate": {
+   "name": "Hot Chocolate",
+   "cat": "goods",
+   "sell": 1500,
+   "icon": "hot_chocolate"
+  },
+  "mushroom_pizza": {
+   "name": "Mushroom Pizza",
+   "cat": "goods",
+   "sell": 2300,
+   "icon": "mushroom_pizza"
+  },
+  "berry_cheesecake": {
+   "name": "Berry Cheesecake",
+   "cat": "goods",
+   "sell": 2600,
+   "icon": "berry_cheesecake"
+  },
+  "lollipop": {
+   "name": "Lollipop",
+   "cat": "goods",
+   "sell": 1400,
+   "icon": "lollipop"
+  },
+  "honey_cake": {
+   "name": "Honey Cake",
+   "cat": "goods",
+   "sell": 2200,
+   "icon": "honey_cake"
+  },
+  "pumpkin_soup": {
+   "name": "Pumpkin Soup",
+   "cat": "goods",
+   "sell": 2400,
+   "icon": "pumpkin_soup"
+  },
+  "chocolate_cake": {
+   "name": "Chocolate Cake",
+   "cat": "goods",
+   "sell": 3000,
+   "icon": "chocolate_cake"
+  },
+  "caramel_popcorn": {
+   "name": "Caramel Popcorn",
+   "cat": "goods",
+   "sell": 1150,
+   "icon": "popcorn"
+  },
+  "milkshake": {
+   "name": "Milkshake",
+   "cat": "goods",
+   "sell": 1700,
+   "icon": "milkshake"
+  },
+  "harvest_banquet": {
+   "name": "Harvest Banquet",
+   "cat": "goods",
+   "sell": 4200,
+   "icon": "harvest_banquet"
   }
  }
 }

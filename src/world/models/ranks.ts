@@ -55,5 +55,31 @@ export function rankGeometry(board: string, tier: number): THREE.BufferGeometry 
   return g;
 }
 
+/**
+ * 1.13 Level Markers: the same big blocky number on a smaller stone base, for any level up to 999. The colour of the
+ * number and the flag changes every ten levels so each decade looks different on the farm.
+ */
+const DECADE_METAL: [string, string][] = [['#f2c14e', '#ffe08a'], ['#c9d1d9', '#eef2f6'], ['#d9895b', '#f2b48c'], ['#6cae4f', '#a8dc88'], ['#5aa0e6', '#9cc9f5'], ['#c77ad9', '#e6b0f2']];
+const DECADE_FLAG = ['#e2533c', '#3fa9f5', '#ffc93c', '#ff8fb4', '#6cc644', '#ff8c3a'];
+export function markerGeometry(level: number): THREE.BufferGeometry {
+  const b = geo();
+  const dec = Math.floor(level / 10);
+  const [metal, light] = DECADE_METAL[dec % DECADE_METAL.length];
+  const text = String(level);
+  b.cyl(0.62, 0.7, 0.1, STONE_DARK, [0, 0, 0], 14);
+  b.block(0.9, 0.2, 0.46, STONE, [0, 0.1, 0]);
+  b.block(0.96, 0.05, 0.5, STONE_DARK, [0, 0.3, 0]);
+  const n = text.length;
+  const w = n === 1 ? 0.5 : n === 2 ? 0.36 : 0.26, h = n === 3 ? 0.62 : n === 2 ? 0.7 : 0.82, t = n === 3 ? 0.085 : n === 2 ? 0.1 : 0.13;
+  const gap = n === 3 ? 0.06 : 0.08;
+  const start = -((n - 1) * (w + gap)) / 2;
+  [...text].forEach((ch, i) => digit(b, ch, start + i * (w + gap), 0.38, w, h, t, metal, light));
+  b.cyl(0.015, 0.015, 0.7, '#7b6a4f', [0.43, 0.35, 0], 6);
+  b.block(0.2, 0.14, 0.02, DECADE_FLAG[dec % DECADE_FLAG.length], [0.53, 0.91, 0]);
+  const g = b.build();
+  g.scale(2, 2, 2);
+  return g;
+}
+
 export const RANK_PROC: Record<string, () => THREE.BufferGeometry> = {};
 for (const board of RANK_BOARDS) for (const tier of RANK_TIERS) RANK_PROC[`rank_${board}_${tier}`] = () => rankGeometry(board, tier);

@@ -1,6 +1,36 @@
 {
  "releases": [
   {
+   "version": "1.13.0",
+   "date": "2026-10-13",
+   "title": "Endless Levels",
+   "icon": "glowing_star",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "glowing_star",
+     "text": "There is no top level any more! Keep levelling up for ever, with coins and gems at every level"
+    },
+    {
+     "icon": "trophy",
+     "text": "Level Markers: every level from 61 up hands you a big number of that level for your farm. The colour changes every ten levels"
+    },
+    {
+     "icon": "cake",
+     "text": "12 new dishes for levels 61 to 78, from spaghetti and mushroom pizza to chocolate cake and the Harvest Banquet"
+    },
+    {
+     "icon": "house",
+     "text": "Farmhouse levels 11 and 12 (player levels 70 and 80) raise every limit again"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Six new decorations for levels 62 to 79. More content will keep arriving for the levels beyond"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.12.0",
    "date": "2026-10-12",
    "title": "Bragging Rights",

@@ -83,7 +83,7 @@ for (const lv of Object.keys(levels.orderSlots)) unlockLevels.add(Number(lv));
 const e = land.expansion;
 for (let n = 0; n < 32; n++) unlockLevels.add(Math.floor(e.baseLevel + n * e.levelStep));
 const missing = [];
-for (let lv = 2; lv <= levels.maxLevel; lv++) if (!unlockLevels.has(lv)) missing.push(lv);
+for (let lv = 2; lv <= levels.authoredMax; lv++) if (!unlockLevels.has(lv)) missing.push(lv);
 if (missing.length) err(`levels with nothing to unlock: ${missing.join(', ')}`);
 
 // changelog: newest first, versions match package.json, known icons, no em dashes in player text
@@ -231,7 +231,7 @@ releases?.forEach((r, i) => {
     if (!villagers.has(room.villager)) err(`room ${room.id}: unknown villager ${room.villager}`);
     if (icons && !icons[room.icon]) err(`room ${room.id}: unknown icon ${room.icon}`);
     if (!room.name || !room.about || !room.rebuilds || !room.reward?.text) err(`room ${room.id}: needs name, about, rebuilds and a reward text`);
-    if (!(room.opensAt >= 1 && room.opensAt <= levels.maxLevel)) err(`room ${room.id}: bad opensAt`);
+    if (!(room.opensAt >= 1 && room.opensAt <= levels.authoredMax)) err(`room ${room.id}: bad opensAt`);
     if (room.soon && room.bundles.length) err(`room ${room.id}: a room that opens later has no bundles yet`);
     if (!room.soon && !room.bundles.length) err(`room ${room.id}: needs bundles`);
     if (!room.soon && (!room.letter?.title || !room.letter?.body)) err(`room ${room.id}: needs a letter`);
@@ -347,8 +347,17 @@ if (errors.length) {
     if (/\u2014/.test(JSON.stringify(t))) err(`boatvisits: ${t.id} has an em dash`);
   }
 }
+{
+  // 1.13 endless levels: the table must be continuous up to tableMax, and the endless rules sane
+  const t = levels.levels, e = levels.endless;
+  t.forEach((l, i) => { if (l.level !== i + 1) err(`levels: entry ${i} is level ${l.level}`); if (i < t.length - 1 && !(l.xpToNext > 0)) err(`levels: level ${l.level} needs xpToNext`); });
+  if (t.length !== e.tableMax) err(`levels: table has ${t.length} levels but endless.tableMax is ${e.tableMax}`);
+  if (!(levels.maxLevel > e.tableMax && levels.maxLevel <= 999)) err('levels: maxLevel must be above tableMax and at most 999 (the server limit)');
+  if (!(levels.authoredMax >= e.tableMax && levels.authoredMax <= levels.maxLevel)) err('levels: authoredMax out of range');
+  if (e.markerFrom <= e.tableMax || e.markerTo > levels.maxLevel || e.markerTo < e.markerFrom) err('levels: marker range out of range');
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);
 }
-console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.length} animals, ${recipes.length} recipes, ${buildings.length} buildings, ${achievements.length} achievements, every level 2-${levels.maxLevel} unlocks something`);
+console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.length} animals, ${recipes.length} recipes, ${buildings.length} buildings, ${achievements.length} achievements, every level 2-${levels.authoredMax} unlocks something (then endless Level Markers to ${levels.endless.markerTo})`);
