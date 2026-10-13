@@ -8,6 +8,7 @@ import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
 import masterJson from './master.json';
+import upkeepJson from './upkeep.json';
 import museumJson from './museum.json';
 import expeditionsJson from './expeditions.json';
 import schedulesJson from './schedules.json';
@@ -210,6 +211,9 @@ export const FISHSTALL = fishstallJson;
 /** 1.10 Boat Visitors (boatvisits.json): a themed boat ties up at the dock on two days a week with a wish list. */
 export interface BoatTheme { id: string; name: string; icon: string; greeting: string; look: Record<string, string>; items: string[]; boat?: { model: string; scale: number; seat: [number, number, number] } }
 export const BOATVISITS = boatvisitsJson as unknown as { level: number; daysPerWeek: number; hours: [number, number]; coinMult: number; gems: number; themes: BoatTheme[] };
+
+/** 1.15 Upkeep: animal sickness and building wear (upkeep.json). */
+export const UPKEEP = upkeepJson;
 
 /** 1.14 Master Challenges and the Gem Boutique (master.json). */
 export const MASTER = masterJson;

@@ -6,6 +6,7 @@ import { isBuilt, settleProduction } from './Timers';
 import { addRolled, countStars, rollsQuality, type Quality } from './Quality';
 import { BRAM_TIME_MULT, hasPerk, type PerkId } from './Perks';
 import { batchCookChance, cookTimeMult } from './SkillEffects';
+import { upkeep } from './Upkeep';
 
 /** A recipe with a `perk` (recipes.json) is only made once that villager perk is on. */
 export const recipeAvailable = (r: RecipeDef): boolean => !r.perk || hasPerk(r.perk as PerkId);
@@ -17,8 +18,8 @@ export class ProductionSystem {
   }
 
   /** How long one batch takes, in ms (Bram's 6-heart perk makes every workshop 5% faster). */
-  duration(r: RecipeDef): number {
-    return Math.round(r.sec * 1000 * (hasPerk('bram_workshops') ? BRAM_TIME_MULT : 1) * cookTimeMult());
+  duration(r: RecipeDef, b?: PlacedBuilding): number {
+    return Math.round(r.sec * 1000 * (hasPerk('bram_workshops') ? BRAM_TIME_MULT : 1) * cookTimeMult() * (b && upkeep.on ? upkeep.slow(b) : 1));
   }
 
   queued(b: PlacedBuilding): number { return (b.queue ?? []).filter((q) => q.end > game.now()).length; }
@@ -36,6 +37,7 @@ export class ProductionSystem {
     const r = RECIPE[recipe];
     if (!isBuilt(b, game.now())) return { ok: false, reason: 'Still being built' };
     if (!recipeAvailable(r)) return { ok: false, reason: 'Not available' };
+    if (upkeep.on && upkeep.stage(b) === 'broken') return { ok: false, reason: 'Needs repairs first' };
     if (game.level < r.level) return { ok: false, reason: `Unlocks at level ${r.level}` };
     if (this.queued(b) >= buildings.slots(b)) return { ok: false, reason: 'Queue is full' };
     if (!game.has(r.in)) return { ok: false, reason: 'Missing ingredients' };
@@ -54,7 +56,7 @@ export class ProductionSystem {
     const q = (b.queue ??= []);
     const start = q.length ? Math.max(now, q[q.length - 1].end) : now;
     // the end time is fixed now, so offline catch-up and the timers always agree on the perk
-    const end = start + this.duration(r);
+    const end = start + this.duration(r, b);
     // Batch Cook: now and then a batch makes double (decided now, so it is the same offline)
     const dbl = Math.random() < batchCookChance();
     q.push({ recipe, start, end, ...(star ? { q: star } : {}), ...(dbl ? { dbl: true } : {}) });

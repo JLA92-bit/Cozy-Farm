@@ -1,0 +1,29 @@
+{
+  "_comment": "1.15 Upkeep. Everything counts in days the player actually plays (one step per local day the game is opened), so nobody loses anything while away. The remote dial (game_config 'upkeep') scales the chances and wear: 0 turns it off, 1 is normal, 2 is double. fromLevel: nothing happens before this player level.",
+  "fromLevel": 12,
+  "animals": {
+    "sickChance": 0.02,
+    "elderDays": 60,
+    "elderChance": 0.02,
+    "heartCut": 0.12,
+    "minHeartFactor": 0.4,
+    "wearMult": { "weathered": 1.4, "worn": 2, "broken": 3 },
+    "wanderAfterDays": 4,
+    "returnWithinDays": 6,
+    "treatCostPct": 0.2,
+    "treatMin": 25,
+    "finderPct": 0.6,
+    "finderMin": 60
+  },
+  "wear": {
+    "perDay": 1.6,
+    "weathered": 40,
+    "worn": 70,
+    "broken": 100,
+    "slow": { "weathered": 1.1, "worn": 1.25 },
+    "repairPct": 0.3,
+    "repairMin": 40,
+    "minRepair": 8
+  },
+  "migrate": { "maxAgeDays": 45, "maxWear": 35 }
+}

@@ -35,6 +35,7 @@ import '../ui/panels/BoatVisitPanel';
 import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
+import { upkeep } from '../systems/Upkeep';
 import { BoatVisitor } from '../world/BoatVisitor';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
@@ -160,6 +161,7 @@ export async function boot(): Promise<void> {
   events.check();
   achievements.init();
   endless.init();
+  upkeep.init();
   quests.init();
   orders.refresh();
   syncCosmeticDiscovery(cosmeticUnlocked);

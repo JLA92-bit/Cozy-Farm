@@ -378,3 +378,11 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`data ok: ${crops.length} crops, ${trees.length} trees, ${animals.length} animals, ${recipes.length} recipes, ${buildings.length} buildings, ${achievements.length} achievements, every level 2-${levels.authoredMax} unlocks something (then endless Level Markers to ${levels.endless.markerTo})`);
+{
+  // 1.15 Upkeep
+  const u = read('upkeep.json');
+  if (!(u.fromLevel >= 1) || !(u.animals.sickChance >= 0 && u.animals.sickChance <= 0.2)) err('upkeep: fromLevel or sickChance out of range');
+  if (!(u.animals.wanderAfterDays >= 2) || !(u.animals.returnWithinDays >= 3)) err('upkeep: animals need at least 2 sick days before wandering and 3 days to return');
+  if (!(u.wear.weathered < u.wear.worn && u.wear.worn <= u.wear.broken && u.wear.broken <= 100)) err('upkeep: wear stages must rise to at most 100');
+  if (!(u.wear.perDay > 0 && u.wear.perDay <= 5)) err('upkeep: wear perDay out of range');
+}

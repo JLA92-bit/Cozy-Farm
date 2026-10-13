@@ -35,7 +35,9 @@ export interface PlacedBuilding {
   plot?: { crop: string; plantedAt: number; growSec: number; fert?: boolean; qfert?: boolean; rare?: boolean; /** planted in its own season (1.9): a little faster and a little better */ inSeason?: boolean } | null;
   tree?: { readyAt: number };
   /** 1.10 animal friendship: a name, love points (a daily pat gives one) and the day of the last pat */
-  animals?: { fedAt: number | null; name?: string; love?: number; petDay?: string }[];
+  animals?: { fedAt: number | null; name?: string; love?: number; petDay?: string; born?: number; sickAt?: number; sickDays?: number }[];
+  /** 1.15 upkeep: wear from 0 (new) to 100 (broken down) on workshops and animal homes */
+  wear?: number;
   queue?: QueueEntry[];
   ready?: string[];
   /** 1.8: how many of the ready goods (per item) were made from star ingredients, as [silver, gold] */
@@ -92,6 +94,8 @@ export interface SaveData {
   /** 1.10 Boat Visitors: today's wish list (cached so it does not change) and whether it was delivered */
   /** 1.12 leaderboard trophies earned: the places (1, 2, 3, 10) reached on each board */
   ranks?: Record<string, number[]>;
+  /** 1.15 upkeep: the last local day it stepped on, and animals that wandered off (days left to bring them back) */
+  upkeep?: { day: string; lost: { animal: string; name?: string; love?: number; born?: number; left: number }[] };
   /** 1.13 endless levels: the highest level whose Level Marker has been handed out */
   endless?: { marker: number };
   /** 1.14 Master Challenges: this week's picks, where each stat stood on Monday, what is claimed and the streak of perfect weeks */

@@ -31,16 +31,17 @@ export function isUpgrading(b: PlacedBuilding, now: number): boolean { return !!
 /** How long an animal takes to make its product, in ms (the Animals skill makes it a little shorter). */
 export function animalProduceMs(def: { produceSec: number }): number { return Math.round(def.produceSec * 1000 * animalTimeMult()); }
 
-export type AnimalState = 'hungry' | 'producing' | 'ready';
+export type AnimalState = 'hungry' | 'producing' | 'ready' | 'sick';
 export function animalState(b: PlacedBuilding, i: number, now: number): AnimalState {
   const a = b.animals?.[i];
+  if (a?.sickAt) return 'sick';
   if (!a || a.fedAt === null) return 'hungry';
   const def = ANIMAL[BUILDING[b.type].animal!];
   return now >= a.fedAt + animalProduceMs(def) ? 'ready' : 'producing';
 }
 export function animalReadyAt(b: PlacedBuilding, i: number): number {
   const a = b.animals?.[i];
-  if (!a || a.fedAt === null) return 0;
+  if (!a || a.fedAt === null || a.sickAt) return 0;
   return a.fedAt + animalProduceMs(ANIMAL[BUILDING[b.type].animal!]);
 }
 

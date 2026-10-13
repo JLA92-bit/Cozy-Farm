@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.15.0",
+   "date": "2026-10-15",
+   "title": "Looking After the Farm",
+   "icon": "heart",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "heart",
+     "text": "Animals now grow older and sometimes fall unwell from level 12. Treat them for a few coins and they carry on; leave them and they may wander off"
+    },
+    {
+     "icon": "hammer",
+     "text": "Workshops and animal homes slowly wear down. Worn ones work a little slower, and a broken one needs a repair before it can start new jobs"
+    },
+    {
+     "icon": "info",
+     "text": "Wandered animals can be brought back for a small fee within a few days. Nothing is ever lost while you are away: it only counts days you play"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.14.0",
    "date": "2026-10-14",
    "title": "The Grand Estate",

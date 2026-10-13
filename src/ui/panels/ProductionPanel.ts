@@ -17,6 +17,8 @@ import { QUALITY_NAME, type Quality } from '../../systems/Quality';
 import { starBadge, starIcon } from '../QualityUI';
 import '../quality.css';
 import { askButton } from './HelpPanel';
+import { upkeep } from '../../systems/Upkeep';
+import { wearRow } from './UpkeepUI';
 
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
@@ -131,7 +133,7 @@ export function openProduction(b: PlacedBuilding): void {
       detail.textContent = up ? 'Queue is full. Upgrade for an extra slot!' : 'Queue is full.';
     } else if (detail.dataset.sticky !== '1') detail.textContent = '';
     // recipes depend on stock and queue state; re-render them only when those change
-    const sig = `${q.length}|${ready.size}|${Object.entries(game.state.inventory).join(',')}|${JSON.stringify(game.state.quality)}|${game.state.orders.list.map((o) => o.id + ':' + (o.readyAt <= now)).join(',')}|${game.state.truck?.crates.map((c) => c.filled).join(',') ?? ''}`;
+    const sig = `${upkeep.stage(b)}|${Math.round(upkeep.wearOf(b))}|${game.coins >= upkeep.repairCost(b) ? 1 : 0}|${q.length}|${ready.size}|${Object.entries(game.state.inventory).join(',')}|${JSON.stringify(game.state.quality)}|${game.state.orders.list.map((o) => o.id + ':' + (o.readyAt <= now)).join(',')}|${game.state.truck?.crates.map((c) => c.filled).join(',') ?? ''}`;
     if (sig !== lastSig) { lastSig = sig; renderRecipes(); }
   };
 
@@ -143,6 +145,8 @@ export function openProduction(b: PlacedBuilding): void {
 
   const renderRecipes = () => {
     clear(recipesEl);
+    const wr = wearRow(b, () => { lastSig = ''; renderQueue(); });
+    if (wr) recipesEl.append(wr);
     const wanted = wantedItems();
     const full = production.queued(b) >= buildings.slots(b);
     const all = production.recipesFor(b.type);
@@ -209,7 +213,7 @@ export function openProduction(b: PlacedBuilding): void {
         ic,
         h('div', { class: 'grow' },
           h('div', { class: 'title' }, `${ITEMS[r.item].name}${r.out > 1 ? ` x${r.out}` : ''}`),
-          h('div', { class: 'sub' }, `${formatTime(production.duration(r))} · sells ${ITEMS[r.item].sell * r.out} · +${r.xp} XP`),
+          h('div', { class: 'sub' }, `${formatTime(production.duration(r, b))} · sells ${ITEMS[r.item].sell * r.out} · +${r.xp} XP`),
           tags.childElementCount ? tags : null,
           ingredients,
           starRow),

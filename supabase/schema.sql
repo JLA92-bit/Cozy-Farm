@@ -3171,11 +3171,12 @@ as $$
 declare
   v_admin text := public.admin_guard();
 begin
-  if p_key not in ('market_day', 'weather') then raise exception 'unknown setting'; end if;
+  if p_key not in ('market_day', 'weather', 'upkeep') then raise exception 'unknown setting'; end if;
   if p_value is null or jsonb_typeof(p_value) = 'null' then
     delete from public.game_config where key = p_key;
   else
     if p_key = 'market_day' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::integer between 0 and 6) then raise exception 'market_day must be 0-6'; end if;
+    if p_key = 'upkeep' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::numeric between 0 and 2) then raise exception 'upkeep must be 0-2'; end if;
     if p_key = 'weather' and not (jsonb_typeof(p_value) = 'object' and (p_value ->> 'date') ~ '^\d{4}-\d{2}-\d{2}$' and (p_value ->> 'kind') in ('sunny', 'rain', 'mist')) then raise exception 'weather needs a date and a kind'; end if;
     insert into public.game_config (key, value, updated_at) values (p_key, p_value, now())
     on conflict (key) do update set value = excluded.value, updated_at = now();

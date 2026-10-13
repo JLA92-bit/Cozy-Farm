@@ -198,6 +198,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-15: 1.15.0 (local): upkeep (animal sickness, building wear).
 - 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).
 - 2026-10-13: 1.13.0 (pushed): endless levels (see section 1).
 - 2026-10-12: 1.12.0 (pushed): leaderboard trophies.

@@ -5,20 +5,22 @@
  */
 import { online } from './Online';
 
-export interface GameConfig { marketDay: number | null; weather: { date: string; kind: string } | null }
+export interface GameConfig { marketDay: number | null; weather: { date: string; kind: string } | null; upkeep: number }
 const KEY = 'cozy-config-1.9';
 const KINDS = ['sunny', 'rain', 'mist'];
 
 function clean(raw: Record<string, unknown>): GameConfig {
   const md = raw.market_day;
   const w = raw.weather as { date?: unknown; kind?: unknown } | undefined;
+  const up = raw.upkeep;
   return {
+    upkeep: typeof up === 'number' && Number.isFinite(up) ? Math.max(0, Math.min(2, up)) : 1,
     marketDay: typeof md === 'number' && Number.isInteger(md) && md >= 0 && md <= 6 ? md : null,
     weather: w && typeof w.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(w.date) && typeof w.kind === 'string' && KINDS.includes(w.kind) ? { date: w.date, kind: w.kind } : null,
   };
 }
 
-export const gameConfig: GameConfig = { marketDay: null, weather: null };
+export const gameConfig: GameConfig = { marketDay: null, weather: null, upkeep: 1 };
 
 try { const saved = localStorage.getItem(KEY); if (saved) Object.assign(gameConfig, clean(JSON.parse(saved))); } catch { /* defaults */ }
 

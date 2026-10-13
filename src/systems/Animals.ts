@@ -47,7 +47,7 @@ export class AnimalSystem {
     const cost = this.price(animal);
     if (!game.spend(cost)) return { ok: false, reason: 'Not enough coins' };
     const list = (b.animals ??= []);
-    list.push({ fedAt: null, name: this.freshName(`${b.uid}:${list.length}:${game.stat('animals_bought')}`) });
+    list.push({ fedAt: null, born: game.now(), name: this.freshName(`${b.uid}:${list.length}:${game.stat('animals_bought')}`) });
     game.incStat('animals_bought');
     game.discover(animal, 'animal');
     buildings.updateGauges();
@@ -95,9 +95,9 @@ export class AnimalSystem {
     return this.hearts(b, i);
   }
 
-  counts(b: PlacedBuilding): { hungry: number; producing: number; ready: number } {
+  counts(b: PlacedBuilding): { hungry: number; producing: number; ready: number; sick: number } {
     const now = game.now();
-    const out = { hungry: 0, producing: 0, ready: 0 };
+    const out = { hungry: 0, producing: 0, ready: 0, sick: 0 };
     (b.animals ?? []).forEach((_, i) => { out[animalState(b, i, now)]++; });
     return out;
   }
