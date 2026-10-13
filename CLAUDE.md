@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 14 October 2026 (game version 1.14.0 built locally; live is 1.11.0, 1.12.0 and 1.13.0 also unpushed). Owner: Josh Makes Games.
+Last updated: 14 October 2026 (game version 1.14.0, pushed). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,17 +16,17 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.14.0 "The Grand Estate"** (local until pushed; live is 1.11.0) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.14.0 "The Grand Estate"** (pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
-**1.14.0 added (local):** new CC0 asset packs (KayKit Restaurant/Halloween/Furniture; Kenney Holiday, Minigolf, Watercraft, Hexagon, Pirate, Suburban, Commercial, Castle) fetched by `scripts/fetch-assets.sh` and built with `ADD_ONLY='group/*,...' node scripts/build-assets.mjs` (new atlases are added to the manifest too); levels 81-100 content (`authoredMax` 100); the Master Board (`master.json`, `Master.ts`: weekly challenges and the gem-only Boutique, `MasterPanel.ts`, side entry from level 50); a boat per Boat Visitor theme. Balance: `BALANCE.md`.
+**1.14.0 added (pushed 14 Oct):** new CC0 asset packs (KayKit Restaurant/Halloween/Furniture; Kenney Holiday, Minigolf, Watercraft, Hexagon, Pirate, Suburban, Commercial, Castle) fetched by `scripts/fetch-assets.sh` and built with `ADD_ONLY='group/*,...' node scripts/build-assets.mjs` (new atlases are added to the manifest too); levels 81-100 content (`authoredMax` 100); the Master Board (`master.json`, `Master.ts`: weekly challenges and the gem-only Boutique, `MasterPanel.ts`, side entry from level 50); a boat per Boat Visitor theme. Balance: `BALANCE.md`.
 
-**1.13.0 added (local):** NO TOP LEVEL (owner's rule: no prestige, always levels and always more to unlock). `levels.json`: `maxLevel` 999, `endless` rules, `authoredMax` (now 80); levels past 60 are worked out in `src/data/index.ts`; every level 61-300 gives a Level Marker (`Endless.ts`, `marker_<n>` decor from `models/ranks.ts`); 12 dishes, 6 decor, Farmhouse 11-12. To add content for the next levels: write it, raise `authoredMax`, run `validate-data`. Balance: `BALANCE.md`.
+**1.13.0 added (pushed 14 Oct):** NO TOP LEVEL (owner's rule: no prestige, always levels and always more to unlock). `levels.json`: `maxLevel` 999, `endless` rules, `authoredMax` (now 80); levels past 60 are worked out in `src/data/index.ts`; every level 61-300 gives a Level Marker (`Endless.ts`, `marker_<n>` decor from `models/ranks.ts`); 12 dishes, 6 decor, Farmhouse 11-12. To add content for the next levels: write it, raise `authoredMax`, run `validate-data`. Balance: `BALANCE.md`.
 
-**1.12.0 added (local):** leaderboard trophies (`Ranks.ts`, `models/ranks.ts`, `rank_<board>_<1|2|3|10>` decor, earned from real board ranks with 6+ farmers, once, kept in storage; Leaders panel shows them). Balance: `BALANCE.md`.
+**1.12.0 added (pushed 14 Oct):** leaderboard trophies (`Ranks.ts`, `models/ranks.ts`, `rank_<board>_<1|2|3|10>` decor, earned from real board ranks with 6+ farmers, once, kept in storage; Leaders panel shows them). Balance: `BALANCE.md`.
 
 **1.11.0 added (pushed 11 Oct):** the level cap is now 60 (`levels.json` `maxLevel`; players at 50 carry on), mushroom and giant pumpkin crops, 7 dishes, Farmhouse levels 9-10 (a fourth workshop of each kind at 10), six decor pieces incl. the Grand Master Statue. Balance: `BALANCE.md`.
 
@@ -198,9 +198,9 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-10-14: 1.14.0 (local): Grand Estate (assets, levels 81-100, Master Board, boats).
-- 2026-10-13: 1.13.0 (local): endless levels (see section 1).
-- 2026-10-12: 1.12.0 (local): leaderboard trophies.
+- 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).
+- 2026-10-13: 1.13.0 (pushed): endless levels (see section 1).
+- 2026-10-12: 1.12.0 (pushed): leaderboard trophies.
 - 2026-10-11: 1.11.0 (pushed): levels 51-60 (see section 1).
 - 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
 - 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.
