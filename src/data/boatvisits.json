@@ -43,7 +43,10 @@
         "celebration_cake",
         "apple_crumble",
         "berry_cheesecake",
-        "chocolate_cake"
+        "chocolate_cake",
+        "avocado_toast",
+        "mincemeat_pie",
+        "gingerbread"
       ]
     },
     {
@@ -97,7 +100,8 @@
         "coconut",
         "blueberry",
         "strawberry",
-        "watermelon_juice"
+        "watermelon_juice",
+        "avocado"
       ]
     },
     {
@@ -125,7 +129,8 @@
         "custard",
         "egg",
         "hot_chocolate",
-        "milkshake"
+        "milkshake",
+        "sundae"
       ]
     },
     {
@@ -164,7 +169,11 @@
         "corn",
         "turnip",
         "mushroom",
-        "giant_pumpkin"
+        "giant_pumpkin",
+        "avocado",
+        "celery",
+        "lettuce",
+        "golden_pumpkin"
       ]
     },
     {
@@ -202,7 +211,9 @@
         "hot_chocolate",
         "caramel_popcorn",
         "milkshake",
-        "honey_cake"
+        "honey_cake",
+        "sundae",
+        "gingerbread"
       ]
     }
   ]

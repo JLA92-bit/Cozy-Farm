@@ -654,6 +654,18 @@
     {"id": "chocolate_cake", "building": "bakery", "level": 72, "in": {"chocolate": 2, "wheat": 3, "egg": 2, "cream": 1}, "item": "chocolate_cake", "out": 1, "sec": 5400, "xp": 82},
     {"id": "caramel_popcorn", "building": "sugar_mill", "level": 74, "in": {"corn": 4, "caramel": 1}, "item": "caramel_popcorn", "out": 1, "sec": 2400, "xp": 48},
     {"id": "milkshake", "building": "dairy", "level": 76, "in": {"milk": 3, "ice_cream": 1, "strawberry": 2}, "item": "milkshake", "out": 1, "sec": 3000, "xp": 64},
-    {"id": "harvest_banquet", "building": "village_kitchen", "level": 78, "in": {"harvest_bento": 1, "mushroom_soup": 1, "pumpkin_pasta": 1, "bread": 2}, "item": "harvest_banquet", "out": 1, "sec": 7200, "xp": 96}
+    {"id": "harvest_banquet", "building": "village_kitchen", "level": 78, "in": {"harvest_bento": 1, "mushroom_soup": 1, "pumpkin_pasta": 1, "bread": 2}, "item": "harvest_banquet", "out": 1, "sec": 7200, "xp": 96},
+    {"id": "avocado_toast", "building": "bakery", "level": 82, "in": {"avocado": 2, "bread": 2, "egg": 1}, "item": "avocado_toast", "out": 1, "sec": 2700, "xp": 46},
+    {"id": "cheeseburger", "building": "village_kitchen", "level": 83, "in": {"bread": 2, "cheese": 1, "tomato": 1, "onion": 1}, "item": "cheeseburger", "out": 1, "sec": 3000, "xp": 49},
+    {"id": "hot_dog", "building": "village_kitchen", "level": 85, "in": {"bread": 1, "tomato_sauce": 1, "onion": 1, "cheese": 1}, "item": "hot_dog", "out": 1, "sec": 2400, "xp": 55},
+    {"id": "fries", "building": "village_kitchen", "level": 86, "in": {"potato": 3, "butter": 1}, "item": "fries", "out": 1, "sec": 2100, "xp": 58},
+    {"id": "cobb_salad", "building": "village_kitchen", "level": 88, "in": {"lettuce": 2, "avocado": 1, "tomato": 1, "egg": 1, "cheese": 1}, "item": "cobb_salad", "out": 1, "sec": 3300, "xp": 64},
+    {"id": "corn_dog", "building": "village_kitchen", "level": 89, "in": {"corn": 3, "wheat": 2, "egg": 1}, "item": "corn_dog", "out": 1, "sec": 2400, "xp": 67},
+    {"id": "mincemeat_pie", "building": "bakery", "level": 91, "in": {"apple": 2, "grapes": 2, "wheat": 3, "butter": 1, "sugar": 1}, "item": "mincemeat_pie", "out": 1, "sec": 4200, "xp": 73},
+    {"id": "gingerbread", "building": "bakery", "level": 92, "in": {"wheat": 3, "honey": 1, "sugar": 1, "butter": 1}, "item": "gingerbread", "out": 1, "sec": 3000, "xp": 76},
+    {"id": "sundae", "building": "dairy", "level": 93, "in": {"ice_cream": 2, "chocolate": 1, "cherry": 2}, "item": "sundae", "out": 1, "sec": 3000, "xp": 79},
+    {"id": "rice_ball", "building": "village_kitchen", "level": 94, "in": {"wheat": 4, "seaweed": 1, "sardine": 1}, "item": "rice_ball", "out": 1, "sec": 2700, "xp": 82},
+    {"id": "dim_sum", "building": "village_kitchen", "level": 95, "in": {"cabbage": 2, "onion": 1, "wheat": 3, "mushroom": 1}, "item": "dim_sum", "out": 1, "sec": 3000, "xp": 85},
+    {"id": "tajine", "building": "village_kitchen", "level": 96, "in": {"carrot": 2, "onion": 1, "pumpkin": 1, "tomato": 1}, "item": "tajine", "out": 1, "sec": 3900, "xp": 88}
   ]
 }

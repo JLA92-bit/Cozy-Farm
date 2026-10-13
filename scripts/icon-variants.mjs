@@ -141,6 +141,9 @@ export const ICON_VARIANTS = {
   chocolate_cake: { base: 'shortcake', hue: -25, sat: 0.7, light: 0.7 },
   milkshake: { base: 'juice_cup', badge: 'strawberry' },
   harvest_banquet: { base: 'bento', badge: 'sparkles' },
+  // 1.14 levels 81-100
+  avocado_toast: { base: 'bread', badge: 'avocado' },
+  cobb_salad: { base: 'green-salad', badge: 'egg' },
   pineapple_juice: { base: 'beverage-box', hue: 45, badge: 'pineapple' },
   leek_pie: { base: 'pie', hue: 70, badge: 'leafy-green' },
   sunflower_honey: { base: 'honey-pot', hue: 15, sat: 1.2, badge: 'sunflower' },

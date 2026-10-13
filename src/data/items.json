@@ -1422,6 +1422,102 @@
    "cat": "goods",
    "sell": 4200,
    "icon": "harvest_banquet"
+  },
+  "avocado": {
+   "name": "Avocado",
+   "cat": "crop",
+   "sell": 520,
+   "icon": "model:food/avocado"
+  },
+  "celery": {
+   "name": "Celery",
+   "cat": "crop",
+   "sell": 560,
+   "icon": "model:food/celery"
+  },
+  "lettuce": {
+   "name": "Lettuce",
+   "cat": "crop",
+   "sell": 600,
+   "icon": "model:food/lettuce"
+  },
+  "golden_pumpkin": {
+   "name": "Golden Pumpkin",
+   "cat": "crop",
+   "sell": 700,
+   "icon": "model:food/pumpkin_gold"
+  },
+  "avocado_toast": {
+   "name": "Avocado Toast",
+   "cat": "goods",
+   "sell": 2050,
+   "icon": "avocado_toast"
+  },
+  "cheeseburger": {
+   "name": "Cheeseburger",
+   "cat": "goods",
+   "sell": 1350,
+   "icon": "model:food/burger"
+  },
+  "hot_dog": {
+   "name": "Hot Dog",
+   "cat": "goods",
+   "sell": 1400,
+   "icon": "model:food/hot-dog"
+  },
+  "fries": {
+   "name": "Fries",
+   "cat": "goods",
+   "sell": 1550,
+   "icon": "model:food/fries"
+  },
+  "cobb_salad": {
+   "name": "Cobb Salad",
+   "cat": "goods",
+   "sell": 3200,
+   "icon": "cobb_salad"
+  },
+  "corn_dog": {
+   "name": "Corn Dog",
+   "cat": "goods",
+   "sell": 950,
+   "icon": "model:food/corn-dog"
+  },
+  "mincemeat_pie": {
+   "name": "Mincemeat Pie",
+   "cat": "goods",
+   "sell": 2000,
+   "icon": "model:food/mincemeat-pie"
+  },
+  "gingerbread": {
+   "name": "Gingerbread",
+   "cat": "goods",
+   "sell": 1500,
+   "icon": "model:food/ginger-bread"
+  },
+  "sundae": {
+   "name": "Ice Cream Sundae",
+   "cat": "goods",
+   "sell": 2000,
+   "icon": "model:food/sundae"
+  },
+  "rice_ball": {
+   "name": "Rice Ball",
+   "cat": "goods",
+   "sell": 1100,
+   "icon": "model:food/rice-ball"
+  },
+  "dim_sum": {
+   "name": "Dim Sum",
+   "cat": "goods",
+   "sell": 1750,
+   "icon": "model:food/dim-sum"
+  },
+  "tajine": {
+   "name": "Vegetable Tajine",
+   "cat": "goods",
+   "sell": 1750,
+   "icon": "model:food/tajine"
   }
  }
 }

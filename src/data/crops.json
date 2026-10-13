@@ -478,6 +478,78 @@
     "model": "crop/leafs_b",
     "produce": "food/pumpkin-basic"
    }
+  },
+  {
+   "id": "avocado",
+   "name": "Avocado",
+   "level": 81,
+   "seedCost": 70,
+   "growSec": 72000,
+   "yield": 2,
+   "xp": 80,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/avocado"
+   }
+  },
+  {
+   "id": "celery",
+   "name": "Celery",
+   "level": 84,
+   "seedCost": 75,
+   "growSec": 79200,
+   "yield": 2,
+   "xp": 86,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/celery"
+   }
+  },
+  {
+   "id": "lettuce",
+   "name": "Lettuce",
+   "level": 87,
+   "seedCost": 80,
+   "growSec": 86400,
+   "yield": 2,
+   "xp": 92,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/lettuce"
+   }
+  },
+  {
+   "id": "golden_pumpkin",
+   "name": "Golden Pumpkin",
+   "level": 90,
+   "seedCost": 90,
+   "growSec": 93600,
+   "yield": 2,
+   "xp": 100,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "food/pumpkin_gold"
+   }
   }
  ],
  "trees": [

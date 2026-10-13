@@ -380,7 +380,7 @@
   "50": "Level 50 is not the end: the Master Farm opens up to level 60!",
   "60": "Grand Master Farmer! Everything is unlocked."
  },
- "authoredMax": 80,
+ "authoredMax": 100,
  "endless": {
   "_comment": "1.13 Endless levels: there is no top. Levels past the table follow these rules. XP to the next level grows by xpPerLevel each level; coins grow slowly to a ceiling; every 5th level pays 3 gems and every 10th 8. From markerFrom to markerTo every level also hands out a Level Marker decoration (a big number of that level). Authored content (crops, dishes, decor, Farmhouse levels) keeps being added at fixed levels and `authoredMax` says how far that goes: the validator needs every level up to it to unlock something real.",
   "tableMax": 60,
