@@ -156,7 +156,16 @@ When bumping the game version, update **both** `package.json` and the newest ent
 12. **Never push or deploy without the owner's explicit OK.** Say in 2 lines what goes live and wait for "yes push".
 13. **Player data from Supabase is for support only** and must not be shared.
 
-## 7b. Code gotchas
+## 7a. Owner decisions (15 Oct 2026)
+
+- **Monetisation:** nothing until after the Play production launch. Then likely paid building unlocks and speed-ups. **No loot boxes, ever** (13+ audience).
+- **Late game pace:** levels 60+ should ask about 2-3 hours a week (three short check-ins a day). Tune upkeep, Estate projects and the XP curve to that.
+- **Expansion:** deepen the current farm first; a second plot only after the 1.16 performance work.
+- **Tests:** `npm run test:regression` may run in the deploy workflow and block a deploy that fails it.
+- **XP curve past 60:** flatten it (about 2-2.5 days of regular play per level from 80); show the before/after tables before shipping.
+- **Push:** `PUSH_CRON_SECRET` is set up, so `send-push` may require it. The full `schema.sql` has been run since 1.15.0.
+
+
 
 - **Save changes:** every new state field must be optional or get a default and a repair rule in `withDefaults` (`src/systems/Save.ts`).
 - **`supabase/schema.sql` is one re-runnable file.** Append new server work as a marked `-- ===== section =====` with grants like the others. Account deletion must cascade (tables reference `profiles`/`auth.users`). After running, `notify pgrst, 'reload schema';`.
