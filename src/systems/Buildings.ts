@@ -1,7 +1,7 @@
 import { ANIMAL, BUILDING, ECONOMY, FARMHOUSE, TREE, UPGRADES, type BuildingDef } from '../data';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
-import { isBuilt, isUpgrading, settleProduction } from './Timers';
+import { farmCharm, isBuilt, isUpgrading, settleProduction } from './Timers';
 import { farmhouseGainsText, nextCapRaise, type CapKey } from './Caps';
 import { breederSpaces, headChefSlots } from './SkillEffects';
 import { roomDone } from './RestorationEffects';
@@ -209,9 +209,7 @@ export class BuildingSystem {
   }
 
   charm(): number {
-    let c = 0;
-    for (const b of game.state.buildings) if (isBuilt(b, game.now())) c += BUILDING[b.type].charm;
-    return c;
+    return farmCharm(game.state.buildings, game.now());
   }
 
   /** Charm-derived bonuses (see economy.json -> charm). */

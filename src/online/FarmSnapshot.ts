@@ -2,7 +2,7 @@ import { BUILDING, COSMETICS, CROP, LAND, MAX_LEVEL, RECIPES } from '../data';
 import { Game } from '../systems/Game';
 import { createNewGame } from '../systems/NewGame';
 import type { CharacterLook, Obstacle, PlacedBuilding, SaveData } from '../systems/State';
-import { animalState, cropStage, isBuilt, productionState, treeReady } from '../systems/Timers';
+import { animalState, cropStage, farmCharm, isBuilt, productionState, treeReady } from '../systems/Timers';
 import { CHUNKS, MAP, rotatedSize } from '../world/Grid';
 import { cleanSignText, isFriendlyText, isPaint } from '../systems/Decor';
 
@@ -54,13 +54,12 @@ export const SNAPSHOT_LIMITS = { buildings: 1200, obstacles: 600, animals: 12, j
 
 /** The public snapshot of a farm. Pure: reads `state` only, at time `now`. */
 export function farmSnapshot(state: SaveData, now: number = Date.now()): FarmSnapshot {
-  let charm = 0;
+  const charm = farmCharm(state.buildings, now);
   const b: SnapBuilding[] = [];
   for (const pb of state.buildings) {
     const def = BUILDING[pb.type];
     if (!def) continue;
     const built = isBuilt(pb, now);
-    if (built) charm += def.charm;
     const x: SnapExtra = {};
     if (!built) x.c = 1;
     if (pb.level > 1) x.l = pb.level;

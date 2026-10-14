@@ -82,7 +82,7 @@
   "sellMult": 1.0
  },
  "charm": {
-  "_comment": "Every 'step' charm points gives the listed bonus, capped at max.",
+  "_comment": "Every 'step' charm points gives the listed bonus, capped at max. trophyMax (1.17): Level Markers, leaderboard trophies and streak plaques together add at most this much charm.",
   "step": 40,
   "growthPerStep": 0.01,
   "growthMax": 0.2,
@@ -90,7 +90,8 @@
   "orderCoinsMax": 0.25,
   "villagersBase": 2,
   "villagersPerCharm": 60,
-  "villagersMax": 8
+  "villagersMax": 8,
+  "trophyMax": 500
  },
  "speedup": {
   "_comment": "Gem cost to finish any timer immediately = max(minGems, ceil(minutesLeft * gemsPerMinute)).",

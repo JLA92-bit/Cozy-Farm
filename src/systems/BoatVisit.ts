@@ -6,6 +6,7 @@
  */
 import { BOATVISITS, ITEMS, type BoatTheme } from '../data';
 import { game } from './Game';
+import { lateXp } from './Endless';
 import { localDay } from './Progression';
 import { obtainableItems } from './Economy';
 import { hashString, rng } from '../world/Procedural';
@@ -85,6 +86,8 @@ class BoatVisitSystem {
     const r = this.reward(w);
     game.addCoins(r.coins, at);
     if (r.gems) game.addGems(r.gems, at);
+    const xp = lateXp('boat');
+    if (xp) game.addXp(xp, at);
     game.state.boatvisit!.done = true;
     game.incStat('boat_deliveries');
     game.bus.emit('sfx', { name: 'purchase' });

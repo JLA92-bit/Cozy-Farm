@@ -36,6 +36,8 @@ This is the long-term plan for Cozy Acres. It follows the 1.15 audit and the own
 
 ### 1.17 The Long Road (late-game pace)
 
+**Built (1.17.0, 17 Oct):** a flat curve at 62,810 XP; late-game XP shares of 20% (Master claim), 30% (Master week), 20% (boat visit) and 30% (3-star festival); a 500-charm cap for trophies; Hazel's letter; and the simulator running to level 120. Result: level 100 around day 187 (it was out of reach in 300 days), about 2.4 days a level. Still to do from this section: the server-side leaderboard plausibility checks.
+
 - **Why:** levels past 60 currently cost +2,500 XP each, so the content for levels 81-100 is about 9 months away for an engaged player.
 - **Curve:** hold XP to next level flat past level 60 instead of growing it. With the simulator's player (about 16k XP a day around level 50-60):
 

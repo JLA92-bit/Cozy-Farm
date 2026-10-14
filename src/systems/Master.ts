@@ -9,6 +9,7 @@ import { game } from './Game';
 import { hashString, rng } from '../world/Procedural';
 import { weekKey } from '../online/Weekly';
 import { logEvent } from '../online/Events';
+import { lateXp } from './Endless';
 
 const WEEK_MS = 7 * 86400000;
 export interface MasterChallenge { id: string; text: string; icon: string; stat: string; target: number; progress: number; claimed: boolean; done: boolean }
@@ -65,7 +66,7 @@ class MasterSystem {
   get claimable(): boolean { return this.open && this.list().some((c) => c.done && !c.claimed); }
   get allClaimed(): boolean { const st = game.state.master; return !!st && st.week === weekKey(Date.now()) && st.done; }
 
-  rewardText(): { coins: number; gems: number } { return { coins: MASTER.reward.coinsBase + MASTER.reward.coinsPerLevel * game.level, gems: MASTER.reward.gems }; }
+  rewardText(): { coins: number; gems: number; xp: number } { return { coins: MASTER.reward.coinsBase + MASTER.reward.coinsPerLevel * game.level, gems: MASTER.reward.gems, xp: lateXp('master') }; }
 
   claim(id: string): boolean {
     const c = this.list().find((x) => x.id === id);
@@ -75,6 +76,7 @@ class MasterSystem {
     const r = this.rewardText();
     game.addCoins(r.coins);
     game.addGems(r.gems);
+    if (r.xp) game.addXp(r.xp);
     game.incStat('master_challenges');
     game.bus.emit('sfx', { name: 'purchase' });
     if (this.list().every((x) => x.claimed) && !st.done) this.finishWeek(st);
@@ -86,10 +88,12 @@ class MasterSystem {
     st.streak += 1;
     st.best = Math.max(st.best, st.streak);
     game.addGems(MASTER.allBonus.gems);
+    const weekXp = lateXp('masterWeek');
+    if (weekXp) game.addXp(weekXp);
     game.state.crates.push(MASTER.allBonus.crate);
     game.bus.emit('crate:granted', { rarity: MASTER.allBonus.crate });
     game.incStat('master_weeks');
-    let sub = `+${MASTER.allBonus.gems} gems and an ${MASTER.allBonus.crate} crate. Streak: ${st.streak} week${st.streak === 1 ? '' : 's'}.`;
+    let sub = `+${MASTER.allBonus.gems} gems${weekXp ? `, ${weekXp.toLocaleString('en-US')} XP` : ''} and an ${MASTER.allBonus.crate} crate. Streak: ${st.streak} week${st.streak === 1 ? '' : 's'}.`;
     const ms = MASTER.streaks.find((s) => s.weeks === st.streak);
     if (ms && BUILDING[ms.id]) {
       game.state.storage[ms.id] = (game.state.storage[ms.id] ?? 0) + 1;

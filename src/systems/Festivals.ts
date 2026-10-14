@@ -6,6 +6,7 @@
  */
 import { FESTIVALS, BUILDING, ITEMS, CYCLE, type FestivalDef } from '../data';
 import { game } from './Game';
+import { lateXp } from './Endless';
 import { saves } from './Save';
 import { cycleNow } from './FestivalCycle';
 import { logEvent } from '../online/Events';
@@ -63,6 +64,8 @@ class FestivalSystem {
     const gems = (p.gems ?? 0) + (stars === 3 ? def.prize.gems ?? 0 : 0);
     game.addCoins(p.coins);
     if (gems) game.addGems(gems);
+    const xp = lateXp('festival', stars / 3);
+    if (xp) game.addXp(xp);
     const decor = def.prize.decor;
     const st = game.state.storage;
     if (stars >= 2 && BUILDING[decor]) st[decor] = (st[decor] ?? 0) + 1;

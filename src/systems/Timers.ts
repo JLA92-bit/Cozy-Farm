@@ -1,4 +1,4 @@
-import { ANIMAL, BUILDING, RECIPE } from '../data';
+import { ANIMAL, BUILDING, ECONOMY, RECIPE } from '../data';
 import type { PlacedBuilding } from './State';
 import { animalTimeMult } from './SkillEffects';
 
@@ -26,6 +26,20 @@ export function treeReady(b: PlacedBuilding, now: number): boolean {
 }
 
 export function isBuilt(b: PlacedBuilding, now: number): boolean { return !b.buildEnd || b.buildEnd <= now; }
+
+/**
+ * A farm's charm: every built building's charm, but Level Markers, leaderboard trophies and streak plaques (group
+ * 'trophies') together add at most economy.json charm.trophyMax (1.17), so charm stays about decorating.
+ */
+export function farmCharm(buildings: PlacedBuilding[], now: number): number {
+  let c = 0, trophies = 0;
+  for (const b of buildings) {
+    const def = BUILDING[b.type];
+    if (!def || !isBuilt(b, now)) continue;
+    if (def.group === 'trophies') trophies += def.charm; else c += def.charm;
+  }
+  return c + Math.min(trophies, ECONOMY.charm.trophyMax);
+}
 export function isUpgrading(b: PlacedBuilding, now: number): boolean { return !!b.upgradeEnd && b.upgradeEnd > now; }
 
 /** How long an animal takes to make its product, in ms (the Animals skill makes it a little shorter). */

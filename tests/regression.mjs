@@ -152,6 +152,22 @@ try {
     const a = (await state()).buildings.find((b) => b.uid === 9001).animals[0];
     check('dial 0 makes unwell animals well', !a.sickAt);
   }
+  // 1.17: a farm past level 60 gets Hazel's "shorter road" letter once, and a level it has now earned straight away
+  {
+    const r = copy(); r.player.level = 70; r.player.xp = 70000; delete r.endless;
+    await setStorage({ [KEY]: JSON.stringify(r) });
+    await boot();
+    const s = await state();
+    const letters = s.mail.letters.filter((l) => l.title === 'The road ahead got shorter');
+    check('farms past 60 get the shorter-road letter once', letters.length === 1 && s.endless?.road === true, JSON.stringify({ n: letters.length, endless: s.endless }));
+    check('a level already earned on the new curve is given', s.player.level === 71, `level ${s.player.level}`);
+    await page.reload();
+    await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const again = (await state()).mail.letters.filter((l) => l.title === 'The road ahead got shorter').length;
+    check('the shorter-road letter is not sent twice', again === 1, String(again));
+  }
+
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
   // decor kinds share a few batches instead of one draw each
   {

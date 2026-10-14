@@ -76,8 +76,14 @@ const TREE = Object.fromEntries(TREES.map((t) => [t.id, t]));
 const ANIMAL = Object.fromEntries(ANIMALS.map((a) => [a.id, a]));
 const RECIPE_OF = {};
 for (const r of RECIPES) RECIPE_OF[r.item] ??= r;
-const MAX_LEVEL = LV.endless.tableMax;
-const xpToNext = (l) => LV.levels[l - 1]?.xpToNext ?? 0;
+// 1.17: past the table, levels follow levels.json endless (as src/data/index.ts does); simulate up to 20 past the authored content
+const E = LV.endless;
+const MAX_LEVEL = opt('maxlevel', (LV.authoredMax ?? E.tableMax) + 20);
+const xpToNext = (l) => LV.levels[l - 1]?.xpToNext ?? Math.round(LV.levels[E.tableMax - 1].xpToNext + E.xpPerLevel * (l - E.tableMax));
+const levelDef = (l) => LV.levels[l - 1] ?? { coins: Math.min(E.coinsMax, E.coinsBase + (l - E.tableMax) * E.coinsPerLevel), gems: l % 10 === 0 ? E.gemsEvery10 : l % 5 === 0 ? E.gemsEvery5 : E.gems };
+const MASTER = read('master.json');
+/** 1.17 late-game XP: a share of the current level (levels.json endless.lateXp) */
+const lateXp = (kind, share = 1) => (E.lateXp && S.level >= E.lateXp.from ? Math.round(xpToNext(S.level) * E.lateXp[kind] * share) : 0);
 const sell = (i) => ITEMS[i]?.sell ?? 0;
 const itemXp = (i) => Math.max(1, Math.round(sell(i) / ECON.orders.xpDivisor));
 const ITEM_LEVEL = {};
@@ -191,7 +197,7 @@ function addXp(n, src) {
     S.level++;
     const li = levelInfo[S.level];
     li.t = S.t; li.active = S.active; li.coinsAt = S.coins;
-    const def = LV.levels[S.level - 1];
+    const def = levelDef(S.level);
     addCoins(def.coins, 'level-ups'); addGems(def.gems, 'level-ups');
     gauge('level', S.level);
     onLevel(S.level);
@@ -801,6 +807,16 @@ function sessionStart(s) {
   }
 }
 function sessionEnd(s) {
+  // late game (1.14 Master Board, 1.10 boat visits, 1.9 festivals): an engaged player finishes the Master week on its
+  // last day, meets the boat on two days a week and wins two stars at the weekly festival
+  if (s.index === SESSIONS - 1 && S.level >= MASTER.level) {
+    if (s.day % 7 === 6) {
+      for (let i = 0; i < 3; i++) { addCoins(MASTER.reward.coinsBase + MASTER.reward.coinsPerLevel * S.level, 'master'); addGems(MASTER.reward.gems, 'master'); addXp(lateXp('master'), 'master'); }
+      addGems(MASTER.allBonus.gems, 'master'); addXp(lateXp('masterWeek'), 'master');
+    }
+    if (s.day % 7 === 1 || s.day % 7 === 4) addXp(lateXp('boat'), 'boat visits');
+    if (s.day % 7 === 3) addXp(lateXp('festival', 2 / 3), 'festivals');
+  }
   // daily quests are done by the end of the day's last session; weekly ones on the 7th day
   if (s.index === SESSIONS - 1) {
     const q = QUESTS.daily.reward;

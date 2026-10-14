@@ -97,7 +97,8 @@ export interface SaveData {
   /** 1.15 upkeep: the last local day it stepped on, and animals that wandered off (days left to bring them back) */
   upkeep?: { day: string; lost: { animal: string; name?: string; love?: number; born?: number; left: number }[] };
   /** 1.13 endless levels: the highest level whose Level Marker has been handed out */
-  endless?: { marker: number };
+  /** 1.13 markers given up to this level; 1.17 `road`: the shorter-road letter was sent */
+  endless?: { marker: number; road?: boolean };
   /** 1.14 Master Challenges: this week's picks, where each stat stood on Monday, what is claimed and the streak of perfect weeks */
   master?: { week: string; base: Record<string, number>; ids: string[]; claimed: string[]; streak: number; best: number; done: boolean };
   /** 1.14 Gem Boutique: the gem-only decorations bought so far (each can be bought once) */

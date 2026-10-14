@@ -600,3 +600,17 @@ The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season p
 - **Dial 0 heals.** With the dashboard upkeep strength at 0, unwell animals are well again at once (their product timers carry on) and the game re-checks when the latest settings arrive. Wear does not build up on buildings still under construction.
 - **Master "Pat your animals"** counts `animal_pats` (the daily Pat button on each animal), not `animal_pets` (tapping a home with nothing to do, which had no limit).
 - **Recipes that lost money** (ingredients worth more than the dish) were repriced to about +25% over their inputs: Pea Soup 520 to 860, Lavender Candle 640 to 1120, Lavender Honey 420 to 600, Blueberry Muffin 330 to 440. Potter's Clay takes 2 beetroot instead of 3 (120 in, 140 out). The simulator's remaining "never asked for" flags for the fish dishes come from its player rarely fishing, not from the game.
+
+## 1.17 The Long Road (late-game pace, `levels.json` `endless`)
+
+- **Flat curve past 60.** `endless.xpPerLevel` is 0: every level past 60 costs 62,810 XP (it used to grow by 2,500 a level, so level 100 needed 162,810 and level 300 662,810).
+- **Late-game XP** (`endless.lateXp`, from level 60, a share of the XP to the next level so it stays worth it): each Master claim 20%, finishing the Master week 30%, a boat visit wish list 20%, a festival prize 30% for 3 stars (10% per star).
+- **Charm from trophies** (Level Markers, leaderboard trophies, streak plaques; `economy.json` `charm.trophyMax`) adds at most 500 in total. Level Markers alone gave about 4,800 charm by level 100.
+- **Result** (`npm run simulate-economy -- --days 300`, engaged player, 3 check-ins a day; the simulator now runs to `authoredMax` + 20 and models the Master Board, boat visits and festivals):
+
+| Reached on day | Level 60 | Level 70 | Level 80 | Level 90 | Level 100 | Level 120 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Before (1.16) | 91 | 149 | 229 | not in 300 days (87 by day 300) | - | - |
+| After (1.17) | 91 | 117 | 140 | 163 | 187 | 231 |
+
+About 2.4 days of regular play per level past 60, matching the owner's 2-3 hours a week target. Farms already past 60 get Hazel's letter "The road ahead got shorter" once (`state.endless.road`) and any level they have now earned straight away.

@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.17.0",
+   "date": "2026-10-17",
+   "title": "The Long Road",
+   "icon": "glowing_star",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "glowing_star",
+     "text": "Past level 60, every level now takes the same effort as level 60 instead of getting steeper each time"
+    },
+    {
+     "icon": "crown",
+     "text": "From level 60, Master Challenges, boat visitors and festival prizes also give a good share of XP toward your next level"
+    },
+    {
+     "icon": "sparkle_heart",
+     "text": "Level Markers, trophies and streak plaques now add up to 500 charm in total, so the charm board is about decorating again"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.16.0",
    "date": "2026-10-16",
    "title": "Room to Grow",

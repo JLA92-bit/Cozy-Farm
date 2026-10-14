@@ -27,7 +27,7 @@ function openMaster(arg?: unknown): void {
     const week = formatTime(master.weekLeftMs());
     const r = master.rewardText();
     p.body.append(h('div', { class: 'row between', style: 'margin-bottom:8px;gap:8px' },
-      h('div', { class: 'muted' }, `Three goals each week. Each pays ${fmt(r.coins)} coins and ${r.gems} gems. Finish all three for a bonus and a crate.`),
+      h('div', { class: 'muted' }, `Three goals each week. Each pays ${fmt(r.coins)} coins, ${r.gems} gems${r.xp ? ` and ${fmt(r.xp)} XP` : ''}. Finish all three for a bonus and a crate.`),
       h('span', { class: 'timer-tag outlined' }, `New in ${week}`)));
     p.body.append(h('div', { class: 'row', style: 'gap:8px;margin-bottom:10px;flex-wrap:wrap' },
       h('span', { class: 'pill' }, icon('crown'), `Streak: ${master.streak} week${master.streak === 1 ? '' : 's'}`),
