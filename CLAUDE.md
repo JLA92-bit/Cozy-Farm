@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 14 October 2026 (game version 1.14.0, pushed). Owner: Josh Makes Games.
+Last updated: 15 October 2026 (game version 1.15.1, committed locally, not pushed; 1.15.0 is on `main`). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.14.0 "The Grand Estate"** (pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.15.1 "Safe Keeping"** (local; 1.15.0 "Looking After the Farm" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.15.1 (local, 15 Oct):** fixes from the Opus audit (`HANDOVER-OPUS.md`). Saves: an unreadable save is copied to `cozy-acres-save-unreadable` before anything is written, and a save from a newer version stops the boot with an "Update now" screen (`NewerSaveError`) instead of being replaced. Upkeep: a grace day after time away, full return window, dial 0 heals. Master: unknown challenge ids are dropped, "Pat your animals" counts `animal_pats`, side-bar entries are guarded. Four money-losing recipes repriced. Regression checks: `npm run test:regression`.
+
+**1.15.0 added (pushed 15 Oct):** upkeep from level 12: animals age and fall unwell, workshops and animal homes wear (`Upkeep.ts`, `upkeep.json`, `CarePanel.ts`, `UpkeepUI.ts`); the Vet's Cottage and Carpenter's Workshop (level 10) treat and repair; remote dial `game_config` `upkeep` 0-2.
 
 **1.14.0 added (pushed 14 Oct):** new CC0 asset packs (KayKit Restaurant/Halloween/Furniture; Kenney Holiday, Minigolf, Watercraft, Hexagon, Pirate, Suburban, Commercial, Castle) fetched by `scripts/fetch-assets.sh` and built with `ADD_ONLY='group/*,...' node scripts/build-assets.mjs` (new atlases are added to the manifest too); levels 81-100 content (`authoredMax` 100); the Master Board (`master.json`, `Master.ts`: weekly challenges and the gem-only Boutique, `MasterPanel.ts`, side entry from level 50); a boat per Boat Visitor theme. Balance: `BALANCE.md`.
 
@@ -79,6 +83,7 @@ npm run build           # type-check + production build
 npm run typecheck
 npm run validate-data   # run after ANY edit to src/data/*.json (CI runs it too)
 npm run simulate-economy
+npm run test:regression # builds, then checks saves, upkeep and the Master board in headless Chromium (tests/regression.mjs)
 ```
 
 Testing helpers: `node tools/shot.mjs`, `node tools/perf.mjs`, `node tools/playtest.mjs` (see README).
@@ -168,15 +173,14 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.8.5** (built and committed locally; nothing is pushed until Josh says "yes push"). Run the whole `supabase/schema.sql` in Supabase afterwards for the new dashboard page.
-- [ ] 1.8.6 content from the 1.8 design brief is all built (Beehive House, Ducks, Juice Press, Blueberries, Pottery Kiln, Horses, Peas and Lavender, Mastery plaques). Beehive to Blueberries are pushed; Kiln, Horses, Peas/Lavender and Mastery are committed locally until Josh says "yes push".
-- [ ] Make sure the latest `supabase/schema.sql` (1.8 game events, letters, Ask a friend) has been run in Supabase.
+- [ ] **Review and push 1.15.1** (committed locally; nothing is pushed until Josh says "yes push").
+- [ ] Make sure the latest `supabase/schema.sql` has been run in Supabase (1.15.0 added the `upkeep` game setting).
+- [ ] Next releases and open owner questions: see `HANDOVER-OPUS.md` and the 1.15 audit plan (1.16 performance: instance decor, trim the 10 MB precache; 1.17 late-game XP curve).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
 - [ ] After 14 days: apply for production, add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
-- [ ] 1.9 "A Year in the Valley" is planned in `PLAN-1.9.md` (seasons, festival days in the square, the Wild Woods and Museum, living villagers, Almanac and a fuller Collection Book; one deploy at the end, not built yet). Design brief: https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
 - [ ] Later: iOS. A plain web wrapper risks App Store guideline 4.2 rejection. Capacitor with native features (push, offline bundle, Sign in with Apple) is the likely route. Meanwhile iPhone players can **Add to Home Screen** from Safari.
 
 ---
@@ -198,7 +202,8 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-10-15: 1.15.0 (local): upkeep (animal sickness, building wear).
+- 2026-10-15: 1.15.1 (local): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
+- 2026-10-15: 1.15.0 (pushed): upkeep (animal sickness, building wear).
 - 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).
 - 2026-10-13: 1.13.0 (pushed): endless levels (see section 1).
 - 2026-10-12: 1.12.0 (pushed): leaderboard trophies.
@@ -207,11 +212,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.
 - 2026-10-08: 1.9.0 (pushed): seasons, festivals, Wild Woods, Museum, expeditions, Help Wanted, collection pages, dashboard page and settings. Run the `1.9 a year in the valley` section of `supabase/schema.sql` after pushing.
 - 2026-10-08: 1.8.9 (local): placing paths and fences continues in a line (`Interaction.nextInRun`): the next ghost sits beside the last piece and keeps its direction.
-- 2026-10-08: 1.8.8 (local): boats (`world/Boats.ts`): the travelling merchant sails to the dock, climbs the new dock steps (Terrain.ts), sets up his cart and roams the farm (`Visitors.ts`); Marlow Pike arrives and leaves by boat (`PikeStall.ts`). `walkableOpen` lets arrivals cross unbought land.
-- 2026-10-08: 1.8.7 (local): Marlow Pike's fish stall on the north beach (`PikeStall.ts`, `systems/FishStall.ts`, `fishstall.json`, `FishStallPanel.ts`): buy fish at 4-6x barn price, small daily stock.
-- 2026-10-08: One-time tips (toasts via `hints.firstTime`, `src/systems/Hints.ts`) for the 1.8.5/1.8.6 buildings, new crops, layered placement and Mastery. Add an entry to `INTROS`/`CROP_TIPS` for any new building or crop.
-- 2026-10-08: 1.8.6: Pottery Kiln, Horses and Stable (horse model from `scripts/make-horse.mjs`), Peas and Lavender, Mastery plaques (Me > Mastery). Local until pushed. Beehive House uses id `beehive_house` (decor `beehive` already existed); `validate-data` now rejects duplicate building ids.
-- 2026-10-08: 1.8.5 pushed (live). 1.8.6 started: Village Hero title on the farmer screen, Beehive House workshop (level 20, `models/beehive.ts`, 4 recipes).
-- 2026-10-07: 1.8.5 second half built locally: Pier, Kitchen, Workshop (Crafting skill, helpers), village festival. Still not pushed.
-- 2026-10-07: Game 1.8.5 "The Village Square" built and committed locally (skills, village restoration with a 3D square, rare seeds, market day, dashboard page). Not pushed until Josh approves.
-- 2026-10-07: Game 1.8.1: blank-screen fix for PowerVR phones (shadows default off, blank-frame fallback, Shadows switch, context-loss handling, GPU events). CLAUDE.md added to the repo.

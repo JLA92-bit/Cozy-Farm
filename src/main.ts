@@ -3,16 +3,33 @@ import './ui/styles.css';
 import { registerSW } from 'virtual:pwa-register';
 import { boot } from './scenes/Boot';
 import { watchInstallPrompt } from './ui/Install';
-import { saves, hasBackup, restoreBackup } from './systems/Save';
+import { saves, hasBackup, restoreBackup, NewerSaveError } from './systems/Save';
+
+/** Fetch the newest version of the game (service worker), then reload. */
+async function updateAndReload(): Promise<void> {
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    await reg?.update();
+    const waiting = reg?.waiting ?? reg?.installing;
+    if (waiting) {
+      await new Promise<void>((done) => {
+        navigator.serviceWorker.addEventListener('controllerchange', () => done(), { once: true });
+        waiting.postMessage({ type: 'SKIP_WAITING' });
+        setTimeout(done, 4000);
+      });
+    }
+  } catch { /* no service worker: a plain reload fetches the new version */ }
+  location.reload();
+}
 
 /** Friendly recovery screen when the farm fails to load (instead of a stuck loading bar). */
-function showBootError(): void {
+function showBootError(newer = false): void {
   const screen = document.getElementById('boot-screen');
   screen?.classList.remove('hidden');
   const tip = document.querySelector('.boot-tip');
-  if (tip) tip.textContent = 'Oops! Something went wrong loading the farm.';
+  if (tip) tip.textContent = newer ? 'Your farm needs the latest version of Cozy Acres.' : 'Oops! Something went wrong loading the farm.';
   const hint = document.querySelector('.boot-hint');
-  if (hint) hint.textContent = 'Check your connection and try again. Your farm is saved safely.';
+  if (hint) hint.textContent = newer ? 'It was saved by a newer version of the game. Update to keep playing. Your farm is safe and has not been changed.' : 'Check your connection and try again. Your farm is saved safely.';
   if (!screen || screen.querySelector('.boot-actions')) return;
   const row = document.createElement('div');
   row.className = 'boot-actions';
@@ -23,6 +40,7 @@ function showBootError(): void {
     b.addEventListener('click', fn);
     row.append(b);
   };
+  if (newer) { btn('Update now', 'green', () => { void updateAndReload(); }); screen.append(row); return; }
   btn('Try again', 'green', () => location.reload());
   if (saves.loadAttempted && hasBackup()) btn('Load backup save', 'blue', () => { saves.locked = true; if (restoreBackup()) location.reload(); });
   screen.append(row);
@@ -35,7 +53,7 @@ boot().catch((e) => {
   console.error(e);
   // a half-booted game must not overwrite the save with broken state
   saves.locked = true;
-  showBootError();
+  showBootError(e instanceof NewerSaveError);
 });
 
 /**

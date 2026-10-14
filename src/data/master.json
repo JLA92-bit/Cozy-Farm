@@ -8,7 +8,7 @@
     { "id": "harvest", "stat": "crops_harvested", "text": "Harvest {n} crops", "icon": "wheat", "base": 250 },
     { "id": "fruit", "stat": "fruit_harvested", "text": "Pick {n} fruit", "icon": "apple", "base": 80 },
     { "id": "animals", "stat": "animal_products", "text": "Collect {n} animal goods", "icon": "chicken", "base": 60 },
-    { "id": "pats", "stat": "animal_pets", "text": "Pat your animals {n} times", "icon": "heart", "base": 15 },
+    { "id": "pats", "stat": "animal_pats", "text": "Pat your animals {n} times", "icon": "heart", "base": 15 },
     { "id": "fish", "stat": "fish_caught", "text": "Catch {n} fish", "icon": "fish", "base": 20 },
     { "id": "trucks", "stat": "truck_crates", "text": "Fill {n} truck crates", "icon": "truck", "base": 6 },
     { "id": "plant", "stat": "plants_planted", "text": "Plant {n} seeds", "icon": "seedling", "base": 200 },

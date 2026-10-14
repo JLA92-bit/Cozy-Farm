@@ -1,5 +1,5 @@
 {
-  "_comment": "1.15 Upkeep. One full step per local day the game is opened. Days missed while away still count at away.rate (a quarter) for up to away.maxDays, but that can only make animals unwell and wear buildings: it never makes an animal wander off or lets a wanderer be gone. The remote dial (game_config 'upkeep') scales the chances and wear: 0 turns it off, 1 is normal, 2 is double. fromLevel: nothing happens before this player level.",
+  "_comment": "1.15 Upkeep. One full step per local day the game is opened. Days missed while away still count at away.rate (a quarter) for up to away.maxDays, but that can only make animals unwell and wear buildings: it never makes an animal wander off or lets a wanderer be gone. The first opened day back is a grace day: nothing wanders off and every unwell animal and wanderer has at least two more opened days. A day's chance of falling unwell is never more than half, even after a long absence. With the dial at 0, unwell animals are well again at once. The remote dial (game_config 'upkeep') scales the chances and wear: 0 turns it off, 1 is normal, 2 is double. fromLevel: nothing happens before this player level.",
   "fromLevel": 12,
   "animals": {
     "sickChance": 0.02,

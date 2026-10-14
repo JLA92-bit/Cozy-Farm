@@ -103,21 +103,33 @@ class UpkeepSystem {
     return Math.min(0.5, c * this.strength);
   }
 
-  /** One day of upkeep. Exposed for tests. */
-  step(rate = 1, days = 1): void {
-    // rate < 1 is time spent away: slower, and it can never make an animal wander off or let a wanderer be gone
+  /**
+   * One day of upkeep. Exposed for tests.
+   * rate < 1 is time spent away: slower, and it can never make an animal wander off or let a wanderer be gone.
+   * `back` is the first opened day after time away: nothing wanders off yet, and every unwell animal and
+   * wanderer has at least two more opened days, so coming back is never met with a loss.
+   */
+  step(rate = 1, days = 1, back = false): void {
     const slow = rate < 1;
     const s = this.strength * rate * days;
     const sick: string[] = [];
     const away: string[] = [];
+    const now = game.now();
+    // those who wandered off earlier: the days to bring them back run down (before today's wanderers join the list)
+    const up = game.state.upkeep!;
+    up.lost = up.lost.filter((l) => {
+      l.left = slow ? Math.max(Math.min(l.left, 2), l.left - rate * days) : back ? Math.max(Math.min(l.left, 2), l.left - 1) : l.left - 1;
+      return l.left > 0;
+    });
     for (const b of game.state.buildings) {
-      if (this.wears(b)) b.wear = Math.min(100, (b.wear ?? 0) + UPKEEP.wear.perDay * s * (0.7 + 0.6 * (hashString(`${b.uid}:${game.state.upkeep!.day}`) % 100) / 100));
+      if (this.wears(b) && isBuilt(b, now)) b.wear = Math.min(100, (b.wear ?? 0) + UPKEEP.wear.perDay * s * (0.7 + 0.6 * (hashString(`${b.uid}:${game.state.upkeep!.day}`) % 100) / 100));
       for (let i = (b.animals?.length ?? 0) - 1; i >= 0; i--) {
         const a = b.animals![i];
         if (!a.born) a.born = game.now();
         if (a.sickAt) {
           a.sickDays = (a.sickDays ?? 0) + rate * days;
           if (slow) a.sickDays = Math.max(a.sickDays - rate * days, Math.min(a.sickDays, UPKEEP.animals.wanderAfterDays - 2));
+          else if (back) a.sickDays = Math.min(a.sickDays, UPKEEP.animals.wanderAfterDays - 2);
           else if (a.sickDays >= UPKEEP.animals.wanderAfterDays) {
             const nm = animals.nameOf(b, i);
             game.state.upkeep!.lost.push({ animal: BUILDING[b.type].animal!, name: nm, love: a.love, born: a.born, left: UPKEEP.animals.returnWithinDays });
@@ -125,16 +137,13 @@ class UpkeepSystem {
             away.push(nm);
             game.bus.emit('building:changed', { b });
           }
-        } else if (Math.random() < this.chance(b, a, animals.hearts(b, i)) * rate * days) {
+        } else if (Math.random() < Math.min(0.5, this.chance(b, a, animals.hearts(b, i)) * rate * days)) {
           a.sickAt = game.now(); a.sickDays = 0;
           sick.push(animals.nameOf(b, i));
           game.bus.emit('building:changed', { b });
         }
       }
     }
-    // those who wandered off earlier: the days to bring them back run down
-    const up = game.state.upkeep!;
-    up.lost = up.lost.filter((l) => { l.left = slow ? Math.max(Math.min(l.left, 2), l.left - rate * days) : l.left - 1; return l.left > 0; });
     if (sick.length) game.bus.emit('toast', { title: sick.length === 1 ? `${sick[0]} is unwell${slow ? ' while you were away' : ''}` : `${sick.length} animals are unwell`, sub: this.hasVet() ? 'Take them to the vet before they wander off.' : "Build the Vet's Cottage to treat them before they wander off.", icon: 'heart' });
     if (away.length) game.bus.emit('toast', { title: away.length === 1 ? `${away[0]} wandered off` : `${away.length} animals wandered off`, sub: this.hasVet() ? 'The vet can help bring them back for a small fee.' : 'Open their home to bring them back for a small fee.', icon: 'info' });
     if (sick.length) game.incStat('animals_sick', sick.length);
@@ -156,13 +165,32 @@ class UpkeepSystem {
     }
     // animals bought since the last check get a birthday
     for (const b of game.state.buildings) for (const a of b.animals ?? []) if (!a.born) a.born = game.now();
+    // upkeep turned off (remote dial 0): nobody stays unwell
+    if (!this.on) this.healAll();
     if (up.day === today) return;
     // days missed since the game was last opened still count, at a slower rate and up to a limit
     const missed = Math.max(0, Math.round((new Date(`${today}T12:00:00`).getTime() - new Date(`${up.day}T12:00:00`).getTime()) / DAY) - 1);
     up.day = today;
     if (!this.on) { saves.save(); return; }
     if (missed > 0) this.step(UPKEEP.away.rate, Math.min(missed, UPKEEP.away.maxDays));
-    this.step();
+    this.step(1, 1, missed > 0);
+  }
+
+  /** Make every unwell animal well again for free (upkeep switched off); their product timers carry on. */
+  healAll(): void {
+    const now = game.now();
+    let n = 0;
+    for (const b of game.state.buildings) {
+      let changed = false;
+      for (const a of b.animals ?? []) {
+        if (!a.sickAt) continue;
+        if (a.fedAt !== null) a.fedAt += now - a.sickAt;
+        delete a.sickAt; delete a.sickDays;
+        changed = true; n++;
+      }
+      if (changed) game.bus.emit('building:changed', { b });
+    }
+    if (n) saves.save();
   }
 
   init(): void {

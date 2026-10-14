@@ -1,6 +1,32 @@
 {
  "releases": [
   {
+   "version": "1.15.1",
+   "date": "2026-10-15",
+   "title": "Safe Keeping",
+   "icon": "heart",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "heart",
+     "text": "Back from a break? Nothing wanders off on your first day back, and every unwell animal gets at least two more days to see the vet"
+    },
+    {
+     "icon": "info",
+     "text": "Your farm is safer: a save the game cannot read is now kept aside instead of being replaced, and a farm saved by a newer version asks you to update first"
+    },
+    {
+     "icon": "crown",
+     "text": "Master Challenges: \"Pat your animals\" now counts the Pat button on each animal"
+    },
+    {
+     "icon": "info",
+     "text": "Pea Soup, Lavender Candles, Lavender Honey and Blueberry Muffins now sell for more than their ingredients, and Potter's Clay needs less beetroot"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.15.0",
    "date": "2026-10-15",
    "title": "Looking After the Farm",

@@ -736,7 +736,7 @@
   "blueberry_muffin": {
    "name": "Blueberry Muffin",
    "cat": "goods",
-   "sell": 330,
+   "sell": 440,
    "icon": "blueberry_muffin"
   },
   "clay": {
@@ -766,19 +766,19 @@
   "pea_soup": {
    "name": "Pea Soup",
    "cat": "goods",
-   "sell": 520,
+   "sell": 860,
    "icon": "pea_soup"
   },
   "lavender_honey": {
    "name": "Lavender Honey",
    "cat": "goods",
-   "sell": 420,
+   "sell": 600,
    "icon": "lavender_honey"
   },
   "lavender_candle": {
    "name": "Lavender Candle",
    "cat": "goods",
-   "sell": 640,
+   "sell": 1120,
    "icon": "lavender_candle"
   },
   "honey": {

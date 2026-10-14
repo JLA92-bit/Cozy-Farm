@@ -4,7 +4,7 @@
 .wear-weathered { background: #fff6dc; }
 .wear-worn { background: #ffe9cf; }
 .wear-broken { background: #ffd9d0; }
-.animal-card.sick { background: #ecf4e0; }
+.animal-card.sick { background: #f3e4f6; border-color: #8a5a9c; }
 .animal-card .animal-sick { color: #8a5a9c; font-family: var(--font-display); }
 .animal-card .animal-age { font-size: 11px; opacity: .7; }
 .lost-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 8px; border-radius: 12px; background: rgba(255, 255, 255, .5); border: 2px dashed var(--outline); }

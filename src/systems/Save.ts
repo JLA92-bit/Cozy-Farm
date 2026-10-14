@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CROP, EXPEDITIONS, ITEMS, LAND, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -15,6 +15,16 @@ const BACKUP_KEY = 'cozy-acres-save-backup';
  * be brought back from Settings.
  */
 const REPLACED_KEY = 'cozy-acres-save-replaced';
+/**
+ * 1.15.1: a save that could not be read at all is copied here before anything else is written, so
+ * autosave never destroys it. The first one is kept (it is the real farm); support can repair it by hand.
+ */
+const UNREADABLE_KEY = 'cozy-acres-save-unreadable';
+
+/** Thrown by boot when the save was made by a newer version of the game (this copy must update first). */
+export class NewerSaveError extends Error {
+  constructor() { super('The farm was saved by a newer version of Cozy Acres'); this.name = 'NewerSaveError'; }
+}
 
 /** A farm kept aside in the replaced-farm slot. */
 export interface ReplacedFarm { data: SaveData; at: number; why: string }
@@ -65,7 +75,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.upkeep = isObj(s.upkeep) && typeof s.upkeep.day === 'string' ? { day: s.upkeep.day, lost: ((Array.isArray(s.upkeep.lost) ? s.upkeep.lost : []) as Record<string, unknown>[]).filter((l) => isObj(l) && typeof l.animal === 'string' && !!ANIMAL[l.animal]).slice(0, 40).map((l) => ({ animal: l.animal as string, ...(typeof l.name === 'string' ? { name: l.name.slice(0, 16) } : {}), ...(Number.isFinite(l.love) ? { love: Math.max(0, Math.min(99, Math.floor(l.love as number))) } : {}), ...(Number.isFinite(l.born) ? { born: l.born as number } : {}), left: Math.max(0, Math.min(30, finite(l.left, 0, 0))) })) } : undefined;
   out.endless = isObj(s.endless) && typeof s.endless.marker === 'number' ? { marker: Math.max(0, Math.min(999, Math.floor(s.endless.marker))) } : undefined;
   out.master = isObj(s.master) && typeof s.master.week === 'string' && Array.isArray(s.master.ids) ? {
-    week: s.master.week, base: countMap(s.master.base, () => true), ids: (s.master.ids as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3),
+    week: s.master.week, base: isObj(s.master.base) ? Object.fromEntries(Object.entries(s.master.base).filter(([, n]) => typeof n === 'number' && Number.isFinite(n) && n >= 0).map(([k, n]) => [k, Math.floor(n as number)])) : {}, ids: (s.master.ids as unknown[]).filter((x): x is string => typeof x === 'string' && MASTER.challenges.some((c) => c.id === x)).slice(0, 3),
     claimed: Array.isArray(s.master.claimed) ? (s.master.claimed as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3) : [],
     streak: Math.max(0, Math.floor(finite(s.master.streak, 0, 0))), best: Math.max(0, Math.floor(finite(s.master.best, 0, 0))), done: s.master.done === true,
   } : undefined;
@@ -377,20 +387,34 @@ class SaveSystem {
   /** Set once the save has been read (a boot failure after this may be caused by the save). */
   loadAttempted = false;
 
+  /** True when the main save could not be read, no backup could either, and a fresh farm was started (the old text is kept aside). */
+  unreadableKept = false;
+
+  /**
+   * Read the farm. Never loses a save this copy cannot read: a save from a newer version stops the boot
+   * (saving locked, NewerSaveError) instead of being replaced, and an unreadable one is copied aside first.
+   */
   load(): { data: SaveData; fresh: boolean } {
     this.loadAttempted = true;
-    const tryParse = (key: string) => {
+    const tryParse = (key: string): { ok: SaveData } | { bad: string } | { newer: true } | null => {
       const txt = store.get(key);
       if (!txt) return null;
       try {
         const raw = JSON.parse(txt);
-        return validate(raw) ? migrate(raw) : null;
-      } catch (e) { console.warn('save unreadable', key, e); return null; }
+        if (!validate(raw)) return { bad: txt };
+        if (Number(raw.version) > SAVE_VERSION) return { newer: true };
+        return { ok: migrate(raw) };
+      } catch (e) { console.warn('save unreadable', key, e); return { bad: txt }; }
     };
     const main = tryParse(KEY);
-    if (main) return { data: main, fresh: false };
+    if (main && 'ok' in main) return { data: main.ok, fresh: false };
+    // a newer game wrote this farm: loading the backup or a new farm would overwrite it, so stop here
+    if (main && 'newer' in main) { this.locked = true; throw new NewerSaveError(); }
+    if (main && 'bad' in main && !store.get(UNREADABLE_KEY)) store.set(UNREADABLE_KEY, JSON.stringify({ at: Date.now(), save: main.bad }));
     const backup = tryParse(BACKUP_KEY);
-    if (backup) { this.recoveredFromBackup = !!store.get(KEY); return { data: backup, fresh: false }; }
+    if (backup && 'ok' in backup) { this.recoveredFromBackup = !!main; return { data: backup.ok, fresh: false }; }
+    if (backup && 'newer' in backup) { this.locked = true; throw new NewerSaveError(); }
+    this.unreadableKept = !!main && !!store.get(UNREADABLE_KEY);
     return { data: createNewGame(), fresh: true };
   }
 

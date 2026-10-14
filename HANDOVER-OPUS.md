@@ -1,88 +1,191 @@
-# Handover from the Opus chat (7 Oct 2026)
+# Handover for Opus: review the game so far and plan what comes next (15 Oct 2026)
 
-Cozy Acres: mobile-first 3D cozy farming PWA (Three.js + TypeScript + Vite, Supabase online). Live at
-https://cozyacres.joshmakesgames.app/play/. Pushing to `main` deploys (GitHub Actions "Deploy website and game",
-`.github/workflows/deploy.yml`). Android TWA (`android/`, package `app.joshmakesgames.cozyacres`) is in Google Play
-closed testing and loads the live site, so web deploys reach Play users without a new build.
+You are picking up Cozy Acres from a long run of Sonnet sessions. Two jobs, in this order:
 
-## What this chat did (newest first)
+1. **Audit** what has been built up to and including 1.15.0 (section 4 says what to check and where).
+2. **Propose a large-scale plan** for future improvements and content (section 6 gives the constraints and a starting
+   point; your plan should replace or sharpen it, not just agree with it).
 
-- **1.8.0 "Village Friends"** (deployed, commit f906fd0). Built by 5 agents, merged on `integrate/v18` and tested together.
-  - Villagers: six villagers (Rosa, Old Tom, Juniper, Pip, Hazel, Bram), Village button and screen, villager
-    pages, gift picker, hearts 0-10, milestones (2 letter, 4/8 story + keepsake/portrait, 6 perk, 10 best friend),
-    villagers walking the farm, orders signed by villagers.
-    Files: `src/systems/Village.ts`, `VillageRewards.ts`, `Perks.ts`, `src/ui/panels/VillagePanel.ts`,
-    `src/data/villagers.json`, `src/world/models/keepsakes.ts`.
-  - Star quality: Normal/Silver/Gold per unit, `state.quality[item] = [silver, gold]`, normal items used first,
-    fertiliser, star ingredients in workshops. Files: `src/systems/Quality.ts`, `src/ui/QualityUI.ts`.
-  - Mail and daily rhythm: mailbox model, Mail screen, villager of the day, daily finds, weather, Book pages
-    (Calendar, Letters, Village Guide). Files: `Mail.ts`, `Daily18.ts`, `Weather.ts`, `MailPanel.ts`, `BookPages18.ts`.
-  - Ask a friend: requests, fills, Auto-help, Hazel fallback, Requests dashboard page. Files: `src/systems/Help.ts`,
-    `src/online/AskHelp.ts`, `HelpPanel.ts`.
-  - Welcome: 8-step welcome for old saves, head start, Founding Farmer sign, short intro for new farms at level 3,
-    `logEvent`, letters to everyone, "1.8 Village" dashboard page. Files: `Welcome18.ts`, `Welcome18Panel.ts`,
-    `src/online/Events.ts`, `src/world/models/FoundingSign.ts`.
-  - Gifts from the developer are now checked whenever the game is reopened (`src/online/Activity.ts`).
-- **1.7.0 Admin dashboard** at `/admin/` (separate Vite app in `admin/`, built by `scripts/pages/build.sh`). Google
-  sign-in only, analytics, players, gifts (coins/gems/items/land) that arrive by themselves, codes, backups (daily
-  pg_cron), feedback, market moderation, leaderboard hiding, notifications. See `ADMIN.md`.
-- **1.6.1 / 1.6.2**: Settings > Load a farm (farm link or 8-character farm code), reward codes.
-- Restored player Mel's lost farm (level 23) from screenshots. Done; she has her farm, apology gift and land.
+Read `CLAUDE.md` first (rules, commands, repo map), then `BALANCE.md` (every number and why). This file does not repeat them.
 
-## In progress / half done
+## 1. The project in one paragraph
 
-Nothing. The working tree is clean and `main` = `integrate/v18` = `claude/admiring-gates-f3vtro`.
+Cozy Acres is a mobile-first 3D farming and village builder that runs in the browser and installs as an offline PWA
+(Three.js + TypeScript + Vite, about 38,000 lines of TypeScript in 262 source files, 37 JSON data files). Optional online
+play (friends, gifts, market, leaderboards, farm visits, Ask a friend, cloud saves) runs on Supabase. An Android Trusted
+Web Activity wraps the live site and is in Google Play closed testing; web deploys reach it without a new build.
+Owner: Josh Makes Games. Repo `JLA92-bit/Cozy-Farm`, work on `main`; pushing deploys through GitHub Pages.
+Live game: https://cozyacres.joshmakesgames.app/play/ . Admin dashboard: `/admin/` (see `ADMIN.md`).
 
-## Setup still needed outside the code
+## 2. State of play
 
-1. **Supabase (required for 1.8 online features):** run the whole `supabase/schema.sql` in the SQL Editor (safe
-   to re-run), then `notify pgrst, 'reload schema';`. Until then Ask a friend, game events, letters to everyone
-   and the "Requests" / "1.8 Village" dashboard pages do not work. Ask the user whether this has been done.
-2. Android `android/twa-manifest.json` still says 1.6.0 / versionCode 4. A new Play build is only needed for
-   native changes (the TWA loads the live site).
+| Item | Value |
+| --- | --- |
+| Game version | **1.15.0 "Looking After the Farm"**, pushed 14 Oct 2026 (commit 2a0e99b on `main`) |
+| Working tree | clean, `main` = `origin/main` |
+| Content size | 31 crops, 8 trees, 8 animals, 114 recipes, 315 placeable buildings/decor, 68 achievements, levels authored to 100 |
+| Levels | endless (`maxLevel` 999, authored content to `authoredMax` 100, Level Markers to 300) |
+| Android | versionCode 4 (frame version 1.6.0), closed test sent for review 6-7 Oct; next build must be 5+ |
+| Supabase | `supabase/schema.sql` (3,200+ lines, one re-runnable file). **The owner must run the whole file after each release that adds server work.** 1.15.0 added the `upkeep` game setting; confirm it has been run |
 
-## Decisions and why
+## 3. What was built since the last handover (1.8.0), newest first
 
-- No romance or marriage, ever (user's rule).
-- Gift rules live only in `village.giveGift` (love 40, like 20, neutral 8, dislike -20, birthday x3, stars x1.25/x1.5).
-- Quality must not break the economy: only the barn pays star prices; orders, truck, stall and market take normal
-  items first at normal price (about +2% income). See `BALANCE.md`.
-- Head start: `min(300, round(orders_completed * 15 / 6))` points per villager, reason `'headstart'`.
-- Ask a friend: the asker's game passes its friend list (max 30); only those friends see requests. Claims are
-  exactly-once; if a claim response is lost, those items are lost (same as gifts; chosen over double delivery).
-- The friends side button says "Gifts" (not "Mail") so there are not two Mail buttons.
-- Admin: `admin_users` is filled in SQL only; the admin email is never committed. Every admin function calls
-  `admin_guard()` and logs to `admin_log`.
-- Never push or deploy without the user's explicit OK. The user likes to see changes before they go live.
+Each line says what a player gets and where the code is. Balance reasoning is in `BALANCE.md` by version.
 
-## Known rough edges (not fixed)
+- **1.15.0 Upkeep.** From level 12 animals age and fall unwell; untreated ones wander off but can be brought back for a fee;
+  workshops and animal homes wear down and need repair. Slow by design (about 25 played days to "weathered", 60 to
+  "broken"). Days away or offline count at 25% for up to 14 days and can never cost an animal. Treating needs the **Vet's
+  Cottage** and repairing needs the **Carpenter's Workshop** (level 10; KayKit hex models `bld/vet`, `bld/lumbermill_red`).
+  Remote strength dial 0-2 (Dashboard > 1.9 settings). Code: `src/systems/Upkeep.ts`, `src/data/upkeep.json`,
+  `src/ui/panels/CarePanel.ts`, `UpkeepUI.ts`, `AnimalPanel.ts`, `ProductionPanel.ts`, `src/online/GameConfig.ts`.
+- **1.14.0 The Grand Estate.** Levels 81-100 content, about 90 decor pieces in sets, 4 crops, 12 dishes, Farmhouse 13-14;
+  **Master Board** (3 weekly challenges, streak plaques) and the gem-only **Boutique**; a boat per Boat Visitor theme;
+  new CC0 asset packs through `scripts/fetch-assets.sh` + `ADD_ONLY=... node scripts/build-assets.mjs`.
+  Code: `Master.ts`, `MasterPanel.ts`, `master.json`, `scripts/build-assets.mjs`.
+- **1.13.0 Endless levels.** Owner's rule: no top level, no prestige. Levels past 60 are worked out in `src/data/index.ts`;
+  every level 61-300 gives a Level Marker decoration (`Endless.ts`, `models/ranks.ts`).
+- **1.12.0 Leaderboard trophies** (`Ranks.ts`): big-number decor for 1st/2nd/3rd/Top 10 on each board, needs 6+ farmers.
+- **1.11.0 The Master Farm** (levels 51-60), **1.10.0** (crops 41-47, Rabbit Hutch, animal names/pats/hearts in `Animals.ts`,
+  Boat Visitors, Farm look), **1.9.x** (festival cycle, Wild Woods island, Museum, expeditions, Help Wanted, fishing
+  extras, Almanac; **seasons were built then removed in 1.9.2** because unavailable plants felt difficult),
+  **1.8.5-1.8.9** (Skills, Village Restoration square, Pier, Kitchen, Workshop crafting, Beehive/Duck/Juice/Kiln/Stable
+  buildings, layered placement, boats, Marlow Pike's fish stall, path/fence line placement).
+- Also done: "Select many" storing works like swipe-harvesting (same kind only), haze/fog pushed far out, helping friends
+  while visiting fixed, trophies enlarged.
 
-- Old players get six 2-heart tip letters at once on their first 1.8 boot (from the head start). Acceptable, but
-  could be spread over days.
-- The practice-mode demo neighbour "Old Tom" (`src/online/LocalBackend.ts`) shares a name with villager Old Tom.
-- Mail's `src/world/VillagerLooks18.ts` and the welcome's own look table duplicate `villagers.json` `look`;
-  `look` wins, so they are only fallbacks. Could be unified.
-- `help_received` stat also counts older neighbour help, so the `help_arrived` event overcounts slightly.
-- Playwright reports panel buttons as "not stable"; tests use `force: true` or DOM clicks.
+## 4. Audit checklist (what to verify, most valuable first)
 
-## Ideas discussed, not started (1.8.5 and later)
+Nothing below is known to be broken. It is a list of where the risk is.
 
-Village Restoration (community bundles), Skills, new workshops and animals, level 20-50 map, village market day
-(Saturdays, placeholder label only exists in the Calendar). The full design brief is the 1.8 Claude Doc:
-https://claude.ai/code/artifact/e5fdf6a6-b0a8-4bb5-946d-58ca740c01c1
+1. **Save safety (highest risk).** Every release added optional state fields repaired in `src/systems/Save.ts`
+   `withDefaults`. Read the repair rules for: `animals[].born/sickAt/sickDays`, `building.wear`, `state.upkeep`,
+   `state.master`, `state.boutique`, `state.endless`, `state.ranks`. Try loading an old (pre-1.8) save, a cloud save and a
+   corrupt one. Look for anything that can throw during load or silently drop data. Check `FarmSnapshot.ts` (visit and
+   friend views) still copes with the new animal fields.
+2. **Economy at the top end.** `npm run simulate-economy` predates endless levels, Master rewards and the Boutique gem
+   sink. Check that coins/hour, order rewards and Farmhouse costs still make sense at levels 60-100 and that nothing is a
+   runaway source (Master claims, trophies, markers, boat visits). `BALANCE.md` states the intended margins.
+3. **Upkeep (newest, least exercised).** Logic in `Upkeep.ts` was tested in headless Chromium only for single steps.
+   Review: the away catch-up maths (`check()` and `step(rate, days)`), the wander/return guarantees, treat/repair gating
+   when the vet/carpenter is missing or still under construction, existing farms with no vet at level 12+, interaction
+   with the Animals skill and Happy Herd, and the `gameConfig.upkeep` dial offline.
+4. **Performance and size.** Service worker precaches about 10 MB (780 entries) after the 1.14 asset packs. Check first
+   load, memory on low-end phones, draw calls with 700+ decor pieces (Farmhouse 14 allows 720), and `GpuGuard` behaviour.
+5. **Server side.** `supabase/schema.sql`: row-level security on every table, `admin_guard()` on every admin function,
+   account-deletion cascade, the `game_config` allow-list (now `market_day`, `weather`, `upkeep`), rate limits on gifts,
+   Ask a friend and reward codes. Check Edge Function `send-push`.
+6. **Dead and duplicate code.** Seasons were removed in 1.9.2 (look for leftovers), `VillagerLooks18.ts` duplicates
+   `villagers.json`, two keepsake model files, `PLAN-1.9.md` is partly obsolete, and `CLAUDE.md` section 8 to-dos are
+   out of date.
+7. **Test coverage.** There is no automated test suite. The only checks are `tsc`, `validate-data`, the economy simulator
+   and ad-hoc headless-browser scripts (`tools/shot.mjs`, `playtest.mjs`, `perf.mjs`). Judge whether a small
+   regression suite (save fixtures, smoke boot on Low/Medium/High, panel opens) is worth adding before more features.
+8. **Accessibility and text.** Hyphens only (no em dashes) in all player text; check contrast and tap-target sizes on
+   the newer panels (`CarePanel`, `MasterPanel`, Boutique), and that nothing relies on colour alone.
 
-## Gotchas
+Not yet looked at by anyone: the new Vet's Cottage and Carpenter's Workshop standing on a real farm (only seen on a
+contact sheet and in panels), and the boat-visitor boats (scaled down to fit the east berth; never confirmed visually on
+a boat day).
 
-- Checks before any push: `npx tsc --noEmit`, `npm run validate-data` (also checks changelog version = package.json
-  version, villagers, guides), `bash scripts/pages/build.sh` (builds game, admin and website into `dist/`).
-- Version bump: `package.json` + a new first entry in `src/data/changelog.json` (no em dashes in player text; the
-  user wants "-" only).
-- Save changes: every new state field must be optional or get a default and a repair rule in `Save.ts` `withDefaults`.
-- `supabase/schema.sql` is one idempotent file; new server work is appended as a marked `-- ===== section =====`
-  with grants like the others. Deleting an account must cascade (tables reference `profiles`/`auth.users`).
-- Two keepsake model files: `models/keepsakes.ts` (villagers, `KEEPSAKE_PROC`) and `models/FoundingSign.ts`
-  (`FOUNDING_PROC`). Do not create another file differing only by case.
-- Gift codes are client-side and capped at 500 coins; bigger amounts use server reward codes or dashboard gifts.
-- Debug in the browser: `window.__game`, `window.__ui`, `window.__scene`.
-- Never put keys, the keystore or passwords in chat or the repo; never set ANDROID_CERT_SHA256 to a wrong value.
-- Player data from Supabase is for support only and must not be shared.
+## 5. Rules and decisions that must survive any plan
+
+- **No prestige, no reset, ever.** Always more levels and more to unlock (owner's rule, 13 Oct).
+- **No romance or marriage.** Villagers are friends only. Audience is 13+ (names and gift notes are unmoderated).
+- **Cozy first.** Seasons were removed because things becoming unavailable felt punishing. Upkeep is the deliberate,
+  slow exception; anything that takes something away needs a recoverable window and must never fire while the player is away.
+- **Never push or deploy without the owner's explicit "yes push".** Say in 2 lines what goes live and wait.
+- Never touch the keystore, passwords or `.jks`; do not change `android/twa-manifest.json`, `ANDROID_*` variables or the
+  package name unless asked. Admin email is never committed. Supabase player data is for support only.
+- Text: hyphens, never em dashes. Keep the brand "Cozy Acres". When addressing the user's school use `<School Name>`.
+- Systems never call UI directly (typed event bus). All balance numbers live in `src/data/*.json`; run `validate-data`
+  after editing them and `npm run build` after code. Every new save field is optional with a repair rule.
+- The owner likes small, reviewable releases (one version, one theme) and a plain-language summary of what goes live.
+
+## 6. Plan for the future (starting point - improve it)
+
+The game is content-rich but the foundations have not grown with it. Suggested order: **foundations, then depth, then
+reach, then content cadence in parallel throughout.**
+
+### Phase A - Foundations (1.16, one release)
+- Automated regression suite in CI: tsc, `validate-data`, save-fixture load tests (old, cloud, corrupt), headless boot
+  on Low/Medium/High, open-every-panel smoke test. Block the deploy on failure.
+- Save versioning with a migration log instead of only defensive defaults; export/import backup in Settings.
+- Extend `simulate-economy` to levels 60-300, Master, Boutique and upkeep costs; add a balance report to CI output.
+- Perf budget: asset size cap, lazy-load late-game decor models, instancing for repeated decor, a low-end profile.
+- Error telemetry through the existing `logEvent` channel (uncaught errors, save repair counts, GPU events) with a
+  dashboard page.
+- Clean-up: remove season leftovers, unify villager looks, refresh `CLAUDE.md` section 8.
+
+### Phase B - Depth for the middle and late game (1.17 to 1.20)
+- **Upkeep follow-through:** vet and carpenter levels (faster, cheaper, preventive care), Animals-skill perks that cut
+  sickness, a Barn/Farmhouse "care round" quick action, and a gentle similar upkeep for fields (scarecrow/fertiliser
+  wear) only if the first month of play data says players enjoy it. Use the Upkeep strength dial to tune live.
+- **Estate projects:** long multi-week goals (build a wing of the Farmhouse, a clock tower, a market hall) paid in goods,
+  coins and Master tokens, so level 60+ players always have a visible next target without prestige.
+- **Specialisation, not reset:** optional "Masteries" per workshop/animal line (already seeded by Mastery plaques) giving
+  permanent flavour bonuses; no loss, no reset.
+- **Automation tier:** helpers (sprinklers, auto-feeders exist) extended to hired farmhands with schedules, so large
+  farms stay playable on short sessions.
+- **Second island / Farm annexe:** a second buildable plot (orchard island or hill farm) gated by level and Estate
+  projects; the Wild Woods and Village Square already prove the multi-scene pattern (`scenes/`).
+- **Fishing and Foraging depth:** aquarium/pond building, fish breeding, a collection goal with Museum tie-in.
+
+### Phase C - Social and live play (1.21 to 1.24)
+- Co-operative **Village Projects**: friends contribute goods to a shared build with named contributor plaques.
+- Neighbourhoods (small groups of 5-20) with a shared weekly goal and a chat-free emote/gift system (keeps moderation
+  risk low for a 13+ audience).
+- Real-date events built on `cycle.json` and the `game_config` dial (egg hunt, lights festival exist) with
+  non-punishing catch-up; seasonal-feeling decor only as cosmetics, never availability pressure.
+- Trading improvements: market price history, wishlists, fair-price hints, anti-abuse limits.
+- Leaderboard variety (weekly, friends-only, per-skill) alongside the trophies already built.
+
+### Phase D - Reach and platform (parallel, owner-driven)
+- Google Play: finish the 12-testers-for-14-days closed test, apply for production, add the Play badge to the website.
+- iOS via Capacitor with native push, offline bundle and Sign in with Apple (a plain web wrapper risks App Store 4.2).
+- Accessibility pass (reduced motion, colour-blind safe cues, larger text option, screen-reader labels on panels).
+- Localisation scaffolding: move player text into keyed JSON, start with one extra language.
+- Audio and polish: ambient mixes per weather/time, haptics, a photo mode with frames and share cards.
+
+### Phase E - Content cadence (every release, about 20 levels at a time)
+- Per batch: 4 crops, 10-12 dishes, 1 or 2 animals or workshops, 40-90 decor pieces in two or three themed sets, a
+  Farmhouse level or two, a Master Challenge or two, one new mini-feature. Raise `authoredMax`, run `validate-data`
+  (it insists every level up to `authoredMax` unlocks something).
+- Sources: more CC0 packs via the asset pipeline (candidates listed in the scratchpad `MODEL-REVIEW.md` of the last
+  session if it still exists; otherwise rescan KayKit, Kenney and Quaternius). Recolour existing animals (koala,
+  giraffe, parrot models exist unused) for new stock without new art.
+- Story: a second villager arc per six villagers, friend-only heart events at 12/14, a letter series per release.
+  More villagers are fine; keep them friends only.
+
+### Open questions for the owner (ask before building)
+1. Monetisation: is there any plan beyond gems earned in play? If so, set hard rules now (no pay-to-win, no
+   timers that sell speed-ups past the current gem speed-up, 13+ appropriate).
+2. How many hours a week of play should the late game ask for? (It sets the pace of Estate projects and upkeep.)
+3. Appetite for a second island/farm versus deepening the existing one.
+4. Is a small automated test suite acceptable before the next feature release, even if it slows 1.16?
+
+## 7. How to work in this repo (short form)
+
+```bash
+npm install
+npm run dev              # http://localhost:5173 (use --port N to avoid clashes)
+npx tsc --noEmit
+npm run validate-data    # after any src/data/*.json edit
+npm run build
+bash scripts/pages/build.sh   # game + admin + website into dist/ (before any push)
+node tools/shot.mjs <url> <out-prefix> 844x390 --actions <script.mjs>   # headless screenshot/driver
+```
+
+Handy facts: debug handles are `window.__game`, `window.__ui`, `window.__scene`, `window.__upkeep`. Playwright reports panel
+buttons as "not stable", so tests click through the DOM or use `force: true`. Use explicit placements in tests (avoid
+whole-map scans) and `buildings.remove(uid)` rather than resetting uids. Never `pkill -f`; kill by port. Only GitHub is
+reachable for asset downloads from the cloud environment. Panels: `Panel` with `ui.register(id, opener)` and
+`ui.onBuildingTap`; world bubbles via `addBubbleProvider`; one-time tips via `hints.firstTime` and the `INTROS` /
+`CROP_TIPS` tables in `src/systems/Hints.ts` (add an entry for every new building or crop). New server work is appended
+to `supabase/schema.sql` as a marked section.
+
+## 8. Housekeeping
+
+- Last handover: `HANDOVER-OPUS.md` of 7 Oct (1.8.0). This replaces it.
+- Everything in 1.8.5 to 1.15.0 is pushed and live. Open owner tasks: run the full `schema.sql` in Supabase, recruit
+  closed testers, change the GitHub default branch to `main`, delete the old draft Play app, and decide the open
+  questions in section 6.

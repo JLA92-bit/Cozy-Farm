@@ -37,6 +37,7 @@ import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
 import { upkeep } from '../systems/Upkeep';
+import { master } from '../systems/Master';
 import { BoatVisitor } from '../world/BoatVisitor';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
 import { updateSideBar, sideEntries } from '../ui/SideBar';
@@ -225,12 +226,14 @@ export async function boot(): Promise<void> {
   // a new farm already at level 3: its short village intro follows once the greetings are closed
   if (!welcome18Now && welcome18Due()) startWelcome18WhenCalm();
   refreshWhatsNewDot();
-  void loadGameConfig();
+  // the dial can have changed since the cached copy used above: look again once the latest settings arrive
+  void loadGameConfig().then(() => upkeep.check());
   syncCollection19();
   game.bus.on('collection:new', ({ kind }) => { if (kind === 'item') syncCollection19(); });
   setTimeout(() => festivals.announce(), 4000);
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills });
+  if (saves.unreadableKept) setTimeout(() => ui.feedback.toast('Your old save could not be read', 'A copy is kept safely on this device. Send us a note from Settings > Feedback and we will help.', 'info'), 1200);
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills, __master: master });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 

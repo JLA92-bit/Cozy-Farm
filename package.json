@@ -1,7 +1,7 @@
 {
   "name": "cozy-acres",
   "private": true,
-  "version": "1.15.0",
+  "version": "1.15.1",
   "type": "module",
   "description": "Cozy Acres - a mobile-first 3D farming and village builder that runs in the browser",
   "scripts": {
@@ -12,7 +12,8 @@
     "fetch-assets": "bash scripts/fetch-assets.sh",
     "assets": "node scripts/build-assets.mjs",
     "validate-data": "node scripts/validate-data.mjs",
-    "simulate-economy": "node scripts/simulate-economy.mjs"
+    "simulate-economy": "node scripts/simulate-economy.mjs",
+    "test:regression": "vite build && node tests/regression.mjs"
   },
   "license": "UNLICENSED",
   "dependencies": {

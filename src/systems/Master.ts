@@ -49,11 +49,15 @@ class MasterSystem {
 
   list(): MasterChallenge[] {
     const st = this.ensure();
-    return st.ids.map((id) => {
-      const c = MASTER.challenges.find((x) => x.id === id)!;
+    return st.ids.flatMap((id) => {
+      // a challenge removed from master.json since the board was made is simply left out
+      const c = MASTER.challenges.find((x) => x.id === id);
+      if (!c) return [];
+      // a stat the board has no starting point for (e.g. a challenge changed mid-week) counts from now
+      if (st.base[c.stat] === undefined) st.base[c.stat] = game.stat(c.stat);
       const target = this.target(c.base);
       const progress = Math.max(0, Math.min(target, game.stat(c.stat) - (st.base[c.stat] ?? 0)));
-      return { id, text: c.text.split('{n}').join(String(target)), icon: c.icon, stat: c.stat, target, progress, claimed: st.claimed.includes(id), done: progress >= target };
+      return [{ id, text: c.text.split('{n}').join(String(target)), icon: c.icon, stat: c.stat, target, progress, claimed: st.claimed.includes(id), done: progress >= target }];
     });
   }
 
@@ -73,7 +77,7 @@ class MasterSystem {
     game.addGems(r.gems);
     game.incStat('master_challenges');
     game.bus.emit('sfx', { name: 'purchase' });
-    if (st.claimed.length >= st.ids.length && !st.done) this.finishWeek(st);
+    if (this.list().every((x) => x.claimed) && !st.done) this.finishWeek(st);
     return true;
   }
 
