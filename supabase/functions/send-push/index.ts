@@ -10,8 +10,8 @@
 //      marks notifications no device took as 'failed'
 //
 // Secrets (Edge Functions > Secrets, or `supabase secrets set`): VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
-// VAPID_SUBJECT (mailto:...), and optionally PUSH_CRON_SECRET (then callers must send it in the
-// x-cron-secret header). SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
+// VAPID_SUBJECT (mailto:...), and PUSH_CRON_SECRET (required since 1.15.1: callers must send it in the
+// x-cron-secret header; without it the function refuses every call). SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
 // Deploy with JWT verification off (the cron call sends the shared secret instead of a user token):
 //   supabase functions deploy send-push --no-verify-jwt
 
@@ -43,8 +43,10 @@ function chunks<T>(a: T[], size: number): T[][] {
 }
 
 Deno.serve(async (req) => {
+  // the function runs with JWT verification off, so the shared secret is the only lock: no secret, no sending
   const secret = env('PUSH_CRON_SECRET');
-  if (secret && req.headers.get('x-cron-secret') !== secret) return json({ error: 'forbidden' }, 403);
+  if (!secret) return json({ error: 'PUSH_CRON_SECRET secret is missing' }, 500);
+  if (req.headers.get('x-cron-secret') !== secret) return json({ error: 'forbidden' }, 403);
 
   const publicKey = env('VAPID_PUBLIC_KEY');
   const privateKey = env('VAPID_PRIVATE_KEY');

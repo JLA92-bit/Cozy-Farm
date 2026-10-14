@@ -44,6 +44,10 @@ jobs:
       - run: npm run validate-data
       - name: Type check
         run: npx tsc --noEmit
+      - name: Regression checks (saves, upkeep, Master board)
+        # Builds the game on its own and drives it in headless Chrome (preinstalled on GitHub's runners).
+        # A failure stops the deploy (owner's decision, 15 Oct 2026). Run locally with npm run test:regression.
+        run: npm run test:regression
       - name: Build website + game
         run: BASE_PATH_ROOT="" SITE_URL="${SITE_URL:-https://cozyacres.joshmakesgames.app}" bash scripts/pages/build.sh
         env:
