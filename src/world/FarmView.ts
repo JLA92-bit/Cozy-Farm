@@ -6,6 +6,7 @@ import { game, type Game } from '../systems/Game';
 import type { Obstacle, PlacedBuilding } from '../systems/State';
 import { CHUNK, HALF, MAP, chunkOf, footprintCenter, rotatedSize, tileToWorld } from './Grid';
 import { PoolSet, type InstancePool } from './InstancePool';
+import { BatchSet, type PoolLike } from './BatchPool';
 import { PROC, procGeometry } from './ProcModels';
 import { gateParts } from './models/Fences';
 import { walkers } from './People';
@@ -68,7 +69,7 @@ export interface BuildingView {
   visual: Visual | null;
   /** standalone object (big buildings, animating or moving) */
   obj: THREE.Group | null;
-  pool?: InstancePool;
+  pool?: PoolLike;
   handle?: number;
   construction: THREE.Object3D | null;
   center: THREE.Vector3;
@@ -93,7 +94,7 @@ export interface BuildingView {
   smokeT?: number;
   busy: boolean;
   /** fences: extra half-length arms drawn at corners, T-junctions and crossings */
-  links?: { pool: InstancePool; handle: number }[];
+  links?: { pool: PoolLike; handle: number }[];
   /** gates: the swinging leaves, how far open they are (0..1) and which side they swing to */
   gate?: { leaves: { pivot: THREE.Object3D; dir: 1 | -1 }[]; open: number; side: number };
   /** tile the view was last placed on (a move changes b.x/b.z in place) */
@@ -189,6 +190,8 @@ export class FarmView {
   readonly root = new THREE.Group();
   readonly terrain: Terrain;
   readonly pools: PoolSet;
+  /** 1.16: decor models sharing a material are drawn together (BatchPool.ts) */
+  readonly batches: BatchSet;
   readonly views = new Map<number, BuildingView>();
   private obstacleHandles = new Map<number, { pool: InstancePool; handle: number; height: number; locked: boolean }>();
   private saleSigns: { chunk: string; pool: InstancePool; handle: number }[] = [];
@@ -214,6 +217,7 @@ export class FarmView {
     this.terrain = new Terrain(assets.vertexMaterial);
     this.root.add(this.terrain.group);
     this.pools = new PoolSet(this.root);
+    this.batches = new BatchSet(this.root);
     scene.add(this.root);
     this.glowTex = makeGlowTexture();
     this.hints = new PlantHints(this.root);
@@ -324,7 +328,9 @@ export class FarmView {
   private isPooled(def: BuildingDef): boolean {
     if (def.parts?.length) return false;
     if (def.cat === 'farm') return true; // plots, trees
-    return def.cat === 'decor' && def.size[0] * def.size[1] <= 2 && !def.glow && !def.gate && !themedAnimated(def.model) && !hasFx(def);
+    // 1.16: decor of any size shares one instanced draw per model (big farms hold hundreds); only decor with moving,
+    // glowing, swinging or lettered parts stays a standalone object
+    return def.cat === 'decor' && !def.glow && !def.gate && !themedAnimated(def.model) && !hasFx(def);
   }
 
   async addBuilding(b: PlacedBuilding, animate = false): Promise<void> {
@@ -415,7 +421,10 @@ export class FarmView {
       const mats = isLinked(def) ? this.linkMatrices(view, visual) : null;
       const world = mats ? mats[0] : new THREE.Matrix4().compose(view.center, rotQ, tmpS.set(1, 1, 1)).multiply(visual.local);
       if (!view.pool) {
-        view.pool = this.pools.pool(`b/${visual.key}`, () => ({ geometry: visual.geometry, material: visual.material, castShadow: visual.castShadow }));
+        // fences and paths repeat one model many times and stay instanced; other decor shares a batch per material
+        view.pool = mats || def.path || def.cat !== 'decor'
+          ? this.pools.pool(`b/${visual.key}`, () => ({ geometry: visual.geometry, material: visual.material, castShadow: visual.castShadow }))
+          : this.batches.pool(visual.geometry, visual.material, visual.castShadow);
         view.handle = view.pool.add(world);
       } else view.pool.set(view.handle!, world);
       // extra arms for fence corners / junctions
@@ -540,7 +549,7 @@ export class FarmView {
   gatesSwinging = false;
 
   private detachFromPool(view: BuildingView): void {
-    if (view.pool && view.handle) { view.pool.remove(view.handle); }
+    if (view.pool && view.handle !== undefined) { view.pool.remove(view.handle); }
     for (const l of view.links ?? []) l.pool.remove(l.handle);
     view.links = undefined;
     view.pool = undefined; view.handle = undefined;
@@ -1015,6 +1024,8 @@ export class FarmView {
       if (v.glow) {
         // fires flicker, lamps hum steadily
         const flick = v.def.id === 'campfire' || v.def.id === 'pumpkin_lanterns' ? 0.82 + 0.18 * Math.sin(t * 13 + v.b.uid) * Math.sin(t * 7.3) : 1;
+        // hidden by day: a fully transparent sprite still costs a draw and fill
+        v.glow.visible = night > 0.02;
         (v.glow.material as THREE.SpriteMaterial).opacity = night * 0.9 * flick;
         if (v.lightPool) {
           v.lightPool.visible = night > 0.02;

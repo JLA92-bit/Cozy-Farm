@@ -37,6 +37,7 @@ import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
 import { upkeep } from '../systems/Upkeep';
+import type { SaveData } from '../systems/State';
 import { master } from '../systems/Master';
 import { BoatVisitor } from '../world/BoatVisitor';
 import { merchantSpot } from '../ui/panels/EconomyPanels';
@@ -98,9 +99,18 @@ function startHints(): () => void {
 }
 
 /** Every model needed to draw the farm immediately. Others (characters, food) load on demand. */
-function coreModels(): string[] {
+/**
+ * Models to load before the farm appears. 1.16: only buildings this farm can see soon (unlocked by the next level,
+ * placed, or in storage); the rest load the first time they are needed (shop icons, placing, visits), and the service
+ * worker still caches every model in the background for offline play. Used to be every model in the game (~7 MB).
+ */
+function coreModels(save: SaveData): string[] {
   const ids = new Set<string>(PROC_DEPENDENCIES);
-  for (const b of BUILDINGS) if (!b.model.startsWith('proc:') && !b.model.startsWith('paint:') && b.model !== 'tree') ids.add(b.model);
+  const owned = new Set<string>([...save.buildings.map((b) => b.type), ...Object.keys(save.storage ?? {})]);
+  for (const b of BUILDINGS) {
+    if (b.model.startsWith('proc:') || b.model.startsWith('paint:') || b.model === 'tree') continue;
+    if (b.level <= save.player.level + 1 || owned.has(b.id)) ids.add(b.model);
+  }
   for (const t of Object.values(LAND.obstacles.types)) t.models.forEach((m) => ids.add(m));
   for (const c of CROPS) {
     c.stages.forEach((s) => ids.add(s));
@@ -124,12 +134,13 @@ export async function boot(): Promise<void> {
   setProgress(0.05, 'Loading the farm...');
   await assets.loadManifest();
   await assets.loadAtlases();
-  setProgress(0.15, 'Planting seeds...');
-  await assets.preload(coreModels(), (f) => setProgress(0.15 + f * 0.65));
-  await Promise.all(ANIMALS.map((a) => assets.static(a.model)));
-
+  // read the farm first (it decides which models are needed now; a save from a newer version stops here)
   await saves.claimTab();
   const { data, fresh } = saves.load();
+  setProgress(0.15, 'Planting seeds...');
+  await assets.preload(coreModels(data), (f) => setProgress(0.15 + f * 0.65));
+  await Promise.all(ANIMALS.map((a) => assets.static(a.model)));
+
   game.load(data);
   skills.init();
   restoration.init();

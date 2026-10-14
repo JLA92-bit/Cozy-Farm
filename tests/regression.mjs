@@ -152,6 +152,32 @@ try {
     const a = (await state()).buildings.find((b) => b.uid === 9001).animals[0];
     check('dial 0 makes unwell animals well', !a.sickAt);
   }
+  // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
+  // decor kinds share a few batches instead of one draw each
+  {
+    await setStorage({});
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, f = window.__ui.scene.farm;
+      const late = ['produce_carrots', 'produce_lettuce', 'produce_tomatoes'];
+      const kinds = [...late, 'bench', 'statue_head', 'fountain', 'hedge', 'haybale', 'well', 'tent'];
+      const placed = [];
+      for (const t of kinds) {
+        let done = false;
+        for (let z = 14; z < 40 && !done; z++) for (let x = 14; x < 40 && !done; x++) if (g.canPlace(t, x, z, 0)) {
+          const b = { uid: g.newUid(), type: t, x, z, rot: 0, level: 1 };
+          g.state.buildings.push(b); g.markBuilding(b, b.uid); placed.push(b); done = true;
+        }
+      }
+      for (const b of placed) await f.addBuilding(b);
+      const shown = placed.filter((b) => { const v = f.views.get(b.uid); return v && (v.pool || v.obj); }).length;
+      let batches = 0;
+      window.__scene.scene.traverse((o) => { if (o.isBatchedMesh) batches++; });
+      return { placed: placed.length, shown, batches };
+    });
+    check('late-game decor appears on a level 1 farm', r.placed === 10 && r.shown === 10, JSON.stringify(r));
+    check('different decor kinds share a few batches', r.batches > 0 && r.batches <= r.placed / 2, JSON.stringify(r));
+  }
 } finally {
   await browser.close();
   stop();

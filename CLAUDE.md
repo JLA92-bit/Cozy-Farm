@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 15 October 2026 (game version 1.15.1, committed locally, not pushed; 1.15.0 is on `main`). Owner: Josh Makes Games.
+Last updated: 16 October 2026 (game version 1.16.0, committed locally with 1.15.1, not pushed; 1.15.0 is on `main`). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.15.1 "Safe Keeping"** (local; 1.15.0 "Looking After the Farm" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.16.0 "Room to Grow"** (local, with 1.15.1; 1.15.0 "Looking After the Farm" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.16.0 (local, 16 Oct):** performance. Decor of any size is batched: fences and paths stay instanced per model (`InstancePool`), every other static decor shares one `THREE.BatchedMesh` per material (`src/world/BatchPool.ts`, `FarmView.isPooled`/`place`); glowing, themed-animated, lettered and gate decor stay standalone. Glow sprites are hidden by day. Boot reads the save first and preloads only models for buildings unlocked by the next level, placed or stored (`Boot.coreModels`); the rest load on demand (all model access is async except crops, trees, animals and `PROC_DEPENDENCIES`, which stay preloaded). Worst-case 720 decor of 283 kinds: 1,109 draw calls before, about 344-433 after; a new farm loads 4.6 MB instead of 7.2 MB. Budget check: `npm run test:perf` (720 decor, max 520 calls with shadows).
 
 **1.15.1 (local, 15 Oct):** fixes from the Opus audit (`HANDOVER-OPUS.md`). Saves: an unreadable save is copied to `cozy-acres-save-unreadable` before anything is written, and a save from a newer version stops the boot with an "Update now" screen (`NewerSaveError`) instead of being replaced. Upkeep: a grace day after time away, full return window, dial 0 heals. Master: unknown challenge ids are dropped, "Pat your animals" counts `animal_pats`, side-bar entries are guarded. Four money-losing recipes repriced. Regression checks: `npm run test:regression`.
 
@@ -83,7 +85,8 @@ npm run build           # type-check + production build
 npm run typecheck
 npm run validate-data   # run after ANY edit to src/data/*.json (CI runs it too)
 npm run simulate-economy
-npm run test:regression # builds, then checks saves, upkeep and the Master board in headless Chromium (tests/regression.mjs)
+npm run test:regression # builds, then checks saves, upkeep, the Master board and decor batching in headless Chromium (tests/regression.mjs); runs in CI and blocks the deploy
+npm run test:perf       # builds, then fills a farm with 720 decor and fails above 520 draw calls (tools/stress-decor.mjs)
 ```
 
 Testing helpers: `node tools/shot.mjs`, `node tools/perf.mjs`, `node tools/playtest.mjs` (see README).
@@ -182,9 +185,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.15.1** (committed locally; nothing is pushed until Josh says "yes push").
+- [ ] **Review and push 1.15.1 + 1.16.0** (committed locally; nothing is pushed until Josh says "yes push"). Test 1.16 batching on a real phone on Low, Medium and High (rule 9), ideally the PowerVR Pixel. Redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`): it now requires `PUSH_CRON_SECRET`.
 - [ ] Make sure the latest `supabase/schema.sql` has been run in Supabase (1.15.0 added the `upkeep` game setting).
-- [ ] Next releases and open owner questions: see `HANDOVER-OPUS.md` and the 1.15 audit plan (1.16 performance: instance decor, trim the 10 MB precache; 1.17 late-game XP curve).
+- [ ] Next releases and open owner questions: see `HANDOVER-OPUS.md` and the 1.15 audit plan (next: 1.17 late-game XP curve and simulator to 120, then the content roadmap in `ROADMAP.md`).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
@@ -211,6 +214,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-16: 1.16.0 (local): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
 - 2026-10-15: 1.15.1 (local): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
 - 2026-10-15: 1.15.0 (pushed): upkeep (animal sickness, building wear).
 - 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).
@@ -220,4 +224,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
 - 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.
 - 2026-10-08: 1.9.0 (pushed): seasons, festivals, Wild Woods, Museum, expeditions, Help Wanted, collection pages, dashboard page and settings. Run the `1.9 a year in the valley` section of `supabase/schema.sql` after pushing.
-- 2026-10-08: 1.8.9 (local): placing paths and fences continues in a line (`Interaction.nextInRun`): the next ghost sits beside the last piece and keeps its direction.
