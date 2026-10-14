@@ -1518,6 +1518,144 @@
    "cat": "goods",
    "sell": 1750,
    "icon": "model:food/tajine"
+  },
+  "moss": {
+   "name": "Woodland Moss",
+   "cat": "forage",
+   "sell": 10,
+   "icon": "moss"
+  },
+  "bluebell": {
+   "name": "Bluebell",
+   "cat": "forage",
+   "sell": 18,
+   "icon": "bluebell"
+  },
+  "puffball": {
+   "name": "Puffball",
+   "cat": "forage",
+   "sell": 20,
+   "icon": "puffball"
+  },
+  "wild_garlic": {
+   "name": "Wild Garlic",
+   "cat": "forage",
+   "sell": 16,
+   "icon": "wild_garlic"
+  },
+  "elderberry": {
+   "name": "Elderberry",
+   "cat": "forage",
+   "sell": 22,
+   "icon": "elderberry"
+  },
+  "morel": {
+   "name": "Morel",
+   "cat": "forage",
+   "sell": 90,
+   "icon": "morel"
+  },
+  "watercress": {
+   "name": "Watercress",
+   "cat": "forage",
+   "sell": 14,
+   "icon": "watercress"
+  },
+  "river_mint": {
+   "name": "River Mint",
+   "cat": "forage",
+   "sell": 16,
+   "icon": "river_mint"
+  },
+  "cattail": {
+   "name": "Cattail",
+   "cat": "forage",
+   "sell": 12,
+   "icon": "cattail"
+  },
+  "water_lily": {
+   "name": "Water Lily",
+   "cat": "forage",
+   "sell": 30,
+   "icon": "water_lily"
+  },
+  "wild_strawberry": {
+   "name": "Wild Strawberry",
+   "cat": "forage",
+   "sell": 24,
+   "icon": "wild_strawberry"
+  },
+  "pinecone": {
+   "name": "Pinecone",
+   "cat": "forage",
+   "sell": 8,
+   "icon": "pinecone"
+  },
+  "chestnut": {
+   "name": "Chestnut",
+   "cat": "forage",
+   "sell": 18,
+   "icon": "chestnut"
+  },
+  "lingonberry": {
+   "name": "Lingonberry",
+   "cat": "forage",
+   "sell": 22,
+   "icon": "lingonberry"
+  },
+  "pine_bolete": {
+   "name": "Pine Bolete",
+   "cat": "forage",
+   "sell": 28,
+   "icon": "pine_bolete"
+  },
+  "sloe": {
+   "name": "Sloe",
+   "cat": "forage",
+   "sell": 20,
+   "icon": "sloe"
+  },
+  "firefly": {
+   "name": "Firefly in a Jar",
+   "cat": "forage",
+   "sell": 30,
+   "icon": "firefly"
+  },
+  "maple_sap": {
+   "name": "Maple Sap",
+   "cat": "forage",
+   "sell": 45,
+   "icon": "maple_sap"
+  },
+  "pine_resin": {
+   "name": "Pine Resin",
+   "cat": "forage",
+   "sell": 55,
+   "icon": "pine_resin"
+  },
+  "gold_flake": {
+   "name": "Gold Flake",
+   "cat": "mineral",
+   "sell": 40,
+   "icon": "gold_flake"
+  },
+  "agate": {
+   "name": "Agate",
+   "cat": "mineral",
+   "sell": 90,
+   "icon": "agate"
+  },
+  "jade": {
+   "name": "Jade",
+   "cat": "mineral",
+   "sell": 160,
+   "icon": "jade"
+  },
+  "river_pearl": {
+   "name": "River Pearl",
+   "cat": "mineral",
+   "sell": 150,
+   "icon": "river_pearl"
   }
  }
 }

@@ -31,6 +31,8 @@ await page.waitForTimeout(1500);
 const placed = await page.evaluate(async ({ decor, count }) => {
   const g = window.__game, ui = window.__ui;
   g.state.player.created = true; g.state.tutorial.done = true; g.state.player.level = 100;
+  // measure at noon so the result does not depend on the time of day (lamps glow at night: about 70 more draws)
+  { const n = new Date(); const t = new Date(n); t.setHours(12, 0, 0, 0); g.state.debugTimeOffset = t.getTime() - n.getTime(); }
   for (let cx = 0; cx < 6; cx++) for (let cz = 0; cz < 6; cz++) g.unlockChunk(`${cx},${cz}`);
   g.state.obstacles = []; g.rebuildOccupancy(); ui.scene.farm.refreshLand();
   const out = [];

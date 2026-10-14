@@ -330,6 +330,39 @@ releases?.forEach((r, i) => {
   for (const [kind, list] of Object.entries(wd.finds)) for (const e of list) if (!items[e.id] || items[e.id].cat !== kind) err(`woods: find ${e.id} must be an item with cat "${kind}"`);
   if (!items[wd.clayItem]) err(`woods: clay item ${wd.clayItem} does not exist`);
   if (wd.dig.perDay > wd.dig.spots) err('woods: dig perDay is more than the number of spots');
+  // 1.19 the Deep Woods: regions with real items and a trail each; trails are restoration rooms (bundles of real items)
+  const trailIds = new Set((wd.trails ?? []).map((t) => t.id));
+  const villagers = new Set(read('villagers.json').villagers.map((v) => v.id));
+  const rIds = new Set();
+  for (const r of wd.regions ?? []) {
+    if (rIds.has(r.id) || !/^[a-z]+$/.test(r.id)) err(`woods region ${r.id}: id must be unique lowercase letters`);
+    rIds.add(r.id);
+    if (!trailIds.has(r.trail)) err(`woods region ${r.id}: trail ${r.trail} is not in woods.json trails`);
+    if (icons && !icons[r.icon]) err(`woods region ${r.id}: unknown icon ${r.icon}`);
+    if (!(Array.isArray(r.at) && r.at.length === 2 && r.r > 4)) err(`woods region ${r.id}: needs at [x, z] and r`);
+    for (const e of r.foraged ?? []) {
+      if (!items[e.id] || items[e.id].cat !== 'forage') err(`woods region ${r.id}: forage ${e.id} must be an item with cat "forage"`);
+      if (!['leaf', 'flower', 'berry', 'mushroom', 'nut', 'root'].includes(e.kind)) err(`woods region ${r.id}: forage ${e.id} has unknown kind ${e.kind}`);
+    }
+    if (!['fireflies', 'panning', 'taps'].includes(r.feature)) err(`woods region ${r.id}: unknown feature ${r.feature}`);
+    if (r.feature === 'fireflies' && !items[r.fireflies?.item]) err(`woods region ${r.id}: firefly item missing`);
+    if (r.feature === 'panning') for (const e of r.pan?.table ?? []) if (!items[e.id]) err(`woods region ${r.id}: pan find ${e.id} is not an item`);
+    if (r.feature === 'taps') for (const e of r.taps?.items ?? []) if (!items[e.id]) err(`woods region ${r.id}: tap item ${e.id} is not an item`);
+  }
+  for (const t of wd.trails ?? []) {
+    if (!/^trail_[a-z]+$/.test(t.id)) err(`woods trail ${t.id}: id must be trail_<name>`);
+    if (!villagers.has(t.villager)) err(`woods trail ${t.id}: unknown villager ${t.villager}`);
+    if (!(t.opensAt >= wd.level)) err(`woods trail ${t.id}: opens before the woods do`);
+    if (!t.letter?.title || !t.letter?.body || !t.reward?.text) err(`woods trail ${t.id}: needs a letter and a reward text`);
+    for (const b of t.bundles ?? []) {
+      if (icons && !icons[b.icon]) err(`woods trail ${t.id}/${b.id}: unknown icon ${b.icon}`);
+      for (const [it, n] of Object.entries(b.wants ?? {})) {
+        if (it !== 'coins' && !items[it]) err(`woods trail ${t.id}/${b.id}: unknown item ${it}`);
+        if (!(Number.isInteger(n) && n > 0)) err(`woods trail ${t.id}/${b.id}: ${it} needs a whole number above 0`);
+      }
+    }
+  }
+  if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
 }
 // 1.9 schedules: known villagers and places
 {

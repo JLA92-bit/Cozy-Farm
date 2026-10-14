@@ -169,6 +169,54 @@ Raise `authoredMax` to 120. Every new building gets an entry in `Hints.ts` `INTR
   - colour-blind safe cues (sick, worn and ready states have icons as well as colour).
 - **Localisation:** keyed player text, starting with one extra language.
 
+## The Deep Woods (owner's request, 18 Oct 2026): from one glade to a whole forest
+
+The Wild Woods today is one island: about 10 forage spots, 4 digs a day, the Museum and the expedition board. Players finish it in a few minutes a day. The plan grows it into a forest with its own long progression, its own residents and activities you can't do anywhere else. Like the Manor, it ties into the rest of the game: woods finds feed the Manor's bundles, and the Manor's Grounds and Foundations rewards give more forage and digs.
+
+**Phase 1 (1.19 The Deep Woods, built 19 Oct):**
+- **Three new regions** on islands round the glade, each reached by restoring a trail (a bridge, stepping stones, a rope walk). Trails are bundle projects like the Manor's wings, opening at levels 20, 28 and 36.
+  - **Mossy Hollow:** moss, bluebells, puffballs, wild garlic, elderberries and rare morels. At night **fireflies** drift over the hollow; catch them for jars (and later lantern decor).
+  - **Crystal Creek:** watercress, river mint, cattails, water lilies and wild strawberries. **Panning for gold:** a few pans a day in the creek bring up gold flakes, agate, jade, river pearls and the odd gem.
+  - **Whispering Pines:** pinecones, chestnuts, lingonberries, pine boletes and sloes. **Tree tapping:** taps on the old trees fill with maple sap or pine resin over a few hours, a gentle check-in loop.
+- The glade keeps everything it has. A region bar on the woods banner flies the camera between areas.
+
+**Phase 2 (1.20 Woodland Friends):**
+- **Critter friendships:** a feeding stump in each region. Leave the treat they like (berries for the hedgehogs, chestnuts for the red squirrels, apples for the deer, fish for the fox, mealworms for the owl) and they visit at their time of day.
+- Hearts with each critter family bring gifts (rare forage, feathers, shed antlers for the Museum) and a **Critter Journal** page in the Collection Book. Models exist for the deer, fox and rabbits; hedgehog, squirrel and owl are small procedural models.
+- **Wren the ranger** (the botanist from 1.22, brought forward) moves into a cabin in Whispering Pines: friends only, gives "field notes" requests and teaches the critters' tastes.
+
+**Phase 3 (1.21 Woodcraft):**
+- **The Woodcraft Lodge**, a workshop in the woods that only takes woods produce:
+  - acorn bread, mushroom tea, elderflower cordial, herbal salve, pinecone wreath, birch basket, firefly lantern, maple syrup and maple candy, resin varnish;
+  - lodge goods are wanted by Boat Visitors and the Manor's later wings.
+- **Camping:** pitch a tent by the campfire before bed and wake to a "camp morning" of extra finds round the camp.
+- **Weather in the woods:**
+  - rain brings out snails and mushrooms (more mushroom spots);
+  - mist makes rare finds a little likelier;
+  - nothing is ever only available in one weather (cozy rule).
+
+**Phase 4 (1.22 The Ancient Grove):**
+- A fifth area at the heart of the forest: the **Elder Oak**, a huge tree that grows over months as you bring it offerings (woods produce, Lodge goods, gold-star items).
+- Each growth stage gives a lasting woods perk:
+  - better forage quality;
+  - a fifth daily pan;
+  - critters visit twice a day;
+  - a glowing canopy at night.
+- The final stage plants a sapling of the Elder Oak for your own farm.
+
+**Phase 5 (1.23 The Treehouse):**
+- Build and decorate your own treehouse in the Pines (multi-stage), with a small woods decor set (log chairs, mushroom lamps, hanging lanterns, moss rugs) usable only up there. A cozy base and a photo spot.
+
+**Ideas bank for the woods:**
+- Night-blooming moonflowers.
+- A wishing well that takes one coin a day for a tiny surprise.
+- Bird watching (a second album next to the Wildlife Album).
+- Bark rubbings for the Museum.
+- Foraging challenges on the Master Board.
+- A woods festival on the 28-day cycle (Lantern Walk).
+- Hollow logs with a hidden find once a week.
+- A rope swing over the creek (purely for fun).
+
 ## Content bank (ideas not yet scheduled)
 
 - **Crops:** cranberry, zucchini, chilli, saffron (rare, slow), cocoa (for the existing chocolate), coffee, kiwi vine, fig tree, almond tree, maple tree (syrup from trees).

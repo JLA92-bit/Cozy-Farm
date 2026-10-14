@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 18 October 2026 (game version 1.18.0, committed locally; 1.17.0 is pushed and live). Owner: Josh Makes Games.
+Last updated: 19 October 2026 (game version 1.19.0, committed locally with 1.18.0; 1.17.0 is pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,11 +16,13 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.18.0 "Willowmere Manor"** (local; 1.17.0 "The Long Road" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.19.0 "The Deep Woods"** (local, with 1.18.0; 1.17.0 "The Long Road" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
+
+**1.19.0 (local, 19 Oct):** the Deep Woods, phase 1 of the woods plan in `ROADMAP.md`. Three regions round the glade (`woods.json` `regions`: Mossy Hollow, Crystal Creek, Whispering Pines), each opened by a trail (`woods.json` `trails`, restoration rooms `trail_<region>` merged into `ROOM`). `Woods.ts`: region forage (spot ids `REGION_IDS * k + i`), fireflies (night only, kept in the daily `picked` list), panning (`woods.panned`), taps (`woods.taps`, ms of last emptying). `WoodsView.buildRegions`: islands, footbridges (broken until restored), trail signs, streams, pools, tapped pines, fireflies. Woods banner has a region bar (camera). 23 new items with icons from `scripts/icon-variants.mjs`. Next phases: critters and Wren (1.20), Woodcraft Lodge (1.21), Elder Oak (1.22), treehouse (1.23).
 
 **1.18.0 (local, 18 Oct):** Willowmere Manor, the long project behind the village square (owner: the six rooms were finished far too fast). 8 wings in `manor.json`, opened in order after the Village Festival and by level; wings are restoration rooms with ids `manor_<wing>` (merged into `ROOM`, not `ROOMS`), so `Restoration.ts` gives and saves them; `src/systems/Manor.ts` holds the open rules and the permanent effects (woods forage/digs, festival coins, workshop/expedition/grow/animal speed, order coins), the finale is `Restoration.manorFinale` (`state.restoration.manor`, decor `willowmere`). Screens: `ManorPanel.ts` (ui `manor`, a Village card) and the room screen for each wing. 3D: `SquareView.buildManor` (square island radius 31, the manor behind the lots, pieces appear per wing, scaffolding on the current one). About 4.7M coins of goods, roughly 8 months for an engaged player (BALANCE.md). Also fixed: coins given to bundles were dropped on load.
 
@@ -189,7 +191,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.18.0** (committed locally; nothing is pushed until Josh says "yes push"). 1.15.1-1.17.0 are live (deploy run 52). Still to do from those: test 1.16 batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.18.0 + 1.19.0** (committed locally; nothing is pushed until Josh says "yes push"). 1.15.1-1.17.0 are live (deploy run 52). Still to do from those: test 1.16 batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] Make sure the latest `supabase/schema.sql` has been run in Supabase (1.15.0 added the `upkeep` game setting).
 - [ ] Next releases and open owner questions: see `HANDOVER-OPUS.md` and the 1.15 audit plan (next: 1.18 Care and Craft, then the rest of `ROADMAP.md`; server-side leaderboard plausibility checks are still to do).
 - [ ] Change GitHub default branch to `main` (Settings > General).
@@ -218,6 +220,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-19: 1.19.0 (local): the Deep Woods (three regions behind trails; fireflies, panning, sap taps; 23 items).
 - 2026-10-18: 1.18.0 (local): Willowmere Manor (8 wings, `manor.json`, `Manor.ts`, `ManorPanel.ts`, 3D in the square); bundle coins kept on load. 1.15.1-1.17.0 pushed and live.
 - 2026-10-17: 1.17.0 (pushed): flat XP past 60, late-game XP from Master/boats/festivals, trophy charm cap, Hazel's letter, simulator to 120.
 - 2026-10-16: 1.16.0 (pushed): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
@@ -227,4 +230,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-13: 1.13.0 (pushed): endless levels (see section 1).
 - 2026-10-12: 1.12.0 (pushed): leaderboard trophies.
 - 2026-10-11: 1.11.0 (pushed): levels 51-60 (see section 1).
-- 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.

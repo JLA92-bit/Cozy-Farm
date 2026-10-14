@@ -160,7 +160,13 @@ export interface SaveData {
 }
 
 /** 1.9 The Wild Woods (src/systems/Woods.ts). */
-export interface WoodsState { day: string; picked: number[]; dug: number[]; found: Record<string, number>; visited: boolean }
+export interface WoodsState {
+  day: string; picked: number[]; dug: number[]; found: Record<string, number>; visited: boolean;
+  /** 1.19 pans used today at Crystal Creek */
+  panned?: number;
+  /** 1.19 when each Whispering Pines tap was last emptied (ms), by tap id `<region>:<n>`; missing = full now */
+  taps?: Record<string, number>;
+}
 
 /** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */
 export interface SkillsState {

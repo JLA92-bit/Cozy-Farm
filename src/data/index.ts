@@ -301,7 +301,20 @@ export const WOODS = woodsJson as unknown as {
   dig: { spots: number; perDay: number; table: Record<FindKind | 'clay', number>; luckyMult: number }; clayItem: string;
   foraged: { id: string; kind: ForageKind; w: number }[];
   finds: Record<FindKind, { id: string; w: number }[]>;
+  regions: WoodsRegion[];
+  trails: RoomDef[];
 };
+/** 1.19 The Deep Woods: an island round the glade, opened by restoring its trail. */
+export interface WoodsRegion {
+  id: string; name: string; icon: string; trail: string; at: [number, number]; r: number; feature: 'fireflies' | 'panning' | 'taps';
+  forage: { spots: number; chance: number }; foraged: { id: string; kind: ForageKind; w: number }[];
+  fireflies?: { count: number; from: number; to: number; item: string };
+  pan?: { spots: number; perDay: number; table: { id: string; w: number }[] };
+  taps?: { count: number; hours: number; yield: number; items: { id: string; w: number }[] };
+}
+export const WOODS_REGIONS = (woodsJson as unknown as { regions: WoodsRegion[] }).regions;
+export const WOODS_TRAILS = (woodsJson as unknown as { trails: RoomDef[] }).trails;
+for (const t of WOODS_TRAILS) ROOM[t.id] = t;
 
 /** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */
 export interface MuseumShelf { id: string; name: string; icon: string; items?: string[]; kind?: 'gold'; slots?: number; reward: { coins: number; gems: number } }

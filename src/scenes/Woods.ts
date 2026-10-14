@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ITEMS, WOODS } from '../data';
+import { ITEMS, ROOM, WOODS, WOODS_REGIONS } from '../data';
 import { game } from '../systems/Game';
 import { woods } from '../systems/Woods';
 import { saves } from '../systems/Save';
@@ -51,8 +51,10 @@ export function initWoods(scene: FarmScene, interaction: Interaction): void {
   const prevPick = ui.extraPick;
   ui.extraPick = (ray) => gate.pick(ray) ?? prevPick?.(ray) ?? null;
   game.bus.on('woods:changed', () => { view?.refresh(); updateBanner(); });
+  // 1.19 a trail restored: its bridge is whole and the region opens
+  game.bus.on('restoration:room', ({ room }) => { if (room.startsWith('trail_')) { view?.refresh(); updateBanner(); } });
   game.bus.on('state:changed', () => { if (inWoods) view?.refresh(); });
-  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate } });
+  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods } });
 }
 
 async function loadView(): Promise<WoodsView> {
@@ -101,7 +103,8 @@ export async function enterWoods(): Promise<void> {
     scene.handler = woodsHandler;
     const c = v.centre, f = v.focus;
     scene.rig.stop();
-    scene.rig.bounds.set(new THREE.Vector2(c.x - 14, c.z - 14), new THREE.Vector2(c.x + 14, c.z + 14));
+    // 1.19 wide enough to reach the regions round the glade
+    scene.rig.bounds.set(new THREE.Vector2(c.x - 52, c.z - 52), new THREE.Vector2(c.x + 52, c.z + 52));
     scene.rig.target.set(f.x, 0, f.z);
     scene.rig.minDistance = 14;
     scene.rig.maxDistance = 60;
@@ -188,6 +191,38 @@ function act(hit: WoodsHit): void {
   if (hit.kind === 'villager' && hit.id) { ui.open('village', { villager: hit.id }); return; }
   if (hit.kind === 'museum') { ui.open('museum'); return; }
   if (hit.kind === 'board') { ui.open('expeditions'); return; }
+  // 1.19 the Deep Woods
+  if (hit.kind === 'trail') { const reg = WOODS_REGIONS.find((r) => r.id === hit.id); if (reg) ui.open('square-room', { room: reg.trail }); return; }
+  if (hit.kind === 'pan' || hit.kind === 'tap') {
+    const reg = WOODS_REGIONS.find((r) => r.id === (hit.kind === 'tap' ? hit.id?.split(':')[0] : hit.id));
+    if (!reg) return;
+    if (!woods.regionOpen(reg.id)) { ui.feedback.toast(`${reg.name} is closed`, `Restore ${ROOM[reg.trail]?.name ?? 'the trail'} at the sign to get there.`, 'lock'); return; }
+    if (hit.kind === 'pan') {
+      if (woods.pansLeft(reg.id) <= 0) { ui.feedback.toast('Tired arms', 'No more panning today. The creek will have more tomorrow.', 'water_wave'); return; }
+      const r = woods.pan(reg.id, at);
+      if (!r) return;
+      audio.play('pop', { volume: 0.8 });
+      fx.sparkle(at.clone().setY(0.8), '#ffe27a', 12);
+      ui.feedback.toast(`${ITEMS[r.item].name}!`, r.first ? 'A new find for your collection' : `${woods.pansLeft(reg.id)} pans left today`, ITEMS[r.item].icon);
+    } else {
+      const t = woods.taps(reg.id).find((x) => x.id === hit.id);
+      if (t && !t.ready) { const mins = Math.max(1, Math.round((t.readyAt - game.now()) / 60000)); ui.feedback.toast('Still filling', `This bucket is full in ${mins >= 60 ? `${Math.ceil(mins / 60)} h` : `${mins} min`}.`, 'hourglass'); return; }
+      const r = woods.collectTap(hit.id ?? '', at);
+      if (!r) return;
+      audio.play('pop', { volume: 0.8 });
+      fx.sparkle(at.clone().setY(1), '#ffd27a', 10);
+      ui.feedback.toast(`+${r.n} ${ITEMS[r.item].name}`, 'The bucket starts filling again.', ITEMS[r.item].icon);
+    }
+    return;
+  }
+  if (hit.kind === 'firefly') {
+    const item = woods.catchFirefly(hit.i, at);
+    if (!item) return;
+    audio.play('pop', { volume: 0.6 });
+    fx.sparkle(at, '#fff27a', 14);
+    ui.feedback.toast('Caught a firefly!', 'Into the jar it goes. They glow over Mossy Hollow every night.', ITEMS[item].icon);
+    return;
+  }
   if (hit.kind === 'forage') {
     const r = woods.pick(hit.i, at);
     if (!r) return;
@@ -216,19 +251,36 @@ function makeBanner(): HTMLElement {
   return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner wd-banner' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Wild Woods'),
-      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon('mushroom'), bannerText()))),
+      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon('mushroom'), bannerText())),
+      regionBar()),
     home);
+}
+
+/** 1.19 a row of places to fly the camera to: the glade and each region (a lock while its trail is not restored). */
+function regionBar(): HTMLElement {
+  const go = (id: string) => { const c = view?.regionCentre(id); if (c && ctx) ctx.scene.rig.focus(c.x, c.z); };
+  const chips = [h('button', { class: 'wd-region', type: 'button', onclick: () => go('glade') }, icon('mushroom'), 'Glade')];
+  for (const r of WOODS_REGIONS) {
+    const open = woods.regionOpen(r.id);
+    chips.push(h('button', { class: `wd-region${open ? '' : ' locked'}`, type: 'button', 'data-region': r.id, 'aria-label': open ? `Go to ${r.name}` : `${r.name}: restore the trail to open it`, onclick: () => go(r.id) }, icon(open ? r.icon : 'lock'), r.name));
+  }
+  return h('div', { class: 'wd-regions' }, ...chips);
 }
 
 function updateBanner(): void {
   if (!inWoods || !banner) return;
   const p = banner.querySelector('.wd-progress');
   if (p) p.lastChild!.textContent = bannerText();
+  const bar = banner.querySelector('.wd-regions');
+  if (bar) bar.replaceWith(regionBar());
 }
 
+let since = 0;
 function frame(dt: number): void {
   if (!inWoods || !view || !ctx) return;
   view.update(dt);
+  // fireflies come out at dusk and taps fill while you watch: look again now and then
+  if ((since += dt) > 10) { since = 0; view.refresh(); }
   ctx.scene.loop.wake(0.1);
   ctx.scene.env.fogFloor = ctx.scene.rig.distance + 22;
 }

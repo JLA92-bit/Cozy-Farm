@@ -1,26 +1,543 @@
 {
-  "_comment": "1.9 The Wild Woods: forage spots (refill every day), dig spots (finds: minerals, fossils, artifacts) and the expedition board. Items live in items.json (cat forage|mineral|fossil|artifact) and their icons are made in scripts/icon-variants.mjs. kind picks the 3D shape of a forage spot. w = weight in its table. See BALANCE.md > Woods.",
-  "level": 14,
-  "forage": { "spots": 14, "chance": 0.75 },
-  "dig": { "spots": 8, "perDay": 4, "table": { "mineral": 0.58, "fossil": 0.2, "artifact": 0.12, "clay": 0.1 }, "luckyMult": 1.6 },
-  "clayItem": "clay",
-  "foraged": [
-    {"id": "wild_leek", "kind": "leaf", "w": 5},
-    {"id": "dandelion", "kind": "flower", "w": 6},
-    {"id": "daffodil", "kind": "flower", "w": 3},
-    {"id": "raspberry", "kind": "berry", "w": 5},
-    {"id": "wild_rose", "kind": "flower", "w": 3},
-    {"id": "fern_frond", "kind": "leaf", "w": 5},
-    {"id": "chanterelle", "kind": "mushroom", "w": 4},
-    {"id": "hazelnut", "kind": "nut", "w": 6},
-    {"id": "blackberry", "kind": "berry", "w": 5},
-    {"id": "winter_root", "kind": "root", "w": 5},
-    {"id": "holly", "kind": "leaf", "w": 4},
-    {"id": "snow_yam", "kind": "root", "w": 3}
-  ],
-  "finds": {
-    "mineral": [ { "id": "copper_ore", "w": 30 }, { "id": "iron_ore", "w": 24 }, { "id": "quartz", "w": 18 }, { "id": "topaz", "w": 6 }, { "id": "amethyst", "w": 4 } ],
-    "fossil": [ { "id": "ammonite", "w": 10 }, { "id": "fossil_fern", "w": 8 }, { "id": "fossil_bone", "w": 6 }, { "id": "amber", "w": 3 } ],
-    "artifact": [ { "id": "old_coin", "w": 10 }, { "id": "rusty_key", "w": 8 }, { "id": "ancient_bell", "w": 6 }, { "id": "scroll_fragment", "w": 6 }, { "id": "clay_figure", "w": 5 }, { "id": "amphora", "w": 4 }, { "id": "silver_mirror", "w": 3 }, { "id": "old_compass", "w": 3 }, { "id": "lost_crown", "w": 1 } ]
+ "_comment": "1.9 The Wild Woods: forage spots (refill every day), dig spots (finds: minerals, fossils, artifacts) and the expedition board. Items live in items.json (cat forage|mineral|fossil|artifact) and their icons are made in scripts/icon-variants.mjs. kind picks the 3D shape of a forage spot. w = weight in its table. See BALANCE.md > Woods. 1.19 The Deep Woods: regions are islands round the glade (at = centre in woods island space, r = radius), each opened by restoring its trail (a restoration room, ids trail_<region>, in `trails`: bundles work like the village square's). An open region adds its own forage spots and one feature: fireflies (night only, from hour `from` to hour `to`), panning (pans a day shared by its spots, `table` of finds) or taps (trees whose sap is ready `hours` after the last collection).",
+ "level": 14,
+ "forage": {
+  "spots": 14,
+  "chance": 0.75
+ },
+ "dig": {
+  "spots": 8,
+  "perDay": 4,
+  "table": {
+   "mineral": 0.58,
+   "fossil": 0.2,
+   "artifact": 0.12,
+   "clay": 0.1
+  },
+  "luckyMult": 1.6
+ },
+ "clayItem": "clay",
+ "foraged": [
+  {
+   "id": "wild_leek",
+   "kind": "leaf",
+   "w": 5
+  },
+  {
+   "id": "dandelion",
+   "kind": "flower",
+   "w": 6
+  },
+  {
+   "id": "daffodil",
+   "kind": "flower",
+   "w": 3
+  },
+  {
+   "id": "raspberry",
+   "kind": "berry",
+   "w": 5
+  },
+  {
+   "id": "wild_rose",
+   "kind": "flower",
+   "w": 3
+  },
+  {
+   "id": "fern_frond",
+   "kind": "leaf",
+   "w": 5
+  },
+  {
+   "id": "chanterelle",
+   "kind": "mushroom",
+   "w": 4
+  },
+  {
+   "id": "hazelnut",
+   "kind": "nut",
+   "w": 6
+  },
+  {
+   "id": "blackberry",
+   "kind": "berry",
+   "w": 5
+  },
+  {
+   "id": "winter_root",
+   "kind": "root",
+   "w": 5
+  },
+  {
+   "id": "holly",
+   "kind": "leaf",
+   "w": 4
+  },
+  {
+   "id": "snow_yam",
+   "kind": "root",
+   "w": 3
   }
+ ],
+ "finds": {
+  "mineral": [
+   {
+    "id": "copper_ore",
+    "w": 30
+   },
+   {
+    "id": "iron_ore",
+    "w": 24
+   },
+   {
+    "id": "quartz",
+    "w": 18
+   },
+   {
+    "id": "topaz",
+    "w": 6
+   },
+   {
+    "id": "amethyst",
+    "w": 4
+   }
+  ],
+  "fossil": [
+   {
+    "id": "ammonite",
+    "w": 10
+   },
+   {
+    "id": "fossil_fern",
+    "w": 8
+   },
+   {
+    "id": "fossil_bone",
+    "w": 6
+   },
+   {
+    "id": "amber",
+    "w": 3
+   }
+  ],
+  "artifact": [
+   {
+    "id": "old_coin",
+    "w": 10
+   },
+   {
+    "id": "rusty_key",
+    "w": 8
+   },
+   {
+    "id": "ancient_bell",
+    "w": 6
+   },
+   {
+    "id": "scroll_fragment",
+    "w": 6
+   },
+   {
+    "id": "clay_figure",
+    "w": 5
+   },
+   {
+    "id": "amphora",
+    "w": 4
+   },
+   {
+    "id": "silver_mirror",
+    "w": 3
+   },
+   {
+    "id": "old_compass",
+    "w": 3
+   },
+   {
+    "id": "lost_crown",
+    "w": 1
+   }
+  ]
+ },
+ "regions": [
+  {
+   "id": "hollow",
+   "name": "Mossy Hollow",
+   "icon": "mushroom",
+   "trail": "trail_hollow",
+   "at": [
+    -43.5,
+    11.6
+   ],
+   "r": 13,
+   "feature": "fireflies",
+   "forage": {
+    "spots": 9,
+    "chance": 0.8
+   },
+   "foraged": [
+    {
+     "id": "moss",
+     "kind": "leaf",
+     "w": 6
+    },
+    {
+     "id": "bluebell",
+     "kind": "flower",
+     "w": 5
+    },
+    {
+     "id": "puffball",
+     "kind": "mushroom",
+     "w": 5
+    },
+    {
+     "id": "wild_garlic",
+     "kind": "leaf",
+     "w": 5
+    },
+    {
+     "id": "elderberry",
+     "kind": "berry",
+     "w": 4
+    },
+    {
+     "id": "morel",
+     "kind": "mushroom",
+     "w": 1
+    }
+   ],
+   "fireflies": {
+    "count": 8,
+    "from": 19,
+    "to": 5,
+    "item": "firefly"
+   }
+  },
+  {
+   "id": "creek",
+   "name": "Crystal Creek",
+   "icon": "water_wave",
+   "trail": "trail_creek",
+   "at": [
+    11.6,
+    -43.5
+   ],
+   "r": 13,
+   "feature": "panning",
+   "forage": {
+    "spots": 8,
+    "chance": 0.8
+   },
+   "foraged": [
+    {
+     "id": "watercress",
+     "kind": "leaf",
+     "w": 6
+    },
+    {
+     "id": "river_mint",
+     "kind": "leaf",
+     "w": 5
+    },
+    {
+     "id": "cattail",
+     "kind": "root",
+     "w": 4
+    },
+    {
+     "id": "water_lily",
+     "kind": "flower",
+     "w": 3
+    },
+    {
+     "id": "wild_strawberry",
+     "kind": "berry",
+     "w": 4
+    }
+   ],
+   "pan": {
+    "spots": 3,
+    "perDay": 6,
+    "table": [
+     {
+      "id": "gold_flake",
+      "w": 34
+     },
+     {
+      "id": "agate",
+      "w": 14
+     },
+     {
+      "id": "quartz",
+      "w": 16
+     },
+     {
+      "id": "jade",
+      "w": 6
+     },
+     {
+      "id": "river_pearl",
+      "w": 6
+     },
+     {
+      "id": "copper_ore",
+      "w": 14
+     },
+     {
+      "id": "topaz",
+      "w": 5
+     },
+     {
+      "id": "amethyst",
+      "w": 3
+     }
+    ]
+   }
+  },
+  {
+   "id": "pines",
+   "name": "Whispering Pines",
+   "icon": "tree",
+   "trail": "trail_pines",
+   "at": [
+    -31.8,
+    -31.8
+   ],
+   "r": 13,
+   "feature": "taps",
+   "forage": {
+    "spots": 9,
+    "chance": 0.8
+   },
+   "foraged": [
+    {
+     "id": "pinecone",
+     "kind": "nut",
+     "w": 6
+    },
+    {
+     "id": "chestnut",
+     "kind": "nut",
+     "w": 5
+    },
+    {
+     "id": "lingonberry",
+     "kind": "berry",
+     "w": 4
+    },
+    {
+     "id": "pine_bolete",
+     "kind": "mushroom",
+     "w": 4
+    },
+    {
+     "id": "sloe",
+     "kind": "berry",
+     "w": 3
+    }
+   ],
+   "taps": {
+    "count": 6,
+    "hours": 6,
+    "yield": 2,
+    "items": [
+     {
+      "id": "maple_sap",
+      "w": 3
+     },
+     {
+      "id": "pine_resin",
+      "w": 2
+     }
+    ]
+   }
+  }
+ ],
+ "trails": [
+  {
+   "id": "trail_hollow",
+   "name": "The Hollow Bridge",
+   "icon": "mushroom",
+   "color": "green",
+   "villager": "juniper",
+   "opensAt": 20,
+   "about": "The old footbridge to Mossy Hollow has rotted through. Juniper paints there every spring and wants it back: rope, a basket of woodland finds and a good lunch for the crew.",
+   "rebuilds": "the footbridge to Mossy Hollow",
+   "reward": {
+    "id": "trail_hollow",
+    "text": "Mossy Hollow opens: moss, bluebells, puffballs, wild garlic, elderberries and rare morels, and fireflies to catch at night."
+   },
+   "letter": {
+    "title": "The Hollow is open!",
+    "body": "Dear {farmer},\n\nI crossed the new bridge at dusk and the whole hollow was full of fireflies. I sat on a log and forgot to paint anything at all.\n\nGo and see for yourself one evening. Bring a jar.\n\nJuniper"
+   },
+   "bundles": [
+    {
+     "id": "rope",
+     "name": "Rope and Pegs",
+     "icon": "sheep",
+     "wants": {
+      "cotton": 120,
+      "yarn": 20
+     }
+    },
+    {
+     "id": "basket",
+     "name": "Forager's Basket",
+     "icon": "basket",
+     "wants": {
+      "wild_leek": 8,
+      "fern_frond": 8,
+      "chanterelle": 6,
+      "hazelnut": 8
+     }
+    },
+    {
+     "id": "lunch",
+     "name": "Lunch for the Trail Crew",
+     "icon": "wheat",
+     "wants": {
+      "bread": 60,
+      "cheese": 20,
+      "apple_jam": 15
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Trail Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 15000
+     }
+    }
+   ]
+  },
+  {
+   "id": "trail_creek",
+   "name": "The Stepping Stones",
+   "icon": "water_wave",
+   "color": "blue",
+   "villager": "tom",
+   "opensAt": 28,
+   "about": "Crystal Creek runs clear over gravel that still has a little gold in it, Old Tom swears. Help him lay new stepping stones and bring waders, and he will show you how to pan.",
+   "rebuilds": "the stepping stones to Crystal Creek",
+   "reward": {
+    "id": "trail_creek",
+    "text": "Crystal Creek opens: watercress, river mint, cattails, water lilies and wild strawberries, and six pans a day for gold flakes, agate, jade and river pearls."
+   },
+   "letter": {
+    "title": "Gold in the creek",
+    "body": "Dear {farmer},\n\nThe stepping stones are down and I found a gold flake on the very first pan. Told you so.\n\nThere is a pan waiting for you on the bank. Six goes a day is plenty for anyone's back.\n\nOld Tom"
+   },
+   "bundles": [
+    {
+     "id": "stones",
+     "name": "Stepping Stones",
+     "icon": "hammer",
+     "wants": {
+      "copper_ore": 6,
+      "iron_ore": 5,
+      "ammonite": 2
+     }
+    },
+    {
+     "id": "waders",
+     "name": "Waders and Nets",
+     "icon": "sheep",
+     "wants": {
+      "wool": 40,
+      "yarn": 30,
+      "cotton_fabric": 30
+     }
+    },
+    {
+     "id": "picnic",
+     "name": "Riverside Picnic",
+     "icon": "basket",
+     "wants": {
+      "berry_juice": 20,
+      "harvest_bento": 15,
+      "cookie": 60
+     }
+    },
+    {
+     "id": "wages",
+     "name": "The Ferryman's Fee",
+     "icon": "coin",
+     "wants": {
+      "coins": 30000
+     }
+    }
+   ]
+  },
+  {
+   "id": "trail_pines",
+   "name": "The Pine Ridge Path",
+   "icon": "tree",
+   "color": "grey",
+   "villager": "bram",
+   "opensAt": 36,
+   "about": "Up on Whispering Pines the old trees are tall enough to hear the wind in. Bram wants iron for the steps up the ridge, a hearty breakfast and something warm for the climb.",
+   "rebuilds": "the ridge path to Whispering Pines",
+   "reward": {
+    "id": "trail_pines",
+    "text": "Whispering Pines opens: pinecones, chestnuts, lingonberries, pine boletes and sloes, and six old trees to tap for maple sap and pine resin."
+   },
+   "letter": {
+    "title": "Up on the ridge",
+    "body": "Dear {farmer},\n\nThe path is cut and the steps are iron, so they will outlast both of us. It is quiet up there, just the wind in the pines.\n\nI have set taps in six of the old trees. Come back every few hours and the buckets will be full.\n\nBram"
+   },
+   "bundles": [
+    {
+     "id": "iron",
+     "name": "Iron for the Steps",
+     "icon": "hammer_wrench",
+     "wants": {
+      "iron_ore": 10,
+      "copper_ore": 10
+     }
+    },
+    {
+     "id": "breakfast",
+     "name": "Woodcutter's Breakfast",
+     "icon": "basket",
+     "wants": {
+      "pancakes": 30,
+      "apple_pie": 20,
+      "cream": 80
+     }
+    },
+    {
+     "id": "blankets",
+     "name": "Warm Blankets",
+     "icon": "sheep",
+     "wants": {
+      "sweater": 10,
+      "scarf": 15,
+      "wool": 80
+     }
+    },
+    {
+     "id": "offering",
+     "name": "A Gift for the Forest",
+     "icon": "blossom",
+     "wants": {
+      "blackberry": 8,
+      "raspberry": 8,
+      "wild_rose": 5,
+      "daffodil": 5
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Ranger Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 50000
+     }
+    }
+   ]
+  }
+ ]
 }

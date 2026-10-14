@@ -636,3 +636,15 @@ Woods items (forage, ores, fossils, artifacts) are asked for in small numbers, b
 **Rewards (permanent, `manor.json` `effects`):** Grounds: every woods forage spot is full every day. Foundations: +2 digs a day. Great Hall: festival prize coins x1.25. Kitchens: every workshop x0.92 time. Library: expeditions x0.85 time. Gardens: crops and fruit trees x0.92 grow time. Stables: animals x0.92 time. Ballroom: orders pay x1.1 coins, plus the finale (250,000 coins, 300 gems, the Willowmere Manor decor for the farm and Hazel's letter, `state.restoration.manor`).
 
 **Fixed with it:** coins paid part-way into a bundle (the Treasury's chests) were dropped by the save repair on every load; they are kept now.
+
+## 1.19 The Deep Woods (`woods.json` `regions` and `trails`, `src/systems/Woods.ts`)
+
+The woods grow from one glade to four places. Each region is an island round the glade, opened by restoring its trail (a restoration room, ids `trail_<region>`; bundles of rope, forage, lunches and coins).
+
+| Region | Trail opens | Trail cost (about) | Every day once open |
+| --- | --- | --- | --- |
+| Mossy Hollow | level 20 | 15k coins + rope, 30 woods forage, a crew lunch | about 7 forage (moss, bluebells, puffballs, wild garlic, elderberries, rare morels) and 8 fireflies at night (7 pm to 5 am) |
+| Crystal Creek | level 28 | 30k coins + ores, wool goods, a picnic | about 6 forage (watercress, river mint, cattails, water lilies, wild strawberries) and 6 pans (gold flake most often, then quartz, agate, copper, jade, river pearl, topaz, amethyst) |
+| Whispering Pines | level 36 | 50k coins + iron, breakfast, blankets, berries | about 7 forage (pinecones, chestnuts, lingonberries, pine boletes, sloes) and 6 taps that hold 2 maple sap or pine resin each, full again 6 hours after they were emptied |
+
+With all three open and three check-ins a day the woods give roughly 30 forage, 8 fireflies, 6 pans, 4 digs and up to about 36 sap or resin a day, against about 10 forage and 4 digs before. Panning makes the Manor's chandelier gems (quartz, topaz, amethyst) far easier to collect. Pans, sap and fireflies grow the Foraging skill (`skills.json`: pans_done 4, sap_collected 3, fireflies_caught 3 XP). The Manor's Grounds reward (every forage spot full) applies to the regions too.

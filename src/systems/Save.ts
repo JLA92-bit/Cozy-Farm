@@ -92,6 +92,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     dug: Array.isArray(s.woods.dug) ? s.woods.dug.filter((n: unknown) => Number.isInteger(n)) as number[] : [],
     found: countMap(s.woods.found, (k) => !!ITEMS[k]),
     visited: !!s.woods.visited,
+    ...(Number.isFinite(s.woods.panned) ? { panned: Math.max(0, Math.floor(s.woods.panned as number)) } : {}),
+    ...(isObj(s.woods.taps) ? { taps: Object.fromEntries(Object.entries(s.woods.taps).filter(([k, v]) => /^[a-z]+:\d+$/.test(k) && typeof v === 'number' && Number.isFinite(v))) as Record<string, number> } : {}),
   } : undefined;
   out.museum = isObj(s.museum) ? {
     donated: Object.fromEntries(Object.entries(isObj(s.museum.donated) ? s.museum.donated : {}).map(([k, v]) => [k, strArr(v).filter((i) => !!ITEMS[i])])),

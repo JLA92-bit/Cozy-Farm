@@ -210,6 +210,46 @@ try {
     check('coins given to a bundle survive a reload', (await state()).restoration.given.treasury?.first?.coins === 4000);
   }
 
+  // 1.19 the Deep Woods: trails open regions; pans a day; taps refill; fireflies at night only; region forage; saved
+  {
+    const at = (hour) => { const n = new Date(); const t = new Date(n); t.setHours(hour, 0, 0, 0); return t.getTime() - n.getTime(); };
+    const w = copy(); w.player.level = 40; w.debugTimeOffset = at(12);
+    w.restoration = { given: {}, done: ['trail_creek', 'trail_pines', 'trail_hollow'], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify({ ...w, restoration: { given: {}, done: [], seen: [] } }) });
+    await boot();
+    const closed = await page.evaluate(() => [window.__woods.sys.regionOpen('creek'), window.__woods.sys.pan('creek')]);
+    check('a region stays closed until its trail is restored', closed[0] === false && closed[1] === null, JSON.stringify(closed));
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const W = window.__woods.sys, g = window.__game;
+      const pans = []; for (let i = 0; i < 7; i++) pans.push(!!W.pan('creek'));
+      const tap1 = W.collectTap('pines:0'), tap2 = W.collectTap('pines:0');
+      g.state.debugTimeOffset += 6 * 3600000 + 1000;
+      const tap3 = W.collectTap('pines:0');
+      const fireNoon = W.isFireflyTime('hollow');
+      const spot = W.regionForage('hollow').find((s) => s.active && !s.picked);
+      const before = spot ? g.count(spot.item) : 0;
+      const picked = spot ? W.pick(spot.i) : null;
+      return { pans: pans.filter(Boolean).length, tap1: !!tap1, tap2: !!tap2, tap3: !!tap3, fireNoon, picked: !!picked, gained: spot ? g.count(spot.item) - before : -1 };
+    });
+    check('six pans a day at Crystal Creek', r.pans === 6, JSON.stringify(r));
+    check('a tap empties once and is full again after its hours', r.tap1 && !r.tap2 && r.tap3, JSON.stringify(r));
+    check('region forage can be picked', r.picked && r.gained >= 1, JSON.stringify(r));
+    check('no fireflies at midday', r.fireNoon === false, JSON.stringify(r));
+    const w2 = { ...w, debugTimeOffset: at(21) };
+    await setStorage({ [KEY]: JSON.stringify(w2) });
+    await boot();
+    const night = await page.evaluate(() => { const W = window.__woods.sys; const f = W.fireflies('hollow')[0]; return [W.isFireflyTime('hollow'), W.catchFirefly(f.id), W.catchFirefly(f.id)]; });
+    check('fireflies can be caught at night, each once', night[0] === true && night[1] === 'firefly' && night[2] === null, JSON.stringify(night));
+    await page.evaluate(() => { window.__woods.sys.pan('creek'); window.__woods.sys.collectTap('pines:1'); dispatchEvent(new Event('pagehide')); });
+    await page.reload();
+    await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const kept = (await state()).woods;
+    check('pans used and tap times are saved', kept.panned === 1 && typeof kept.taps?.['pines:1'] === 'number', JSON.stringify({ panned: kept.panned, taps: kept.taps }));
+  }
+
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
   // decor kinds share a few batches instead of one draw each
   {

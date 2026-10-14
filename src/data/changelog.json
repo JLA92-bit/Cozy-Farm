@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.19.0",
+   "date": "2026-10-19",
+   "title": "The Deep Woods",
+   "icon": "mushroom",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "mushroom",
+     "text": "The Wild Woods grow into a forest: restore three trails to reach Mossy Hollow, Crystal Creek and Whispering Pines, each with its own wild finds"
+    },
+    {
+     "icon": "firefly",
+     "text": "Catch fireflies over Mossy Hollow at night, pan for gold, agate, jade and river pearls in Crystal Creek, and tap the old pines for maple sap and resin"
+    },
+    {
+     "icon": "info",
+     "text": "Use the new buttons on the woods banner to fly between the glade and the three regions"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.18.0",
    "date": "2026-10-18",
    "title": "Willowmere Manor",

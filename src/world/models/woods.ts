@@ -10,6 +10,10 @@ const GREEN = '#5fae3f', GREEN_D = '#3f8a33', STEM = '#6f9f3f';
 export const FORAGE_COLOR: Record<string, string> = {
   wild_leek: '#8fd95f', dandelion: '#ffd93a', daffodil: '#ffe36a', raspberry: '#d63a5c', wild_rose: '#ff7fa8', fern_frond: '#4fae3a',
   chanterelle: '#f2a93a', hazelnut: '#a8743a', blackberry: '#4a3a7c', winter_root: '#c9a06a', holly: '#2f7a3a', snow_yam: '#d9c7b0',
+  // 1.19 the Deep Woods
+  moss: '#5f9a3a', bluebell: '#6f86e8', puffball: '#f2eee2', wild_garlic: '#7fcf6a', elderberry: '#3a2a52', morel: '#b08a5a',
+  watercress: '#6fd06a', river_mint: '#8fe0b0', cattail: '#8a5a34', water_lily: '#ffc2dc', wild_strawberry: '#e8424f',
+  pinecone: '#8a6238', chestnut: '#9a5a2a', lingonberry: '#d8303a', pine_bolete: '#a86a3a', sloe: '#4a4a8a',
 };
 
 /** A wild plant (a small patch about 0.7 wide) of the given shape and colour. */
@@ -96,4 +100,57 @@ export function noticeBoardGeometry(): THREE.BufferGeometry {
 /** A stone pedestal for a museum piece (the gem on top is added per shelf). */
 export function pedestalGeometry(): THREE.BufferGeometry {
   return geo().cyl(0.28, 0.34, 0.5, '#d8cba9', [0, 0, 0], 8).cyl(0.34, 0.34, 0.08, '#b3a78d', [0, 0.5, 0], 8).build();
+}
+
+// ------------------------------------------------------------------------------------------- 1.19 the Deep Woods
+
+/** A plank footbridge `len` long along +x (from 0 to len), with rope rails. `broken`: the middle third is missing. */
+export function bridgeGeometry(len: number, broken: boolean): THREE.BufferGeometry {
+  const b = geo();
+  const n = Math.max(4, Math.round(len / 0.42));
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n;
+    if (broken && t > 0.36 && t < 0.66) continue;
+    b.box(0.36, 0.1, 1.7, i % 2 ? '#a8743a' : '#b9824a', [t * len, 0.12, 0], [0, 0, 0]);
+  }
+  for (const z of [-0.9, 0.9]) {
+    for (let k = 0; k <= 4; k++) {
+      const x = (k / 4) * len;
+      if (broken && k === 2) continue;
+      b.cyl(0.06, 0.07, 1.0, '#7a5a34', [x, 0.1, z], 6);
+    }
+    if (!broken) b.box(len, 0.05, 0.05, '#d9c08a', [len / 2, 0.95, z]);
+    else { b.box(len * 0.36, 0.05, 0.05, '#d9c08a', [len * 0.18, 0.95, z]); b.box(len * 0.34, 0.05, 0.05, '#d9c08a', [len * 0.83, 0.95, z]); }
+  }
+  return b.build();
+}
+
+/** A shallow gravel pool on the creek with a gold pan resting on its edge. */
+export function panPoolGeometry(): THREE.BufferGeometry {
+  return geo()
+    .cyl(1.15, 1.25, 0.06, '#b7a98c', [0, 0.02, 0], 20)
+    .cyl(0.95, 0.95, 0.05, '#7fc8e8', [0, 0.05, 0], 20)
+    .cyl(0.34, 0.26, 0.08, '#c9a24a', [0.95, 0.12, 0.35], 14, [0.4, 0, 0])
+    .build();
+}
+
+/** A sap bucket hung on a tap at the foot of a tree. */
+export function sapBucketGeometry(): THREE.BufferGeometry {
+  return geo()
+    .cyl(0.17, 0.14, 0.3, '#9aa5b1', [0, 0.35, 0], 10)
+    .cyl(0.18, 0.18, 0.03, '#7a8590', [0, 0.5, 0], 10)
+    .box(0.05, 0.05, 0.22, '#5a4a3a', [0, 0.62, -0.12])
+    .build();
+}
+
+/** A winding strip of water across an island (for Crystal Creek): `pts` in island space. */
+export function streamGeometry(pts: [number, number][], width: number): THREE.BufferGeometry {
+  const b = geo();
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, z0] = pts[i], [x1, z1] = pts[i + 1];
+    const len = Math.hypot(x1 - x0, z1 - z0), yaw = Math.atan2(x1 - x0, z1 - z0);
+    b.box(width + 0.5, 0.04, len + 0.4, '#c9b48a', [(x0 + x1) / 2, 0.02, (z0 + z1) / 2], [0, yaw, 0]);
+    b.box(width, 0.05, len + 0.3, '#6fbfe0', [(x0 + x1) / 2, 0.035, (z0 + z1) / 2], [0, yaw, 0]);
+  }
+  return b.build();
 }

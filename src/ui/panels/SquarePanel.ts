@@ -114,7 +114,7 @@ export function openRoom(roomId: string): void {
       p.body.append(h('div', { class: 'empty-state' }, icon('lock'), h('div', null, isWing(room.id) ? wingLock(room.id) ?? '' : `This room opens at level ${room.opensAt}.`), h('div', { class: 'muted' }, 'Here is what it will want.')));
     }
     for (const b of room.bundles) p.body.append(bundleCard(room, b, open && !fin, render));
-    if (fin) p.footer.append(button([icon('check'), isWing(room.id) ? 'Back' : 'Back to the square'], () => p.close(), 'green'));
+    if (fin) p.footer.append(button([icon('check'), isWing(room.id) || room.id.startsWith('trail_') ? 'Back' : 'Back to the square'], () => p.close(), 'green'));
     p.footer.style.display = fin ? '' : 'none';
   };
   p.onClose = () => { if (current === p) current = null; };
