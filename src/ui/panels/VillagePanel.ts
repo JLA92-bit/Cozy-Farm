@@ -13,7 +13,8 @@ import { audio, haptics } from '../../systems/Audio';
 import { visiting } from '../../systems/Visiting';
 import { saves } from '../../systems/Save';
 import { restoration } from '../../systems/Restoration';
-import { ROOMS } from '../../data';
+import { MANOR_WINGS, ROOMS } from '../../data';
+import { currentWing, manorStarted, wingsDone } from '../../systems/Manor';
 import './village.css';
 
 /**
@@ -87,6 +88,15 @@ export function openVillage(arg?: { villager?: string }): void {
         h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'The Village Square'),
           h('div', { class: 'v-intro-text' }, `${rooms} of ${ROOMS.length} rooms rebuilt${ready ? `. ${ready} ${ready === 1 ? 'bundle' : 'bundles'} you can give to now` : '. Rebuild the old square together with your friends in the valley'}`)),
         button([icon('house'), 'Go'], () => { p.close(); ui.open('square'); }, 'green small', { 'aria-label': 'Go to the village square' })));
+    }
+    // 1.18: Willowmere Manor, the long project behind the square
+    if (game.level >= 5 && ui.has('manor')) {
+      const done = wingsDone(), wing = currentWing();
+      p.body.append(h('div', { class: 'v-square' }, icon('crown', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Willowmere Manor'),
+          h('div', { class: 'v-intro-text' }, !manorStarted() ? 'The old manor behind the square. Rebuild every room of the square to begin.'
+            : wing ? `${done} of ${MANOR_WINGS.length} wings rebuilt. Now: ${wing.name}` : 'Every wing rebuilt. Willowmere is open!')),
+        button([icon('crown'), 'Open'], () => ui.open('manor'), 'purple small', { 'aria-label': 'Open Willowmere Manor' })));
     }
     // 1.9: the Help Wanted board
     if (helpWanted.unlocked) {

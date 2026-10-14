@@ -168,6 +168,48 @@ try {
     check('the shorter-road letter is not sent twice', again === 1, String(again));
   }
 
+  // 1.18 Willowmere Manor: locked until the village festival, wings open in order and by level, the finale once
+  {
+    const rooms = ['pantry', 'barn', 'pier', 'kitchen', 'workshop', 'treasury'];
+    const m = copy(); m.player.level = 70; m.player.coins = 2000000;
+    m.restoration = { given: {}, done: rooms.slice(0, 5), seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(m) });
+    await boot();
+    const before = await page.evaluate(() => window.__restoration.isOpen('manor_grounds'));
+    check('the manor is locked until the village is rebuilt', before === false);
+    const wings = ['grounds', 'foundations', 'hall', 'kitchens', 'library', 'gardens', 'stables', 'ballroom'].map((w) => `manor_${w}`);
+    const m2 = copy(); m2.player.level = 70; m2.player.coins = 2000000;
+    // every wing but the ballroom done, and the ballroom one coin short of its last bundle
+    m2.restoration = { given: { manor_ballroom: { banquet: { mushroom_soup: 50, garden_wrap: 40, pumpkin_spice_cake: 40, celebration_cake: 30 }, goldsvc: { cheese: 100, goat_cheese: 60, honey: 120 }, chandelier: { quartz: 30, topaz: 6, amethyst: 4, beeswax_candle: 200 }, music: { lavender_honey: 80, sunflower_honey: 80, hot_chocolate: 40 }, treasures: { amber: 4, clay_figure: 2, amphora: 2 }, wages: { coins: 999999 } } },
+      done: [...rooms, ...wings.slice(0, 7)], seen: [], festival: Date.now() - 1000 };
+    await setStorage({ [KEY]: JSON.stringify(m2) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const R = window.__restoration;
+      const open = R.isOpen('manor_ballroom');
+      const gave = R.give('manor_ballroom', 'wages', 'coins');
+      const s = window.__game.state;
+      return { open, gave, done: R.isDone('manor_ballroom'), manor: !!s.restoration.manor, decor: s.storage.willowmere ?? 0, letter: s.mail.letters.some((l) => l.title === 'Willowmere is open!') };
+    });
+    check('the last wing opens once the one before is rebuilt', r.open === true, JSON.stringify(r));
+    check('finishing the ballroom opens Willowmere (letter and manor model)', r.gave === 1 && r.done && r.manor && r.decor === 1 && r.letter, JSON.stringify(r));
+    // order: with the grounds not done, the foundations wing stays locked
+    const m3 = copy(); m3.player.level = 70; m3.restoration = { given: {}, done: [...rooms], seen: [], festival: Date.now() - 1000 };
+    await setStorage({ [KEY]: JSON.stringify(m3) });
+    await boot();
+    const order = await page.evaluate(() => [window.__restoration.isOpen('manor_grounds'), window.__restoration.isOpen('manor_foundations')]);
+    check('manor wings open one after another', order[0] === true && order[1] === false, JSON.stringify(order));
+    // the grand opening survives a reload
+    await setStorage({ [KEY]: JSON.stringify({ ...m2, restoration: { ...m2.restoration, done: [...rooms, ...wings], manor: 12345 } }) });
+    await boot();
+    check('the grand opening is kept in the save', (await state()).restoration.manor === 12345);
+    // coins paid part-way into a bundle are kept on load (they used to be dropped)
+    const m4 = copy(); m4.player.level = 30; m4.restoration = { given: { treasury: { first: { coins: 4000 } } }, done: [], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(m4) });
+    await boot();
+    check('coins given to a bundle survive a reload', (await state()).restoration.given.treasury?.first?.coins === 4000);
+  }
+
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
   // decor kinds share a few batches instead of one draw each
   {

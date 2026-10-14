@@ -3,6 +3,7 @@
  * back with finds. Each villager is better at some trips and a friend returns sooner. What comes back is fixed by
  * the farm seed and the trip's start time, so it cannot be rerolled by reloading. Two trips can run at once.
  */
+import { manorExpeditionTimeMult } from './Manor';
 import { EXPEDITIONS, VILLAGER, WOODS, type FindKind } from '../data';
 import { game } from './Game';
 import { saves } from './Save';
@@ -33,7 +34,7 @@ class ExpeditionSystem {
     const hearts = village.hearts(who);
     let mult = 1;
     for (const [need, m] of Object.entries(EXPEDITIONS.hearts)) if (hearts >= Number(need)) mult = Math.min(mult, m);
-    return trip.hours * mult;
+    return trip.hours * mult * manorExpeditionTimeMult();
   }
 
   send(who: string, tripId: string): boolean {

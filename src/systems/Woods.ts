@@ -11,6 +11,7 @@ import { saves } from './Save';
 import { localDay } from './Progression';
 import { rollQuality, type Quality } from './Quality';
 import { extraDigs, keenEyesChance, luckyFinds } from './SkillEffects';
+import { manorDigs, manorForageFull } from './Manor';
 import { hints } from './Hints';
 import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
@@ -45,14 +46,15 @@ class WoodsSystem {
     const out: ForageSpot[] = [];
     for (let i = 0; i < WOODS.forage.spots; i++) {
       const r = rng(hashString(`${game.state.seed}:forage:${w.day}:${i}`));
-      const active = r() < WOODS.forage.chance;
+      const roll = r();
+      const active = manorForageFull() || roll < WOODS.forage.chance;
       const e = pickWeighted(list, r);
       out.push({ i, active, picked: w.picked.includes(i), item: e.id, kind: e.kind });
     }
     return out;
   }
 
-  digsLeft(): number { return Math.max(0, WOODS.dig.perDay + extraDigs() - this.st().dug.length); }
+  digsLeft(): number { return Math.max(0, WOODS.dig.perDay + extraDigs() + manorDigs() - this.st().dug.length); }
   dug(i: number): boolean { return this.st().dug.includes(i); }
 
   pick(i: number, at?: Vec): PickResult | null {

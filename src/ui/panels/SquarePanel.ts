@@ -6,6 +6,7 @@ import { game } from '../../systems/Game';
 import { restoration } from '../../systems/Restoration';
 import { crafting, craftNeeds } from '../../systems/Crafting';
 import { isMarketDay } from '../../systems/RestorationEffects';
+import { isWing, wingLock } from '../../systems/Manor';
 import { audio, haptics } from '../../systems/Audio';
 import { enterSquare, refreshSquare } from '../../scenes/Square';
 import { askButton } from './HelpPanel';
@@ -110,10 +111,10 @@ export function openRoom(roomId: string): void {
       return;
     }
     if (!open && !fin) {
-      p.body.append(h('div', { class: 'empty-state' }, icon('lock'), h('div', null, `This room opens at level ${room.opensAt}.`), h('div', { class: 'muted' }, 'Here is what it will want.')));
+      p.body.append(h('div', { class: 'empty-state' }, icon('lock'), h('div', null, isWing(room.id) ? wingLock(room.id) ?? '' : `This room opens at level ${room.opensAt}.`), h('div', { class: 'muted' }, 'Here is what it will want.')));
     }
     for (const b of room.bundles) p.body.append(bundleCard(room, b, open && !fin, render));
-    if (fin) p.footer.append(button([icon('check'), 'Back to the square'], () => p.close(), 'green'));
+    if (fin) p.footer.append(button([icon('check'), isWing(room.id) ? 'Back' : 'Back to the square'], () => p.close(), 'green'));
     p.footer.style.display = fin ? '' : 'none';
   };
   p.onClose = () => { if (current === p) current = null; };

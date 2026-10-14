@@ -614,3 +614,25 @@ The seasons (seasonal crops, in-season bonus, season look, Glass Frame, season p
 | After (1.17) | 91 | 117 | 140 | 163 | 187 | 231 |
 
 About 2.4 days of regular play per level past 60, matching the owner's 2-3 hours a week target. Farms already past 60 get Hazel's letter "The road ahead got shorter" once (`state.endless.road`) and any level they have now earned straight away.
+
+## 1.18 Willowmere Manor (`manor.json`, `src/systems/Manor.ts`)
+
+The village square's six rooms took most players a few weeks, much quicker than intended. Willowmere is the long project behind it: 8 wings, opened one after another (each needs the one before and a player level), 41 bundles. They mix huge bulk orders (2,000 wheat, 3,000 wheat, 600 apples), mid-sized workshop goods, a few rare woods finds and gold-star goods, and growing coin wages (30k to 1M). Wings are restoration rooms (`state.restoration`, ids `manor_<wing>`), so giving, partial progress, Ask a friend and saving work as in the square.
+
+| Wing | Opens at | Bundles | Value (coins, star goods x2.5 silver / x5 gold) | At about 20k a day spare |
+| --- | --- | --- | --- | --- |
+| Clearing the Grounds | 30 | 5 | 95k | about 5 days |
+| The Foundations | 35 | 5 | 223k | about 11 days |
+| The Great Hall | 38 | 5 | 418k | about 3 weeks |
+| The Kitchens | 42 | 5 | 421k | about 3 weeks |
+| The Library | 48 | 5 | 516k | about 4 weeks |
+| The Gardens and Glasshouse | 54 | 5 | 482k | about 3.5 weeks |
+| The Stables and Carriage House | 60 | 5 | 733k | about 5 weeks |
+| The Grand Ballroom | 66 | 6 | 1.78M | about 3 months |
+| **Total** | | **41** | **4.66M** | **about 8 months** |
+
+Woods items (forage, ores, fossils, artifacts) are asked for in small numbers, because the woods only give about 10 forage and 4 digs a day today; the 1.19 woods expansion adds more.
+
+**Rewards (permanent, `manor.json` `effects`):** Grounds: every woods forage spot is full every day. Foundations: +2 digs a day. Great Hall: festival prize coins x1.25. Kitchens: every workshop x0.92 time. Library: expeditions x0.85 time. Gardens: crops and fruit trees x0.92 grow time. Stables: animals x0.92 time. Ballroom: orders pay x1.1 coins, plus the finale (250,000 coins, 300 gems, the Willowmere Manor decor for the farm and Hazel's letter, `state.restoration.manor`).
+
+**Fixed with it:** coins paid part-way into a bundle (the Treasury's chests) were dropped by the save repair on every load; they are kept now.

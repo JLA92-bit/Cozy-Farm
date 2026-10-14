@@ -4,6 +4,7 @@
  * decoration and a ribbon) is paid once, when they collect it. The mini-games themselves live in
  * ui/panels/FestivalPanel.ts; this file keeps the rules, the stars and the prizes.
  */
+import { manorFestivalCoinsMult } from './Manor';
 import { FESTIVALS, BUILDING, ITEMS, CYCLE, type FestivalDef } from '../data';
 import { game } from './Game';
 import { lateXp } from './Endless';
@@ -62,7 +63,8 @@ class FestivalSystem {
     if (!def || stars < 1) return null;
     const p = FESTIVALS.prizes[stars - 1];
     const gems = (p.gems ?? 0) + (stars === 3 ? def.prize.gems ?? 0 : 0);
-    game.addCoins(p.coins);
+    const coins = Math.round(p.coins * manorFestivalCoinsMult());
+    game.addCoins(coins);
     if (gems) game.addGems(gems);
     const xp = lateXp('festival', stars / 3);
     if (xp) game.addXp(xp);
@@ -77,7 +79,7 @@ class FestivalSystem {
     logEvent('festival_collect', { festival: def.id, stars });
     game.bus.emit('sfx', { name: 'reward' });
     saves.save();
-    return { stars, coins: p.coins, gems, decor: stars >= 2 && BUILDING[decor] ? decor : '', item };
+    return { stars, coins, gems, decor: stars >= 2 && BUILDING[decor] ? decor : '', item };
   }
 
   /** Collect today's prize. */

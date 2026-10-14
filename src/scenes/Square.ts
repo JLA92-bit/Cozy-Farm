@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { ROOMS } from '../data';
+import { MANOR, MANOR_WINGS, ROOMS } from '../data';
+import { currentWing, manorStarted, wingsDone } from '../systems/Manor';
 import { game } from '../systems/Game';
 import { restoration } from '../systems/Restoration';
 import { festivals } from '../systems/Festivals';
@@ -145,7 +146,8 @@ export async function enterSquare(room?: string): Promise<void> {
     scene.handler = squareHandler;
     const c = v.centre, f = v.focus;
     scene.rig.stop();
-    scene.rig.bounds.set(new THREE.Vector2(c.x - 14, c.z - 14), new THREE.Vector2(c.x + 14, c.z + 14));
+    // wide enough to pan back to Willowmere Manor behind the lots
+    scene.rig.bounds.set(new THREE.Vector2(c.x - 22, c.z - 22), new THREE.Vector2(c.x + 22, c.z + 22));
     scene.rig.target.set(f.x, 0, f.z);
     scene.rig.minDistance = 14;
     scene.rig.maxDistance = 66;
@@ -229,6 +231,7 @@ function tapAt(p: Pointer): void {
   const hit = view.pick(ctx.scene.ray(p));
   if (!hit) return;
   if (hit.room) { ui.open('square-room', { room: hit.room }); return; }
+  if (hit.manor) { ui.open('manor'); return; }
   if (hit.villager) ui.open('village', { villager: hit.villager });
 }
 
@@ -256,6 +259,15 @@ function buildLabels(v: SquareView): void {
     layer.append(el);
     labels.set(room.id, { el, sub, bar, name });
   }
+  // 1.18 Willowmere Manor
+  {
+    const name = h('span', { class: 'sq-name outlined' }, MANOR.name);
+    const sub = h('span', { class: 'sq-sub' });
+    const bar = h('span', { class: 'sq-bar-fill' });
+    const el = h('div', { class: 'sq-label mn-label', 'data-room': 'manor' }, h('div', { class: 'sq-label-top' }, icon('crown', 'sq-label-icon'), name), sub, h('div', { class: 'sq-bar' }, bar));
+    layer.append(el);
+    labels.set('manor', { el, sub, bar, name });
+  }
   void v;
 }
 
@@ -280,6 +292,15 @@ function updateLabels(): void {
     l.el.classList.toggle('done', fin);
     l.el.classList.toggle('locked', !fin && (room.soon || !open));
     l.el.classList.toggle('ready', !fin && open && !room.soon && restoration.givable() > 0 && restoration.lines(room.id, room.bundles[0]?.id ?? '').length > 0 && room.bundles.some((b) => !restoration.bundleDone(room.id, b.id) && restoration.lines(room.id, b.id).some((ln) => restoration.canGive(room.id, b.id, ln.item) > 0)));
+  }
+  // 1.18 Willowmere Manor
+  const ml = labels.get('manor');
+  if (ml) {
+    const cur = currentWing(), started = manorStarted();
+    ml.sub.textContent = !started ? 'After the six rooms' : cur ? `${wingsDone()} of ${MANOR_WINGS.length} wings: ${cur.name}` : 'Open!';
+    ml.bar.style.width = `${Math.round((started ? (wingsDone() + (cur && restoration.isOpen(cur.id) ? restoration.roomFraction(cur.id) : 0)) / MANOR_WINGS.length : 0) * 100)}%`;
+    ml.el.classList.toggle('done', !cur);
+    ml.el.classList.toggle('locked', !started || (!!cur && !restoration.isOpen(cur.id)));
   }
 }
 

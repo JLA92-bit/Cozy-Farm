@@ -140,11 +140,12 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
     for (const [room, bundles] of Object.entries(v.given)) {
       if (!isObj(bundles)) continue;
       given[room] = {};
-      for (const [bundle, items] of Object.entries(bundles)) given[room][bundle] = countMap(items, (k) => !!ITEMS[k]);
+      // coins paid into a bundle (Treasury chests, manor wages) are kept too: before 1.18 they were dropped on load
+      for (const [bundle, items] of Object.entries(bundles)) given[room][bundle] = countMap(items, (k) => k === 'coins' || !!ITEMS[k]);
     }
   }
   const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
-  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined };
+  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined, manor: typeof v.manor === 'number' && v.manor > 0 ? v.manor : undefined };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);

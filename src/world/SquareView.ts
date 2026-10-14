@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import gsap from 'gsap';
 import { assets } from '../core/Assets';
-import { ROOMS, VILLAGER, type RoomDef } from '../data';
+import { MANOR_WINGS, ROOMS, VILLAGER, type RoomDef } from '../data';
+import { currentWing, manorStarted } from '../systems/Manor';
 import { restoration } from '../systems/Restoration';
 import { festivals } from '../systems/Festivals';
 import { Character } from './Character';
@@ -32,8 +33,12 @@ export const CLIFF_H = 1.6;
 const U = new THREE.Vector2(Math.SQRT1_2, -Math.SQRT1_2);
 const V = new THREE.Vector2(-Math.SQRT1_2, -Math.SQRT1_2);
 const at = (sx: number, sy: number): [number, number] => [U.x * sx + V.x * sy, U.y * sx + V.y * sy];
-/** Island centre in screen terms (a little behind the plaza, so the lots sit well inside the shore). */
-const IC_SY = 5;
+/** Island centre in screen terms (behind the plaza, so the lots and the manor grounds sit well inside the shore). */
+const IC_SY = 9;
+/** 1.18: the square's island is bigger than the woods' one, to make room for Willowmere Manor behind the lots. */
+const R_SQ = 31;
+/** Where Willowmere Manor stands (screen terms): behind the lots in both layouts. */
+const MANOR_SY = 31;
 
 /** 'arc': a curved row behind the plaza (wide screens). 'street': two columns along a main street (narrow phones). */
 export type SquareLayout = 'arc' | 'street';
@@ -207,8 +212,8 @@ export function grassTop(cx: number, cz: number, radius: number): THREE.Mesh {
 }
 
 /** Cliffs, beach and rocks round the island (same look as the farm island). */
-export function islandBase(cx: number, cz: number): THREE.Mesh {
-  const R = R_ISLAND, b = geo();
+export function islandBase(cx: number, cz: number, R = R_ISLAND): THREE.Mesh {
+  const b = geo();
   b.cyl(R, R, CLIFF_H, PAL.dirt, [cx, -CLIFF_H - 0.06, cz], 72)
     .cyl(R + 0.15, R + 0.15, 0.25, PAL.grassDark, [cx, -0.285, cz], 72)
     .cyl(R + 0.25, R + 0.25, 0.35, PAL.dirtDark, [cx, -CLIFF_H + 0.35, cz], 72)
@@ -316,7 +321,7 @@ export class SquareView {
     const g = this.group;
     g.position.set(SQUARE.x, 0, SQUARE.z);
     const [icx, icz] = at(0, IC_SY);
-    g.add(grassTop(icx, icz, R_ISLAND), islandBase(icx, icz));
+    g.add(grassTop(icx, icz, R_SQ), islandBase(icx, icz, R_SQ));
 
     // plaza, fountain and paths
     const plaza = new THREE.Mesh(plazaGeometry(), assets.vertexMaterial);
@@ -331,6 +336,7 @@ export class SquareView {
     this.layout('arc', true);
 
     await this.scatter();
+    await this.buildManor();
     this.buildFestival();
     await this.buildVillagers();
     this.refresh();
@@ -456,7 +462,7 @@ export class SquareView {
       this.paths.push(m);
     };
     if (mode === 'street') {
-      const [ax, az] = at(0, R_PLAZA - 0.4), [bx, bz] = at(0, 25);
+      const [ax, az] = at(0, R_PLAZA - 0.4), [bx, bz] = at(0, MANOR_SY - 5.5);
       add(new THREE.Vector2(ax, az), new THREE.Vector2(bx, bz));
     }
     for (const lot of this.lots.values()) {
@@ -623,7 +629,9 @@ export class SquareView {
     for (const mode of ['arc', 'street'] as const) for (const sp of Object.values(spotsFor(mode))) if (Math.hypot(x - sp.x, z - sp.z) < d) return false;
     // the main street of the narrow layout
     const [sx, sy] = [(x * U.x + z * U.y), (x * V.x + z * V.y)];
-    return !(Math.abs(sx) < 3.6 && sy > 3 && sy < 26);
+    // and Willowmere's grounds
+    if (Math.abs(sx) < 11 && sy > MANOR_SY - 7 && sy < MANOR_SY + 8) return false;
+    return !(Math.abs(sx) < 3.6 && sy > 3 && sy < MANOR_SY - 6);
   }
 
   private async scatter(): Promise<void> {
@@ -647,10 +655,10 @@ export class SquareView {
     }
     // trees and bushes round the rim, with a gap for the jetty
     const jetty = Math.atan2(at(-9, -8)[1] - icz, at(-9, -8)[0] - icx);
-    for (let i = 0; i < 34; i++) {
-      const a = (i / 34) * Math.PI * 2 + r() * 0.1;
+    for (let i = 0; i < 42; i++) {
+      const a = (i / 42) * Math.PI * 2 + r() * 0.1;
       if (Math.abs(Math.atan2(Math.sin(a - jetty), Math.cos(a - jetty))) < 0.32) continue;
-      const d = R_ISLAND - 1.4 - r() * 2.4;
+      const d = R_SQ - 1.4 - r() * 2.4;
       const x = icx + Math.cos(a) * d, z = icz + Math.sin(a) * d;
       // keep clear of the lots and the plaza
       if (!this.clearOfLots(x, z, LOT_W * 0.95) || Math.hypot(x, z) < R_PLAZA + 1) continue;
@@ -661,7 +669,7 @@ export class SquareView {
       g.add(t);
     }
     for (let i = 0; i < 26; i++) {
-      const a = r() * Math.PI * 2, d = 6 + r() * (R_ISLAND - 8);
+      const a = r() * Math.PI * 2, d = 6 + r() * (R_SQ - 8);
       const x = icx + Math.cos(a) * d, z = icz + Math.sin(a) * d;
       if (Math.hypot(x, z) < R_PLAZA + 1.2 || !this.clearOfLots(x, z, LOT_W * 0.9)) continue;
       const ids = ['nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'nat/bush', 'nat/grass_large'];
@@ -673,7 +681,7 @@ export class SquareView {
     mergeStatic(scenery);
 
     // the jetty and a boat: the way home
-    const jx = icx + Math.cos(jetty) * (R_ISLAND - 0.2), jz = icz + Math.sin(jetty) * (R_ISLAND - 0.2);
+    const jx = icx + Math.cos(jetty) * (R_SQ - 0.2), jz = icz + Math.sin(jetty) * (R_SQ - 0.2);
     const g2 = this.group;
     const jet = new THREE.Mesh(jettyGeometry(), assets.vertexMaterial);
     jet.position.set(jx, 0, jz);
@@ -710,6 +718,135 @@ export class SquareView {
         this.placeLot(lot);
       } catch (e) { console.warn('[square] villager could not be drawn', v.id, e); }
     }
+  }
+
+  // ---------------------------------------------------------------------------------------- Willowmere Manor
+
+  /** 1.18: each wing's finished look (cumulative), the scaffold on the wing being rebuilt, and the overgrown ruin. */
+  private manorPieces = new Map<string, THREE.Object3D>();
+  private manorWork = new Map<string, THREE.Object3D>();
+  private manorRuin: THREE.Object3D | null = null;
+  private manorKey = '';
+  /** Above the manor, for its label. */
+  readonly manorAnchor = new THREE.Vector3();
+
+  /** Willowmere stands behind the lots, facing the plaza, built from the same CC0 models as the rest of the square. */
+  private async buildManor(): Promise<void> {
+    const [mx, mz] = at(0, MANOR_SY);
+    const root = new THREE.Group();
+    root.position.set(mx, 0, mz);
+    root.rotation.y = Math.atan2(-mx, -mz);
+    this.group.add(root);
+    this.manorAnchor.set(mx, 8.5, mz);
+    const put = async (g: THREE.Object3D, id: string, w: number, x: number, z: number, ry = 0, y = 0.02): Promise<void> => {
+      try { const o = await modelObject(id, w); o.position.set(x, y, z); o.rotation.y = ry; g.add(o); } catch (e) { console.warn('[square] manor piece missing', id, e); }
+    };
+    const tall = async (g: THREE.Object3D, id: string, hgt: number, x: number, z: number): Promise<void> => {
+      try { const o = await tallObject(id, hgt); o.position.set(x, 0.02, z); g.add(o); } catch (e) { console.warn('[square] manor piece missing', id, e); }
+    };
+    const PLINTH = 0.32;
+    const wing = async (id: string, make: (g: THREE.Group) => Promise<void>): Promise<void> => {
+      const g = new THREE.Group();
+      await make(g);
+      mergeStatic(g);
+      g.visible = false;
+      root.add(g);
+      this.manorPieces.set(`manor_${id}`, g);
+    };
+    await wing('grounds', async (g) => {
+      g.add(new THREE.Mesh(geo().cyl(5.4, 5.6, 0.08, '#d9cba8', [0, 0.04, 5.2], 40).cyl(4.6, 4.6, 0.1, '#e6dabd', [0, 0.05, 5.2], 40).build(), assets.vertexMaterial));
+      await put(g, 'prop/fountain_square', 2.8, 0, 5.2);
+      for (const x of [-4.2, 4.2]) for (const z of [2.2, 3.8, 5.4, 7.0]) await put(g, 'prop/hedge', 1.5, x, z, Math.PI / 2);
+      for (const x of [-2.4, 2.4]) await tall(g, 'prop/lantern', 2.4, x, 7.9);
+    });
+    await wing('foundations', async (g) => {
+      g.add(new THREE.Mesh(geo().box(12.6, 0.14, 10.4, '#a89d88', [0, 0.07, -3.0]).box(12, PLINTH, 9.8, '#c9bfa9', [0, PLINTH / 2, -3.0]).box(3.2, 0.16, 1.2, '#d8cfba', [0, 0.08, 2.4]).build(), assets.vertexMaterial));
+    });
+    await wing('hall', async (g) => {
+      await put(g, 'bld/home_yellow', 5.6, 0, -1.4, 0, PLINTH);
+      for (const x of [-1.5, 1.5]) await tall(g, 'cas/flag_wide', 3.2, x, 1.4);
+    });
+    await wing('kitchens', async (g) => {
+      await put(g, 'bld/kitchen', 3.4, -4.4, -1.2, 0, PLINTH);
+      await put(g, 'prop/barrel', 0.6, -5.8, 0.9, 0.4, PLINTH);
+      await put(g, 'prop/crate_big', 0.6, -3.0, 0.9, 0.2, PLINTH);
+    });
+    await wing('library', async (g) => {
+      await put(g, 'bld/tower', 2.4, 4.5, -2.0, 0, PLINTH);
+      await put(g, 'prop/bench', 1.4, 4.2, 0.9, 0, PLINTH);
+    });
+    await wing('gardens', async (g) => {
+      for (const side of [-1, 1]) {
+        await put(g, 'nat/tree_oak', 2.4, side * 9.2, 1.6, side);
+        await put(g, 'nat/tree_fat', 2.0, side * 9.6, -2.4, side * 2);
+        await put(g, 'prop/bush_pot', 0.9, side * 6.6, 2.6);
+        await put(g, 'house/planter', 1.6, side * 6.6, 4.6, side > 0 ? 0 : Math.PI);
+        const flowers = ['nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple'];
+        for (let i = 0; i < 9; i++) await put(g, flowers[i % 3], 0.6, side * (5.6 + (i % 3) * 0.55), 6.0 + Math.floor(i / 3) * 0.55);
+      }
+      g.add(new THREE.Mesh(geo().cyl(1.6, 1.7, 0.08, '#8fc7d8', [-8.2, 0.05, 5.2], 28).cyl(1.75, 1.75, 0.05, PAL.stone, [-8.2, 0.03, 5.2], 28).build(), assets.vertexMaterial));
+    });
+    await wing('stables', async (g) => {
+      try {
+        const st = await buildingObject('stable', 3.8);
+        st.position.set(8.4, 0.02, -1.2);
+        st.rotation.y = -0.4;
+        g.add(st);
+      } catch (e) { console.warn('[square] manor stables missing', e); }
+      await put(g, 'prop/cart_high', 1.8, 8.6, 2.4, -0.6);
+      await put(g, 'prop/fence_wood', 1.5, 10.2, 0.6, Math.PI / 2);
+      await put(g, 'prop/fence_wood', 1.5, 10.2, -0.9, Math.PI / 2);
+    });
+    await wing('ballroom', async (g) => {
+      await put(g, 'bld/church', 6.6, 0, -6.0, 0, PLINTH);
+      for (const x of [-3.2, 3.2]) await tall(g, 'cas/banner', 2.8, x, -3.4);
+      for (const x of [-5.4, 5.4]) await tall(g, 'prop/streetlight', 2.6, x, 2.0);
+    });
+    // before the grounds are cleared: an overgrown ruin behind brambles
+    const ruin = new THREE.Group();
+    await put(ruin, 'bld/ruin', 6.4, 0, -2.0);
+    for (let i = 0; i < 14; i++) {
+      const r = rng(900 + i);
+      await put(ruin, i % 3 ? 'nat/bush' : 'nat/grass_large', 0.8 + r() * 0.8, (r() - 0.5) * 14, (r() - 0.3) * 10, r() * 6);
+    }
+    for (const x of [-6, -4.5, -3, 3, 4.5, 6]) await put(ruin, 'prop/fence_wood', 1.5, x, 3.6);
+    mergeStatic(ruin);
+    root.add(ruin);
+    this.manorRuin = ruin;
+    // scaffolding where the current wing is going up
+    const spots: Record<string, [number, number]> = {
+      grounds: [0, 5.2], foundations: [0, -2.6], hall: [0, -1.6], kitchens: [-4.4, -1.2], library: [4.5, -2.0],
+      gardens: [-7, 3.4], stables: [8.4, -1.0], ballroom: [0, -5.8],
+    };
+    for (const w of MANOR_WINGS) {
+      const [x, z] = spots[w.id.slice(6)] ?? [0, 0];
+      const g = new THREE.Group();
+      await put(g, 'bld/scaffolding', 2.6, x, z, 0, PLINTH);
+      await put(g, 'prop/lumber', 1.0, x + 1.6, z + 1.6, 0.4);
+      await put(g, 'prop/stones', 0.8, x - 1.5, z + 1.7, 1.1);
+      mergeStatic(g);
+      g.visible = false;
+      root.add(g);
+      this.manorWork.set(w.id, g);
+    }
+    // one big see-through block to tap
+    const pick = new THREE.Mesh(new THREE.BoxGeometry(20, 9, 16), new THREE.MeshBasicMaterial({ visible: false }));
+    pick.position.set(mx, 4.5, mz);
+    pick.rotation.y = root.rotation.y;
+    pick.userData.manor = true;
+    this.group.add(pick);
+    this.pickers.push(pick);
+  }
+
+  /** Show the wings that are rebuilt, the scaffold on the one being worked on, and the ruin until the grounds are clear. */
+  private refreshManor(): void {
+    const started = manorStarted(), cur = currentWing();
+    const key = `${started}|${MANOR_WINGS.map((w) => (restoration.isDone(w.id) ? 1 : 0)).join('')}|${cur?.id ?? ''}|${cur ? restoration.isOpen(cur.id) : false}`;
+    if (key === this.manorKey) return;
+    this.manorKey = key;
+    for (const [id, g] of this.manorPieces) g.visible = restoration.isDone(id);
+    for (const [id, g] of this.manorWork) g.visible = started && cur?.id === id && restoration.isOpen(id);
+    if (this.manorRuin) this.manorRuin.visible = !restoration.isDone('manor_grounds');
   }
 
   // ---------------------------------------------------------------------------------------- state
@@ -752,6 +889,7 @@ export class SquareView {
       if (!lot.variants[key]) lot.variants.ruin!.visible = true;
     }
     for (const a of this.animals) a.root.visible = restoration.isDone(a.lot);
+    this.refreshManor();
   }
 
   /** The room just finished: bounce it. */
@@ -768,23 +906,26 @@ export class SquareView {
 
   /** World position above a lot (for labels and effects). */
   anchorOf(id: string): THREE.Vector3 | null {
+    if (id === 'manor') return this.world(this.manorAnchor.x, this.manorAnchor.y, this.manorAnchor.z);
     const lot = this.lots.get(id);
     return lot ? this.world(lot.anchor.x, lot.anchor.y, lot.anchor.z) : null;
   }
   groundOf(id: string): THREE.Vector3 | null {
+    // a manor wing celebrates at the manor
+    if (id === 'manor' || id.startsWith('manor_')) return this.world(this.manorAnchor.x, 0.2, this.manorAnchor.z);
     const lot = this.lots.get(id);
     return lot ? this.world(lot.info.x, 0.2, lot.info.z) : null;
   }
 
   /** What a tap hits: a room (its lot or board) or a villager, or nothing. */
-  pick(ray: THREE.Ray): { room?: string; villager?: string } | null {
+  pick(ray: THREE.Ray): { room?: string; villager?: string; manor?: boolean } | null {
     this.raycaster.ray.copy(ray);
     this.group.updateMatrixWorld(true);
     // villagers first (they stand in front of the lots)
     const hits = this.raycaster.intersectObjects(this.pickers, false);
     if (!hits.length) return null;
-    const ud = hits[0].object.userData as { room?: string; villager?: string };
-    return ud.villager ? { villager: ud.villager } : ud.room ? { room: ud.room } : null;
+    const ud = hits[0].object.userData as { room?: string; villager?: string; manor?: boolean };
+    return ud.villager ? { villager: ud.villager } : ud.room ? { room: ud.room } : ud.manor ? { manor: true } : null;
   }
 
   villagerObject(id: string): THREE.Object3D | null { return this.characters.find((c) => c.id === id)?.char.root ?? null; }

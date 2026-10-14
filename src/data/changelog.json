@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.18.0",
+   "date": "2026-10-18",
+   "title": "Willowmere Manor",
+   "icon": "crown",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "crown",
+     "text": "Behind the village square stands Willowmere, the old manor house. Once all six rooms are rebuilt, restore it wing by wing: eight wings, each asking a great deal and each giving something to your farm for good"
+    },
+    {
+     "icon": "house",
+     "text": "Watch the manor rise in the square as you go, from an overgrown ruin to the Grand Ballroom, and keep a model of it for your own farm when it opens"
+    },
+    {
+     "icon": "info",
+     "text": "Fixed: coins you had paid part-way into a Treasury chest are no longer lost when the game reloads"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.17.0",
    "date": "2026-10-17",
    "title": "The Long Road",

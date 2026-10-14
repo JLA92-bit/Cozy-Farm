@@ -1,4 +1,5 @@
 import { CROP, ECONOMY, TREE, BUILDING, ITEMS } from '../data';
+import { manorGrowTimeMult } from './Manor';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
@@ -52,7 +53,7 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b)));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * manorGrowTimeMult()));
     b.plot = { crop, plantedAt: game.now(), growSec };
     if (this.useFert && fertStock() > 0) {
       const q = game.count(QUALITY_FERT) > 0;
@@ -109,7 +110,7 @@ export class FarmingSystem {
     game.incStat('fruit_harvested', def.yield);
     game.incStat(`harvest_${def.item}`, def.yield);
     this.maybeEventToken(at);
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth)));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * manorGrowTimeMult()));
     b.tree = { readyAt: game.now() + growSec * 1000 };
     game.bus.emit('tree:harvested', { b, item: def.item, qty: def.yield });
     game.bus.emit('building:changed', { b });

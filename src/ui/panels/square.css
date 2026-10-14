@@ -94,3 +94,9 @@
 .sq-need { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 800; color: #b64a3a; }
 .sq-need.ok { color: #3b8a2a; }
 .sq-need img, .sq-need svg { width: 20px; height: 20px; }
+
+/* 1.18 Willowmere Manor: the wing list */
+.mn-wing { cursor: pointer; }
+.mn-wing.locked { opacity: .78; }
+.mn-wing.current { box-shadow: 0 3px 0 var(--outline), 0 0 0 4px rgba(255, 216, 74, .7); }
+.mn-wing .sq-reward-text { margin-top: 6px; }

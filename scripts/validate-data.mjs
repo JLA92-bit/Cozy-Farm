@@ -254,6 +254,50 @@ releases?.forEach((r, i) => {
   if (/\u2014|\u2013/.test(JSON.stringify(r))) err('restoration.json: no em or en dashes in text');
 }
 
+// 1.18 Willowmere Manor: wings are restoration rooms with ids manor_<wing>, opening one after another; every item a
+// wing asks for must be obtainable by its opensAt level (farm items) or in the woods and sea (no level)
+{
+  const m = read('manor.json');
+  const villagers = new Set(read('villagers.json').villagers.map((v) => v.id));
+  const roomIds = new Set(read('restoration.json').rooms.map((x) => x.id));
+  const lvl = {};
+  for (const c of read('crops.json').crops) lvl[c.id] = c.level;
+  for (const t of read('crops.json').trees ?? []) lvl[t.item] = t.level;
+  for (const a of read('animals.json').animals) { lvl[a.product] = a.level; }
+  const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));
+  for (const r of read('recipes.json').recipes) lvl[r.item] = Math.min(lvl[r.item] ?? 999, Math.max(r.level, bl[r.building] ?? 1));
+  const seen = new Set();
+  let prev = 0;
+  for (const w of m.wings ?? []) {
+    if (!/^manor_[a-z]+$/.test(w.id) || seen.has(w.id) || roomIds.has(w.id)) err(`manor wing ${w.id}: id must be a new, unique manor_<name>`);
+    seen.add(w.id);
+    if (!villagers.has(w.villager)) err(`manor wing ${w.id}: unknown villager ${w.villager}`);
+    if (icons && !icons[w.icon]) err(`manor wing ${w.id}: unknown icon ${w.icon}`);
+    if (!w.name || !w.about || !w.rebuilds || !w.reward?.text) err(`manor wing ${w.id}: needs name, about, rebuilds and a reward text`);
+    if (!(w.opensAt >= prev)) err(`manor wing ${w.id}: opensAt must not go down from the wing before`);
+    prev = w.opensAt;
+    if (!w.bundles?.length) err(`manor wing ${w.id}: needs bundles`);
+    const bseen = new Set();
+    for (const b of w.bundles ?? []) {
+      if (bseen.has(b.id)) err(`manor wing ${w.id}: duplicate bundle ${b.id}`);
+      bseen.add(b.id);
+      if (icons && !icons[b.icon]) err(`manor bundle ${w.id}/${b.id}: unknown icon ${b.icon}`);
+      for (const [it, n] of Object.entries(b.wants ?? {})) {
+        if (it !== 'coins' && !items[it]) err(`manor bundle ${w.id}/${b.id}: unknown item ${it}`);
+        if (!(Number.isInteger(n) && n > 0)) err(`manor bundle ${w.id}/${b.id}: ${it} needs a whole number above 0`);
+        if (lvl[it] !== undefined && lvl[it] > w.opensAt) err(`manor bundle ${w.id}/${b.id}: ${it} unlocks at level ${lvl[it]}, after the wing opens (${w.opensAt})`);
+      }
+      if (b.minStar !== undefined && b.minStar !== 1 && b.minStar !== 2) err(`manor bundle ${w.id}/${b.id}: minStar must be 1 or 2`);
+    }
+  }
+  const last = (m.wings ?? []).at(-1);
+  (m.wings ?? []).forEach((w) => { if (w !== last && (!w.letter?.title || !w.letter?.body)) err(`manor wing ${w.id}: needs a letter`); });
+  for (const [k, v] of Object.entries(m.effects ?? {})) if (typeof v !== 'number' && typeof v !== 'boolean') err(`manor.json: effects.${k} must be a number or true/false`);
+  if (!buildings.some((b) => b.id === m.finale?.decor)) err(`manor.json: finale decor ${m.finale?.decor} is not a building`);
+  if (!m.finale?.title || !m.finale?.body || !(m.finale?.coins >= 0) || !(m.finale?.gems >= 0)) err('manor.json: finale needs title, body, coins and gems');
+  if (/—|–/.test(JSON.stringify(m))) err('manor.json: no em or en dashes in text');
+}
+
 // 1.8 Village Guide: every src/data/guide-*.json has pages with an id, a title, an icon and some paragraphs
 {
   const ids = new Set();

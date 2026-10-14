@@ -23,6 +23,7 @@ import './HelpPanel';
 import './VillagePanel';
 import './SkillsPanel';
 import './SquarePanel';
+import './ManorPanel';
 import './FestivalPanel';
 import './MuseumPanel';
 import './ExpeditionPanel';

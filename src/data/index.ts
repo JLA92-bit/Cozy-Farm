@@ -3,6 +3,7 @@ import cropsJson from './crops.json';
 import villagersJson from './villagers.json';
 import skillsJson from './skills.json';
 import restorationJson from './restoration.json';
+import manorJson from './manor.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import fishstallJson from './fishstall.json';
@@ -232,6 +233,10 @@ export interface RoomDef {
 export const ROOMS = restorationJson.rooms as unknown as RoomDef[];
 export const ROOM = Object.fromEntries(ROOMS.map((r) => [r.id, r])) as Record<string, RoomDef>;
 export const RESTORATION = { market: restorationJson.market, rewards: restorationJson.rewards, festival: restorationJson.festival };
+/** 1.18 Willowmere Manor: wings are restoration rooms too (bundles, giving, saved progress), but not drawn as lots. */
+export const MANOR_WINGS = manorJson.wings as unknown as RoomDef[];
+export const MANOR = { name: manorJson.name, effects: manorJson.effects, finale: manorJson.finale };
+for (const w of MANOR_WINGS) ROOM[w.id] = w;
 
 export const CROP = Object.fromEntries(CROPS.map((c) => [c.id, c])) as Record<string, CropDef>;
 export const TREE = Object.fromEntries(TREES.map((t) => [t.id, t])) as Record<string, TreeDef>;

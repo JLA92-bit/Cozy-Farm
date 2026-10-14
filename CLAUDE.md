@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.17.0, committed locally with 1.15.1 and 1.16.0, not pushed; 1.15.0 is on `main`). Owner: Josh Makes Games.
+Last updated: 18 October 2026 (game version 1.18.0, committed locally; 1.17.0 is pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,17 +16,19 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.17.0 "The Long Road"** (local, with 1.15.1 and 1.16.0; 1.15.0 "Looking After the Farm" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.18.0 "Willowmere Manor"** (local; 1.17.0 "The Long Road" is pushed) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
-**1.17.0 (local, 17 Oct):** late-game pace (owner asked Claude to decide). XP per level is flat past 60 (`levels.json` `endless.xpPerLevel` 0) and Master claims, the Master week, boat visits and festival prizes pay a share of the current level as XP from level 60 (`endless.lateXp`, `Endless.lateXp()`); about 2.4 days a level, level 100 around day 187 for an engaged player (BALANCE.md table). Trophy-group charm capped at 500 (`economy.json` `charm.trophyMax`, `Timers.farmCharm`, used by `Buildings.charm` and `FarmSnapshot`). Hazel's one-off letter to farms past 60 (`state.endless.road`). The economy simulator runs to `authoredMax` + 20 with Master, boats and festivals.
+**1.18.0 (local, 18 Oct):** Willowmere Manor, the long project behind the village square (owner: the six rooms were finished far too fast). 8 wings in `manor.json`, opened in order after the Village Festival and by level; wings are restoration rooms with ids `manor_<wing>` (merged into `ROOM`, not `ROOMS`), so `Restoration.ts` gives and saves them; `src/systems/Manor.ts` holds the open rules and the permanent effects (woods forage/digs, festival coins, workshop/expedition/grow/animal speed, order coins), the finale is `Restoration.manorFinale` (`state.restoration.manor`, decor `willowmere`). Screens: `ManorPanel.ts` (ui `manor`, a Village card) and the room screen for each wing. 3D: `SquareView.buildManor` (square island radius 31, the manor behind the lots, pieces appear per wing, scaffolding on the current one). About 4.7M coins of goods, roughly 8 months for an engaged player (BALANCE.md). Also fixed: coins given to bundles were dropped on load.
 
-**1.16.0 (local, 16 Oct):** performance. Decor of any size is batched: fences and paths stay instanced per model (`InstancePool`), every other static decor shares one `THREE.BatchedMesh` per material (`src/world/BatchPool.ts`, `FarmView.isPooled`/`place`); glowing, themed-animated, lettered and gate decor stay standalone. Glow sprites are hidden by day. Boot reads the save first and preloads only models for buildings unlocked by the next level, placed or stored (`Boot.coreModels`); the rest load on demand (all model access is async except crops, trees, animals and `PROC_DEPENDENCIES`, which stay preloaded). Worst-case 720 decor of 283 kinds: 1,109 draw calls before, about 344-433 after; a new farm loads 4.6 MB instead of 7.2 MB. Budget check: `npm run test:perf` (720 decor, max 520 calls with shadows).
+**1.17.0 (pushed 17 Oct):** late-game pace (owner asked Claude to decide). XP per level is flat past 60 (`levels.json` `endless.xpPerLevel` 0) and Master claims, the Master week, boat visits and festival prizes pay a share of the current level as XP from level 60 (`endless.lateXp`, `Endless.lateXp()`); about 2.4 days a level, level 100 around day 187 for an engaged player (BALANCE.md table). Trophy-group charm capped at 500 (`economy.json` `charm.trophyMax`, `Timers.farmCharm`, used by `Buildings.charm` and `FarmSnapshot`). Hazel's one-off letter to farms past 60 (`state.endless.road`). The economy simulator runs to `authoredMax` + 20 with Master, boats and festivals.
 
-**1.15.1 (local, 15 Oct):** fixes from the Opus audit (`HANDOVER-OPUS.md`). Saves: an unreadable save is copied to `cozy-acres-save-unreadable` before anything is written, and a save from a newer version stops the boot with an "Update now" screen (`NewerSaveError`) instead of being replaced. Upkeep: a grace day after time away, full return window, dial 0 heals. Master: unknown challenge ids are dropped, "Pat your animals" counts `animal_pats`, side-bar entries are guarded. Four money-losing recipes repriced. Regression checks: `npm run test:regression`.
+**1.16.0 (pushed 16 Oct):** performance. Decor of any size is batched: fences and paths stay instanced per model (`InstancePool`), every other static decor shares one `THREE.BatchedMesh` per material (`src/world/BatchPool.ts`, `FarmView.isPooled`/`place`); glowing, themed-animated, lettered and gate decor stay standalone. Glow sprites are hidden by day. Boot reads the save first and preloads only models for buildings unlocked by the next level, placed or stored (`Boot.coreModels`); the rest load on demand (all model access is async except crops, trees, animals and `PROC_DEPENDENCIES`, which stay preloaded). Worst-case 720 decor of 283 kinds: 1,109 draw calls before, about 344-433 after; a new farm loads 4.6 MB instead of 7.2 MB. Budget check: `npm run test:perf` (720 decor, max 520 calls with shadows).
+
+**1.15.1 (pushed 15 Oct):** fixes from the Opus audit (`HANDOVER-OPUS.md`). Saves: an unreadable save is copied to `cozy-acres-save-unreadable` before anything is written, and a save from a newer version stops the boot with an "Update now" screen (`NewerSaveError`) instead of being replaced. Upkeep: a grace day after time away, full return window, dial 0 heals. Master: unknown challenge ids are dropped, "Pat your animals" counts `animal_pats`, side-bar entries are guarded. Four money-losing recipes repriced. Regression checks: `npm run test:regression`.
 
 **1.15.0 added (pushed 15 Oct):** upkeep from level 12: animals age and fall unwell, workshops and animal homes wear (`Upkeep.ts`, `upkeep.json`, `CarePanel.ts`, `UpkeepUI.ts`); the Vet's Cottage and Carpenter's Workshop (level 10) treat and repair; remote dial `game_config` `upkeep` 0-2.
 
@@ -187,7 +189,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.15.1 + 1.16.0 + 1.17.0** (committed locally; nothing is pushed until Josh says "yes push"). Test 1.16 batching on a real phone on Low, Medium and High (rule 9), ideally the PowerVR Pixel. Redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`): it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.18.0** (committed locally; nothing is pushed until Josh says "yes push"). 1.15.1-1.17.0 are live (deploy run 52). Still to do from those: test 1.16 batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] Make sure the latest `supabase/schema.sql` has been run in Supabase (1.15.0 added the `upkeep` game setting).
 - [ ] Next releases and open owner questions: see `HANDOVER-OPUS.md` and the 1.15 audit plan (next: 1.18 Care and Craft, then the rest of `ROADMAP.md`; server-side leaderboard plausibility checks are still to do).
 - [ ] Change GitHub default branch to `main` (Settings > General).
@@ -216,13 +218,13 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-10-17: 1.17.0 (local): flat XP past 60, late-game XP from Master/boats/festivals, trophy charm cap, Hazel's letter, simulator to 120.
-- 2026-10-16: 1.16.0 (local): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
-- 2026-10-15: 1.15.1 (local): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
+- 2026-10-18: 1.18.0 (local): Willowmere Manor (8 wings, `manor.json`, `Manor.ts`, `ManorPanel.ts`, 3D in the square); bundle coins kept on load. 1.15.1-1.17.0 pushed and live.
+- 2026-10-17: 1.17.0 (pushed): flat XP past 60, late-game XP from Master/boats/festivals, trophy charm cap, Hazel's letter, simulator to 120.
+- 2026-10-16: 1.16.0 (pushed): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
+- 2026-10-15: 1.15.1 (pushed): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
 - 2026-10-15: 1.15.0 (pushed): upkeep (animal sickness, building wear).
 - 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).
 - 2026-10-13: 1.13.0 (pushed): endless levels (see section 1).
 - 2026-10-12: 1.12.0 (pushed): leaderboard trophies.
 - 2026-10-11: 1.11.0 (pushed): levels 51-60 (see section 1).
 - 2026-10-11: 1.10.0 (pushed): crops, recipes, bunny, animal friendship, decor, Boat Visitors, Farm look. 1.9.2 is pushed.
-- 2026-10-09: 1.9.2 (local): seasons removed (see section 1). Festivals now run on `cycle.json`; extra fish use `extraChance`; forage is `WOODS.foraged`.

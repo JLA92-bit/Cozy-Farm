@@ -1,0 +1,597 @@
+{
+ "_comment": "1.18 Willowmere Manor: the great estate behind the village square, rebuilt wing by wing after the Village Festival (all six rooms of restoration.json). Each wing works like a restoration room (bundles of items or coins, minStar 1 silver, 2 gold, partly filled bundles keep what was given) and is stored with the rooms in state.restoration (ids manor_<wing>). A wing opens when the previous one is finished and the player has reached its opensAt level. Rewards are read in src/systems/Manor.ts (effects) and finishing the last wing hands out the finale. Sized to take an engaged player many months: see BALANCE.md > Willowmere Manor.",
+ "name": "Willowmere Manor",
+ "effects": {
+  "forageFull": true,
+  "digs": 2,
+  "festivalCoinsMult": 1.25,
+  "workshopTimeMult": 0.92,
+  "expeditionTimeMult": 0.85,
+  "growTimeMult": 0.92,
+  "animalTimeMult": 0.92,
+  "orderCoinsMult": 1.1
+ },
+ "finale": {
+  "coins": 250000,
+  "gems": 300,
+  "decor": "willowmere",
+  "title": "Willowmere is open!",
+  "body": "Dear {farmer},\n\nThe doors are open, the chandeliers are lit and the whole valley is dancing in the ballroom. Rosa has baked a cake with seven tiers, Pip has fed the koi far too much, Bram has polished every hinge and Old Tom is telling everyone about the coach. Juniper is painting it all.\n\nNone of it would be here without you. We have made you Keeper of Willowmere, which mostly means you are always invited, and there is a little model of the manor waiting in your storage for your own farm.\n\nFrom now on every order in the valley pays you a little more. It is the least we can do.\n\nWith all our love,\nHazel and everyone at Willowmere"
+ },
+ "wings": [
+  {
+   "id": "manor_grounds",
+   "name": "Clearing the Grounds",
+   "icon": "seedling",
+   "color": "green",
+   "villager": "tom",
+   "opensAt": 30,
+   "about": "Old Tom remembers Willowmere when the lawns ran down to the water. Right now you can hardly see the house for brambles. Clear the grounds and the real work can begin.",
+   "rebuilds": "the overgrown lawns, hedges and the old fountain",
+   "reward": {
+    "id": "manor_forage",
+    "text": "The gardeners tend the woodland too: every forage spot in the Wild Woods holds something every day."
+   },
+   "letter": {
+    "title": "The grounds are clear!",
+    "body": "Dear {farmer},\n\nI walked up the old drive this morning and could see the house from the gate for the first time in forty years. The fountain even had a trickle in it.\n\nThe gardeners have cleared the woodland paths while they were at it, so there is more to find in the Wild Woods now.\n\nNext come the foundations. Bram is already sharpening his chisels.\n\nYour friend,\nOld Tom"
+   },
+   "bundles": [
+    {
+     "id": "lunch",
+     "name": "Field Hands' Lunch",
+     "icon": "basket",
+     "wants": {
+      "bread": 150,
+      "corn_bread": 80,
+      "cheese": 60
+     }
+    },
+    {
+     "id": "harvest",
+     "name": "The Big Harvest",
+     "icon": "wheat",
+     "wants": {
+      "wheat": 2000,
+      "corn": 1200,
+      "carrot": 800
+     }
+    },
+    {
+     "id": "bramble",
+     "name": "Hedge and Bramble",
+     "icon": "blossom",
+     "wants": {
+      "blackberry": 15,
+      "fern_frond": 15,
+      "hazelnut": 15
+     }
+    },
+    {
+     "id": "rope",
+     "name": "Good Strong Rope",
+     "icon": "sheep",
+     "wants": {
+      "cotton": 300,
+      "yarn": 40,
+      "cotton_fabric": 60
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Gardeners' Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 30000
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_foundations",
+   "name": "The Foundations",
+   "icon": "hammer",
+   "color": "grey",
+   "villager": "bram",
+   "opensAt": 35,
+   "about": "Bram says the old stones are sound, but half of them are in the lake. New stone, fired tiles and a great deal of ore, and he will have the house standing on solid ground.",
+   "rebuilds": "the stone foundations and cellars",
+   "reward": {
+    "id": "manor_digs",
+    "text": "Bram lends you his best spade: 2 more digs in the Wild Woods every day."
+   },
+   "letter": {
+    "title": "Solid as a rock",
+    "body": "Dear {farmer},\n\nThe foundations are in, and I have checked every stone twice. Willowmere will stand another three hundred years.\n\nI have left my best spade at the woods gate for you. You will dig twice as far with it as with the old one.\n\nBram"
+   },
+   "bundles": [
+    {
+     "id": "kiln",
+     "name": "Kiln-Fired Stone",
+     "icon": "hammer",
+     "wants": {
+      "clay": 300,
+      "clay_pot": 80,
+      "glazed_tile": 120
+     }
+    },
+    {
+     "id": "ore",
+     "name": "Ore from the Woods",
+     "icon": "hammer_wrench",
+     "wants": {
+      "copper_ore": 20,
+      "iron_ore": 15,
+      "quartz": 10
+     }
+    },
+    {
+     "id": "breakfast",
+     "name": "Builders' Breakfast",
+     "icon": "basket",
+     "wants": {
+      "pancakes": 60,
+      "apple_pie": 40,
+      "cream": 200
+     }
+    },
+    {
+     "id": "cart",
+     "name": "Cartloads of Supplies",
+     "icon": "truck",
+     "wants": {
+      "beet": 300,
+      "cabbage": 300,
+      "pumpkin": 200
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Masons' Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 60000
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_hall",
+   "name": "The Great Hall",
+   "icon": "house",
+   "color": "yellow",
+   "villager": "juniper",
+   "opensAt": 38,
+   "about": "Juniper has sketched the Great Hall as it was: tapestries on every wall, a hearth you could stand in, and a long table for the whole valley. She needs a great deal of wool and honey to bring it back.",
+   "rebuilds": "the Great Hall with its hearth and tapestries",
+   "reward": {
+    "id": "manor_hall",
+    "text": "The valley gathers in the Great Hall: festival prizes pay 25% more coins."
+   },
+   "letter": {
+    "title": "The Great Hall is warm again",
+    "body": "Dear {farmer},\n\nI hung the last tapestry today and sat by the hearth until the candles burned down. It is the most beautiful room I have ever painted, and I only had to paint the ceiling.\n\nEveryone wants to celebrate there now, so festival prizes will be a good deal bigger.\n\nWith paint on my sleeves,\nJuniper"
+   },
+   "bundles": [
+    {
+     "id": "tapestry",
+     "name": "Tapestries",
+     "icon": "sheep",
+     "wants": {
+      "wool": 300,
+      "yarn": 150,
+      "scarf": 50,
+      "sweater": 30
+     }
+    },
+    {
+     "id": "hearth",
+     "name": "The Great Hearth",
+     "icon": "sparkles",
+     "wants": {
+      "honey": 200,
+      "honeycomb": 60,
+      "beeswax_candle": 80
+     }
+    },
+    {
+     "id": "feast",
+     "name": "Housewarming Feast",
+     "icon": "basket",
+     "wants": {
+      "pumpkin_pie": 60,
+      "roast_dinner": 25,
+      "cheese_fondue": 20
+     }
+    },
+    {
+     "id": "silver",
+     "name": "Silver Service",
+     "icon": "medal",
+     "wants": {
+      "milk": 150,
+      "cheese": 60,
+      "butter": 60
+     },
+     "minStar": 1
+    },
+    {
+     "id": "wages",
+     "name": "Carpenters' Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 100000
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_kitchens",
+   "name": "The Kitchens",
+   "icon": "basket",
+   "color": "pink",
+   "villager": "rosa",
+   "opensAt": 42,
+   "about": "Rosa nearly cried when she saw the old kitchens: three ovens, a cellar of jars and a dairy as cold as winter. Stock them all and she will teach every workshop in the valley her tricks.",
+   "rebuilds": "the great kitchens, bakery and preserves cellar",
+   "reward": {
+    "id": "manor_kitchens",
+    "text": "Rosa's tricks: every workshop on your farm works 8% faster."
+   },
+   "letter": {
+    "title": "Three ovens and not one cold",
+    "body": "Dear {farmer},\n\nThe kitchens are finished and I have baked in every oven. The cellar is full to the ceiling and the dairy is so cold the butter sings.\n\nI have written down all my little tricks for your workshops. You will find everything comes out of them a bit sooner.\n\nWith flour everywhere,\nRosa"
+   },
+   "bundles": [
+    {
+     "id": "larder",
+     "name": "The Larder",
+     "icon": "pumpkin",
+     "wants": {
+      "onion": 400,
+      "pea": 200,
+      "cauliflower": 200,
+      "cabbage": 300
+     }
+    },
+    {
+     "id": "bakery",
+     "name": "Bakery Shelves",
+     "icon": "wheat",
+     "wants": {
+      "baguette": 150,
+      "croissant": 100,
+      "doughnut": 100,
+      "cupcake": 60
+     }
+    },
+    {
+     "id": "cellar",
+     "name": "Preserves Cellar",
+     "icon": "strawberry",
+     "wants": {
+      "strawberry_jam": 120,
+      "orange_marmalade": 60,
+      "pickled_beets": 80,
+      "salsa": 60
+     }
+    },
+    {
+     "id": "dairy",
+     "name": "The Dairy Room",
+     "icon": "cow",
+     "wants": {
+      "butter": 200,
+      "goat_cheese": 80,
+      "ice_cream": 100
+     }
+    },
+    {
+     "id": "gold",
+     "name": "Cook's Gold Basket",
+     "icon": "glowing_star",
+     "wants": {
+      "egg": 150,
+      "milk": 100,
+      "apple": 100
+     },
+     "minStar": 2
+    }
+   ]
+  },
+  {
+   "id": "manor_library",
+   "name": "The Library",
+   "icon": "memo",
+   "color": "blue",
+   "villager": "hazel",
+   "opensAt": 48,
+   "about": "Hazel found the library under a hundred years of dust. The shelves are sound, but the cabinet of curiosities is empty and the reading nook needs a lot of treats before anyone will sit in it.",
+   "rebuilds": "the library, study and cabinet of curiosities",
+   "reward": {
+    "id": "manor_library",
+    "text": "The old maps in the library: expeditions from the Wild Woods take 15% less time."
+   },
+   "letter": {
+    "title": "Every book in its place",
+    "body": "Dear {farmer},\n\nThe library is finished. I have read four books already and I mean to read them all.\n\nWe found the old estate maps in the study, with every path through the woods marked. The expedition teams have copied them, so their trips will be quicker now.\n\nWith love,\nHazel"
+   },
+   "bundles": [
+    {
+     "id": "curios",
+     "name": "Cabinet of Curiosities",
+     "icon": "sparkles",
+     "wants": {
+      "old_coin": 4,
+      "scroll_fragment": 3,
+      "old_compass": 2,
+      "ammonite": 8,
+      "fossil_fern": 6
+     }
+    },
+    {
+     "id": "desk",
+     "name": "The Writing Desk",
+     "icon": "memo",
+     "wants": {
+      "lavender_candle": 30,
+      "blue_vase": 40,
+      "socks": 30
+     }
+    },
+    {
+     "id": "treats",
+     "name": "Reading Nook Treats",
+     "icon": "heart",
+     "wants": {
+      "cookie": 400,
+      "chocolate": 150,
+      "custard": 120
+     }
+    },
+    {
+     "id": "garden",
+     "name": "The Quiet Garden",
+     "icon": "blossom",
+     "wants": {
+      "sunflower": 300,
+      "lavender": 300,
+      "wild_rose": 20,
+      "daffodil": 20
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Bookbinders' Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 200000
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_gardens",
+   "name": "The Gardens and Glasshouse",
+   "icon": "apple",
+   "color": "green",
+   "villager": "pip",
+   "opensAt": 54,
+   "about": "Pip has decided the gardens are the best part of the whole estate and has already named all the koi that do not live there yet. Fill the orchard, the glasshouse and the borders.",
+   "rebuilds": "the walled orchard, flower borders, glasshouse and koi pond",
+   "reward": {
+    "id": "manor_gardens",
+    "text": "Seeds and cuttings from the glasshouse: crops and fruit trees on your farm grow 8% faster."
+   },
+   "letter": {
+    "title": "Pip's gardens",
+    "body": "Dear {farmer},\n\nTHE GARDENS ARE DONE! The koi are called Biscuit, Captain, Sir Wiggles and Tuesday.\n\nThe glasshouse gardener gave me cuttings and seeds for your farm and said they grow faster because they are happy. I believe her.\n\nYour friend,\nPip"
+   },
+   "bundles": [
+    {
+     "id": "orchard",
+     "name": "Orchard Rows",
+     "icon": "apple",
+     "wants": {
+      "apple": 600,
+      "pear": 500,
+      "orange": 400,
+      "lemon": 400
+     }
+    },
+    {
+     "id": "tropic",
+     "name": "The Tropical House",
+     "icon": "sparkles",
+     "wants": {
+      "banana": 300,
+      "coconut": 250,
+      "pineapple": 200
+     }
+    },
+    {
+     "id": "borders",
+     "name": "Flower Borders",
+     "icon": "blossom",
+     "wants": {
+      "sunflower": 400,
+      "lavender": 400,
+      "wild_rose": 25,
+      "daffodil": 25
+     }
+    },
+    {
+     "id": "prize",
+     "name": "Prize Vegetables",
+     "icon": "glowing_star",
+     "wants": {
+      "pumpkin": 100,
+      "watermelon": 60,
+      "giant_pumpkin": 30
+     },
+     "minStar": 2
+    },
+    {
+     "id": "koi",
+     "name": "The Koi Pond",
+     "icon": "fish",
+     "wants": {
+      "blossom_carp": 30,
+      "rainbow_trout": 40,
+      "gold_bream": 30,
+      "moonlight_koi": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_stables",
+   "name": "The Stables and Carriage House",
+   "icon": "truck",
+   "color": "grey",
+   "villager": "tom",
+   "opensAt": 60,
+   "about": "The old stables could take twenty horses and the carriage house still has the estate coach in it, under a sheet. Old Tom wants them both working before the grand opening.",
+   "rebuilds": "the stables, tack room and carriage house",
+   "reward": {
+    "id": "manor_stables",
+    "text": "The estate grooms share their ways: animals on your farm make their goods 8% sooner."
+   },
+   "letter": {
+    "title": "The coach is out of its sheet",
+    "body": "Dear {farmer},\n\nWe pulled the sheet off the old estate coach today and it shone like the day it was made. The stables smell of fresh hay and every stall is ready.\n\nThe grooms have shown your animals a thing or two, so expect your barnyard to be a little quicker.\n\nOld Tom"
+   },
+   "bundles": [
+    {
+     "id": "hay",
+     "name": "Hay and Oats",
+     "icon": "wheat",
+     "wants": {
+      "wheat": 3000,
+      "sheep_feed": 500,
+      "horse_feed": 400
+     }
+    },
+    {
+     "id": "groom",
+     "name": "Grooming Kit",
+     "icon": "sheep",
+     "wants": {
+      "wool": 400,
+      "angora": 200,
+      "truffle": 150
+     }
+    },
+    {
+     "id": "supper",
+     "name": "Stable Hands' Supper",
+     "icon": "basket",
+     "wants": {
+      "harvest_bento": 100,
+      "veggie_dumplings": 120,
+      "potato_soup": 40
+     }
+    },
+    {
+     "id": "tack",
+     "name": "Saddle Blankets",
+     "icon": "heart",
+     "wants": {
+      "sweater": 60,
+      "socks": 40,
+      "cotton_fabric": 300
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Grooms' Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 400000
+     }
+    }
+   ]
+  },
+  {
+   "id": "manor_ballroom",
+   "name": "The Grand Ballroom",
+   "icon": "crown",
+   "color": "yellow",
+   "villager": "hazel",
+   "opensAt": 66,
+   "about": "The last and greatest room: the ballroom, with chandeliers, a gold service for a hundred guests and music until dawn. When it is finished, Willowmere opens its doors to the whole valley.",
+   "rebuilds": "the Grand Ballroom and the grand opening",
+   "reward": {
+    "id": "manor_ballroom",
+    "text": "Willowmere is open: every order pays 10% more coins, and the Willowmere Manor itself is yours to place on your farm."
+   },
+   "letter": {
+    "title": "",
+    "body": ""
+   },
+   "bundles": [
+    {
+     "id": "banquet",
+     "name": "The Banquet",
+     "icon": "crown",
+     "wants": {
+      "mushroom_soup": 50,
+      "garden_wrap": 40,
+      "pumpkin_spice_cake": 40,
+      "celebration_cake": 30
+     }
+    },
+    {
+     "id": "goldsvc",
+     "name": "Gold Service",
+     "icon": "glowing_star",
+     "wants": {
+      "cheese": 100,
+      "goat_cheese": 60,
+      "honey": 120
+     },
+     "minStar": 2
+    },
+    {
+     "id": "chandelier",
+     "name": "Chandeliers",
+     "icon": "sparkles",
+     "wants": {
+      "quartz": 30,
+      "topaz": 6,
+      "amethyst": 4,
+      "beeswax_candle": 200
+     }
+    },
+    {
+     "id": "music",
+     "name": "Music and Dancing",
+     "icon": "heart",
+     "wants": {
+      "lavender_honey": 80,
+      "sunflower_honey": 80,
+      "hot_chocolate": 40
+     }
+    },
+    {
+     "id": "treasures",
+     "name": "The Family Treasures",
+     "icon": "medal",
+     "wants": {
+      "amber": 4,
+      "clay_figure": 2,
+      "amphora": 2
+     }
+    },
+    {
+     "id": "wages",
+     "name": "The Grand Opening",
+     "icon": "coin",
+     "wants": {
+      "coins": 1000000
+     }
+    }
+   ]
+  }
+ ]
+}

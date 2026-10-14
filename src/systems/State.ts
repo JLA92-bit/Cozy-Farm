@@ -188,6 +188,8 @@ export interface RestorationState {
   seeds?: { day: string; bought: number };
   /** when every room was rebuilt and the village festival began (ms); the golden statue and bunting stay for good */
   festival?: number;
+  /** 1.18 when every wing of Willowmere Manor was rebuilt (the grand opening) */
+  manor?: number;
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

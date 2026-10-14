@@ -1,3 +1,4 @@
+import { manorOrderCoinsMult } from './Manor';
 import {
   ANIMALS, BUILDINGS, COSMETICS, CROPS, ECONOMY, FRIENDSHIP, ITEMS, ITEM_LEVEL, LEVEL_DATA, RECIPES, TREES, VILLAGERS, itemXp,
 } from '../data';
@@ -121,7 +122,7 @@ export class OrderSystem {
       }
     }
     const value = lines.reduce((s, l) => s + ITEMS[l.item].sell * l.qty, 0);
-    const coins = Math.round(value * ECONOMY.orders.coinMult * (1 + buildings.bonuses().orderCoins));
+    const coins = Math.round(value * ECONOMY.orders.coinMult * (1 + buildings.bonuses().orderCoins) * manorOrderCoinsMult());
     const xp = Math.max(ECONOMY.orders.minXp, lines.reduce((s, l) => s + itemXp(l.item) * l.qty, 0));
     const gems = r() < ECONOMY.orders.gemChance ? 1 : 0;
     return { id, lines, coins, xp, gems, readyAt, npc: Math.floor(r() * 12) };

@@ -3,6 +3,7 @@
  * Perks.ts) so farming, animals, fishing, workshops, buildings and the barn can ask "what is the bonus?" without
  * pulling in the skills screen. The XP, levelling and perk choice live in Skills.ts.
  */
+import { manorAnimalTimeMult, manorWorkshopTimeMult } from './Manor';
 import { game } from './Game';
 import { qualityBoosts } from './Quality';
 import { ITEMS, SKILL_VALUES as V, SKILL_XP_LEVELS, type SkillId } from '../data';
@@ -31,7 +32,7 @@ export const seedSaverChance = (): number => (hasSkillPerk('seed_saver') ? V.see
 
 // ---------------------------------------------------------------- animals
 /** Animals take this much of their time to make a product (1% sooner per Animals level above the first). */
-export const animalTimeMult = (): number => animalTimeMultOf(game.state?.skills, roomDone('barn'));
+export const animalTimeMult = (): number => animalTimeMultOf(game.state?.skills, roomDone('barn')) * manorAnimalTimeMult();
 /** Chance that a collected animal stays fed for another round (Happy Herd). */
 export const happyHerdChance = (): number => (hasSkillPerk('happy_herd') ? V.happyHerdChance : 0);
 /** Extra animal places in every home (Breeder). */
@@ -64,7 +65,7 @@ export function rarityBoost(rarity: string): number {
 
 // ---------------------------------------------------------------- cooking
 /** Workshop jobs take this much of their time (1% sooner per Cooking level above the first). */
-export const cookTimeMult = (): number => 1 - (skillLevel('cooking') - 1) * V.cookSpeedPerLevel;
+export const cookTimeMult = (): number => (1 - (skillLevel('cooking') - 1) * V.cookSpeedPerLevel) * manorWorkshopTimeMult();
 /** Chance that a queued batch makes double (Batch Cook). */
 export const batchCookChance = (): number => (hasSkillPerk('batch_cook') ? V.batchCookChance : 0);
 /** Extra queue places in every workshop (Head Chef). */
