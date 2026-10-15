@@ -26,5 +26,12 @@
     "minRepair": 8
   },
   "away": { "rate": 0.25, "maxDays": 14 },
+  "care": {
+    "_comment": "1.21 Care and Craft. The Vet's Cottage and the Carpenter's Workshop have levels 2 and 3 (cost, sec, playerLevel per step). Each level above the first makes treating or repairing discount cheaper. Vet level 2+: a check-up keeps every animal in one home from falling unwell for checkup.days; checkup.perDay homes a day by vet level. Carpenter level 2+: a repaired building gets fresh paint and wears at freshPaint.wearMult for freshPaint.days[level - 1] days. The care round (Farmhouse) treats, then repairs, worst first, while the coins last.",
+    "levels": [{ "cost": 6000, "sec": 1800, "playerLevel": 16 }, { "cost": 18000, "sec": 3600, "playerLevel": 24 }],
+    "discount": 0.25,
+    "checkup": { "days": 3, "perDay": [0, 1, 2] },
+    "freshPaint": { "days": [0, 10, 14], "wearMult": 0.7 }
+  },
   "migrate": { "maxAgeDays": 45, "maxWear": 35 }
 }

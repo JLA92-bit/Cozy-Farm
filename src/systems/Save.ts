@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CRITTERS, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -72,7 +72,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.restoration = repairRestoration(s.restoration);
   out.fishstall = isObj(s.fishstall) && typeof s.fishstall.day === 'string' ? { day: s.fishstall.day, bought: countMap(s.fishstall.bought, (k) => !!ITEMS[k]) } : undefined;
   out.ranks = isObj(s.ranks) ? Object.fromEntries(Object.entries(s.ranks).filter(([k, v]) => ['level', 'farmValue', 'charm', 'weeklyXp'].includes(k) && Array.isArray(v)).map(([k, v]) => [k, (v as unknown[]).filter((t) => t === 1 || t === 2 || t === 3 || t === 10)])) as Record<string, number[]> : undefined;
-  out.upkeep = isObj(s.upkeep) && typeof s.upkeep.day === 'string' ? { day: s.upkeep.day, lost: ((Array.isArray(s.upkeep.lost) ? s.upkeep.lost : []) as Record<string, unknown>[]).filter((l) => isObj(l) && typeof l.animal === 'string' && !!ANIMAL[l.animal]).slice(0, 40).map((l) => ({ animal: l.animal as string, ...(typeof l.name === 'string' ? { name: l.name.slice(0, 16) } : {}), ...(Number.isFinite(l.love) ? { love: Math.max(0, Math.min(99, Math.floor(l.love as number))) } : {}), ...(Number.isFinite(l.born) ? { born: l.born as number } : {}), left: Math.max(0, Math.min(30, finite(l.left, 0, 0))) })) } : undefined;
+  out.upkeep = isObj(s.upkeep) && typeof s.upkeep.day === 'string' ? { day: s.upkeep.day, lost: ((Array.isArray(s.upkeep.lost) ? s.upkeep.lost : []) as Record<string, unknown>[]).filter((l) => isObj(l) && typeof l.animal === 'string' && !!ANIMAL[l.animal]).slice(0, 40).map((l) => ({ animal: l.animal as string, ...(typeof l.name === 'string' ? { name: l.name.slice(0, 16) } : {}), ...(Number.isFinite(l.love) ? { love: Math.max(0, Math.min(99, Math.floor(l.love as number))) } : {}), ...(Number.isFinite(l.born) ? { born: l.born as number } : {}), left: Math.max(0, Math.min(30, finite(l.left, 0, 0))) })), ...(isObj(s.upkeep.checkups) && typeof s.upkeep.checkups.day === 'string' && Number.isInteger(s.upkeep.checkups.n) ? { checkups: { day: s.upkeep.checkups.day, n: Math.max(0, s.upkeep.checkups.n as number) } } : {}) } : undefined;
   out.endless = isObj(s.endless) && typeof s.endless.marker === 'number' ? { marker: Math.max(0, Math.min(999, Math.floor(s.endless.marker))), ...(s.endless.road === true ? { road: true } : {}) } : undefined;
   out.master = isObj(s.master) && typeof s.master.week === 'string' && Array.isArray(s.master.ids) ? {
     week: s.master.week, base: isObj(s.master.base) ? Object.fromEntries(Object.entries(s.master.base).filter(([, n]) => typeof n === 'number' && Number.isFinite(n) && n >= 0).map(([k, n]) => [k, Math.floor(n as number)])) : {}, ids: (s.master.ids as unknown[]).filter((x): x is string => typeof x === 'string' && MASTER.challenges.some((c) => c.id === x)).slice(0, 3),
@@ -94,6 +94,14 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     visited: !!s.woods.visited,
     ...(Number.isFinite(s.woods.panned) ? { panned: Math.max(0, Math.floor(s.woods.panned as number)) } : {}),
     ...(isObj(s.woods.taps) ? { taps: Object.fromEntries(Object.entries(s.woods.taps).filter(([k, v]) => /^[a-z]+:\d+$/.test(k) && typeof v === 'number' && Number.isFinite(v))) as Record<string, number> } : {}),
+    // 1.20 Woodland Friends: visits per known family, a treat only if it is a real item, Wren's note for one day
+    ...(isObj(s.woods.critters) ? { critters: Object.fromEntries(Object.entries(s.woods.critters).filter(([k, v]) => CRITTERS.families.some((c) => c.id === k) && isObj(v)).map(([k, v]) => {
+      const c = v as Record<string, unknown>;
+      return [k, { visits: Number.isFinite(c.visits) ? Math.max(0, Math.floor(c.visits as number)) : 0, ...(typeof c.treat === 'string' && ITEMS[c.treat] ? { treat: c.treat } : {}), ...(typeof c.seen === 'string' ? { seen: c.seen } : {}) }];
+    })) } : {}),
+    ...(isObj(s.woods.note) && typeof s.woods.note.day === 'string' && typeof s.woods.note.item === 'string' && ITEMS[s.woods.note.item] && Number.isInteger(s.woods.note.n) && s.woods.note.n > 0
+      ? { note: { day: s.woods.note.day, item: s.woods.note.item, n: s.woods.note.n, done: s.woods.note.done === true } } : {}),
+    ...(Number.isFinite(s.woods.notesDone) ? { notesDone: Math.max(0, Math.floor(s.woods.notesDone as number)) } : {}),
   } : undefined;
   out.museum = isObj(s.museum) ? {
     donated: Object.fromEntries(Object.entries(isObj(s.museum.donated) ? s.museum.donated : {}).map(([k, v]) => [k, strArr(v).filter((i) => !!ITEMS[i])])),
@@ -211,6 +219,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     if (b.tree && !Number.isFinite(b.tree.readyAt)) b.tree = { readyAt: 0 };
     if (b.animals) b.animals = (Array.isArray(b.animals) ? b.animals : []).filter(isObj).map((a) => ({ fedAt: Number.isFinite(a.fedAt) ? a.fedAt as number : null, ...(typeof a.name === 'string' && a.name ? { name: a.name.slice(0, 16) } : {}), ...(Number.isFinite(a.love) && (a.love as number) > 0 ? { love: Math.min(99, Math.floor(a.love as number)) } : {}), ...(typeof a.petDay === 'string' ? { petDay: a.petDay } : {}), ...(Number.isFinite(a.born) ? { born: a.born as number } : {}), ...(Number.isFinite(a.sickAt) ? { sickAt: a.sickAt as number, sickDays: Math.max(0, Math.min(30, finite(a.sickDays, 0, 0))) } : {}) }));
     if (Number.isFinite(b.wear) && (b.wear as number) > 0) b.wear = Math.min(100, b.wear as number); else delete b.wear;
+    for (const k of ['checkupUntil', 'paintUntil'] as const) if (!(Number.isFinite(b[k]) && (b[k] as number) > 0)) delete b[k];
     if (b.queue) b.queue = (Array.isArray(b.queue) ? b.queue : []).filter((e) => isObj(e) && RECIPE[e.recipe] && Number.isFinite(e.start) && Number.isFinite(e.end));
     if (b.ready) b.ready = strArr(b.ready).filter((i) => ITEMS[i]);
     // 1.8 star quality: fertilised fields, star-ingredient jobs and the star goods waiting to be collected

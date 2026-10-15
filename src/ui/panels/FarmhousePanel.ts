@@ -4,6 +4,7 @@ import { ui } from '../UI';
 import { BUILDING, FARMHOUSE } from '../../data';
 import { game } from '../../systems/Game';
 import { buildings, speedupCost } from '../../systems/Buildings';
+import { upkeep } from '../../systems/Upkeep';
 import { audio } from '../../systems/Audio';
 import { formatTime, isUpgrading } from '../../systems/Timers';
 import {
@@ -41,6 +42,23 @@ export function openFarmhouse(): void {
     p.body.append(h('div', { class: 'center fh-intro' },
       h('div', { class: 'fh-level outlined' }, `Level ${lv}`, lv >= MAX_FARMHOUSE ? ' - fully upgraded!' : ''),
       h('div', { class: 'muted' }, 'A bigger home makes room for more fields, trees and buildings.')));
+
+    // 1.21 the care round: treat every unwell animal and repair what is worn, in one go
+    const plan = upkeep.on ? upkeep.carePlan() : null;
+    if (plan && plan.treat.length + plan.repair.length > 0) {
+      const parts = [plan.treat.length ? `${plan.treat.length} unwell ${plan.treat.length === 1 ? 'animal' : 'animals'}` : '', plan.repair.length ? `${plan.repair.length} ${plan.repair.length === 1 ? 'building' : 'buildings'} to repair` : ''].filter(Boolean);
+      const short = game.coins < plan.total;
+      p.body.append(h('div', { class: 'card care-round' },
+        h('div', { class: 'title' }, icon('heart'), ' Care round'),
+        h('div', { class: 'sub' }, `${parts.join(' and ')}. ${short ? 'You can afford some of it: the unwell animals come first, then the worst repairs.' : 'The vet and the carpenter can see to all of it now.'}`),
+        button(['Do the care round', priceTag(plan.total)], () => {
+          const r = upkeep.careRound();
+          if (!r.treated && !r.repaired) { ui.feedback.toast('Not enough coins', undefined, 'cross'); audio.play('error'); return; }
+          audio.play('reward');
+          ui.feedback.toast('Care round done', `${r.treated ? `${r.treated} treated` : ''}${r.treated && r.repaired ? ', ' : ''}${r.repaired ? `${r.repaired} repaired` : ''} for ${fmt(r.spent)} coins${r.left ? `. ${r.left} still to do` : ''}.`, 'heart');
+          render();
+        }, `small ${game.coins >= Math.min(...[...plan.treat, ...plan.repair].map((x) => x.cost)) ? 'yellow' : 'disabled'}`)));
+    }
 
     // what you can have right now
     p.body.append(h('div', { class: 'section-title' }, 'Your farm now'));

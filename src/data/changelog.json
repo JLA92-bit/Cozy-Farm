@@ -1,6 +1,40 @@
 {
  "releases": [
   {
+   "version": "1.20.0",
+   "date": "2026-10-20",
+   "title": "Woodland Friends",
+   "icon": "paw_prints",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "deer",
+     "text": "Six critter families live in the Wild Woods: leave a treat on their feeding stump and deer, rabbits, hedgehogs, foxes, squirrels and owls come to visit at their own time of day"
+    },
+    {
+     "icon": "heart",
+     "text": "Visit them to earn hearts and gifts, collect their special gifts for a new Museum shelf, and follow them all in the new Critter Journal"
+    },
+    {
+     "icon": "wren",
+     "text": "Wren the ranger has moved into Whispering Pines: help with her field notes every day"
+    },
+    {
+     "icon": "hammer",
+     "text": "Care and Craft: upgrade the Vet's Cottage and the Carpenter's Workshop for cheaper care, daily check-ups and fresh paint, and do all your care in one tap with the Care round on the Farmhouse"
+    },
+    {
+     "icon": "fish",
+     "text": "Everything now has a use: 27 new dishes and crafts for every fish, woods find and creek treasure, two new Museum shelves (Creek Treasures and The Aquarium), and two new boats, the Picnic Cruise and the Craft Fair Cruise"
+    },
+    {
+     "icon": "info",
+     "text": "Fixed: some decorations, such as the Water Tower and Lookout Tower, could vanish from view and leave only their shadow. They are all back where you placed them"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.19.0",
    "date": "2026-10-19",
    "title": "The Deep Woods",

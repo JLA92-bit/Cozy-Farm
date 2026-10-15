@@ -1656,6 +1656,204 @@
    "cat": "mineral",
    "sell": 150,
    "icon": "river_pearl"
+  },
+  "four_leaf_clover": {
+   "name": "Four-Leaf Clover",
+   "cat": "forage",
+   "sell": 60,
+   "icon": "four_leaf_clover"
+  },
+  "snail_shell": {
+   "name": "Banded Snail Shell",
+   "cat": "forage",
+   "sell": 45,
+   "icon": "snail_shell"
+  },
+  "golden_acorn": {
+   "name": "Golden Acorn",
+   "cat": "forage",
+   "sell": 90,
+   "icon": "golden_acorn"
+  },
+  "shed_antler": {
+   "name": "Shed Antler",
+   "cat": "forage",
+   "sell": 120,
+   "icon": "shed_antler"
+  },
+  "silver_spoon": {
+   "name": "Lost Silver Spoon",
+   "cat": "forage",
+   "sell": 100,
+   "icon": "silver_spoon"
+  },
+  "owl_feather": {
+   "name": "Owl Feather",
+   "cat": "forage",
+   "sell": 80,
+   "icon": "owl_feather"
+  },
+  "snapper_grill": {
+   "name": "Sunset Snapper Grill",
+   "cat": "goods",
+   "sell": 195,
+   "icon": "snapper_grill"
+  },
+  "flounder_fry": {
+   "name": "Flounder Fry",
+   "cat": "goods",
+   "sell": 250,
+   "icon": "flounder_fry"
+  },
+  "crab_cakes": {
+   "name": "Crab Cakes",
+   "cat": "goods",
+   "sell": 195,
+   "icon": "crab_cakes"
+  },
+  "grilled_tuna": {
+   "name": "Grilled Tuna Steak",
+   "cat": "goods",
+   "sell": 215,
+   "icon": "grilled_tuna"
+  },
+  "sunny_skewers": {
+   "name": "Sunny Fish Skewers",
+   "cat": "goods",
+   "sell": 185,
+   "icon": "sunny_skewers"
+  },
+  "blossom_sushi": {
+   "name": "Blossom Sushi",
+   "cat": "goods",
+   "sell": 110,
+   "icon": "blossom_sushi"
+  },
+  "harvest_fish_pie": {
+   "name": "Harvest Fish Pie",
+   "cat": "goods",
+   "sell": 320,
+   "icon": "harvest_fish_pie"
+  },
+  "winter_chowder": {
+   "name": "Winter Chowder",
+   "cat": "goods",
+   "sell": 190,
+   "icon": "winter_chowder"
+  },
+  "halibut_supper": {
+   "name": "Halibut Supper",
+   "cat": "goods",
+   "sell": 385,
+   "icon": "halibut_supper"
+  },
+  "rainbow_tacos": {
+   "name": "Rainbow Fish Tacos",
+   "cat": "goods",
+   "sell": 230,
+   "icon": "rainbow_tacos"
+  },
+  "pickled_herring": {
+   "name": "Pickled Herring",
+   "cat": "goods",
+   "sell": 180,
+   "icon": "pickled_herring"
+  },
+  "sea_bass_herbs": {
+   "name": "Herb-Crusted Sea Bass",
+   "cat": "goods",
+   "sell": 370,
+   "icon": "sea_bass_herbs"
+  },
+  "grouper_curry": {
+   "name": "Coral Grouper Curry",
+   "cat": "goods",
+   "sell": 580,
+   "icon": "grouper_curry"
+  },
+  "maple_syrup": {
+   "name": "Maple Syrup",
+   "cat": "goods",
+   "sell": 200,
+   "icon": "maple_syrup"
+  },
+  "maple_flounder_glazed": {
+   "name": "Maple-Glazed Flounder",
+   "cat": "goods",
+   "sell": 360,
+   "icon": "maple_flounder_glazed"
+  },
+  "pine_candle": {
+   "name": "Pine Forest Candle",
+   "cat": "goods",
+   "sell": 765,
+   "icon": "pine_candle"
+  },
+  "firefly_lantern": {
+   "name": "Firefly Lantern",
+   "cat": "goods",
+   "sell": 510,
+   "icon": "firefly_lantern"
+  },
+  "wild_garlic_bread": {
+   "name": "Wild Garlic Bread",
+   "cat": "goods",
+   "sell": 260,
+   "icon": "wild_garlic_bread"
+  },
+  "woodland_pie": {
+   "name": "Woodland Mushroom Pie",
+   "cat": "goods",
+   "sell": 565,
+   "icon": "woodland_pie"
+  },
+  "mint_lemonade": {
+   "name": "Mint Lemonade",
+   "cat": "goods",
+   "sell": 365,
+   "icon": "mint_lemonade"
+  },
+  "hedgerow_jam": {
+   "name": "Hedgerow Jam",
+   "cat": "goods",
+   "sell": 225,
+   "icon": "hedgerow_jam"
+  },
+  "woodland_vase": {
+   "name": "Woodland Vase",
+   "cat": "goods",
+   "sell": 550,
+   "icon": "woodland_vase"
+  },
+  "rush_basket": {
+   "name": "Rush Basket",
+   "cat": "goods",
+   "sell": 70,
+   "icon": "rush_basket"
+  },
+  "gilded_vase": {
+   "name": "Gilded Vase",
+   "cat": "goods",
+   "sell": 1090,
+   "icon": "gilded_vase"
+  },
+  "gem_mosaic": {
+   "name": "Gem Mosaic Tile",
+   "cat": "goods",
+   "sell": 1600,
+   "icon": "gem_mosaic"
+  },
+  "boot_planter": {
+   "name": "Old Boot Planter",
+   "cat": "goods",
+   "sell": 305,
+   "icon": "boot_planter"
+  },
+  "duck_egg_sponge": {
+   "name": "Duck Egg Sponge",
+   "cat": "goods",
+   "sell": 510,
+   "icon": "duck_egg_sponge"
   }
  }
 }

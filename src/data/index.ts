@@ -189,6 +189,8 @@ export interface SkillDef {
   perLevel: string;
   /** perk level ("5", "10") -> the two choices */
   perks: Record<string, SkillPerkDef[]>;
+  /** 1.21 free perks that come at a level, no choice */
+  bonus?: (SkillPerkDef & { level: number })[];
 }
 export const SKILLS = skillsJson.skills as unknown as SkillDef[];
 export const SKILL = Object.fromEntries(SKILLS.map((s) => [s.id, s])) as Record<SkillId, SkillDef>;
@@ -313,6 +315,17 @@ export interface WoodsRegion {
   taps?: { count: number; hours: number; yield: number; items: { id: string; w: number }[] };
 }
 export const WOODS_REGIONS = (woodsJson as unknown as { regions: WoodsRegion[] }).regions;
+/** 1.20 Woodland Friends: critter families with a feeding stump each, and Wren the ranger's field notes. */
+export interface CritterDef {
+  id: string; name: string; one: string; icon: string; model: string; region: string; from: number; to: number; when: string;
+  treats: string[]; rare: string; about: string; gifts: { id: string; w: number }[];
+}
+export const CRITTERS = (woodsJson as unknown as {
+  critters: { visitsPerHeart: number; maxHearts: number; heartCoins: number; rareBase: number; rarePerHeart: number; families: CritterDef[] };
+}).critters;
+export const WREN = (woodsJson as unknown as {
+  wren: { region: string; name: string; need: [number, number]; coinsMult: number; bonus: number; gemsEvery: number; look: Record<string, string>; hello: string[] };
+}).wren;
 export const WOODS_TRAILS = (woodsJson as unknown as { trails: RoomDef[] }).trails;
 for (const t of WOODS_TRAILS) ROOM[t.id] = t;
 

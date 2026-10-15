@@ -9,3 +9,5 @@
 .animal-card .animal-age { font-size: 11px; opacity: .7; }
 .lost-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 8px; border-radius: 12px; background: rgba(255, 255, 255, .5); border: 2px dashed var(--outline); }
 .lost-strip .lost-title { flex-basis: 100%; font-weight: 800; }
+.care-level { margin-top: 12px; }
+.care-round { margin: 8px 0; } .care-round .title { display: flex; align-items: center; gap: 4px; font-weight: 800; }

@@ -13,6 +13,8 @@ import { button, h, icon } from '../ui/dom';
 import { assets } from '../core/Assets';
 import { audio } from '../systems/Audio';
 import { hints } from '../systems/Hints';
+import { critters } from '../systems/Critters';
+import { sayHello } from '../ui/panels/CritterPanel';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import { isInSquare } from './Square';
 import type { DragKind, Pointer } from '../core/Input';
@@ -54,7 +56,7 @@ export function initWoods(scene: FarmScene, interaction: Interaction): void {
   // 1.19 a trail restored: its bridge is whole and the region opens
   game.bus.on('restoration:room', ({ room }) => { if (room.startsWith('trail_')) { view?.refresh(); updateBanner(); } });
   game.bus.on('state:changed', () => { if (inWoods) view?.refresh(); });
-  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods } });
+  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods, critters } });
 }
 
 async function loadView(): Promise<WoodsView> {
@@ -119,6 +121,8 @@ export async function enterWoods(): Promise<void> {
     busy = false;
     woods.markVisited();
     if (hints.firstTime('intro:woods')) ui.feedback.toast('The Wild Woods', 'Tap the glinting plants to pick them and the mounds to dig. Everything comes back tomorrow.', 'mushroom');
+    // 1.20 the feeding stumps
+    else if (hints.firstTime('intro:critters')) ui.feedback.toast('Woodland Friends', 'Leave a treat on a feeding stump and a critter family will visit. Tap a stump to see what they like.', 'paw_prints');
   } catch (e) {
     console.error('[woods] could not open', e);
     cleanup();
@@ -191,6 +195,10 @@ function act(hit: WoodsHit): void {
   if (hit.kind === 'villager' && hit.id) { ui.open('village', { villager: hit.id }); return; }
   if (hit.kind === 'museum') { ui.open('museum'); return; }
   if (hit.kind === 'board') { ui.open('expeditions'); return; }
+  // 1.20 Woodland Friends
+  if (hit.kind === 'stump' && hit.id) { ui.open('critter', { id: hit.id }); return; }
+  if (hit.kind === 'critter' && hit.id) { sayHello(hit.id); fx.hearts(at); return; }
+  if (hit.kind === 'wren') { ui.open('wren'); return; }
   // 1.19 the Deep Woods
   if (hit.kind === 'trail') { const reg = WOODS_REGIONS.find((r) => r.id === hit.id); if (reg) ui.open('square-room', { room: reg.trail }); return; }
   if (hit.kind === 'pan' || hit.kind === 'tap') {
@@ -244,7 +252,10 @@ function act(hit: WoodsHit): void {
 
 // ------------------------------------------------------------------------------------ banner
 
-function bannerText(): string { return woods.describe(); }
+function bannerText(): string {
+  const here = critters.waiting();
+  return here.length ? `${woods.describe()} ${here.length === 1 ? `The ${here[0].name.toLowerCase()} are at their stump!` : `${here.length} critter families are visiting!`}` : woods.describe();
+}
 
 function makeBanner(): HTMLElement {
   const home = button([icon('house'), h('span', null, 'Back to the farm')], () => void leaveWoods(), 'green visit-home', { 'aria-label': 'Back to your farm' });

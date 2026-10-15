@@ -46,7 +46,11 @@
         "chocolate_cake",
         "avocado_toast",
         "mincemeat_pie",
-        "gingerbread"
+        "gingerbread",
+        "blueberry_muffin",
+        "wild_garlic_bread",
+        "duck_egg_sponge",
+        "leek_pie"
       ],
       "boat": {
         "model": "boat/wc_005",
@@ -80,7 +84,44 @@
         "mackerel",
         "sea_snail",
         "bluegill",
-        "anchovy"
+        "anchovy",
+        "flounder",
+        "sea_bass",
+        "spider_crab",
+        "tuna",
+        "sunset_snapper",
+        "coral_grouper",
+        "sun_bream",
+        "sun_mullet",
+        "harvest_perch",
+        "frost_cod",
+        "ice_char",
+        "tulip_wrasse",
+        "blossom_snapper",
+        "rainbow_dorado",
+        "maple_flounder",
+        "amber_trout",
+        "pearl_herring",
+        "frost_halibut",
+        "fish_cake",
+        "fish_pie",
+        "seafood_curry",
+        "sushi_platter",
+        "oyster_chowder",
+        "snapper_grill",
+        "flounder_fry",
+        "crab_cakes",
+        "grilled_tuna",
+        "sunny_skewers",
+        "blossom_sushi",
+        "harvest_fish_pie",
+        "winter_chowder",
+        "halibut_supper",
+        "rainbow_tacos",
+        "pickled_herring",
+        "sea_bass_herbs",
+        "grouper_curry",
+        "maple_flounder_glazed"
       ],
       "boat": {
         "model": "pir/row_boat",
@@ -119,7 +160,14 @@
         "blueberry",
         "strawberry",
         "watermelon_juice",
-        "avocado"
+        "avocado",
+        "apple_juice",
+        "berry_juice",
+        "grape_juice",
+        "orange_juice",
+        "blueberry_juice",
+        "pineapple_juice",
+        "mint_lemonade"
       ],
       "boat": {
         "model": "boat/wc_028",
@@ -157,7 +205,9 @@
         "egg",
         "hot_chocolate",
         "milkshake",
-        "sundae"
+        "sundae",
+        "honey_butter",
+        "duck_egg"
       ],
       "boat": {
         "model": "boat/wc_006",
@@ -258,7 +308,10 @@
         "milkshake",
         "honey_cake",
         "sundae",
-        "gingerbread"
+        "gingerbread",
+        "cherry_jam",
+        "hedgerow_jam",
+        "maple_syrup"
       ],
       "boat": {
         "model": "boat/wc_008",
@@ -269,6 +322,104 @@
           0.2
         ]
       }
+    },
+    {
+      "id": "picnic",
+      "name": "Picnic Cruise",
+      "icon": "sandwich",
+      "greeting": "Hello there! We're off for a long lunch on the water. Have you anything tasty?",
+      "look": {
+        "body": "female-c",
+        "skin": "#e0ac7e",
+        "hair": "#c0392b",
+        "top": "#ff9f43",
+        "bottom": "#3b3b45",
+        "hat": "straw",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "boat": {
+        "model": "boat/wc_028",
+        "scale": 1.3,
+        "seat": [
+          0,
+          0.3,
+          0
+        ]
+      },
+      "items": [
+        "garden_pizza",
+        "pumpkin_pasta",
+        "veggie_dumplings",
+        "harvest_bento",
+        "stuffed_peppers",
+        "market_tacos",
+        "sandwich",
+        "salad",
+        "pea_soup",
+        "potato_soup",
+        "spaghetti",
+        "mushroom_pizza",
+        "pumpkin_soup",
+        "harvest_banquet",
+        "cheeseburger",
+        "hot_dog",
+        "fries",
+        "cobb_salad",
+        "corn_dog",
+        "rice_ball",
+        "dim_sum",
+        "tajine",
+        "garden_wrap",
+        "mushroom_soup",
+        "woodland_pie",
+        "avocado_toast"
+      ]
+    },
+    {
+      "id": "crafts",
+      "name": "Craft Fair Cruise",
+      "icon": "amphora",
+      "greeting": "Good day! I'm sailing to the craft fair. Have you anything handmade?",
+      "look": {
+        "body": "male-a",
+        "skin": "#c98a5e",
+        "hair": "#6b4a2b",
+        "top": "#8e6bd8",
+        "bottom": "#3b3b45",
+        "hat": "beanie",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "boat": {
+        "model": "boat/wc_008",
+        "scale": 1.3,
+        "seat": [
+          0,
+          0.5,
+          0.2
+        ]
+      },
+      "items": [
+        "yarn",
+        "cotton_fabric",
+        "scarf",
+        "sweater",
+        "socks",
+        "clay_pot",
+        "glazed_tile",
+        "blue_vase",
+        "beeswax_candle",
+        "lavender_candle",
+        "pine_candle",
+        "firefly_lantern",
+        "woodland_vase",
+        "rush_basket",
+        "gilded_vase",
+        "gem_mosaic",
+        "boot_planter",
+        "honeycomb"
+      ]
     }
   ]
 }

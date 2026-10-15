@@ -1,4 +1,4 @@
-import { ANIMAL, BUILDING, ECONOMY, FARMHOUSE, TREE, UPGRADES, type BuildingDef } from '../data';
+import { ANIMAL, BUILDING, ECONOMY, FARMHOUSE, TREE, UPGRADES, UPKEEP, type BuildingDef } from '../data';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { farmCharm, isBuilt, isUpgrading, settleProduction } from './Timers';
@@ -132,6 +132,17 @@ export class BuildingSystem {
       const lv = FARMHOUSE.levels[b.level];
       if (!lv) return null;
       return { next: b.level + 1, cost: lv.cost, sec: lv.sec, needLevel: lv.playerLevel, label: farmhouseGainsText(b.level) };
+    }
+    // 1.21 Care and Craft: the Vet's Cottage and the Carpenter's Workshop go to level 3
+    if (b.type === 'vet_cottage' || b.type === 'carpenter') {
+      const lv = UPKEEP.care.levels[b.level - 1];
+      if (!lv) return null;
+      const vet = b.type === 'vet_cottage';
+      return {
+        next: b.level + 1, cost: lv.cost, sec: lv.sec, needLevel: lv.playerLevel,
+        label: vet ? (b.level === 1 ? 'Treatments 25% cheaper and a daily check-up' : 'Treatments cheaper again and two check-ups a day')
+          : (b.level === 1 ? 'Repairs 25% cheaper and fresh paint' : 'Repairs cheaper again and longer-lasting paint'),
+      };
     }
     const kind = def.cat === 'production' ? UPGRADES.production : def.cat === 'animal' ? UPGRADES.animal : null;
     if (!kind) return null;

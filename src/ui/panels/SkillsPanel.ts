@@ -51,6 +51,13 @@ function perkRow(def: SkillDef, perkLevel: number, refresh: () => void): HTMLEle
   return box;
 }
 
+/** 1.21 a free perk that comes at its level (no choice). */
+function bonusRow(def: SkillDef, b: NonNullable<SkillDef['bonus']>[number]): HTMLElement {
+  const got = skills.level(def.id) >= b.level;
+  return h('div', { class: `sk-perk ${got ? 'chosen' : 'locked'}` }, icon(got ? b.icon : 'lock', 'sk-perk-icon'),
+    h('div', { class: 'grow' }, h('div', { class: 'sk-perk-name' }, b.name, h('span', { class: 'sk-tag' }, got ? `Level ${b.level} bonus` : `Free at level ${b.level}`)), h('div', { class: 'sk-perk-text' }, b.text)));
+}
+
 /** The skills, drawn into `into` (the Me screen's Skills tab and the stand-alone Skills screen). */
 export function renderSkills(into: HTMLElement, refresh: () => void = () => {}): void {
   clear(into);
@@ -72,7 +79,7 @@ export function renderSkills(into: HTMLElement, refresh: () => void = () => {}):
           h('div', { class: 'sk-sub' }, `Each level: ${def.perLevel.charAt(0).toLowerCase()}${def.perLevel.slice(1)}`),
           h('div', { class: 'progress sk-bar' }, h('div', { class: 'fill', style: `width:${p.pct}%` }),
             h('div', { class: 'label' }, p.max ? 'Top level' : `${p.into.toLocaleString('en-US')} / ${p.need.toLocaleString('en-US')} XP`)))),
-      h('div', { class: 'sk-perks' }, ...SKILL_PERK_LEVELS.map((lv) => perkRow(def, lv, refresh))));
+      h('div', { class: 'sk-perks' }, ...SKILL_PERK_LEVELS.map((lv) => perkRow(def, lv, refresh)), ...(def.bonus ?? []).map((b) => bonusRow(def, b))));
     into.append(card);
   }
 }

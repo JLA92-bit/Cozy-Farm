@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { assets } from '../core/Assets';
-import { WOODS, WOODS_REGIONS } from '../data';
+import { CRITTERS, WOODS, WOODS_REGIONS, WREN, type CritterDef } from '../data';
 import { REGION_IDS, woods } from '../systems/Woods';
 import { schedules } from '../systems/Schedules';
 import { VILLAGERS } from '../data';
@@ -11,8 +11,10 @@ import { rng } from './Procedural';
 import { currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
-import { FORAGE_COLOR, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
+import { FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
 import { restoration } from '../systems/Restoration';
+import { critters } from '../systems/Critters';
+import type { CharacterLook } from '../systems/State';
 
 /**
  * The Wild Woods (1.9): a second little island in the same sea as the farm and the village square, reached by boat from
@@ -24,17 +26,19 @@ const JETTY_ANGLE = Math.PI / 4;
 const POND = { x: -7.5, z: -6, r: 4.1 };
 const TREES = ['nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple'] as const;
 
-export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly'; i: number; id?: string }
+export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly' | 'stump' | 'critter' | 'wren'; i: number; id?: string }
 /** Fixed places in island space: the Museum at the top of the island and the expedition board at the landing. */
 const MUSEUM_AT = { x: -1, z: -15 };
 const BOARD_AT = { x: 10.5, z: 13.5 };
+/** 1.20 the deer's feeding stump in the glade (east side, clear of the bridges and the landing). */
+const GLADE_STUMP = { x: 15, z: -3 };
 
 interface ForageNode { i: number; group: THREE.Group; byItem: Map<string, THREE.Mesh>; glint: THREE.Mesh; pick: THREE.Mesh; at: THREE.Vector3 }
 interface DigNode { i: number; mound: THREE.Mesh; dug: THREE.Mesh; glint: THREE.Mesh; pick: THREE.Mesh; at: THREE.Vector3 }
 
 export const MODELS = [
   'nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple', 'nat/rock_small', 'nat/bush', 'nat/grass_large',
-  'nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'prop/lumber', 'prop/stones', 'bld/home_b', 'bld/tower', 'prop/banner_red',
+  'nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'prop/lumber', 'prop/stones', 'bld/home_b', 'bld/tower', 'prop/banner_red', 'pet/deer', 'pet/fox', 'pet/bunny', 'bld/home_a',
 ];
 
 /** Where the spots stand: spread over the island, away from the pond, the landing and each other. Same on every device. */
@@ -48,6 +52,7 @@ function layoutSpots(): { forage: THREE.Vector2[]; dig: THREE.Vector2[] } {
     if (Math.abs(Math.atan2(Math.sin(a - JETTY_ANGLE), Math.cos(a - JETTY_ANGLE))) < 0.4) continue;
     if (Math.hypot(p.x - POND.x, p.y - POND.z) < POND.r + 1.6) continue;
     if (Math.hypot(p.x - MUSEUM_AT.x - 1.5, p.y - MUSEUM_AT.z - 1.5) < 8.5 || Math.hypot(p.x - BOARD_AT.x, p.y - BOARD_AT.z) < 4) continue;
+    if (Math.hypot(p.x - GLADE_STUMP.x, p.y - GLADE_STUMP.z) < 3.4) continue;
     if (all.some((q) => q.distanceTo(p) < 3.2)) continue;
     all.push(p);
   }
@@ -65,6 +70,11 @@ export class WoodsView {
   private tapNodes = new Map<string, { glint: THREE.Mesh; at: THREE.Vector3 }>();
   private fireflyMat = new THREE.MeshBasicMaterial({ color: '#fff27a', transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false });
   private digNodes: DigNode[] = [];
+  /** 1.20 a feeding stump per critter family, its waiting treat and its visitor */
+  private stumps = new Map<string, { at: THREE.Vector3; treat: THREE.Mesh; glint: THREE.Mesh; critter: THREE.Object3D; pick: THREE.Mesh; treatKey: string }>();
+  private treatGeos = new Map<string, THREE.BufferGeometry>();
+  private wren?: { char: Character; pick: THREE.Mesh; glint: THREE.Mesh; cabin: THREE.Object3D };
+  private wrenAt?: THREE.Vector3;
   private pickers: THREE.Object3D[] = [];
   private raycaster = new THREE.Raycaster();
   private folk = new Map<string, { char: Character; pick: THREE.Mesh }>();
@@ -106,7 +116,7 @@ export class WoodsView {
     const r = rng(2468);
     const clear = (x: number, z: number, gap: number): boolean =>
       [...spots.forage, ...spots.dig].every((p) => Math.hypot(p.x - x, p.y - z) > gap) && Math.hypot(x - POND.x, z - POND.z) > POND.r + 1.4
-      && Math.hypot(x - MUSEUM_AT.x, z - MUSEUM_AT.z) > 6.5 && Math.hypot(x - BOARD_AT.x, z - BOARD_AT.z) > 3.2;
+      && Math.hypot(x - MUSEUM_AT.x, z - MUSEUM_AT.z) > 6.5 && Math.hypot(x - BOARD_AT.x, z - BOARD_AT.z) > 3.2 && Math.hypot(x - GLADE_STUMP.x, z - GLADE_STUMP.z) > 2.6;
     const wedge = (a: number): boolean => Math.abs(Math.atan2(Math.sin(a - JETTY_ANGLE), Math.cos(a - JETTY_ANGLE))) < 0.34;
     for (let i = 0; i < 70; i++) {
       const rim = i < 30;
@@ -149,6 +159,7 @@ export class WoodsView {
     await this.buildMuseum();
     this.buildSpots(spots);
     await this.buildRegions();
+    for (const c of CRITTERS.families) if (c.region === 'glade') await this.buildStump(c, new THREE.Vector2(GLADE_STUMP.x, GLADE_STUMP.z), Math.PI / 4);
     this.refresh();
   }
 
@@ -169,8 +180,10 @@ export class WoodsView {
     const ped = pedestalGeometry(), gemGeo = new THREE.OctahedronGeometry(0.2, 0);
     const colours = ['#7fd0ff', '#d9b27c', '#ffc93c', '#7fd05a', '#4fa9ff', '#ffd84a'];
     museum.shelves().forEach((s, k) => {
-      const off = (k - (museum.shelves().length - 1) / 2) * 1.15 * Math.SQRT1_2;
-      const px = MUSEUM_AT.x + 4.6 + off, pz = MUSEUM_AT.z + 4.6 - off;
+      // 1.20 more than six shelves: two rows, so they stay inside the museum yard
+      const n = museum.shelves().length, perRow = n > 6 ? Math.ceil(n / 2) : n, row = Math.floor(k / perRow), i = k % perRow;
+      const off = (i - (perRow - 1) / 2) * 1.15 * Math.SQRT1_2, back = row * 1.25 * Math.SQRT1_2;
+      const px = MUSEUM_AT.x + 4.6 + off - back, pz = MUSEUM_AT.z + 4.6 - off - back;
       const m = new THREE.Mesh(ped, mat);
       m.position.set(px, 0.04, pz);
       m.scale.setScalar(1.3);
@@ -374,6 +387,20 @@ export class WoodsView {
           this.tapNodes.set(`${reg.id}:${i}`, { glint, at: new THREE.Vector3(bx, 0.5, bz) });
         }
       }
+      // 1.20 Wren's cabin (far side from the bridge) and a feeding stump for each critter family living here
+      if (reg.id === WREN.region) {
+        const cab = new THREE.Vector2(ax + dir.x * 4.2, az + dir.y * 4.2);
+        // the cabin is about 4.4 wide: keep stumps, spots and trees off it and off the front of it
+        taken.push(cab);
+        for (let k = 0; k < 8; k++) taken.push(new THREE.Vector2(cab.x + Math.cos(k * Math.PI / 4) * 3.2, cab.y + Math.sin(k * Math.PI / 4) * 3.2));
+        taken.push(new THREE.Vector2(ax + dir.x * 1.6 + side.x * 2.2, az + dir.y * 1.6 + side.y * 2.2));
+        await this.buildWren(cab, new THREE.Vector2(ax + dir.x * 1.6 + side.x * 2.2, az + dir.y * 1.6 + side.y * 2.2), Math.atan2(-dir.x, -dir.y));
+      }
+      for (const c of CRITTERS.families) if (c.region === reg.id) {
+        const p = spot(3, reg.r - 3.6, 3.4);
+        // keep the camera's side of the stump clear of trees so the visitor can be seen
+        if (p) { taken.push(new THREE.Vector2(p.x + 2.2, p.y + 2.2)); await this.buildStump(c, p, Math.PI / 4 + (r() - 0.5)); }
+      }
       // forage spots
       const geos = new Map<string, THREE.BufferGeometry>();
       for (const e of reg.foraged) geos.set(e.id, forageGeometry(e.kind, FORAGE_COLOR[e.id] ?? '#7fd05a', e.id));
@@ -438,6 +465,111 @@ export class WoodsView {
         scenery.add(o);
       }
       mergeStatic(scenery);
+    }
+  }
+
+  /** 1.20 a feeding stump with a spot for the treat, and the family's visitor (hidden until it comes). */
+  private async buildStump(c: CritterDef, p: THREE.Vector2, turn: number): Promise<void> {
+    const mat = assets.vertexMaterial;
+    const stump = new THREE.Mesh(stumpGeometry(), mat);
+    stump.position.set(p.x, 0.02, p.y);
+    stump.scale.setScalar(1.5);
+    stump.castShadow = true; stump.receiveShadow = true;
+    this.group.add(stump);
+    const treat = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+    treat.position.copy(stump.position);
+    treat.scale.setScalar(1.5);
+    treat.visible = false;
+    this.group.add(treat);
+    const glint = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), this.glintMat);
+    glint.position.set(p.x, 1.5, p.y);
+    this.group.add(glint);
+    // the visitor stands beside the stump on the camera's side, turned half towards the camera
+    const off = new THREE.Vector2(Math.cos(turn), Math.sin(turn)).multiplyScalar(c.id === 'deer' ? 2.1 : 1.35);
+    const critter = await this.critterObject(c);
+    critter.position.set(p.x + off.x, 0.02, p.y + off.y);
+    critter.rotation.y = Math.PI / 4 + (turn - Math.PI / 4) * 2 + 0.5;
+    critter.visible = false;
+    this.group.add(critter);
+    const pick = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 1.8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+    pick.position.set(p.x, 0.9, p.y);
+    pick.userData = { kind: 'stump', i: 0, id: c.id };
+    this.group.add(pick);
+    this.pickers.push(pick);
+    const cp = new THREE.Mesh(new THREE.SphereGeometry(1.0, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+    cp.position.set(critter.position.x, 0.7, critter.position.z);
+    cp.userData = { kind: 'critter', i: 0, id: c.id };
+    cp.visible = false;
+    this.group.add(cp);
+    this.pickers.push(cp);
+    this.stumps.set(c.id, { at: new THREE.Vector3(p.x, 0, p.y), treat, glint, critter, pick: cp, treatKey: '' });
+  }
+
+  /** The visitor's model: a modelled pet (deer, fox, rabbit) or a small procedural one. */
+  private async critterObject(c: CritterDef): Promise<THREE.Object3D> {
+    const proc: Record<string, () => THREE.BufferGeometry> = { 'proc:hedgehog': hedgehogGeometry, 'proc:squirrel': squirrelGeometry, 'proc:owl': owlGeometry };
+    if (proc[c.model]) {
+      const g = new THREE.Group();
+      const m = new THREE.Mesh(proc[c.model](), assets.vertexMaterial);
+      m.castShadow = true;
+      m.scale.setScalar(2.1);
+      g.add(m);
+      return g;
+    }
+    return modelObject(c.model, c.id === 'deer' ? 1.9 : 1.25);
+  }
+
+  /** 1.20 Wren the ranger's cabin in Whispering Pines, with Wren outside it. */
+  private async buildWren(cabin: THREE.Vector2, at: THREE.Vector2, face: number): Promise<void> {
+    const house = await modelObject('bld/home_a', 4.4);
+    house.position.set(cabin.x, 0.02, cabin.y);
+    house.rotation.y = face;
+    this.group.add(house);
+    const char = await Character.create(WREN.look as unknown as CharacterLook, 1.3);
+    char.play('idle');
+    char.root.position.set(at.x, 0.02, at.y);
+    char.root.rotation.y = face;
+    char.root.visible = false;
+    this.group.add(char.root);
+    const pick = new THREE.Mesh(new THREE.SphereGeometry(1.0, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+    pick.position.set(at.x, 1.0, at.y);
+    pick.userData = { kind: 'wren', i: 0 };
+    this.group.add(pick);
+    this.pickers.push(pick);
+    const glint = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), this.glintMat);
+    glint.position.set(at.x, 3.0, at.y);
+    this.group.add(glint);
+    this.wren = { char, pick, glint, cabin: house };
+    this.wrenAt = new THREE.Vector3(at.x, 0, at.y);
+  }
+
+  /** Treats on the stumps, visitors at them, and Wren at home. */
+  private refreshCritters(): void {
+    for (const c of CRITTERS.families) {
+      const s = this.stumps.get(c.id);
+      if (!s) continue;
+      const open = critters.open(c.id), treat = open ? critters.treatOn(c.id) : undefined, here = critters.present(c.id);
+      const key = treat ?? '';
+      if (key !== s.treatKey) {
+        s.treatKey = key;
+        if (treat) {
+          const col = FORAGE_COLOR[treat] ?? '#e8424f';
+          let g = this.treatGeos.get(col);
+          if (!g) { g = treatGeometry(col); this.treatGeos.set(col, g); }
+          s.treat.geometry = g;
+        }
+      }
+      s.treat.visible = !!treat && !here;
+      s.critter.visible = here;
+      s.pick.visible = here;
+      // a glint invites a treat on an empty stump
+      s.glint.visible = open && !treat && !critters.seenToday(c.id);
+    }
+    if (this.wren) {
+      const home = critters.wrenHere;
+      this.wren.char.root.visible = home;
+      this.wren.pick.visible = home;
+      this.wren.glint.visible = home && !(critters.note()?.done ?? true);
     }
   }
 
@@ -536,6 +668,7 @@ export class WoodsView {
       n.glint.visible = !done && left > 0;
     }
     this.refreshRegions();
+    this.refreshCritters();
   }
 
   /** World position for an effect over a spot. */
@@ -546,6 +679,8 @@ export class WoodsView {
     if (hit.kind === 'trail') { const p = this.regionParts.get(hit.id ?? ''); return p ? this.world(p.sign.x, 1.5, p.sign.z) : null; }
     if (hit.kind === 'firefly') { const f = this.fireflyNodes.get(hit.i); return f ? this.world(f.mesh.position.x, f.mesh.position.y, f.mesh.position.z) : null; }
     if (hit.kind === 'pan') { const p = this.panNodes[hit.i]; return p ? this.world(p.at.x, 0.6, p.at.z) : null; }
+    if (hit.kind === 'stump' || hit.kind === 'critter') { const st = this.stumps.get(hit.id ?? ''); if (!st) return null; const at = hit.kind === 'critter' ? st.critter.position : st.at; return this.world(at.x, 1, at.z); }
+    if (hit.kind === 'wren') return this.wrenAt ? this.world(this.wrenAt.x, 1.6, this.wrenAt.z) : null;
     if (hit.kind === 'tap') { const t = this.tapNodes.get(hit.id ?? ''); return t ? this.world(t.at.x, 0.8, t.at.z) : null; }
     const n = hit.kind === 'forage' ? this.forageNodes.get(hit.i) : this.digNodes[hit.i];
     return n ? this.world(n.at.x, 0.6, n.at.z) : null;
@@ -557,7 +692,8 @@ export class WoodsView {
     const live = this.pickers.filter((p) => {
       const ud = p.userData as WoodsHit;
       return ud.kind === 'forage' ? (this.forageNodes.get(ud.i)?.group.visible ?? false) : ud.kind === 'villager' ? (this.folk.get(ud.id ?? '')?.pick.visible ?? false)
-        : ud.kind === 'firefly' ? (this.fireflyNodes.get(ud.i)?.mesh.visible ?? false) : true;
+        : ud.kind === 'firefly' ? (this.fireflyNodes.get(ud.i)?.mesh.visible ?? false)
+        : ud.kind === 'critter' || ud.kind === 'wren' ? p.visible : true;
     });
     const hits = this.raycaster.intersectObjects(live, false);
     return hits.length ? (hits[0].object.userData as WoodsHit) : null;
@@ -579,6 +715,13 @@ export class WoodsView {
     for (const p of this.panNodes) if (p.glint.visible) { p.glint.position.y = 0.9 + Math.sin(this.t * 2.2 + p.i) * 0.06; p.glint.rotation.y = this.t * 1.5; }
     for (const t of this.tapNodes.values()) if (t.glint.visible) { t.glint.rotation.y = this.t * 1.5; }
     for (const e of this.gems) if (e.gem.visible) e.gem.rotation.y = this.t;
+    for (const s of this.stumps.values()) {
+      if (s.glint.visible) { s.glint.position.y = 1.5 + Math.sin(this.t * 2.2) * 0.07; s.glint.rotation.y = this.t * 1.5; }
+      // visitors breathe and nibble
+      if (s.critter.visible) s.critter.scale.set(1, 1 + Math.sin(this.t * 3) * 0.03, 1);
+    }
+    if (this.wren?.char.root.visible) this.wren.char.update(dt);
+    if (this.wren?.glint.visible) { this.wren.glint.position.y = 3.0 + Math.sin(this.t * 2.4) * 0.1; this.wren.glint.rotation.y = this.t * 1.5; }
     if (this.boardDot?.visible) { this.boardDot.position.y = 3.6 + Math.sin(this.t * 2.4) * 0.1; this.boardDot.rotation.y = this.t * 1.5; }
     for (const n of this.digNodes) if (n.glint.visible) { n.glint.position.y = 1.3 + Math.sin(this.t * 2.2 + n.i) * 0.08; n.glint.rotation.y = this.t * 1.5; }
   }

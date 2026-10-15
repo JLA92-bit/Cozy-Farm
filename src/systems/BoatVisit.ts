@@ -12,6 +12,19 @@ import { obtainableItems } from './Economy';
 import { hashString, rng } from '../world/Procedural';
 import type { Vec } from './Game';
 
+/**
+ * 1.20 What a boat visitor may ask for: what the farm can make now, plus anything it has caught, found or made before
+ * (in the Collection Book), so fish dishes, woods crafts and rarer catches turn up on wish lists once you know them.
+ */
+function canSupply(): Set<string> {
+  const out = new Set(obtainableItems());
+  for (const k of Object.keys(game.state.collection ?? {})) {
+    const id = k.startsWith('item:') ? k.slice(5) : '';
+    if (ITEMS[id] && ITEMS[id].cat !== 'event' && ITEMS[id].cat !== 'feed') out.add(id);
+  }
+  return out;
+}
+
 class BoatVisitSystem {
   get open(): boolean { return game.level >= BOATVISITS.level; }
 
@@ -46,7 +59,11 @@ class BoatVisitSystem {
     const saved = game.state.boatvisit;
     if (saved && saved.day === day) { const t = BOATVISITS.themes.find((x) => x.id === saved.theme); if (t) return t; }
     const r = rng(hashString(`${game.state.seed}:boattheme:${day}`));
-    return BOATVISITS.themes[Math.floor(r() * BOATVISITS.themes.length)];
+    // 1.20 only themes the farm can fill at least three wishes from (a young farm never meets the Craft Fair boat)
+    const have = canSupply();
+    const fit = BOATVISITS.themes.filter((t) => t.items.filter((i) => have.has(i)).length >= 3);
+    const pool = fit.length ? fit : BOATVISITS.themes;
+    return pool[Math.floor(r() * pool.length)];
   }
 
   /** Today's wish list, made once and saved. Empty when the farm can make nothing from the theme yet. */
@@ -55,7 +72,7 @@ class BoatVisitSystem {
     const saved = game.state.boatvisit;
     if (saved && saved.day === day) return saved.want;
     const theme = this.theme(now);
-    const have = new Set(obtainableItems());
+    const have = canSupply();
     const pool = theme.items.filter((i) => ITEMS[i] && have.has(i));
     const r = rng(hashString(`${game.state.seed}:boatwant:${day}`));
     const want: Record<string, number> = {};

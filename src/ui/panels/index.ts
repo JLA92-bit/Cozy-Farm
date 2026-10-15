@@ -26,5 +26,6 @@ import './SquarePanel';
 import './ManorPanel';
 import './FestivalPanel';
 import './MuseumPanel';
+import './CritterPanel';
 import './ExpeditionPanel';
 import './HelpWantedPanel';

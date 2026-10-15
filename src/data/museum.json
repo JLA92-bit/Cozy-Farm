@@ -7,6 +7,9 @@
     { "id": "artifacts", "name": "Old Artifacts", "icon": "amphora", "items": ["old_coin", "rusty_key", "ancient_bell", "scroll_fragment", "clay_figure", "amphora", "silver_mirror", "old_compass", "lost_crown"], "reward": { "coins": 3000, "gems": 10 } },
     { "id": "forage", "name": "Forager's Cabinet", "icon": "mushroom", "items": ["wild_leek", "dandelion", "daffodil", "raspberry", "wild_rose", "fern_frond", "chanterelle", "hazelnut", "blackberry", "winter_root", "holly", "snow_yam"], "reward": { "coins": 1800, "gems": 6 } },
     { "id": "fish", "name": "Great Catches", "icon": "fish", "items": ["moon_jelly", "octopus", "lobster", "sunfish", "reef_shark", "coelacanth", "crown_betta", "sea_dragon"], "reward": { "coins": 3500, "gems": 10 } },
+    { "id": "woodland", "name": "Woodland Gifts", "icon": "paw_prints", "items": ["shed_antler", "four_leaf_clover", "snail_shell", "silver_spoon", "golden_acorn", "owl_feather"], "reward": { "coins": 2400, "gems": 8 } },
+    { "id": "creek", "name": "Creek Treasures", "icon": "gold_flake", "items": ["gold_flake", "agate", "jade", "river_pearl"], "reward": { "coins": 1500, "gems": 6 } },
+    { "id": "aquarium", "name": "The Aquarium", "icon": "whale", "items": ["sea_turtle", "curious_seal", "dolphin", "baby_whale", "ghost_ray", "golden_crab", "kraken", "celestial_koi"], "reward": { "coins": 6000, "gems": 15 } },
     { "id": "gold", "name": "Gold Star Case", "icon": "medal3", "kind": "gold", "slots": 6, "reward": { "coins": 2500, "gems": 8 } }
   ],
   "curator": { "coins": 6000, "gems": 25, "decor": "fountain_grand" }

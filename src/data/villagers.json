@@ -52,7 +52,10 @@
         "egg",
         "milk",
         "sugar",
-        "cherry"
+        "cherry",
+        "wild_garlic_bread",
+        "duck_egg_sponge",
+        "maple_syrup"
       ],
       "dislikes": [
         "onion",
@@ -255,7 +258,10 @@
       "likes": [
         "fish",
         "oyster_chowder",
-        "fish_cake"
+        "fish_cake",
+        "grilled_tuna",
+        "winter_chowder",
+        "pickled_herring"
       ],
       "dislikes": [
         "wool",
@@ -459,7 +465,10 @@
         "strawberry_jam",
         "grape_jam",
         "pear",
-        "lemon"
+        "lemon",
+        "woodland_vase",
+        "firefly_lantern",
+        "gem_mosaic"
       ],
       "dislikes": [
         "sardine",
@@ -663,7 +672,10 @@
         "caramel",
         "pancakes",
         "watermelon",
-        "orange"
+        "orange",
+        "boot_planter",
+        "rush_basket",
+        "crab_cakes"
       ],
       "dislikes": [
         "beet",
@@ -886,7 +898,10 @@
         "butter",
         "syrup",
         "scarf",
-        "orange_marmalade"
+        "orange_marmalade",
+        "mint_lemonade",
+        "gilded_vase",
+        "hedgerow_jam"
       ],
       "dislikes": [
         "wheat"
@@ -1089,7 +1104,10 @@
         "bread",
         "tomato_sauce",
         "salsa",
-        "milk"
+        "milk",
+        "pine_candle",
+        "halibut_supper",
+        "woodland_pie"
       ],
       "dislikes": [
         "petal",

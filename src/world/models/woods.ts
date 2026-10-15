@@ -154,3 +154,75 @@ export function streamGeometry(pts: [number, number][], width: number): THREE.Bu
   }
   return b.build();
 }
+
+// ------------------------------------------------------------------------------------ 1.20 Woodland Friends
+
+/** A feeding stump: a cut log with rings on top and a little wooden dish. */
+export function stumpGeometry(): THREE.BufferGeometry {
+  return geo()
+    .cyl(0.42, 0.5, 0.5, '#8a6238', [0, 0, 0], 10)
+    .cyl(0.4, 0.4, 0.02, '#d9b98a', [0, 0.5, 0], 10)
+    .cyl(0.24, 0.24, 0.025, '#c7a273', [0, 0.505, 0], 10)
+    .cone(0.12, 0.22, '#7a5530', [0.42, 0, 0.1], 5, [0, 0, -0.5])
+    .cone(0.1, 0.18, '#7a5530', [-0.38, 0, -0.22], 5, [0, 0, 0.5])
+    .sphere(0.14, '#5f9a3a', [-0.32, 0.06, 0.3], 0, [1.2, 0.5, 1])
+    .build();
+}
+
+/** The treat waiting on a stump: a small heap in the treat's colour. */
+export function treatGeometry(color: string): THREE.BufferGeometry {
+  const b = geo();
+  for (let i = 0; i < 5; i++) { const a = i * 1.3; b.sphere(0.07, color, [Math.cos(a) * 0.09, 0.56 + (i === 4 ? 0.06 : 0), Math.sin(a) * 0.09], 0); }
+  return b.build();
+}
+
+/** A hedgehog, about 0.6 long, facing +z. */
+export function hedgehogGeometry(): THREE.BufferGeometry {
+  const b = geo()
+    .sphere(0.28, '#7a5a3a', [0, 0.2, -0.04], 1, [1, 0.75, 1.2])
+    .sphere(0.13, '#d8b88e', [0, 0.16, 0.26], 1, [0.9, 0.85, 1.1])
+    .sphere(0.04, '#2a2018', [0, 0.17, 0.4], 0)
+    .sphere(0.025, '#1a1410', [0.06, 0.22, 0.32], 0)
+    .sphere(0.025, '#1a1410', [-0.06, 0.22, 0.32], 0);
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * Math.PI * 2, y = 0.26 + (i % 2) * 0.08;
+    b.cone(0.05, 0.14, '#5a4028', [Math.cos(a) * 0.18, y, -0.06 + Math.sin(a) * 0.2], 4, [Math.sin(a) * 0.8, 0, -Math.cos(a) * 0.8]);
+  }
+  for (const [x, z] of [[0.12, 0.12], [-0.12, 0.12], [0.12, -0.18], [-0.12, -0.18]] as const) b.cyl(0.035, 0.035, 0.08, '#4a3624', [x, 0, z], 5);
+  return b.build();
+}
+
+/** A red squirrel sitting up with its bushy tail, facing +z. */
+export function squirrelGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.16, '#c8582a', [0, 0.2, 0], 1, [1, 1.3, 0.9])
+    .sphere(0.12, '#c8582a', [0, 0.44, 0.04], 1)
+    .sphere(0.08, '#f3dcc0', [0, 0.18, 0.1], 0, [1, 1.4, 0.6])
+    .cone(0.04, 0.1, '#b04a22', [0.07, 0.52, 0.02], 4)
+    .cone(0.04, 0.1, '#b04a22', [-0.07, 0.52, 0.02], 4)
+    .sphere(0.022, '#1a1410', [0.05, 0.47, 0.14], 0)
+    .sphere(0.022, '#1a1410', [-0.05, 0.47, 0.14], 0)
+    .sphere(0.15, '#d8642e', [0, 0.32, -0.22], 1, [0.8, 1.6, 0.8])
+    .sphere(0.12, '#e07038', [0, 0.56, -0.16], 1, [0.8, 1, 0.8])
+    .build();
+}
+
+/** A tawny owl, about 0.6 tall, facing +z. */
+export function owlGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.22, '#8a6a46', [0, 0.26, 0], 1, [1, 1.25, 0.95])
+    .sphere(0.16, '#d9c2a0', [0, 0.22, 0.1], 1, [1, 1.3, 0.6])
+    .sphere(0.17, '#8a6a46', [0, 0.54, 0], 1)
+    .sphere(0.07, '#f3e6c8', [0.07, 0.56, 0.13], 0)
+    .sphere(0.07, '#f3e6c8', [-0.07, 0.56, 0.13], 0)
+    .sphere(0.035, '#1a1410', [0.07, 0.57, 0.18], 0)
+    .sphere(0.035, '#1a1410', [-0.07, 0.57, 0.18], 0)
+    .cone(0.03, 0.06, '#e8a838', [0, 0.47, 0.17], 4, [Math.PI, 0, 0])
+    .cone(0.05, 0.1, '#6f5236', [0.11, 0.66, 0], 4)
+    .cone(0.05, 0.1, '#6f5236', [-0.11, 0.66, 0], 4)
+    .sphere(0.1, '#6f5236', [0.19, 0.26, -0.02], 0, [0.5, 1.4, 1])
+    .sphere(0.1, '#6f5236', [-0.19, 0.26, -0.02], 0, [0.5, 1.4, 1])
+    .cyl(0.03, 0.03, 0.06, '#e8a838', [0.06, 0, 0.04], 4)
+    .cyl(0.03, 0.03, 0.06, '#e8a838', [-0.06, 0, 0.04], 4)
+    .build();
+}

@@ -42,6 +42,10 @@ class Batch {
     this.mesh = new THREE.BatchedMesh(this.maxInstances, this.maxVertices, this.maxIndices, material);
     this.mesh.castShadow = castShadow;
     this.mesh.receiveShadow = true;
+    // 1.20: never cull the batch as a whole. three.js works out a batch's bounds once, at its first draw, and does
+    // not grow them when pieces are added or moved, so decor placed later (big pieces most of all) vanished whenever
+    // those old bounds were off screen. Each piece is still culled on its own (perObjectFrustumCulled).
+    this.mesh.frustumCulled = false;
     this.mesh.name = name;
     parent.add(this.mesh);
   }
@@ -72,12 +76,25 @@ class Batch {
     const id = this.mesh.addInstance(geometryId);
     this.mesh.setMatrixAt(id, matrix);
     this.live++;
+    this.stale();
     return id;
+  }
+
+  set(id: number, matrix: THREE.Matrix4): void {
+    this.mesh.setMatrixAt(id, matrix);
+    this.stale();
   }
 
   remove(id: number): void {
     this.mesh.deleteInstance(id);
     this.live--;
+    this.stale();
+  }
+
+  /** Bounds are worked out again when next needed (taps and anything else that reads them). */
+  private stale(): void {
+    this.mesh.boundingSphere = null;
+    this.mesh.boundingBox = null;
   }
 }
 
@@ -98,7 +115,7 @@ export class BatchSet {
     const gid = b.geometryId(geometry);
     return {
       add: (m) => b.add(gid, m),
-      set: (h, m) => { b.mesh.setMatrixAt(h, m); },
+      set: (h, m) => b.set(h, m),
       get: (h, out) => b.mesh.getMatrixAt(h, out),
       remove: (h) => b.remove(h),
     };

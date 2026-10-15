@@ -6,7 +6,7 @@
 import { manorAnimalTimeMult, manorWorkshopTimeMult } from './Manor';
 import { game } from './Game';
 import { qualityBoosts } from './Quality';
-import { ITEMS, SKILL_VALUES as V, SKILL_XP_LEVELS, type SkillId } from '../data';
+import { ITEMS, SKILLS, SKILL_VALUES as V, SKILL_XP_LEVELS, type SkillId } from '../data';
 import type { SkillsState } from './State';
 import { roomDone } from './RestorationEffects';
 import { animalTimeMultOf, hasPerkIn, levelForXp, levelOf } from './SkillMath';
@@ -21,6 +21,15 @@ export function skillXp(id: SkillId): number { return game.state?.skills?.xp[id]
 export function skillLevel(id: SkillId): number { return levelOf(game.state?.skills, id); }
 /** True when this perk id was chosen (a perk only exists once its level was reached and picked). */
 export function hasSkillPerk(perk: string): boolean { return hasPerkIn(game.state?.skills, perk); }
+/** 1.21 a free bonus perk (skills.json `bonus`) is owned once its skill reaches its level. */
+export function hasSkillBonus(perk: string): boolean {
+  for (const s of SKILLS) for (const b of s.bonus ?? []) if (b.id === perk) return skillLevel(s.id) >= b.level;
+  return false;
+}
+/** Sickness chance is multiplied by this (Hardy Stock, Animals level 7). */
+export const hardyStockMult = (): number => (hasSkillBonus('hardy_stock') ? V.hardyStockSick : 1);
+/** Wear is multiplied by this (Sturdy Joints, Crafting level 7). */
+export const sturdyJointsMult = (): number => (hasSkillBonus('sturdy_joints') ? V.sturdyJointsWear : 1);
 
 // ---------------------------------------------------------------- farming
 /** Crops planted take this much of their grow time (Quick Grower). */

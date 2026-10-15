@@ -563,7 +563,7 @@ class UIManager {
       if (bare) btns.append(button([icon('bricks'), 'Path under'], () => { this.world.hidePopup(); void this.interaction.startPlacement('path_dirt', false, [b.x, b.z]); }, 'small green'));
     }
     rows.push(btns);
-    const title = def.cat === 'production' || def.cat === 'animal' || b.type === 'farmhouse' ? `${def.name} (Lv ${b.level})` : def.name;
+    const title = def.cat === 'production' || def.cat === 'animal' || b.type === 'farmhouse' || b.type === 'vet_cottage' || b.type === 'carpenter' ? `${def.name} (Lv ${b.level})` : def.name;
     this.world.showPopup(this.scene.farm.anchor(b.uid), this.card(title, ...rows));
   }
 

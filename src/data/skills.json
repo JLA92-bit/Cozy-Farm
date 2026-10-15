@@ -1,5 +1,5 @@
 {
-  "_comment": "1.8.5 Skills. Four skills level 1-10 by doing what players already do (src/systems/Skills.ts). xpLevels[n] = total XP needed to reach level n+1. xp maps a game stat (an incStat name) to the XP each count gives. Each level gives the 'perLevel' bonus (numbers in 'values'); at levels 5 and 10 the player picks one of two perks. All numbers here can be tuned without code changes (see BALANCE.md > Skills).",
+  "_comment": "1.21: `bonus` perks come free at their level (no choice), on top of the two-way choices at perkLevels. 1.8.5 Skills. Four skills level 1-10 by doing what players already do (src/systems/Skills.ts). xpLevels[n] = total XP needed to reach level n+1. xp maps a game stat (an incStat name) to the XP each count gives. Each level gives the 'perLevel' bonus (numbers in 'values'); at levels 5 and 10 the player picks one of two perks. All numbers here can be tuned without code changes (see BALANCE.md > Skills).",
   "xpLevels": [0, 50, 150, 400, 1000, 2000, 3500, 6000, 10000, 16000],
   "perkLevels": [5, 10],
   "headStartMaxLevel": 5,
@@ -31,7 +31,7 @@
     "forageGoldPerLevel": 0.01,
     "keenEyesChance": 0.2,
     "extraDigs": 2,
-    "wildGold": 0.05
+    "wildGold": 0.05, "hardyStockSick": 0.6, "sturdyJointsWear": 0.75
   },
   "skills": [
     {
@@ -66,7 +66,8 @@
           { "id": "shepherd", "name": "Shepherd", "icon": "sheep", "text": "A bonus animal product every day" },
           { "id": "breeder", "name": "Breeder", "icon": "nest", "text": "One extra space in every animal home" }
         ]
-      }
+      },
+      "bonus": [{ "level": 7, "id": "hardy_stock", "name": "Hardy Stock", "icon": "heart", "text": "Animals fall unwell 40% less often" }]
     },
     {
       "id": "fishing", "name": "Fishing", "icon": "fishing_pole", "color": "blue",
@@ -117,13 +118,14 @@
           { "id": "golden_touch", "name": "Golden Touch", "icon": "sparkles", "text": "Quality fertiliser is twice as strong" },
           { "id": "tinkerer", "name": "Tinkerer", "icon": "gear", "text": "Auto-feeders feed twice as many animals" }
         ]
-      }
+      },
+      "bonus": [{ "level": 7, "id": "sturdy_joints", "name": "Sturdy Joints", "icon": "hammer", "text": "Workshops and animal homes wear a quarter slower" }]
     },
     {
       "id": "foraging", "name": "Foraging", "icon": "mushroom", "color": "green",
       "about": "Opens with the Wild Woods. Grows as you pick wild plants and dig up finds.",
-      "grows": "Foraging and digging in the Wild Woods",
-      "xp": { "forage_picked": 3, "digs_done": 4, "pans_done": 4, "sap_collected": 3, "fireflies_caught": 3 },
+      "grows": "Foraging, digging and befriending critters in the Wild Woods",
+      "xp": { "forage_picked": 3, "digs_done": 4, "pans_done": 4, "sap_collected": 3, "fireflies_caught": 3, "critter_visits": 5, "field_notes": 8 },
       "perLevel": "+1% chance of gold-star forage",
       "perks": {
         "5": [

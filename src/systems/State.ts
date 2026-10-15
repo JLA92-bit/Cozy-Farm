@@ -38,6 +38,10 @@ export interface PlacedBuilding {
   animals?: { fedAt: number | null; name?: string; love?: number; petDay?: string; born?: number; sickAt?: number; sickDays?: number }[];
   /** 1.15 upkeep: wear from 0 (new) to 100 (broken down) on workshops and animal homes */
   wear?: number;
+  /** 1.21 vet check-up: its animals cannot fall unwell until then (ms) */
+  checkupUntil?: number;
+  /** 1.21 carpenter's fresh paint: it wears slower until then (ms) */
+  paintUntil?: number;
   queue?: QueueEntry[];
   ready?: string[];
   /** 1.8: how many of the ready goods (per item) were made from star ingredients, as [silver, gold] */
@@ -95,7 +99,7 @@ export interface SaveData {
   /** 1.12 leaderboard trophies earned: the places (1, 2, 3, 10) reached on each board */
   ranks?: Record<string, number[]>;
   /** 1.15 upkeep: the last local day it stepped on, and animals that wandered off (days left to bring them back) */
-  upkeep?: { day: string; lost: { animal: string; name?: string; love?: number; born?: number; left: number }[] };
+  upkeep?: { day: string; lost: { animal: string; name?: string; love?: number; born?: number; left: number }[]; checkups?: { day: string; n: number } };
   /** 1.13 endless levels: the highest level whose Level Marker has been handed out */
   /** 1.13 markers given up to this level; 1.17 `road`: the shorter-road letter was sent */
   endless?: { marker: number; road?: boolean };
@@ -166,6 +170,11 @@ export interface WoodsState {
   panned?: number;
   /** 1.19 when each Whispering Pines tap was last emptied (ms), by tap id `<region>:<n>`; missing = full now */
   taps?: Record<string, number>;
+  /** 1.20 critter families by id: visits so far, the treat waiting on the stump and the local day of the last visit */
+  critters?: Record<string, { visits: number; treat?: string; seen?: string }>;
+  /** 1.20 Wren's field note for `day`: bring n of item (done once given); notesDone counts every note ever given */
+  note?: { day: string; item: string; n: number; done: boolean };
+  notesDone?: number;
 }
 
 /** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */

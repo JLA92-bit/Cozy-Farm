@@ -13,6 +13,7 @@ import { localDay } from './Progression';
 import { saves } from './Save';
 import type { PlacedBuilding } from './State';
 import { hashString } from '../world/Procedural';
+import { hardyStockMult, sturdyJointsMult } from './SkillEffects';
 
 const DAY = 86400000;
 export type WearStage = 'fine' | 'weathered' | 'worn' | 'broken';
@@ -25,6 +26,55 @@ class UpkeepSystem {
   /** The village vet and carpenter: treating and repairing need their buildings (built, not still under construction). */
   hasVet(): boolean { return game.buildingsOf('vet_cottage').some((b) => isBuilt(b, game.now())); }
   hasCarpenter(): boolean { return game.buildingsOf('carpenter').some((b) => isBuilt(b, game.now())); }
+
+  // ------------------------------------------------------------------ 1.21 Care and Craft
+  private careLevel(type: string): number { return Math.max(0, ...game.buildingsOf(type).filter((b) => isBuilt(b, game.now())).map((b) => b.level)); }
+  /** Vet's Cottage and Carpenter's Workshop levels (0 when not built). */
+  vetLevel(): number { return this.careLevel('vet_cottage'); }
+  carpenterLevel(): number { return this.careLevel('carpenter'); }
+  /** Price factor for a care building's level: each level above the first is `discount` cheaper. */
+  private careMult(level: number): number { return Math.max(0.1, 1 - UPKEEP.care.discount * Math.max(0, level - 1)); }
+  /** Check-ups the vet can still give today. */
+  checkupsLeft(): number {
+    const per = UPKEEP.care.checkup.perDay[Math.max(0, this.vetLevel() - 1)] ?? 0;
+    const c = game.state.upkeep?.checkups;
+    return Math.max(0, per - (c?.day === localDay(game.now()) ? c.n : 0));
+  }
+  underCheckup(b: PlacedBuilding): boolean { return (b.checkupUntil ?? 0) > game.now(); }
+  freshPaint(b: PlacedBuilding): boolean { return (b.paintUntil ?? 0) > game.now(); }
+  /** Animal homes that can have a check-up now (with animals, not already checked). */
+  checkupList(): PlacedBuilding[] {
+    return game.state.buildings.filter((b) => BUILDING[b.type]?.cat === 'animal' && (b.animals?.length ?? 0) > 0 && isBuilt(b, game.now()) && !this.underCheckup(b));
+  }
+  /** Give one animal home a check-up: none of its animals fall unwell for a few days. */
+  checkup(b: PlacedBuilding): boolean {
+    if (!this.hasVet() || this.checkupsLeft() <= 0 || BUILDING[b.type]?.cat !== 'animal' || this.underCheckup(b)) return false;
+    const up = (game.state.upkeep ??= { day: localDay(game.now()), lost: [] });
+    const today = localDay(game.now());
+    up.checkups = { day: today, n: (up.checkups?.day === today ? up.checkups.n : 0) + 1 };
+    b.checkupUntil = game.now() + UPKEEP.care.checkup.days * DAY;
+    game.incStat('checkups');
+    game.bus.emit('building:changed', { b });
+    saves.save();
+    return true;
+  }
+
+  /** What a care round would do now: every unwell animal (with a vet), then repairs worst first (with a carpenter). */
+  carePlan(): { treat: { b: PlacedBuilding; i: number; cost: number }[]; repair: { b: PlacedBuilding; cost: number }[]; total: number } {
+    const treat = this.hasVet() ? this.sickList().map(({ b, i }) => ({ b, i, cost: this.treatCost(BUILDING[b.type].animal!) })) : [];
+    const repair = this.hasCarpenter() ? this.repairList().map((b) => ({ b, cost: this.repairCost(b) })) : [];
+    return { treat, repair, total: [...treat, ...repair].reduce((a, x) => a + x.cost, 0) };
+  }
+  /** Do the care round: treat, then repair, while the coins last. */
+  careRound(): { treated: number; repaired: number; spent: number; left: number } {
+    const plan = this.carePlan();
+    let treated = 0, repaired = 0, spent = 0;
+    // sick animals first (back to front so indexes stay right), then the worst repairs
+    for (const t of [...plan.treat].sort((a, b) => b.i - a.i)) if (game.coins >= t.cost && this.treat(t.b, t.i)) { treated++; spent += t.cost; }
+    for (const r of plan.repair) if (game.coins >= r.cost && this.repair(r.b)) { repaired++; spent += r.cost; }
+    if (treated || repaired) game.incStat('care_rounds');
+    return { treated, repaired, spent, left: plan.treat.length + plan.repair.length - treated - repaired };
+  }
   sickList(): { b: PlacedBuilding; i: number }[] {
     const out: { b: PlacedBuilding; i: number }[] = [];
     for (const b of game.state.buildings) (b.animals ?? []).forEach((a, i) => { if (a.sickAt) out.push({ b, i }); });
@@ -46,12 +96,15 @@ class UpkeepSystem {
   slow(b: PlacedBuilding): number { const s = this.stage(b); return s === 'weathered' ? UPKEEP.wear.slow.weathered : s === 'worn' ? UPKEEP.wear.slow.worn : 1; }
   repairCost(b: PlacedBuilding): number {
     const base = BUILDING[b.type].cost * (1 + 0.4 * (b.level - 1));
-    return Math.max(UPKEEP.wear.repairMin, Math.round(base * UPKEEP.wear.repairPct * this.wearOf(b) / 100 / 5) * 5);
+    return Math.max(UPKEEP.wear.repairMin, Math.round(base * UPKEEP.wear.repairPct * this.wearOf(b) / 100 * this.careMult(this.carpenterLevel()) / 5) * 5);
   }
   canRepair(b: PlacedBuilding): boolean { return this.wears(b) && this.wearOf(b) >= UPKEEP.wear.minRepair; }
   repair(b: PlacedBuilding): boolean {
     if (!this.hasCarpenter() || !this.canRepair(b) || !game.spend(this.repairCost(b))) return false;
     delete b.wear;
+    // 1.21 fresh paint from a carpenter at level 2+: it wears slower for a while
+    const paint = UPKEEP.care.freshPaint.days[Math.max(0, this.carpenterLevel() - 1)] ?? 0;
+    if (paint > 0) b.paintUntil = game.now() + paint * DAY;
     game.incStat('repairs');
     game.bus.emit('building:changed', { b });
     game.bus.emit('sfx', { name: 'build' });
@@ -62,7 +115,7 @@ class UpkeepSystem {
   ageDays(a: { born?: number }): number { return a.born ? Math.max(0, (game.now() - a.born) / DAY) : 0; }
   isElder(a: { born?: number }): boolean { return this.ageDays(a) >= UPKEEP.animals.elderDays; }
 
-  treatCost(animal: string): number { return Math.max(UPKEEP.animals.treatMin, Math.round(ANIMAL[animal].cost * UPKEEP.animals.treatCostPct / 5) * 5); }
+  treatCost(animal: string): number { return Math.max(UPKEEP.animals.treatMin, Math.round(ANIMAL[animal].cost * UPKEEP.animals.treatCostPct * this.careMult(this.vetLevel()) / 5) * 5); }
   /** Cure a sick animal: its product timer carries on from where it paused. */
   treat(b: PlacedBuilding, i: number): boolean {
     const a = b.animals?.[i];
@@ -96,10 +149,11 @@ class UpkeepSystem {
   /** Sickness chance for one animal today. */
   chance(b: PlacedBuilding, a: NonNullable<PlacedBuilding['animals']>[number], love: number): number {
     const u = UPKEEP.animals;
+    if (this.underCheckup(b)) return 0;
     let c = u.sickChance + (this.isElder(a) ? u.elderChance : 0);
     const st = this.stage(b);
     if (st !== 'fine') c *= u.wearMult[st];
-    c *= Math.max(u.minHeartFactor, 1 - u.heartCut * love);
+    c *= Math.max(u.minHeartFactor, 1 - u.heartCut * love) * hardyStockMult();
     return Math.min(0.5, c * this.strength);
   }
 
@@ -122,7 +176,10 @@ class UpkeepSystem {
       return l.left > 0;
     });
     for (const b of game.state.buildings) {
-      if (this.wears(b) && isBuilt(b, now)) b.wear = Math.min(100, (b.wear ?? 0) + UPKEEP.wear.perDay * s * (0.7 + 0.6 * (hashString(`${b.uid}:${game.state.upkeep!.day}`) % 100) / 100));
+      if (this.wears(b) && isBuilt(b, now)) {
+        const slower = sturdyJointsMult() * (this.freshPaint(b) ? UPKEEP.care.freshPaint.wearMult : 1);
+        b.wear = Math.min(100, (b.wear ?? 0) + UPKEEP.wear.perDay * s * slower * (0.7 + 0.6 * (hashString(`${b.uid}:${game.state.upkeep!.day}`) % 100) / 100));
+      }
       for (let i = (b.animals?.length ?? 0) - 1; i >= 0; i--) {
         const a = b.animals![i];
         if (!a.born) a.born = game.now();

@@ -21,18 +21,24 @@ This is the long-term plan for Cozy Acres. It follows the 1.15 audit and the own
 
 ## Release plan
 
-| Version | Theme | Size | Depends on |
+Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's requests) took 1.18 and 1.19, so the rest moved up.
+
+| Version | Theme | Size | Status |
 | --- | --- | --- | --- |
-| 1.17 | The Long Road (late-game pace) | ~1 week | 1.16 |
-| 1.18 | Care and Craft (upkeep follow-through) | ~1 week | 1.17 |
-| 1.19 | Estate Projects | ~1-1.5 weeks | 1.17 |
-| 1.20 | Helping Hands (farmhands and masteries) | ~1 week | 1.19 |
-| 1.21 | Orchard Days (levels 101-120 content) | ~1 week | 1.17 |
-| 1.22 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | 1.21 |
-| 1.23 | Together (co-op Village Projects) | ~1.5 weeks + schema | 1.19 |
-| 1.24 | Wildlife Album (spotting, photo mode) | ~1 week | - |
-| 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | Play launch |
-| 2.x | Neighbourhoods, second plot, iOS | later | 2.0, perf budget |
+| 1.17 | The Long Road (late-game pace) | ~1 week | done |
+| 1.18 | Willowmere Manor | ~1.5 weeks | done |
+| 1.19 | The Deep Woods (woods phase 1) | ~1.5 weeks | done |
+| 1.20 | Woodland Friends (woods phase 2) and Care and Craft | ~1.5 weeks | done (local) |
+| 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | next |
+| 1.22 | Server-side leaderboard checks, then Orchard Days (levels 101-120) | ~1.5 weeks + schema | |
+| 1.23 | The Ancient Grove (woods phase 4) | ~1 week | |
+| 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | |
+| 1.25 | Helping Hands (farmhands and masteries) | ~1 week | |
+| 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | |
+| 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | |
+| 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | |
+| 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | needs the Play launch |
+| 2.x | Neighbourhoods, second plot, iOS | later | |
 
 ### 1.17 The Long Road (late-game pace)
 
@@ -59,7 +65,7 @@ This is the long-term plan for Cozy Acres. It follows the 1.15 audit and the own
 - **Files:** `levels.json`, `src/data/index.ts`, `scripts/simulate-economy.mjs`, `master.json`, `boatvisits.json`, `festivals.json`, `supabase/schema.sql` (new marked section), `admin/`, `BALANCE.md`.
 - **Good release when:** BALANCE.md has the new 60-120 table, and the owner has seen the before and after numbers.
 
-### 1.18 Care and Craft (upkeep follow-through)
+### Care and Craft (upkeep follow-through) - built in 1.20
 
 - **Vet's Cottage levels 2-3:**
   - treatment 25% cheaper per level;
@@ -180,7 +186,7 @@ The Wild Woods today is one island: about 10 forage spots, 4 digs a day, the Mus
   - **Whispering Pines:** pinecones, chestnuts, lingonberries, pine boletes and sloes. **Tree tapping:** taps on the old trees fill with maple sap or pine resin over a few hours, a gentle check-in loop.
 - The glade keeps everything it has. A region bar on the woods banner flies the camera between areas.
 
-**Phase 2 (1.20 Woodland Friends):**
+**Phase 2 (1.20 Woodland Friends, built 20 Oct):** six families (deer, rabbits, hedgehogs, foxes, squirrels, owls), the Woodland Gifts Museum shelf, the Critter Journal and Wren's field notes. Wren is a woods resident for now, not a seventh heart villager.
 - **Critter friendships:** a feeding stump in each region. Leave the treat they like (berries for the hedgehogs, chestnuts for the red squirrels, apples for the deer, fish for the fox, mealworms for the owl) and they visit at their time of day.
 - Hearts with each critter family bring gifts (rare forage, feathers, shed antlers for the Museum) and a **Critter Journal** page in the Collection Book. Models exist for the deer, fox and rabbits; hedgehog, squirrel and owl are small procedural models.
 - **Wren the ranger** (the botanist from 1.22, brought forward) moves into a cabin in Whispering Pines: friends only, gives "field notes" requests and teaches the critters' tastes.

@@ -200,6 +200,12 @@ releases?.forEach((r, i) => {
   const perkIds = new Set();
   for (const sk of s.skills ?? []) {
     if (ids.has(sk.id)) err(`skill ${sk.id}: duplicate id`);
+    for (const b of sk.bonus ?? []) {
+      if (!b.id || !b.name || !b.text || !(b.level >= 2 && b.level <= s.xpLevels.length)) err(`skill ${sk.id}: bonus ${b.id} needs id, name, text and a level the XP ladder reaches`);
+      if (perkIds.has(b.id)) err(`skill bonus ${b.id}: duplicate id`);
+      perkIds.add(b.id);
+      if (icons && !icons[b.icon]) err(`skill bonus ${b.id}: unknown icon ${b.icon}`);
+    }
     ids.add(sk.id);
     if (!sk.name || !sk.about || !sk.grows || !sk.perLevel) err(`skill ${sk.id}: needs name, about, grows and perLevel`);
     if (icons && !icons[sk.icon]) err(`skill ${sk.id}: unknown icon ${sk.icon}`);
@@ -362,7 +368,53 @@ releases?.forEach((r, i) => {
       }
     }
   }
+  // 1.20 Woodland Friends: each critter family lives in the glade or a region, eats real items and gives real items
+  const cr = wd.critters;
+  if (cr) {
+    if (!(cr.visitsPerHeart >= 1 && cr.maxHearts >= 1)) err('woods critters: needs visitsPerHeart and maxHearts');
+    const cIds = new Set();
+    for (const c of cr.families ?? []) {
+      if (cIds.has(c.id) || !/^[a-z]+$/.test(c.id)) err(`woods critter ${c.id}: id must be unique lowercase letters`);
+      cIds.add(c.id);
+      if (c.region !== 'glade' && !rIds.has(c.region)) err(`woods critter ${c.id}: unknown region ${c.region}`);
+      if (icons && !icons[c.icon]) err(`woods critter ${c.id}: unknown icon ${c.icon}`);
+      if (!(c.from >= 0 && c.from < 24 && c.to >= 0 && c.to < 24 && c.from !== c.to)) err(`woods critter ${c.id}: from and to must be different hours 0-23`);
+      if (!c.treats?.length) err(`woods critter ${c.id}: needs treats`);
+      for (const t of c.treats ?? []) if (!items[t]) err(`woods critter ${c.id}: treat ${t} is not an item`);
+      for (const g of c.gifts ?? []) if (!items[g.id] || !(g.w > 0)) err(`woods critter ${c.id}: gift ${g.id} must be an item with a weight`);
+      if (!items[c.rare]) err(`woods critter ${c.id}: rare gift ${c.rare} is not an item`);
+      if (!c.name || !c.about || !c.when || !c.model) err(`woods critter ${c.id}: needs name, about, when and model`);
+    }
+    const shelf = read('museum.json').shelves.find((s) => s.id === 'woodland');
+    for (const c of cr.families ?? []) if (shelf && !shelf.items.includes(c.rare)) err(`woods critter ${c.id}: rare gift ${c.rare} is missing from the Woodland Gifts shelf`);
+  }
+  if (wd.wren) {
+    if (!rIds.has(wd.wren.region)) err(`woods wren: unknown region ${wd.wren.region}`);
+    if (!(Array.isArray(wd.wren.need) && wd.wren.need[0] >= 1 && wd.wren.need[1] >= wd.wren.need[0])) err('woods wren: need is [min, max]');
+  }
   if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
+}
+// 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat
+// visitor's wish, a villager's favourite or a thing the game itself spends (seeds, fertiliser, bait, event tokens)
+{
+  const items = read('items.json').items, uses = new Set();
+  const add = (k) => uses.add(k);
+  for (const r of read('recipes.json').recipes) Object.keys(r.in).forEach(add);
+  for (const r of read('crafting.json').recipes) Object.keys(r.in ?? {}).forEach(add);
+  for (const room of read('restoration.json').rooms) for (const b of room.bundles) Object.keys(b.wants).forEach(add);
+  for (const w of read('manor.json').wings) for (const b of w.bundles) Object.keys(b.wants).forEach(add);
+  const wd = read('woods.json');
+  for (const t of wd.trails ?? []) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
+  for (const c of wd.critters?.families ?? []) c.treats.forEach(add);
+  for (const s of read('museum.json').shelves) (s.items ?? []).forEach(add);
+  for (const a of read('animals.json').animals) add(a.feed);
+  for (const t of read('boatvisits.json').themes) t.items.forEach(add);
+  for (const v of read('villagers.json').villagers) [...v.loves, ...v.likes].forEach(add);
+  const fishData = read('fish.json');
+  add(fishData.baitItem); add(fishData.luckyBait.item);
+  // spent by the game's own code
+  for (const k of ['rare_seed', 'quality_fertiliser', 'fertiliser']) add(k);
+  for (const [k, it] of Object.entries(items)) if (it.cat !== 'event' && !uses.has(k)) err(`item ${k}: has no use (add it to a recipe, bundle, Museum shelf, boat wish list, treat or villager favourite)`);
 }
 // 1.9 schedules: known villagers and places
 {

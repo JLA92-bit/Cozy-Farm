@@ -539,5 +539,261 @@
     }
    ]
   }
- ]
+ ],
+ "critters": {
+  "_comment": "1.20 Woodland Friends. A feeding stump per critter family (in the glade or a region, which must be open). Leave one of its treats on the stump; the family visits during its hours (local time, from-to, may wrap past midnight) and the treat waits until then, never lost. Tap the visitor to say hello: one visit a day per family. Every visitsPerHeart visits is a heart (up to maxHearts); each heart pays heartCoins x hearts. A visit leaves a gift: one of `gifts` (weights), or the family's `rare` gift with chance rareBase + rarePerHeart x hearts (always at the last heart). Visits grow the Foraging skill (stat critter_visits).",
+  "visitsPerHeart": 3,
+  "maxHearts": 5,
+  "heartCoins": 150,
+  "rareBase": 0.04,
+  "rarePerHeart": 0.05,
+  "families": [
+   {
+    "id": "deer",
+    "name": "Deer",
+    "one": "deer",
+    "icon": "deer",
+    "model": "pet/deer",
+    "region": "glade",
+    "from": 5,
+    "to": 11,
+    "when": "early morning",
+    "treats": [
+     "apple",
+     "pear",
+     "carrot"
+    ],
+    "rare": "shed_antler",
+    "about": "A shy doe and her fawn who step out of the trees while the dew is still on the grass.",
+    "gifts": [
+     {
+      "id": "hazelnut",
+      "w": 3
+     },
+     {
+      "id": "fern_frond",
+      "w": 3
+     },
+     {
+      "id": "wild_rose",
+      "w": 2
+     },
+     {
+      "id": "blackberry",
+      "w": 2
+     }
+    ]
+   },
+   {
+    "id": "rabbit",
+    "name": "Wild rabbits",
+    "one": "rabbit",
+    "icon": "rabbit",
+    "model": "pet/bunny",
+    "region": "hollow",
+    "from": 11,
+    "to": 17,
+    "when": "middle of the day",
+    "treats": [
+     "carrot",
+     "watercress",
+     "lettuce"
+    ],
+    "rare": "four_leaf_clover",
+    "about": "A whole warren lives under the hollow's mossy banks. They thump a welcome when they hear you coming.",
+    "gifts": [
+     {
+      "id": "moss",
+      "w": 3
+     },
+     {
+      "id": "bluebell",
+      "w": 3
+     },
+     {
+      "id": "wild_garlic",
+      "w": 2
+     },
+     {
+      "id": "dandelion",
+      "w": 2
+     }
+    ]
+   },
+   {
+    "id": "hedgehog",
+    "name": "Hedgehogs",
+    "one": "hedgehog",
+    "icon": "hedgehog",
+    "model": "proc:hedgehog",
+    "region": "hollow",
+    "from": 17,
+    "to": 23,
+    "when": "evening",
+    "treats": [
+     "elderberry",
+     "wild_strawberry",
+     "blueberry"
+    ],
+    "rare": "snail_shell",
+    "about": "Snuffly little wanderers who trundle out of the leaf piles as the light goes golden.",
+    "gifts": [
+     {
+      "id": "puffball",
+      "w": 3
+     },
+     {
+      "id": "moss",
+      "w": 2
+     },
+     {
+      "id": "elderberry",
+      "w": 2
+     },
+     {
+      "id": "morel",
+      "w": 1
+     }
+    ]
+   },
+   {
+    "id": "fox",
+    "name": "Foxes",
+    "one": "fox",
+    "icon": "fox",
+    "model": "pet/fox",
+    "region": "creek",
+    "from": 16,
+    "to": 22,
+    "when": "late afternoon",
+    "treats": [
+     "sardine",
+     "anchovy",
+     "smelt",
+     "herring"
+    ],
+    "rare": "silver_spoon",
+    "about": "A clever red fox family by the creek. They love a fish supper, and they love shiny things even more.",
+    "gifts": [
+     {
+      "id": "watercress",
+      "w": 3
+     },
+     {
+      "id": "river_mint",
+      "w": 2
+     },
+     {
+      "id": "gold_flake",
+      "w": 2
+     },
+     {
+      "id": "agate",
+      "w": 1
+     }
+    ]
+   },
+   {
+    "id": "squirrel",
+    "name": "Red squirrels",
+    "one": "squirrel",
+    "icon": "squirrel",
+    "model": "proc:squirrel",
+    "region": "pines",
+    "from": 6,
+    "to": 12,
+    "when": "morning",
+    "treats": [
+     "chestnut",
+     "hazelnut",
+     "pinecone"
+    ],
+    "rare": "golden_acorn",
+    "about": "Busy, bouncy and always burying something. They chatter at you from the tallest pines.",
+    "gifts": [
+     {
+      "id": "pinecone",
+      "w": 3
+     },
+     {
+      "id": "chestnut",
+      "w": 2
+     },
+     {
+      "id": "lingonberry",
+      "w": 2
+     },
+     {
+      "id": "pine_resin",
+      "w": 1
+     }
+    ]
+   },
+   {
+    "id": "owl",
+    "name": "Tawny owls",
+    "one": "owl",
+    "icon": "owl",
+    "model": "proc:owl",
+    "region": "pines",
+    "from": 20,
+    "to": 4,
+    "when": "night",
+    "treats": [
+     "moss",
+     "fern_frond",
+     "wool"
+    ],
+    "rare": "owl_feather",
+    "about": "A pair of owls nesting in a hollow pine. Leave something soft for their nest and they come down to say hoo.",
+    "gifts": [
+     {
+      "id": "pine_bolete",
+      "w": 3
+     },
+     {
+      "id": "sloe",
+      "w": 2
+     },
+     {
+      "id": "pinecone",
+      "w": 2
+     },
+     {
+      "id": "firefly",
+      "w": 1
+     }
+    ]
+   }
+  ]
+ },
+ "wren": {
+  "_comment": "1.20 Wren the ranger: lives in a cabin in Whispering Pines once its trail is restored (friends only). One field note a day: bring `need` of a woods item for coins (its sell price x coinsMult + bonus) and Foraging XP (stat field_notes). Every gemsEvery notes adds a gem.",
+  "region": "pines",
+  "name": "Wren",
+  "need": [
+   3,
+   5
+  ],
+  "coinsMult": 4,
+  "bonus": 60,
+  "gemsEvery": 5,
+  "look": {
+   "body": "female-c",
+   "skin": "#e0ac7e",
+   "hair": "#6b4a2b",
+   "top": "#5d8a4a",
+   "bottom": "#6b5440",
+   "hat": "bucket",
+   "accessory": "none",
+   "pet": "none"
+  },
+  "hello": [
+   "Morning! I counted eleven rabbits before breakfast.",
+   "Shh, listen. That's a tawny owl, wide awake for once.",
+   "The creek fox has been stealing my teaspoons again.",
+   "Every critter has a favourite snack. The trick is knowing which.",
+   "My notebook is nearly full. Time for a new one!"
+  ]
+ }
 }

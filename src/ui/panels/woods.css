@@ -48,3 +48,23 @@
 .wd-region { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 3px 9px; border: 2px solid var(--outline); border-radius: 10px; background: #fff6df; font-family: var(--font-display); font-size: 13px; color: var(--ink); cursor: pointer; }
 .wd-region .icon { width: 18px; height: 18px; }
 .wd-region.locked { opacity: .7; }
+
+/* 1.20 Woodland Friends */
+.cr-head { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.cr-big { width: 56px; height: 56px; flex: none; }
+.cr-hearts { display: flex; gap: 2px; margin-top: 4px; }
+.cr-heart { width: 20px; height: 20px; filter: grayscale(1); opacity: .35; }
+.cr-heart.on { filter: none; opacity: 1; }
+.cr-sub { font-size: 13px; margin-top: 2px; }
+.cr-state { display: flex; gap: 8px; align-items: center; padding: 8px; margin-bottom: 8px; }
+.cr-state.here { background: #fff3c4; }
+.cr-state-icon { width: 28px; height: 28px; flex: none; }
+.cr-rare { display: flex; gap: 8px; align-items: center; padding: 8px; margin-top: 10px; }
+.cr-say { font-style: italic; }
+.cr-done { opacity: .75; }
+.cr-mini { width: 20px; height: 20px; vertical-align: middle; }
+.cr-likes { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.cr-entry { display: flex; gap: 8px; align-items: center; padding: 8px; margin-bottom: 8px; }
+.cr-entry.locked { opacity: .7; }
+.card.cr-state, .card.cr-rare, .card.cr-entry, .card.list-item.cr-note { flex-direction: row; align-items: center; text-align: left; }
+.cr-entry .row.between { gap: 6px; flex-wrap: wrap; }

@@ -250,6 +250,110 @@ try {
     check('pans used and tap times are saved', kept.panned === 1 && typeof kept.taps?.['pines:1'] === 'number', JSON.stringify({ panned: kept.panned, taps: kept.taps }));
   }
 
+  // 1.20 Woodland Friends: a treat waits on the stump until the family's hours, one visit a day, hearts every three
+  // visits, closed regions cannot be fed, Wren's field note pays once; all of it saved
+  {
+    const at = (hour) => { const n = new Date(); const t = new Date(n); t.setHours(hour, 30, 0, 0); return t.getTime() - n.getTime(); };
+    const w = copy(); w.player.level = 40; w.debugTimeOffset = at(14);
+    w.inventory = { ...w.inventory, apple: 10, carrot: 10, chestnut: 5, moss: 20, river_mint: 20, wild_garlic: 20, bluebell: 20, watercress: 20, cattail: 20, pinecone: 20 };
+    w.restoration = { given: {}, done: ['trail_hollow', 'trail_pines'], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const C = window.__woods.critters, g = window.__game;
+      const fedDeer = C.feed('deer', 'apple');
+      const deerAt2pm = C.present('deer');
+      const fedTwice = C.feed('deer', 'apple');
+      const creekClosed = !C.open('fox') && !C.feed('fox', 'sardine');
+      const fedRabbit = C.feed('rabbit', 'carrot');
+      const rabbitHere = C.present('rabbit');
+      const before = Object.values(g.state.inventory).reduce((a, b) => a + b, 0);
+      const v1 = C.visit('rabbit');
+      const again = C.visit('rabbit');
+      const gifted = Object.values(g.state.inventory).reduce((a, b) => a + b, 0) - before;
+      // two more days of visits: the third is a heart
+      g.state.woods.critters.rabbit.seen = 'old'; C.feed('rabbit', 'carrot'); const v2 = C.visit('rabbit');
+      g.state.woods.critters.rabbit.seen = 'old'; C.feed('rabbit', 'carrot'); const v3 = C.visit('rabbit');
+      const note = C.note();
+      g.addItem(note.item, note.n);
+      const coins = g.state.player.coins;
+      const paid = C.giveNote(), twice = C.giveNote();
+      return { fedDeer, deerAt2pm, fedTwice, creekClosed, fedRabbit, rabbitHere, v1: !!v1, again: !!again, gifted, heart2: v2?.heart ?? null, heart3: v3?.heart ?? null, hearts: C.hearts('rabbit'), paid: !!paid, twice: !!twice, gain: g.state.player.coins - coins, deerTreat: C.treatOn('deer') };
+    });
+    check('a treat waits on the stump outside the family hours', r.fedDeer && !r.deerAt2pm && !r.fedTwice && r.deerTreat === 'apple', JSON.stringify(r));
+    check('a stump in a closed region cannot be fed', r.creekClosed, JSON.stringify(r));
+    check('a fed family visits in its hours, once a day, with a gift', r.fedRabbit && r.rabbitHere && r.v1 && !r.again && r.gifted === 1, JSON.stringify(r));
+    check('every third visit is a heart', r.heart2 === null && r.heart3 === 1 && r.hearts === 1, JSON.stringify(r));
+    check("Wren's field note pays once", r.paid && !r.twice && r.gain > 0, JSON.stringify(r));
+    await page.evaluate(() => dispatchEvent(new Event('pagehide')));
+    await page.reload();
+    await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const kept = (await state()).woods;
+    check('critter visits, the waiting treat and field notes are saved', kept.critters?.rabbit?.visits === 3 && kept.critters?.deer?.treat === 'apple' && kept.notesDone === 1, JSON.stringify({ c: kept.critters, n: kept.notesDone }));
+  }
+
+  // 1.21 Care and Craft: vet and carpenter levels make care cheaper, a check-up keeps a home well, repairs get fresh
+  // paint, the care round treats first and stops when the coins run out, Hardy Stock comes free at Animals level 7
+  {
+    const c = copy();
+    c.buildings.push({ uid: 9101, type: 'vet_cottage', x: 6, z: 30, rot: 0, level: 1 }, { uid: 9102, type: 'carpenter', x: 10, z: 30, rot: 0, level: 1 });
+    withCoop(c, [{ fedAt: null, born: Date.now(), sickAt: Date.now(), sickDays: 0 }, { fedAt: null, born: Date.now() }]);
+    c.buildings.push({ uid: 9103, type: 'bakery', x: 20, z: 30, rot: 0, level: 1, wear: 80 });
+    c.upkeep = { day: localDay(Date.now()), lost: [] };
+    await setStorage({ [KEY]: JSON.stringify(c) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const U = window.__upkeep, g = window.__game, bs = g.state.buildings;
+      const vet = bs.find((b) => b.type === 'vet_cottage'), car = bs.find((b) => b.type === 'carpenter'), coop = bs.find((b) => b.uid === 9001), bak = bs.find((b) => b.uid === 9103);
+      const cost1 = U.repairCost(bak), noCheckup = !U.checkup(coop);
+      vet.level = 2; car.level = 2;
+      const cost2 = U.repairCost(bak);
+      const checked = U.checkup(coop), chanceChecked = U.chance(coop, coop.animals[1], 0), secondToday = U.checkup(coop);
+      delete coop.checkupUntil;
+      const chanceBefore = U.chance(coop, coop.animals[1], 0);
+      g.state.skills = { xp: { animals: 3500 }, perks: {}, headStart: true };
+      const chanceHardy = U.chance(coop, coop.animals[1], 0);
+      // just enough coins to treat, not to repair: the care round treats first and leaves the repair
+      const plan = U.carePlan();
+      g.state.player.coins = plan.treat[0].cost + 1;
+      const round = U.careRound();
+      g.state.player.coins = 50000;
+      const round2 = U.careRound();
+      return { cost1, cost2, noCheckup, checked, chanceChecked, secondToday, chanceBefore, chanceHardy, round, round2, paint: (bak.paintUntil ?? 0) > Date.now(), sick: coop.animals[0].sickAt ?? null };
+    });
+    check('a level 2 carpenter repairs for less', r.cost2 < r.cost1, JSON.stringify(r));
+    check('a check-up needs vet level 2, keeps a home well and is once a day at level 2', r.noCheckup && r.checked && r.chanceChecked === 0 && !r.secondToday, JSON.stringify(r));
+    check('Hardy Stock comes free at Animals level 7', r.chanceHardy < r.chanceBefore, JSON.stringify(r));
+    check('the care round treats first and stops when the coins run out', r.round.treated === 1 && r.round.repaired === 0 && r.round.left === 1 && r.round2.repaired === 1 && r.sick === null, JSON.stringify(r));
+    check('a repair by a level 2 carpenter gets fresh paint', r.paint, JSON.stringify(r));
+  }
+
+  // 1.20 every item has a use: a young farm only meets boats it can fill wishes for (never the Craft Fair or Picnic boat)
+  {
+    await setStorage({ [KEY]: JSON.stringify({ ...copy(), player: { ...copy().player, level: 12 } }) });
+    await boot();
+    const themes = await page.evaluate(() => {
+      const B = window.__boat, g = window.__game, seen = new Set();
+      if (!B) return null;
+      for (let d = 0; d < 60; d++) { delete g.state.boatvisit; seen.add(B.theme(Date.now() + d * 86400000).id); }
+      return [...seen];
+    });
+    check('a young farm never gets a boat it cannot fill', Array.isArray(themes) && themes.length > 0 && !themes.includes('crafts') && !themes.includes('picnic'), JSON.stringify(themes));
+    // once a farm has made a few crafts, the Craft Fair boat comes and asks for them
+    const crafts = await page.evaluate(() => {
+      const B = window.__boat, g = window.__game, known = ['firefly_lantern', 'woodland_vase', 'gilded_vase'];
+      for (const k of known) g.state.collection[`item:${k}`] = Date.now();
+      for (let d = 0; d < 120; d++) {
+        delete g.state.boatvisit;
+        const at = Date.now() + d * 86400000;
+        if (B.theme(at).id === 'crafts') return { want: Object.keys(B.want(at)), known };
+      }
+      return null;
+    });
+    check('the Craft Fair boat asks for crafts the farm has made', !!crafts && crafts.want.length === 3 && crafts.want.every((k) => crafts.known.includes(k)), JSON.stringify(crafts));
+  }
+
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
   // decor kinds share a few batches instead of one draw each
   {
@@ -275,6 +379,31 @@ try {
     });
     check('late-game decor appears on a level 1 farm', r.placed === 10 && r.shown === 10, JSON.stringify(r));
     check('different decor kinds share a few batches', r.batches > 0 && r.batches <= r.placed / 2, JSON.stringify(r));
+    // 1.20: a batch is drawn wherever its pieces are, also ones placed after it was first drawn (it used to keep
+    // the bounds from its first draw, so big decor placed later vanished whenever those old bounds were off screen)
+    const seen = await page.evaluate(async () => {
+      const g = window.__game, f = window.__ui.scene.farm, s = window.__scene;
+      for (let i = 0; i < 4; i++) { s.loop.wake(2); await new Promise((r) => requestAnimationFrame(r)); }
+      let far = null;
+      for (let z = 40; z > 10 && !far; z--) for (let x = 40; x > 10 && !far; x--) if (g.canPlace('water_tower', x, z, 0)) far = { uid: g.newUid(), type: 'water_tower', x, z, rot: 0, level: 1 };
+      if (!far) return { placed: false };
+      g.state.buildings.push(far); g.markBuilding(far, far.uid);
+      await f.addBuilding(far);
+      s.rig.focus(far.x, far.z, 12, 0);
+      for (let i = 0; i < 4; i++) { s.loop.wake(2); await new Promise((r) => requestAnimationFrame(r)); }
+      const v = f.views.get(far.uid);
+      // every batch either is not culled as a whole or holds bounds that still cover all its pieces
+      const drawn = [];
+      s.scene.traverse((o) => {
+        if (!o.isBatchedMesh) return;
+        if (!o.frustumCulled || o.boundingSphere === null) { drawn.push(true); return; }
+        const old = o.boundingSphere.clone();
+        o.computeBoundingSphere();
+        drawn.push(old.containsPoint(o.boundingSphere.center) && old.radius + 1e-3 >= o.boundingSphere.radius + old.center.distanceTo(o.boundingSphere.center));
+      });
+      return { placed: true, pooled: !!v?.pool, drawn };
+    });
+    check('decor placed later is drawn when the camera looks at it', seen.placed && seen.pooled && seen.drawn.every(Boolean), JSON.stringify(seen));
   }
 } finally {
   await browser.close();

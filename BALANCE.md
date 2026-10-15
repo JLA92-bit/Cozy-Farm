@@ -648,3 +648,58 @@ The woods grow from one glade to four places. Each region is an island round the
 | Whispering Pines | level 36 | 50k coins + iron, breakfast, blankets, berries | about 7 forage (pinecones, chestnuts, lingonberries, pine boletes, sloes) and 6 taps that hold 2 maple sap or pine resin each, full again 6 hours after they were emptied |
 
 With all three open and three check-ins a day the woods give roughly 30 forage, 8 fireflies, 6 pans, 4 digs and up to about 36 sap or resin a day, against about 10 forage and 4 digs before. Panning makes the Manor's chandelier gems (quartz, topaz, amethyst) far easier to collect. Pans, sap and fireflies grow the Foraging skill (`skills.json`: pans_done 4, sap_collected 3, fireflies_caught 3 XP). The Manor's Grounds reward (every forage spot full) applies to the regions too.
+
+## 1.20 Woodland Friends (`woods.json` `critters` and `wren`, `src/systems/Critters.ts`)
+
+Six critter families, each with a feeding stump. A treat left on a stump waits until the family's hours (never lost), then the family visits once a day; a hello gives one gift. Every 3 visits is a heart, up to 5 (15 visits, so about two weeks of daily treats per family to be best friends). Each heart pays 150 coins x the new heart count (2,250 coins a family, 13,500 for all six). The family's rare gift (one each, for the Museum's new Woodland Gifts shelf: 2,400 coins and 8 gems) has a 4% chance per visit plus 5% per heart already earned, and always comes with the fifth heart.
+
+| Family | Where | Hours | Treats | Rare gift |
+| --- | --- | --- | --- | --- |
+| Deer | the glade | 5 am to 11 am | apple, pear, carrot | Shed Antler |
+| Wild rabbits | Mossy Hollow | 11 am to 5 pm | carrot, watercress, lettuce | Four-Leaf Clover |
+| Hedgehogs | Mossy Hollow | 5 pm to 11 pm | elderberry, wild strawberry, blueberry | Banded Snail Shell |
+| Foxes | Crystal Creek | 4 pm to 10 pm | sardine, anchovy, smelt, herring | Lost Silver Spoon |
+| Red squirrels | Whispering Pines | 6 am to 12 pm | chestnut, hazelnut, pinecone | Golden Acorn |
+| Tawny owls | Whispering Pines | 8 pm to 4 am | moss, fern frond, wool | Owl Feather |
+
+The hours cover morning, afternoon, evening and night, so each of the three daily check-ins finds someone. Treats are cheap on purpose (most sell for 8-30 coins): the loop is about the visit, not a coin sink. Visits give Foraging XP (`critter_visits` 5).
+
+**Wren the ranger** lives in a cabin in Whispering Pines (once its trail is restored). One field note a day: 3-5 of a forage item that grows somewhere open to the farm, for its sell price x 4 x the number + 60 coins (about 180-600 a day) and every fifth note a gem. Notes give Foraging XP (`field_notes` 8). Wren is a woods resident, not a seventh heart villager: no gifts, letters or keepsakes yet.
+
+## 1.20 Care and Craft (`upkeep.json` `care`, `src/systems/Upkeep.ts`)
+
+The Vet's Cottage and the Carpenter's Workshop now go to level 3.
+
+| Step | Cost | Time | Player level |
+| --- | --- | --- | --- |
+| Level 2 | 6,000 | 30 min | 16 |
+| Level 3 | 18,000 | 1 h | 24 |
+
+- **Vet:** treatment 25% cheaper per level above the first (50% at level 3). Check-ups from level 2: every animal in one home cannot fall unwell for 3 days; 1 home a day at level 2, 2 at level 3.
+- **Carpenter:** repairs 25% cheaper per level above the first. Fresh paint from level 2: a repaired building wears at x0.7 for 10 days (14 at level 3).
+- **Free skill bonuses** (`skills.json` `bonus`, no choice, on top of the level 5 and 10 picks): Hardy Stock at Animals level 7 (sickness x0.6) and Sturdy Joints at Crafting level 7 (wear x0.75).
+- **Care round** (Farmhouse screen): one button that treats every unwell animal, then repairs worn buildings worst first, while the coins last. The total is shown first.
+
+A check-up lasts 3 days, so daily check-ups keep up to 3 homes (vet level 2) or 6 homes (level 3) well all the time; Hardy Stock cuts sickness in the rest by 40%. Wear is 1.6 a day on average: a building turns weathered (40) after about 25 days and worn (70) after about 44. With a level 3 carpenter's fresh paint and Sturdy Joints, a repaired building turns weathered after about 37 days and worn after about 62. That keeps upkeep a light chore, in line with the 2-3 hours a week target for late game.
+
+## 1.20 Every item has a use (`validate-data` checks it)
+
+Every item must now be wanted somewhere beyond the barn: a recipe or craft ingredient, a bundle, a Museum shelf, animal feed, a critter treat, a boat visitor's wish list or a villager's favourite (or be spent by the game itself: seeds, fertiliser, bait, event tokens). `npm run validate-data` fails for an item with no use, so new items cannot slip through.
+
+**27 new recipes**, priced at each workshop's usual margin over the ingredients' barn price (Fish Shack and Bakery about x1.45, Jam Kitchen x1.48, Loom, Sugar Mill and Beehive x1.5, Pottery Kiln x1.6, Juice Press x1.8, Village Kitchen x1.85), each unlocked no earlier than its ingredients can be had:
+
+| Workshop | New recipes (level) |
+| --- | --- |
+| Fish Shack | Winter Chowder (12), Flounder Fry (19), Crab Cakes (21), Blossom Sushi (21), Harvest Fish Pie (22), Sunny Fish Skewers (23), Rainbow Fish Tacos (23), Sunset Snapper Grill (24), Grilled Tuna Steak (24), Halibut Supper (24), Maple-Glazed Flounder (36) |
+| Village Kitchen | Herb-Crusted Sea Bass (28), Coral Grouper Curry (30), Woodland Mushroom Pie (36) |
+| Bakery | Wild Garlic Bread (20), Duck Egg Sponge (24) |
+| Jam Kitchen | Pickled Herring (18), Hedgerow Jam (36) |
+| Juice Press | Mint Lemonade (28) |
+| Loom | Rush Basket (28) |
+| Sugar Mill | Maple Syrup (36) |
+| Beehive House | Pine Forest Candle (36) |
+| Pottery Kiln | Firefly Lantern (34), Woodland Vase (34), Gem Mosaic Tile (35), Gilded Vase (36), Old Boot Planter (41) |
+
+**Not cooked:** the sea turtle, curious seal, dolphin, baby whale, ghost ray, golden crab, kraken and celestial koi go to the Museum's new **Aquarium** shelf (6,000 coins, 15 gems) instead. The creek's gold flakes, agate, jade and river pearls fill **Creek Treasures** (1,500 coins, 6 gems), and the Gilded Vase and Gem Mosaic Tile use them again after that.
+
+**Boats:** the Angler's Cruise now wants every edible fish and fish dish; juices joined the Orchard Cruise, jams and maple syrup the Sweet Tooth Cruise. Two new themes: the **Picnic Cruise** (savoury dishes) and the **Craft Fair Cruise** (pottery, candles, wool goods and the new crafts). Boats now ask for what the farm can make now or has caught, found or made before (its Collection Book), so rarer fish, fish dishes and woods crafts turn up on wish lists; orders keep their old rules (common all-day fish only). A boat day only picks a theme the farm can fill three wishes from, so a young farm never meets a boat it cannot serve. The economy simulator does not model fishing or the woods, so it still lists fish dishes and woods goods as never asked for. Each villager also likes three of the new goods.
