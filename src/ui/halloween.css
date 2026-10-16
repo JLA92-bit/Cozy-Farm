@@ -1,0 +1,62 @@
+/* 1.20.1 Spooky season: the whole screen dresses up for October while html has the class "halloween" (set in main.ts
+   and scenes/HalloweenApply.ts). Cosmetic only. Cobwebs in the corners, a dangling spider, a purple vignette, a
+   "Happy Halloween" ribbon, pumpkin-orange and witch-purple panels and buttons, and a night-time loading screen. */
+
+:root {
+  --hw-web: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.85' stroke-width='1.6'%3E%3Cpath d='M0 0L120 120M0 0L120 60M0 0L60 120M0 0L120 25M0 0L25 120'/%3E%3Cpath d='M22 0Q20 10 0 22M48 0Q44 22 21 41Q14 46 0 48M78 0Q72 34 40 62Q26 74 0 78M108 0Q100 48 58 90Q38 106 0 108'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- loading screen: a moonlit night ---------- */
+html.halloween #boot-screen { background: radial-gradient(circle at 50% 30%, #6b4f9a 0%, #3b2a5a 50%, #1c1230 100%); }
+html.halloween #boot-screen::after { background: linear-gradient(#5a3a2a, #2e1d14 50%); border-top-color: #e8833a; }
+html.halloween #boot-screen::before {
+  content: ''; position: absolute; top: 9vh; right: 14vw; width: 90px; height: 90px; border-radius: 50%; z-index: 0;
+  background: radial-gradient(circle at 40% 40%, #fff6c8, #ffd36a 60%, #f2a93a); box-shadow: 0 0 60px 20px rgba(255, 210, 110, .35);
+}
+html.halloween .boot-logo { color: #ff9a2a; text-shadow: 0 6px 0 var(--outline), 0 0 26px rgba(255, 140, 40, .65); }
+html.halloween .boot-fill { background: linear-gradient(#ffb15c, #e0601c); }
+html.halloween .boot-bar { background: #3b2a5a; }
+
+/* ---------- corner cobwebs, a dangling spider and a soft purple vignette over the game ---------- */
+html.halloween #ui-root::before, html.halloween #ui-root::after {
+  content: ''; position: absolute; top: 0; width: 110px; height: 110px; z-index: 3; pointer-events: none;
+  background: var(--hw-web) no-repeat; background-size: contain; opacity: .7;
+}
+html.halloween #ui-root::before { left: 0; }
+html.halloween #ui-root::after { right: 0; transform: scaleX(-1); }
+.hw-vignette {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(40, 10, 60, 0) 55%, rgba(50, 15, 80, .38) 100%);
+}
+.hw-spider { position: absolute; top: 0; left: 78px; z-index: 3; pointer-events: none; animation: hw-dangle 4.5s ease-in-out infinite; transform-origin: top center; }
+.hw-spider .thread { width: 2px; height: 46px; margin: 0 auto; background: rgba(255, 255, 255, .8); }
+.hw-spider .body { width: 16px; height: 14px; margin: -2px auto 0; border-radius: 50%; background: #2b2238; border: 2px solid #1a1424; position: relative; }
+.hw-spider .body::before, .hw-spider .body::after { content: ''; position: absolute; top: 4px; width: 26px; height: 6px; left: -7px; border-top: 2px solid #2b2238; border-radius: 50%; }
+.hw-spider .body::after { top: 8px; }
+@keyframes hw-dangle { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(14px) rotate(4deg); } }
+
+/* ---------- the Happy Halloween ribbon (with a countdown) ---------- */
+.hw-ribbon {
+  position: absolute; left: 50%; transform: translateX(-50%); top: calc(var(--safe-top) + 6px); z-index: 4; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; padding: 3px 14px 3px 8px; border-radius: 14px;
+  background: linear-gradient(#ff9a3c, #d9591c); border: 3px solid #2b1a3a; box-shadow: 0 3px 0 #2b1a3a;
+  font-family: var(--font-display); font-size: 15px; color: #fff; -webkit-text-stroke: 1.5px #2b1a3a; paint-order: stroke fill; white-space: nowrap;
+}
+.hw-ribbon .icon { width: 22px; height: 22px; }
+.hw-ribbon .sub { font-size: 12px; color: #ffe9c8; }
+html.halloween .squaring .hw-ribbon { display: none; }
+@media (orientation: landscape) and (max-height: 500px) { .hw-ribbon { font-size: 13px; padding: 2px 10px 2px 6px; } .hw-ribbon .icon { width: 18px; height: 18px; } }
+@media (orientation: portrait) { .hw-ribbon { top: auto; bottom: calc(var(--safe-bottom) + 92px); } }
+
+/* ---------- panels and buttons in pumpkin orange and witch purple ---------- */
+html.halloween .panel { background: #fff1dc; border-color: #2b1a3a; box-shadow: 0 6px 0 #2b1a3a, inset 0 0 0 4px #ffe2bd; }
+html.halloween .panel-header { background: linear-gradient(#ff9a3c, #d9591c); border-bottom-color: #2b1a3a; }
+html.halloween .panel-header.green, html.halloween .panel-header.blue, html.halloween .panel-header.pink { background: linear-gradient(#9b6fe0, #5a3a9a); }
+html.halloween .panel-header.purple { background: linear-gradient(#7f55d0, #3b2a5a); }
+html.halloween .panel-header::after {
+  content: ''; position: absolute; left: 6px; top: 4px; width: 46px; height: 46px; pointer-events: none;
+  background: var(--hw-web) no-repeat; background-size: contain; opacity: .55;
+}
+html.halloween .hud-btn { background: linear-gradient(#ff9a3c, #d9591c); }
+html.halloween .hud-btn:nth-child(even) { background: linear-gradient(#9b6fe0, #5a3a9a); }
+html.halloween .overlay { background: rgba(30, 10, 45, .5); }

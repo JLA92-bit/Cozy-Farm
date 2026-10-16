@@ -68,7 +68,14 @@ export class Environment {
   }
 
   /** 1.10 farm look: lean the sky, the ground bounce light and the drifting specks toward a season (null = normal). */
-  setLook(look: { grass: string; grassMix: number; sky: string; skyMix: number; pollen: string } | null): void {
+  /** 1.20.1 spooky season: an all-day golden-dusk light with a lilac fill (0 = normal). */
+  mood = 0;
+  private moodHemi = new THREE.Color('#c2a6ff');
+  private moodSun = new THREE.Color('#ffa860');
+  private moodGround = new THREE.Color('#6a5a8a');
+
+  setLook(look: { grass: string; grassMix: number; sky: string; skyMix: number; pollen: string; mood?: number } | null): void {
+    this.mood = look?.mood ?? 0;
     this.skyDay.set('#8fd3f4');
     this.hemi.groundColor.set('#7da35a');
     this.pollenCol.set('#fffbe6');
@@ -195,6 +202,14 @@ export class Environment {
     this.hemi.groundColor.copy(this.groundDay).lerp(this.groundNight, night * 0.85);
     this.sun.intensity = (2.1 - night * 1.35 + eve * 0.35) * (1 - rainK * 0.5 - mistK * 0.25);
     this.sun.color.copy(this.sunDay).lerp(this.sunDusk, eve * 0.9).lerp(this.sunDawn, dawn * 0.7).lerp(this.moon, night * 0.85);
+    if (this.mood > 0) {
+      const m = this.mood * (1 - night * 0.5);
+      this.hemi.color.lerp(this.moodHemi, m * 0.55);
+      this.hemi.groundColor.lerp(this.moodGround, m * 0.45);
+      this.sun.color.lerp(this.moodSun, m * 0.5);
+      this.sun.intensity *= 1 - m * 0.2;
+      this.hemi.intensity *= 1 - m * 0.12;
+    }
     // sun swings across the sky and sinks low at golden hour (long cosy shadows); the moon rides high at night
     const ang = -0.6 + p * 1.2;
     this.sun.position.set(focus.x + Math.cos(ang) * 18 - 6, 30 - dusk * 14, focus.z + Math.sin(ang) * 10 + 14);

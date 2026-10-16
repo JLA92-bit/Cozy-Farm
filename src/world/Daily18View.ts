@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { costume } from './FarmLook';
 import gsap from 'gsap';
 import { assets } from '../core/Assets';
 import { BUILDING } from '../data';
@@ -161,7 +162,7 @@ export class Daily18View {
     if (!spot) return;
     this.visitorLoading = id;
     let c: Character;
-    try { c = await Character.create(villagerLook(id), 1.4); } finally { this.visitorLoading = ''; }
+    try { c = await Character.create(costume(villagerLook(id), id), 1.4); } finally { this.visitorLoading = ''; }
     if (this.visitor || daily18.today.visitor !== id || !daily18.visitorWaiting) { c.dispose(); return; }
     const h = this.house();
     this.visitorKey = h ? `${h.b.x},${h.b.z},${h.fx}` : '';

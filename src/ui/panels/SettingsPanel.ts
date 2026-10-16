@@ -1,4 +1,6 @@
 import { Panel } from '../Panel';
+import { halloweenSeason } from '../../world/FarmLook';
+import { syncHalloween } from '../../scenes/HalloweenApply';
 import { h, icon, button, clear } from '../dom';
 import { ui } from '../UI';
 import { settings, saveSettings, shadowsWanted } from '../../systems/Settings';
@@ -88,6 +90,8 @@ export function openSettings(): void {
       }
       return seg;
     })()),
+    // 1.20.1 only in October: the spooky look can be switched off
+    ...(halloweenSeason() ? [row('Halloween look', toggle(settings.halloween !== false, (v) => { settings.halloween = v; saveSettings(settings); syncHalloween(); applyFarmLook(ui.scene); }))] : []),
     row('Show FPS', toggle(settings.showFps, (v) => { settings.showFps = v; saveSettings(settings); ui.setFps(v); })),
     hintsRow(),
     row('Farmer', h('div', { class: 'row', style: 'gap:8px' }, h('span', { class: 'muted' }, game.state.player.name),

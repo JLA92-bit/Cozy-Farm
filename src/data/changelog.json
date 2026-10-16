@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.20.1",
+   "date": "2026-10-16",
+   "title": "Spooky Season",
+   "icon": "ghost",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "ghost",
+     "text": "Spooky season is here until Halloween: a twilight sky, glowing jack-o'-lanterns round the farm and floating overhead, Halloween bunting, friendly ghosts, bats, drifting mist, autumn leaves and a witch who zooms past on her broomstick"
+    },
+    {
+     "icon": "pumpkin",
+     "text": "The whole game dresses up too: pumpkin-orange and witch-purple screens, cobwebs in the corners, a moonlit loading screen and a countdown to Halloween night"
+    },
+    {
+     "icon": "info",
+     "text": "The villagers are in costume too. It is only a look and changes nothing in the game: switch it off in Settings if you prefer"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.20.0",
    "date": "2026-10-20",
    "title": "Woodland Friends",

@@ -354,6 +354,23 @@ try {
     check('the Craft Fair boat asks for crafts the farm has made', !!crafts && crafts.want.length === 3 && crafts.want.every((k) => crafts.known.includes(k)), JSON.stringify(crafts));
   }
 
+  // 1.20.1 Spooky season: October only, cosmetic only (nothing is saved), and the Settings switch takes it away
+  {
+    await setStorage({ [KEY]: JSON.stringify(copy()) });
+    await boot();
+    const r = await page.evaluate(async () => {
+      const october = new Date().getMonth() === 9;
+      for (let i = 0; i < 40 && october && !window.__halloween.decor; i++) await new Promise((res) => setTimeout(res, 250));
+      const d = window.__halloween.decor;
+      const shown = !!d && d.group.visible;
+      const before = Object.keys(window.__game.state).sort().join(',');
+      const s = JSON.parse(localStorage.getItem('cozy-acres-settings') ?? '{}');
+      localStorage.setItem('cozy-acres-settings', JSON.stringify({ ...s, halloween: false }));
+      return { october, shown, keys: before.includes('halloween') };
+    });
+    check('the Halloween look shows in October only and saves nothing', r.shown === r.october && !r.keys, JSON.stringify(r));
+  }
+
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different
   // decor kinds share a few batches instead of one draw each
   {

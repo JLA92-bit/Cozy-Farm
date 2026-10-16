@@ -12,6 +12,7 @@ import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { initWoods } from './Woods';
 import { applyFarmLook } from './FarmLookApply';
+import { initHalloween } from './HalloweenApply';
 import { currentLook } from '../world/FarmLook';
 import { settings, shadowsWanted } from '../systems/Settings';
 import { audio, haptics } from '../systems/Audio';
@@ -170,6 +171,7 @@ export async function boot(): Promise<void> {
   buildings.tick(game.now());
   await scene.farm.build();
   applyFarmLook(scene);
+  initHalloween(scene);
   buildings.updateGauges();
   await player.init(scene);
   events.check();

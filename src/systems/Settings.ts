@@ -8,7 +8,9 @@ export interface Settings { music: number; sfx: number; haptics: boolean; qualit
   /** The quality the GPU blank-screen check has already passed (or been overridden by the player) at. */
   gpuChecked?: Quality;
   /** 1.10 optional cosmetic season look for the farm ('off' by default) */
-  farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter' }
+  farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter'
+  /** 1.20.1 the October Halloween look (on unless switched off) */
+  halloween?: boolean }
 const KEY = 'cozy-acres-settings';
 
 function reducedMotion(): boolean {
