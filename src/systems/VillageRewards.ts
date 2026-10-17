@@ -18,6 +18,7 @@ import { saves } from './Save';
 import { village } from './Village';
 import { visiting } from './Visiting';
 import { hashString } from '../world/Procedural';
+import { logEvent } from '../online/Events';
 import type { FriendshipState, Letter } from './State';
 
 export const STORY_HEARTS = [2, 4, 6, 8, 10] as const;
@@ -161,6 +162,7 @@ class VillageRewards {
   daily(now = game.now()): void {
     if (visiting.active || !game.state.tutorial.done) return;
     const today = localDay(now);
+    this.arcs(now);
     for (const v of VILLAGERS) {
       const f: FriendshipState | undefined = game.state.village.friends[v.id];
       if (!f) continue;
@@ -182,6 +184,31 @@ class VillageRewards {
         }
       }
     }
+  }
+
+  /**
+   * 1.24 best-friend arcs: once a villager is a best friend their second story starts, one letter at a time on its
+   * day. Only one arc runs at a time (in villager order) so old best friends do not all write at once.
+   */
+  arcs(now = game.now()): void {
+    const today = localDay(now);
+    const running = VILLAGERS.find((v) => { const a = game.state.village.friends[v.id]?.arc; return !!a && !!v.arc && a.sent < v.arc.letters.length; });
+    const v = running ?? VILLAGERS.find((x) => { const f = game.state.village.friends[x.id]; return !!x.arc && !!f && f.rewards.includes(10) && !f.arc; });
+    if (!v?.arc) return;
+    const f = game.state.village.friends[v.id];
+    const a = (f.arc ??= { day: today, sent: 0 });
+    const next = v.arc.letters[a.sent];
+    if (!next || a.last === today || daysBetween(a.day, today) < next.day) return;
+    a.sent++;
+    a.last = today;
+    mail.send(v.id, fill(next.title), fill(next.body), next.attach ? { ...next.attach, items: next.attach.items ? { ...next.attach.items } : undefined } : undefined);
+    if (a.sent === v.arc.letters.length) { game.incStat('villager_arcs'); logEvent('villager_arc', { id: v.id }); }
+    saves.save();
+  }
+  /** 1.24 how far a villager's arc has got: letters sent of all, or null before it starts. */
+  arcProgress(id: string): { sent: number; of: number } | null {
+    const a = game.state.village.friends[id]?.arc, v = VILLAGER[id];
+    return a && v?.arc ? { sent: a.sent, of: v.arc.letters.length } : null;
   }
 
   private started = false;

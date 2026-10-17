@@ -423,6 +423,20 @@ releases?.forEach((r, i) => {
   for (const id of wd.weather?.rarePan ?? []) if (!items[id]) err(`woods weather: rare pan find ${id} is not an item`);
   if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
 }
+// 1.24 villager arcs: letters in day order with text; the gift's items are real
+{
+  const items = read('items.json').items;
+  for (const v of read('villagers.json').villagers) {
+    if (!v.arc) continue;
+    let prev = -1;
+    for (const l of v.arc.letters ?? []) {
+      if (!l.title || !l.body || !(l.day > prev)) err(`villager ${v.id} arc: letters need a title, a body and a later day each`);
+      prev = l.day;
+      for (const k of Object.keys(l.attach?.items ?? {})) if (!items[k]) err(`villager ${v.id} arc: unknown item ${k}`);
+    }
+    if (!v.arc.letters?.at(-1)?.attach) err(`villager ${v.id} arc: the last letter carries the gift`);
+  }
+}
 // 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat
 // visitor's wish, a villager's favourite or a thing the game itself spends (seeds, fertiliser, bait, event tokens)
 {
@@ -439,6 +453,8 @@ releases?.forEach((r, i) => {
   for (const a of read('animals.json').animals) add(a.feed);
   for (const t of read('boatvisits.json').themes) t.items.forEach(add);
   for (const v of read('villagers.json').villagers) [...v.loves, ...v.likes].forEach(add);
+  // 1.24 bouquets: every villager loves them (village.taste)
+  for (const [k, it] of Object.entries(items)) if (it.bouquet) add(k);
   const fishData = read('fish.json');
   add(fishData.baitItem); add(fishData.luckyBait.item);
   // spent by the game's own code

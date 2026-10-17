@@ -428,6 +428,35 @@ try {
     check('Elder Oak progress is saved', kept.done.filter((x) => x.startsWith('grove_')).length === 5 && Object.keys(kept.grove ?? {}).length === 5 && kept.oak > 0, JSON.stringify(kept.grove));
   }
 
+  // 1.24 the Tea House and the Florist open at their levels; every villager loves a bouquet; best-friend arcs come one
+  // letter a day on their days, one villager at a time, the last with its gift
+  {
+    const w = copy(); w.player.level = 105;
+    const best = { points: 1000, giftDay: '', chatDay: '', gifts: 0, rewards: [2, 4, 6, 8, 10], known: [], stories: [4, 8], weeklyDay: '2999-01-01' };
+    w.village.friends = { ...w.village.friends, rosa: { ...best }, tom: { ...best } };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, B = window.__buildings, V = window.__village;
+      const DAY = 86400000;
+      const teaEarly = B.canBuy('tea_house');
+      g.state.player.level = 112;
+      const teaOpen = B.canBuy('tea_house'), floristOpen = B.canBuy('florist');
+      const loved = ['rosa', 'tom', 'juniper', 'pip', 'hazel', 'bram'].every((id) => V.village.taste(id, 'rose_bouquet') === 'love' && V.village.taste(id, 'wildflower_bouquet') === 'love');
+      const fromRosa = () => g.state.mail.letters.filter((l) => l.from === 'rosa' && /little idea|chapter one|tasting|cover|first copy/i.test(l.title)).length;
+      const steps = [];
+      steps.push(fromRosa());
+      V.rewards.arcs(); steps.push(fromRosa());
+      for (let d = 1; d <= 7; d++) { g.state.debugTimeOffset = (g.state.debugTimeOffset ?? 0) + DAY; V.rewards.arcs(); V.rewards.arcs(); steps.push(fromRosa()); }
+      const last = g.state.mail.letters.filter((l) => l.from === 'rosa').at(-1);
+      const tomStarted = !!g.state.village.friends.tom.arc;
+      return { teaEarly, teaOpen, floristOpen, loved, steps, gift: !!last?.attach?.gems, tomStarted, juniper: !!g.state.village.friends.juniper?.arc };
+    });
+    check('the Tea House and the Florist open at their levels', !r.teaEarly.ok && /level/i.test(r.teaEarly.reason ?? '') && (r.teaOpen.ok || !/level/i.test(r.teaOpen.reason ?? '')) && (r.floristOpen.ok || !/level/i.test(r.floristOpen.reason ?? '')), JSON.stringify(r));
+    check('every villager loves a bouquet', r.loved, JSON.stringify(r));
+    check('a best-friend arc sends one letter a day on its days, then the next friend starts', JSON.stringify(r.steps.slice(1)) === JSON.stringify([1, 2, 2, 3, 3, 4, 4, 5]) && r.gift && r.tomStarted && !r.juniper, JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

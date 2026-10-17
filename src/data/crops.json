@@ -623,6 +623,43 @@
     "model": "crop/leafs_b",
     "produce": "proc/cranberry"
    }
+  },
+  {
+   "id": "tea_leaf",
+   "name": "Tea Leaves",
+   "level": 104,
+   "seedCost": 102,
+   "growSec": 99000,
+   "yield": 2,
+   "xp": 108,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "tint": "#4f9a3a",
+    "produce": "proc/tea_leaf"
+   }
+  },
+  {
+   "id": "rose",
+   "name": "Roses",
+   "level": 112,
+   "seedCost": 114,
+   "growSec": 104400,
+   "yield": 2,
+   "xp": 118,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/rose"
+   }
   }
  ],
  "trees": [

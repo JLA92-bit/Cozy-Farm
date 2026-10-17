@@ -12,6 +12,7 @@ import { FESTIVAL_PROC } from './models/festival';
 import { RANK_PROC, markerGeometry } from './models/ranks';
 import { BEEHIVE_PROC } from './models/beehive';
 import { JUICEPRESS_PROC } from './models/juicepress';
+import { TEAHOUSE_PROC } from './models/teahouse';
 import { KILN_PROC } from './models/kiln';
 import { FISHSTALL_PROC } from './models/fishstall';
 
@@ -347,6 +348,25 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cone(0.1, 0.08, '#5f8f3a', [0, 0.02, 0], 5);
     return b.build();
   },
+  // 1.24 tea leaves (a little bush of glossy leaves) and roses (three blooms on stems)
+  tea_leaf: () => {
+    const b = geo();
+    b.cyl(0.02, 0.03, 0.16, '#6a4a2e', [0, 0, 0], 5);
+    for (let i = 0; i < 9; i++) { const a = i * 2.4, d = 0.05 + (i % 3) * 0.05; b.sphere(0.07, i % 2 ? '#4f9a3a' : '#3f8a35', [Math.cos(a) * d, 0.16 + (i % 4) * 0.05, Math.sin(a) * d], 0, [1, 0.45, 0.7]); }
+    b.sphere(0.05, '#8fd06a', [0, 0.36, 0], 0, [1, 0.5, 0.7]);
+    return b.build();
+  },
+  rose: () => {
+    const b = geo();
+    for (const [x, z, h] of [[-0.09, 0.02, 0.36], [0.08, -0.04, 0.44], [0.01, 0.09, 0.3]] as V3[]) {
+      b.cyl(0.012, 0.015, h, '#4f8a3a', [x, 0, z], 5);
+      b.cone(0.05, 0.06, '#4f8a3a', [x, h - 0.04, z], 5, [Math.PI, 0, 0]);
+      b.sphere(0.075, '#d6334a', [x, h + 0.03, z], 1, [1, 0.85, 1]);
+      b.sphere(0.045, '#b51f38', [x, h + 0.08, z], 0);
+    }
+    b.cone(0.07, 0.05, '#5f9a3a', [0.04, 0.12, 0], 4, [0, 0, 1.1]);
+    return b.build();
+  },
   peach: () => geo().sphere(0.13, '#ffb07a', [0, 0.13, 0], 1).sphere(0.07, '#ff8a6a', [0.05, 0.16, 0.06], 1).cone(0.04, 0.08, '#5f9a3a', [0.02, 0.24, 0], 4, [0, 0, 0.8]).build(),
   plum: () => geo().sphere(0.11, '#6a3a8a', [0, 0.12, 0], 1, [1, 1.12, 1]).sphere(0.03, '#9a6ac0', [0.04, 0.17, 0.07], 0).cyl(0.008, 0.008, 0.06, '#5a4a2a', [0, 0.24, 0], 4).build(),
   olive: () => {
@@ -426,6 +446,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...RANK_PROC,
   ...BEEHIVE_PROC,
   ...JUICEPRESS_PROC,
+  ...TEAHOUSE_PROC,
   ...KILN_PROC,
   ...FISHSTALL_PROC,
 };

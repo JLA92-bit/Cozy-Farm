@@ -43,7 +43,7 @@ export interface AnimalDef {
   id: string; name: string; level: number; house: string; cost: number; feed: string; product: string;
   produceSec: number; xp: number; model: string; scale: number; sound: string; variant?: string;
 }
-export interface ItemDef { id: string; name: string; cat: string; sell: number; icon: string }
+export interface ItemDef { id: string; name: string; cat: string; sell: number; icon: string; /** 1.24 a Florist bouquet: every villager loves it as a gift */ bouquet?: boolean }
 export interface RecipeDef {
   id: string; building: string; level: number; in: Record<string, number>; item: string; out: number; sec: number; xp: number;
   /** 1.8: only offered once this villager perk is on (src/systems/Perks.ts) */
@@ -146,6 +146,8 @@ export const FISH = Object.fromEntries(FISHING.species.map((f) => [f.id, f])) as
 /** 1.8 Village Friends (villagers.json). */
 export interface VillagerDef {
   id: string; name: string; role: string; about: string;
+  /** 1.24 the best-friend arc: letters over a week, the last one with a gift */
+  arc?: { title: string; letters: { day: number; title: string; body: string; attach?: { coins?: number; gems?: number; items?: Record<string, number> } }[] };
   loves: string[]; likes: string[]; dislikes: string[];
   /** [month 1-12, day] */
   birthday: [number, number];

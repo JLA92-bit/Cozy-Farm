@@ -110,6 +110,8 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   carpenter: { title: "The Carpenter's Workshop!", sub: 'Workshops and animal homes slowly wear down. The carpenter repairs them, so tap here when they look tired.', icon: 'hammer' },
   rabbit_hutch: { title: 'Bunnies!', sub: 'Feed them bunny feed from the Feed Mill and collect soft angora wool.', icon: 'rabbit' },
   beehive_house: { title: 'Bees at work!', sub: 'Tap it and pick a recipe: apples become honey, then candles and honey butter.', icon: 'honey_pot' },
+  tea_house: { title: 'The Tea House!', sub: 'Brew your tea leaves into green tea, chai, iced tea and more. Villagers love a cup.', icon: 'green_tea' },
+  florist: { title: 'The Florist!', sub: 'Tie flowers into bouquets. Every villager loves a bouquet, the best gift there is.', icon: 'rose_bouquet' },
   juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
   pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },
   duck_house: { title: 'Ducks!', sub: 'Make duck feed at the Feed Mill. Fed ducks lay duck eggs.', icon: 'duck' },
@@ -135,6 +137,8 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   garlic: { title: 'Garlic!', sub: 'Bake garlic bread at the Bakery. Bram likes it.' },
   sweet_potato: { title: 'Sweet Potatoes!', sub: 'Bake a sweet potato pie at the Bakery.' },
   cranberry: { title: 'Cranberries!', sub: 'Simmer cranberry sauce at the Jam Kitchen.' },
+  tea_leaf: { title: 'Tea Leaves!', sub: 'Build the Tea House at level 106 to brew them.' },
+  rose: { title: 'Roses!', sub: 'Tie rose bouquets at the Florist. Every villager loves one.' },
 };
 
 let wired = false;

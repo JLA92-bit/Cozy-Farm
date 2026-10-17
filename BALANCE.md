@@ -759,3 +759,16 @@ Uses: the crops go on the Garden boat, the fruit, olive oil, plum jam and cranbe
 | The Elder Crown | 60 | 21 days | 80 acorns, 3 golden acorns, 3 owl feathers; woodland feasts and pies, elderberry cordial; gold apple pies and strawberry cakes; 400,000 coins | finale: Elder Oak Sapling decor (charm 400), 120,000 coins, 150 gems |
 
 New Lodge goods: acorn bread (level 40, 3 acorns and 2 wheat, sells 90) and moonflower tea (level 42, 2 moonflowers, river mint and sugar, sells 220), x1.7 their ingredients like the other Lodge goods. Acorn bread is on the Baker's boat, moonflower tea on the Picnic boat; Pip likes acorn bread, Juniper moonflower tea.
+
+## 1.24 Tea and Flowers (`tea_house`, `florist`, villager `arc`)
+
+New crops: tea leaves (level 104, sells 770) and roses (level 112, sells 850), 27-29 h like the other late crops. Two workshops, each recipe at x2.0 its ingredients' barn value like Orchard Days:
+
+| Workshop | Level, cost | Recipes (level: sells) |
+| --- | --- | --- |
+| Tea House (3x3) | 106, 150,000 coins | green tea (106: 3,080), mint tea (107: 1,730), honey tea (108: 3,380), chai (110: 3,330), iced tea (113: 3,510), matcha cake (115: 4,930), tea biscuits (118: 1,890), peach iced tea (120: 4,370) |
+| Florist (2x2) | 112, 180,000 coins | rose bouquet (112: 8,500), sunflower bouquet (112: 2,280), lavender sachet (113: 1,540), rose buttonhole (114: 1,750), wildflower bouquet (116: 440), flower crown (117: 3,770), rose water (118: 6,800), flower wreath (119: 5,940), moonflower bouquet (120: 5,370) |
+
+**Bouquets** (`"bouquet": true` in items.json) are loved by every villager (`village.taste`), so they give 40 friendship (more with stars and on birthdays). The wildflower bouquet is cheap on purpose: it is made from glade forage and is the everyday gift.
+
+**Best-friend arcs:** at 10 hearts each villager's second story arrives as 5 letters on days 0, 1, 3, 5 and 7 after it starts, at most one letter a day. One arc runs at a time, in villager order. The last letter carries 20,000-30,000 coins, 25-30 gems and a few favourite goods.

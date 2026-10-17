@@ -2058,6 +2058,124 @@
    "cat": "goods",
    "sell": 220,
    "icon": "moonflower_tea"
+  },
+  "tea_leaf": {
+   "name": "Tea Leaves",
+   "cat": "crop",
+   "sell": 770,
+   "icon": "tea_leaf"
+  },
+  "rose": {
+   "name": "Rose",
+   "cat": "crop",
+   "sell": 850,
+   "icon": "rose"
+  },
+  "green_tea": {
+   "name": "Green Tea",
+   "cat": "goods",
+   "sell": 3080,
+   "icon": "green_tea"
+  },
+  "mint_tea": {
+   "name": "Mint Tea",
+   "cat": "goods",
+   "sell": 1730,
+   "icon": "mint_tea"
+  },
+  "honey_tea": {
+   "name": "Honey Tea",
+   "cat": "goods",
+   "sell": 3380,
+   "icon": "honey_tea"
+  },
+  "chai": {
+   "name": "Chai",
+   "cat": "goods",
+   "sell": 3330,
+   "icon": "chai"
+  },
+  "iced_tea": {
+   "name": "Iced Tea",
+   "cat": "goods",
+   "sell": 3510,
+   "icon": "iced_tea"
+  },
+  "matcha_cake": {
+   "name": "Matcha Cake",
+   "cat": "goods",
+   "sell": 4930,
+   "icon": "matcha_cake"
+  },
+  "tea_biscuits": {
+   "name": "Tea Biscuits",
+   "cat": "goods",
+   "sell": 1890,
+   "icon": "tea_biscuits"
+  },
+  "peach_iced_tea": {
+   "name": "Peach Iced Tea",
+   "cat": "goods",
+   "sell": 4370,
+   "icon": "peach_iced_tea"
+  },
+  "rose_bouquet": {
+   "name": "Rose Bouquet",
+   "cat": "goods",
+   "sell": 8500,
+   "icon": "rose_bouquet",
+   "bouquet": true
+  },
+  "sunflower_bouquet": {
+   "name": "Sunflower Bouquet",
+   "cat": "goods",
+   "sell": 2280,
+   "icon": "sunflower_bouquet",
+   "bouquet": true
+  },
+  "lavender_sachet": {
+   "name": "Lavender Sachet",
+   "cat": "goods",
+   "sell": 1540,
+   "icon": "lavender_sachet"
+  },
+  "buttonhole": {
+   "name": "Rose Buttonhole",
+   "cat": "goods",
+   "sell": 1750,
+   "icon": "buttonhole"
+  },
+  "wildflower_bouquet": {
+   "name": "Wildflower Bouquet",
+   "cat": "goods",
+   "sell": 440,
+   "icon": "wildflower_bouquet",
+   "bouquet": true
+  },
+  "flower_crown": {
+   "name": "Flower Crown",
+   "cat": "goods",
+   "sell": 3770,
+   "icon": "flower_crown"
+  },
+  "rose_water": {
+   "name": "Rose Water",
+   "cat": "goods",
+   "sell": 6800,
+   "icon": "rose_water"
+  },
+  "flower_wreath": {
+   "name": "Flower Wreath",
+   "cat": "goods",
+   "sell": 5940,
+   "icon": "flower_wreath"
+  },
+  "moonflower_bouquet": {
+   "name": "Moonflower Bouquet",
+   "cat": "goods",
+   "sell": 5370,
+   "icon": "moonflower_bouquet",
+   "bouquet": true
   }
  }
 }

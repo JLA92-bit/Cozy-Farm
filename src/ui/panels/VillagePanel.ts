@@ -176,6 +176,12 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
     const next = villageRewards.next(id);
     p.body.append(h('div', { class: 'v-next' }, icon(next ? milestoneIcon(next) : 'crown', 'icon'),
       h('div', null, next ? h('b', null, `At ${next} hearts: `) : h('b', null, 'Best friends! '), next ? milestoneText(v, next) : `${v.name} sends you a gift every week.`)));
+    // 1.24 the best-friend story, told in letters
+    if (v.arc && !next) {
+      const arc = villageRewards.arcProgress(id);
+      const text = !arc ? `${v.name} has a story to tell. It starts in your mailbox soon.` : arc.sent >= arc.of ? 'The whole story is in your mailbox.' : `In your mailbox: ${arc.sent} of ${arc.of} letters so far.`;
+      p.body.append(h('div', { class: 'v-next' }, icon('mailbox', 'icon'), h('div', null, h('b', null, `${v.arc.title}: `), text)));
+    }
     // tastes
     p.body.append(h('div', { class: 'section-title' }, 'What they like'));
     const box = h('div', { class: 'v-tastes' });

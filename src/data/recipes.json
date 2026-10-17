@@ -719,6 +719,23 @@
     {"id": "fried_rice", "building": "village_kitchen", "level": 119, "in": {"rice": 2, "egg": 1, "pea": 2, "garlic": 1}, "item": "fried_rice", "out": 1, "sec": 3600, "xp": 113},
     {"id": "olive_focaccia", "building": "bakery", "level": 119, "in": {"wheat": 4, "olive_oil": 1, "olive": 2}, "item": "olive_focaccia", "out": 1, "sec": 4500, "xp": 113},
     {"id": "peach_sorbet", "building": "dairy", "level": 120, "in": {"peach": 2, "sugar": 1, "cream": 1}, "item": "peach_sorbet", "out": 1, "sec": 3300, "xp": 114},
-    {"id": "plum_cake", "building": "bakery", "level": 120, "in": {"plum": 3, "wheat": 3, "egg": 2, "sugar": 1}, "item": "plum_cake", "out": 1, "sec": 5400, "xp": 114}
+    {"id": "plum_cake", "building": "bakery", "level": 120, "in": {"plum": 3, "wheat": 3, "egg": 2, "sugar": 1}, "item": "plum_cake", "out": 1, "sec": 5400, "xp": 114},
+    {"id": "green_tea", "building": "tea_house", "level": 106, "in": {"tea_leaf": 2}, "item": "green_tea", "out": 1, "sec": 2400, "xp": 100},
+    {"id": "mint_tea", "building": "tea_house", "level": 107, "in": {"tea_leaf": 1, "river_mint": 3, "sugar": 1}, "item": "mint_tea", "out": 1, "sec": 2400, "xp": 101},
+    {"id": "honey_tea", "building": "tea_house", "level": 108, "in": {"tea_leaf": 2, "honey": 1}, "item": "honey_tea", "out": 1, "sec": 2700, "xp": 102},
+    {"id": "chai", "building": "tea_house", "level": 110, "in": {"tea_leaf": 2, "milk": 2, "sugar": 1}, "item": "chai", "out": 1, "sec": 3000, "xp": 104},
+    {"id": "iced_tea", "building": "tea_house", "level": 113, "in": {"tea_leaf": 2, "lemon": 2, "sugar": 1}, "item": "iced_tea", "out": 1, "sec": 2700, "xp": 107},
+    {"id": "matcha_cake", "building": "tea_house", "level": 115, "in": {"tea_leaf": 3, "wheat": 3, "egg": 2, "cream": 1, "sugar": 1}, "item": "matcha_cake", "out": 1, "sec": 4800, "xp": 109},
+    {"id": "tea_biscuits", "building": "tea_house", "level": 118, "in": {"tea_leaf": 1, "wheat": 3, "butter": 1, "sugar": 1}, "item": "tea_biscuits", "out": 1, "sec": 3600, "xp": 112},
+    {"id": "peach_iced_tea", "building": "tea_house", "level": 120, "in": {"tea_leaf": 2, "peach": 2, "sugar": 1}, "item": "peach_iced_tea", "out": 1, "sec": 3000, "xp": 114},
+    {"id": "rose_bouquet", "building": "florist", "level": 112, "in": {"rose": 5}, "item": "rose_bouquet", "out": 1, "sec": 3000, "xp": 106},
+    {"id": "sunflower_bouquet", "building": "florist", "level": 112, "in": {"sunflower": 6}, "item": "sunflower_bouquet", "out": 1, "sec": 2700, "xp": 106},
+    {"id": "lavender_sachet", "building": "florist", "level": 113, "in": {"lavender": 4, "cotton_fabric": 1}, "item": "lavender_sachet", "out": 1, "sec": 2700, "xp": 107},
+    {"id": "buttonhole", "building": "florist", "level": 114, "in": {"rose": 1, "fern_frond": 2}, "item": "buttonhole", "out": 1, "sec": 1800, "xp": 108},
+    {"id": "wildflower_bouquet", "building": "florist", "level": 116, "in": {"bluebell": 3, "daffodil": 3, "wild_rose": 3, "dandelion": 3}, "item": "wildflower_bouquet", "out": 1, "sec": 3000, "xp": 110},
+    {"id": "flower_crown", "building": "florist", "level": 117, "in": {"rose": 2, "daffodil": 4, "wild_rose": 4}, "item": "flower_crown", "out": 1, "sec": 3600, "xp": 111},
+    {"id": "rose_water", "building": "florist", "level": 118, "in": {"rose": 4}, "item": "rose_water", "out": 1, "sec": 3000, "xp": 112},
+    {"id": "flower_wreath", "building": "florist", "level": 119, "in": {"rose": 3, "holly": 2, "fern_frond": 4, "lavender": 2}, "item": "flower_wreath", "out": 1, "sec": 4200, "xp": 113},
+    {"id": "moonflower_bouquet", "building": "florist", "level": 120, "in": {"moonflower": 4, "rose": 3}, "item": "moonflower_bouquet", "out": 1, "sec": 3600, "xp": 114}
   ]
 }

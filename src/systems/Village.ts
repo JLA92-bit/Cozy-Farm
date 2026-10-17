@@ -31,6 +31,8 @@ export class VillageSystem {
     if (!v) return 'neutral';
     if (v.loves.includes(item)) return 'love';
     if (v.dislikes.includes(item)) return 'dislike';
+    // 1.24 a bouquet from the Florist is the best gift there is: everyone loves one
+    if (ITEMS[item]?.bouquet) return 'love';
     if (v.likes.includes(item) || (v.likes.includes('fish') && ITEMS[item]?.cat === 'fish')) return 'like';
     return 'neutral';
   }

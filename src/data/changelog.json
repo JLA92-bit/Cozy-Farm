@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.24.0",
+   "date": "2026-10-17",
+   "title": "Tea and Flowers",
+   "icon": "green_tea",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "green_tea",
+     "text": "The Tea House (level 106): grow tea leaves and brew green tea, mint tea, honey tea, chai and iced tea, with matcha cake and tea biscuits"
+    },
+    {
+     "icon": "rose_bouquet",
+     "text": "The Florist (level 112): grow roses and tie bouquets, buttonholes, flower crowns, wreaths and rose water. Every villager loves a bouquet, the best gift there is"
+    },
+    {
+     "icon": "mailbox",
+     "text": "Best friends have a new story to tell: Rosa's cookbook, Old Tom's boat, Juniper's art show, Pip's treasure hunt, Hazel's village records and Bram's bell, told in letters over a week"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.23.0",
    "date": "2026-10-17",
    "title": "The Ancient Grove",

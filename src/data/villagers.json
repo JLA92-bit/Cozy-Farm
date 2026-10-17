@@ -1,5 +1,5 @@
 {
-  "_comment": "1.8 Village Friends. Six named villagers. loves/likes/dislikes are item ids (\"fish\" in likes = any fish). birthday = month/day. perk6 is the 6-heart reward. look = how they appear on the farm and in portraits (COSMETICS ids), scale = their size on the farm. Text: chat (tap lines on the farm), react (gift reactions), letters (sent at heart milestones, every week once best friends, the day after a birthday gift; {farmer} = the player's name), stories (4 and 8 hearts, shown as picture cards), weekly (the best-friend gift). Milestones and perks: src/systems/VillageRewards.ts.",
+  "_comment": "1.8 Village Friends. Six named villagers. loves/likes/dislikes are item ids (\"fish\" in likes = any fish). birthday = month/day. perk6 is the 6-heart reward. look = how they appear on the farm and in portraits (COSMETICS ids), scale = their size on the farm. Text: chat (tap lines on the farm), react (gift reactions), letters (sent at heart milestones, every week once best friends, the day after a birthday gift; {farmer} = the player's name), stories (4 and 8 hearts, shown as picture cards), weekly (the best-friend gift). Milestones and perks: src/systems/VillageRewards.ts. 1.24 arc: a second story once a best friend (10 hearts), letters `day` days after it starts; one arc runs at a time in villager order; the last letter carries the gift.",
   "friendship": {
     "pointsPerHeart": 100,
     "maxHearts": 10,
@@ -58,7 +58,8 @@
         "maple_syrup",
         "bramble_crumble",
         "peach_cobbler",
-        "rice_pudding"
+        "rice_pudding",
+        "tea_biscuits"
       ],
       "dislikes": [
         "onion",
@@ -231,6 +232,44 @@
           "strawberry_cake": 2
         },
         "coins": 200
+      },
+      "arc": {
+        "title": "Rosa's Cookbook",
+        "letters": [
+          {
+            "day": 0,
+            "title": "A little idea",
+            "body": "Dear {farmer},\n\nI've been thinking. The recipe tin is falling apart, and half of what I bake these days started on your farm. What if we wrote a proper cookbook? A real one, with a cover.\n\nI'll start tonight. Wish me luck with the spelling.\n\nRosa"
+          },
+          {
+            "day": 1,
+            "title": "Chapter one: bread",
+            "body": "Dear {farmer},\n\nChapter one is bread, of course. I wrote down Grandmother's loaf exactly the way she said it: \"enough flour, until it feels right.\" Pip says that isn't a measurement. Pip may have a point.\n\nRosa"
+          },
+          {
+            "day": 3,
+            "title": "The tasting day",
+            "body": "Dear {farmer},\n\nI baked every recipe in the book in one day to check them. Old Tom ate four slices of everything and had to lie down on the bench outside.\n\nYour strawberries made the cake chapter. I wrote your name next to it.\n\nRosa"
+          },
+          {
+            "day": 5,
+            "title": "Juniper drew the cover",
+            "body": "Dear {farmer},\n\nJuniper painted the cover: my oven, a basket of your eggs and a very round loaf. Hazel says she'll sell it in the shop, but only after you have the first copy.\n\nRosa"
+          },
+          {
+            "day": 7,
+            "title": "The first copy",
+            "body": "Dear {farmer},\n\nIt's done! \"Rosa's Kitchen: Recipes from the Valley.\" The first copy is yours, and so is a basket of the best things in it, because a cookbook is no good without cake.\n\nThank you for every egg, every berry and every Tuesday you came by. This book is half yours.\n\nWith love and flour,\nRosa",
+            "attach": {
+              "coins": 25000,
+              "gems": 25,
+              "items": {
+                "strawberry_cake": 3,
+                "apple_pie": 3
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -267,7 +306,8 @@
         "pickled_herring",
         "forest_tea",
         "fried_rice",
-        "risotto"
+        "risotto",
+        "honey_tea"
       ],
       "dislikes": [
         "wool",
@@ -440,6 +480,44 @@
           "sushi_platter": 2
         },
         "coins": 200
+      },
+      "arc": {
+        "title": "Old Tom's Boat",
+        "letters": [
+          {
+            "day": 0,
+            "title": "The old Marigold",
+            "body": "Ahoy {farmer},\n\nYou know the old boat upside down behind my shed? That's the Marigold. Forty years I fished from her. I've decided she's going back in the water before I'm too creaky to steer.\n\nOld Tom"
+          },
+          {
+            "day": 1,
+            "title": "Planks and patience",
+            "body": "Ahoy {farmer},\n\nNew planks on the hull today. Bram made me copper nails so they won't rust. He says he did it for the challenge. He did it because he's soft.\n\nOld Tom"
+          },
+          {
+            "day": 3,
+            "title": "A coat of paint",
+            "body": "Ahoy {farmer},\n\nYellow, with a blue stripe, same as she always was. Pip helped with the stripe. Pip also helped with the dog, the bench and my left boot.\n\nOld Tom"
+          },
+          {
+            "day": 5,
+            "title": "The launch",
+            "body": "Ahoy {farmer},\n\nWe slid her down the slipway at high tide this morning. She floats! I may have shed a small, salty, entirely manly tear.\n\nOld Tom"
+          },
+          {
+            "day": 7,
+            "title": "First catch",
+            "body": "Ahoy {farmer},\n\nFirst trip out on the Marigold in thirty years, and the fish were waiting for me like old friends. The best of the catch is for you.\n\nWhen you've a free morning, come out with me. There's a seat at the front with your name on it.\n\nOld Tom",
+            "attach": {
+              "coins": 25000,
+              "gems": 25,
+              "items": {
+                "sushi_platter": 3,
+                "fish_pie": 3
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -478,7 +556,8 @@
         "holly_wreath",
         "peach",
         "plum_jam",
-        "moonflower_tea"
+        "moonflower_tea",
+        "flower_crown"
       ],
       "dislikes": [
         "sardine",
@@ -651,6 +730,44 @@
           "ice_cream": 2
         },
         "coins": 200
+      },
+      "arc": {
+        "title": "Juniper's Art Show",
+        "letters": [
+          {
+            "day": 0,
+            "title": "A brave idea",
+            "body": "Dear {farmer},\n\nHazel asked if I'd show my paintings in the square. A real show, with people looking at them. On purpose.\n\nI said yes before I could say no. Now I can't sleep.\n\nJuniper"
+          },
+          {
+            "day": 1,
+            "title": "Choosing the pictures",
+            "body": "Dear {farmer},\n\nI picked twelve paintings. Three are of your farm: the fields at sunrise, your animals in the rain, and the Wild Woods from your beach. I hope that's all right. They're my favourites.\n\nJuniper"
+          },
+          {
+            "day": 3,
+            "title": "Frames",
+            "body": "Dear {farmer},\n\nBram made the frames out of old barn wood. They're beautiful and very heavy. He carried them all to the square himself and pretended it was easy.\n\nJuniper"
+          },
+          {
+            "day": 5,
+            "title": "The night before",
+            "body": "Dear {farmer},\n\nEverything is hung. Rosa is baking little cakes, Pip is in charge of the guest book, and I've changed my mind about the order of the paintings eleven times.\n\nPlease come and stand near me tomorrow.\n\nJuniper"
+          },
+          {
+            "day": 7,
+            "title": "Thank you for coming",
+            "body": "Dear {farmer},\n\nThe whole valley came. People cried at the woods painting! In a good way. Someone asked me to paint their cat.\n\nI couldn't have done it without a friend who always says my work is lovely. Here's something sweet to say thank you.\n\nJuniper",
+            "attach": {
+              "coins": 25000,
+              "gems": 25,
+              "items": {
+                "ice_cream": 4,
+                "grapes": 10
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -689,7 +806,8 @@
         "maple_candy",
         "sweet_potato_pie",
         "cranberry_sauce",
-        "acorn_bread"
+        "acorn_bread",
+        "iced_tea"
       ],
       "dislikes": [
         "beet",
@@ -881,6 +999,44 @@
           "apple": 5
         },
         "coins": 100
+      },
+      "arc": {
+        "title": "Pip's Treasure Hunt",
+        "letters": [
+          {
+            "day": 0,
+            "title": "TOP SECRET",
+            "body": "Dear {farmer},\n\nI am planning the BIGGEST treasure hunt ever, across the whole island. Don't tell anyone. Especially not Old Tom, he always guesses.\n\nPip"
+          },
+          {
+            "day": 1,
+            "title": "Clue number one",
+            "body": "Dear {farmer},\n\nI hid the first clue. It is somewhere orange and round. That is all I will say. (It is a pumpkin.)\n\nPip"
+          },
+          {
+            "day": 3,
+            "title": "A small problem",
+            "body": "Dear {farmer},\n\nThe dog ate clue number three. I have written a new clue number three. It is better. The dog says sorry.\n\nPip"
+          },
+          {
+            "day": 5,
+            "title": "Everyone is playing!",
+            "body": "Dear {farmer},\n\nRosa found two clues, Hazel found one, and Bram found none but he says he wasn't trying. Juniper drew the map. It has a sea monster on it, just for decoration.\n\nPip"
+          },
+          {
+            "day": 7,
+            "title": "You found it!",
+            "body": "Dear {farmer},\n\nYOU FOUND THE TREASURE! It was under the big tree the whole time. Here it is: cookies, coins and my luckiest golden acorn. I didn't even eat any of the cookies. (I ate one.)\n\nBest treasure hunter in the world: you. Second best: me.\n\nPip",
+            "attach": {
+              "coins": 20000,
+              "gems": 30,
+              "items": {
+                "cookie": 10,
+                "golden_acorn": 1
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -918,7 +1074,8 @@
         "hedgerow_jam",
         "herbal_salve",
         "olive_oil",
-        "plum_cake"
+        "plum_cake",
+        "chai"
       ],
       "dislikes": [
         "wheat"
@@ -1090,6 +1247,44 @@
           "cheese": 3
         },
         "coins": 300
+      },
+      "arc": {
+        "title": "Hazel's Village Records",
+        "letters": [
+          {
+            "day": 0,
+            "title": "A dusty box",
+            "body": "Dear {farmer},\n\nI found a box in the shop cellar: the old village records, a hundred years of them. Births, harvests, festivals, a very long argument about a goat. I'm going to put them in order.\n\nHazel"
+          },
+          {
+            "day": 1,
+            "title": "The great flood",
+            "body": "Dear {farmer},\n\nToday I read about the year the river flooded the square and everyone carried the bread oven up the hill. Rosa's great-grandmother organised it. Some things run in families.\n\nHazel"
+          },
+          {
+            "day": 3,
+            "title": "Your farm, long ago",
+            "body": "Dear {farmer},\n\nThere's a page about your farm! In the old days it grew wheat and kept two very bad-tempered geese. It's grown a great deal since then. You've done that.\n\nHazel"
+          },
+          {
+            "day": 5,
+            "title": "A new page",
+            "body": "Dear {farmer},\n\nThe records stop forty years ago. Nobody kept them after the square fell quiet. So I've started a new book, and the first page is the year the village was rebuilt.\n\nHazel"
+          },
+          {
+            "day": 7,
+            "title": "For the village",
+            "body": "Dear {farmer},\n\nThe records are bound and back on the shelf for anyone to read. Your name is in the new book many times over, I'm happy to say.\n\nA little something from the shop, with my thanks for being part of our history.\n\nWith love,\nHazel",
+            "attach": {
+              "coins": 30000,
+              "gems": 25,
+              "items": {
+                "cheese": 5,
+                "goat_cheese": 5
+              }
+            }
+          }
+        ]
       }
     },
     {
@@ -1127,7 +1322,8 @@
         "woodland_pie",
         "resin_varnish",
         "garlic_bread",
-        "olive_focaccia"
+        "olive_focaccia",
+        "mint_tea"
       ],
       "dislikes": [
         "petal",
@@ -1301,6 +1497,44 @@
           "carrot_cake": 1
         },
         "coins": 200
+      },
+      "arc": {
+        "title": "Bram's Bell",
+        "letters": [
+          {
+            "day": 0,
+            "title": "The square needs a bell",
+            "body": "{farmer},\n\nThe square had a bell once. Melted for nails in a hard winter, before my time. A square should have a bell. I'm going to make one.\n\nBram"
+          },
+          {
+            "day": 1,
+            "title": "The mould",
+            "body": "{farmer},\n\nBuilt the mould today. Clay and sand from the Wild Woods. Pip asked if the bell will be loud. Yes.\n\nBram"
+          },
+          {
+            "day": 3,
+            "title": "Pouring",
+            "body": "{farmer},\n\nPoured the bronze this morning. Hottest day of my life, and I'm a blacksmith. Old Tom held the door open and told sea stories the whole time. Helped, oddly.\n\nBram"
+          },
+          {
+            "day": 5,
+            "title": "Cooling",
+            "body": "{farmer},\n\nIt has to cool for days. I've checked on it four times today. Rosa says I'm like a hen on an egg. I am not like a hen.\n\nBram"
+          },
+          {
+            "day": 7,
+            "title": "It rings",
+            "body": "{farmer},\n\nThe bell is up in the square. Rang it at sunrise. You probably heard it. Everyone did.\n\nI put your farm's name on the inside, where only the bell can see it. Here's some food. Don't make a fuss.\n\nBram",
+            "attach": {
+              "coins": 25000,
+              "gems": 25,
+              "items": {
+                "pumpkin_pie": 3,
+                "corn_bread": 5
+              }
+            }
+          }
+        ]
       }
     }
   ],

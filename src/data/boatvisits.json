@@ -58,7 +58,9 @@
         "peach_cobbler",
         "olive_focaccia",
         "plum_cake",
-        "acorn_bread"
+        "acorn_bread",
+        "matcha_cake",
+        "tea_biscuits"
       ],
       "boat": {
         "model": "boat/wc_005",
@@ -182,7 +184,9 @@
         "olive",
         "olive_oil",
         "plum_jam",
-        "cranberry_sauce"
+        "cranberry_sauce",
+        "peach_iced_tea",
+        "honey_tea"
       ],
       "boat": {
         "model": "boat/wc_028",
@@ -224,7 +228,8 @@
         "honey_butter",
         "duck_egg",
         "rice_pudding",
-        "peach_sorbet"
+        "peach_sorbet",
+        "chai"
       ],
       "boat": {
         "model": "boat/wc_006",
@@ -280,7 +285,9 @@
         "rice",
         "garlic",
         "sweet_potato",
-        "cranberry"
+        "cranberry",
+        "tea_leaf",
+        "rose"
       ],
       "boat": {
         "model": "boat/wc_023",
@@ -338,7 +345,10 @@
         "elderberry_cordial",
         "peach_sorbet",
         "plum_cake",
-        "rice_pudding"
+        "rice_pudding",
+        "matcha_cake",
+        "tea_biscuits",
+        "rose_water"
       ],
       "boat": {
         "model": "boat/wc_008",
@@ -408,7 +418,11 @@
         "risotto",
         "garlic_bread",
         "olive_focaccia",
-        "moonflower_tea"
+        "moonflower_tea",
+        "green_tea",
+        "iced_tea",
+        "peach_iced_tea",
+        "mint_tea"
       ]
     },
     {
@@ -457,7 +471,11 @@
         "herbal_salve",
         "holly_wreath",
         "pinecone_wreath",
-        "resin_varnish"
+        "resin_varnish",
+        "buttonhole",
+        "flower_crown",
+        "flower_wreath",
+        "lavender_sachet"
       ]
     }
   ]

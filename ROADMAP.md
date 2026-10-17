@@ -32,7 +32,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | done (local) |
 | 1.22 | Server-side leaderboard checks and Orchard Days (levels 101-120) | ~1.5 weeks + schema | done (local) |
 | 1.23 | The Ancient Grove (woods phase 4) | ~1 week | done (local) |
-| 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | |
+| 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | done (local) |
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | |
 | 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | |
@@ -122,7 +122,9 @@ Built in 1.22 (see BALANCE.md): cranberry instead of raspberry (raspberry is a w
 
 Raise `authoredMax` to 120. Every new building gets an entry in `Hints.ts` `INTROS`, every new crop in `CROP_TIPS`.
 
-### 1.22 The Tea House and the Florist
+### 1.24 The Tea House and the Florist
+
+Built in 1.24 (see BALANCE.md): tea leaves, roses, the Tea House (8 recipes) and the Florist (9 recipes); bouquets are loved by every villager; six best-friend arcs in letters. Not built: wreaths as door decor, heart events at 12 and 14 hearts (friendship stops at 10), Wren as a square villager (she is the woods ranger since 1.20), and Bram's bell is for the village square (no Clock Tower yet).
 
 - **Tea House workshop (level 106):** tea leaves (new crop at 104) make green tea, mint tea, chai, iced tea and matcha cake. A villager favourite gift line.
 - **Florist workshop (level 112):** flowers from the farm's flowerbeds and sunflowers and lavender make bouquets, wreaths, buttonholes and flower crowns.

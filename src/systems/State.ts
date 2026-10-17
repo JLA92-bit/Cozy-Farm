@@ -232,6 +232,8 @@ export interface FriendshipState {
   weeklyDay?: string;
   /** Pip only: local day (a Monday) of the week whose treasure letter was sent */
   treasureWeek?: string;
+  /** 1.24 the best-friend arc: local day it started and how many of its letters were sent */
+  arc?: { day: string; sent: number; /** local day the last arc letter came (one a day at most) */ last?: string };
 }
 export interface VillageState {
   friends: Record<string, FriendshipState>;
