@@ -11,6 +11,9 @@ import { PAL, geo, rng } from './Procedural';
 import { objectFor, visualFor } from './Visuals';
 import { boatGeometry, jettyGeometry } from './models/square';
 import { buntingGeometry, heroStatueGeometry } from './models/festival';
+import { CLOCK_FACE_Y, CLOCK_HALF, LAMP_Y, clockTowerGeometry, lighthouseGeometry } from './models/estate';
+import { project, stagesDoneOf } from '../systems/Estate';
+import { game } from '../systems/Game';
 
 /**
  * The village square (1.8.5 Village Restoration): a little island of its own in the same sea, a day's walk across
@@ -39,6 +42,9 @@ const IC_SY = 9;
 const R_SQ = 31;
 /** Where Willowmere Manor stands (screen terms): behind the lots in both layouts. */
 const MANOR_SY = 31;
+/** 1.26 the Estate Projects (screen terms): the Clock Tower beside the manor grounds, the Lighthouse on the front-right point. */
+const CLOCK_S: [number, number] = [-15, 26];
+const LIGHT_S: [number, number] = [20, -9];
 
 /** 'arc': a curved row behind the plaza (wide screens). 'street': two columns along a main street (narrow phones). */
 export type SquareLayout = 'arc' | 'street';
@@ -337,6 +343,7 @@ export class SquareView {
 
     await this.scatter();
     await this.buildManor();
+    this.buildEstate();
     this.buildFestival();
     await this.buildVillagers();
     this.refresh();
@@ -629,6 +636,8 @@ export class SquareView {
     for (const mode of ['arc', 'street'] as const) for (const sp of Object.values(spotsFor(mode))) if (Math.hypot(x - sp.x, z - sp.z) < d) return false;
     // the main street of the narrow layout
     const [sx, sy] = [(x * U.x + z * U.y), (x * V.x + z * V.y)];
+    // 1.26 the Clock Tower and the Lighthouse
+    for (const s of [CLOCK_S, LIGHT_S]) { const [ex, ez] = at(s[0], s[1]); if (Math.hypot(x - ex, z - ez) < 4.2) return false; }
     // and Willowmere's grounds
     if (Math.abs(sx) < 11 && sy > MANOR_SY - 7 && sy < MANOR_SY + 8) return false;
     return !(Math.abs(sx) < 3.6 && sy > 3 && sy < MANOR_SY - 6);
@@ -838,6 +847,83 @@ export class SquareView {
     this.pickers.push(pick);
   }
 
+  // ---------------------------------------------------------------------------------------- 1.26 estate
+
+  private estate?: { clock: THREE.Mesh; light: THREE.Mesh; clockStage: number; lightStage: number; faces: THREE.Group[]; glow: THREE.Sprite; beam: THREE.Mesh; lamp: THREE.Vector3 };
+
+  /** The Clock Tower and the Lighthouse: their look follows the stages built; the clock's hands and the light move. */
+  private buildEstate(): void {
+    const mat = assets.vertexMaterial;
+    const [cx, cz] = at(CLOCK_S[0], CLOCK_S[1]), [lx, lz] = at(LIGHT_S[0], LIGHT_S[1]);
+    const clock = new THREE.Mesh(clockTowerGeometry(0), mat);
+    clock.position.set(cx, 0.02, cz);
+    clock.rotation.y = Math.PI / 4;
+    clock.castShadow = true; clock.receiveShadow = true;
+    const light = new THREE.Mesh(lighthouseGeometry(0), mat);
+    light.position.set(lx, 0.02, lz);
+    light.castShadow = true; light.receiveShadow = true;
+    this.group.add(clock, light);
+    // a pair of hands on each face, moved by update() with the other clock
+    const faces: THREE.Group[] = [];
+    for (const ry of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      const face = new THREE.Group();
+      face.position.set(Math.sin(ry) * (CLOCK_HALF + 0.1), CLOCK_FACE_Y, Math.cos(ry) * (CLOCK_HALF + 0.1));
+      face.rotation.y = ry;
+      const hour = new THREE.Group(), minute = new THREE.Group();
+      hour.add(new THREE.Mesh(geo().box(0.08, 0.4, 0.03, PAL.black, [0, 0.2, 0]).build(), mat));
+      minute.add(new THREE.Mesh(geo().box(0.05, 0.58, 0.03, PAL.black, [0, 0.29, 0.02]).build(), mat));
+      face.add(hour, minute);
+      face.visible = false;
+      clock.add(face);
+      faces.push(face);
+      this.hands.push({ hour, minute });
+    }
+    // the light: a soft glow and a slowly turning beam, after dark once it is lit
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g2 = c.getContext('2d')!;
+    const grad = g2.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,240,170,1)');
+    grad.addColorStop(1, 'rgba(255,220,120,0)');
+    g2.fillStyle = grad;
+    g2.fillRect(0, 0, 64, 64);
+    const lamp = new THREE.Vector3(lx, LAMP_Y, lz);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.9 }));
+    glow.position.copy(lamp);
+    glow.scale.setScalar(4.5);
+    glow.visible = false;
+    const beamGeo = new THREE.ConeGeometry(1.6, 16, 16, 1, true);
+    beamGeo.translate(0, -8, 0);
+    beamGeo.rotateZ(Math.PI / 2);
+    const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    beam.position.copy(lamp);
+    beam.visible = false;
+    this.group.add(glow, beam);
+    // tap either to open the Estate Projects
+    for (const [x, z, hgt] of [[cx, cz, 12], [lx, lz, 10]] as const) {
+      const pick = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, hgt, 10), new THREE.MeshBasicMaterial({ visible: false }));
+      pick.position.set(x, hgt / 2, z);
+      pick.userData.estate = true;
+      this.group.add(pick);
+      this.pickers.push(pick);
+    }
+    this.estate = { clock, light, clockStage: 0, lightStage: 0, faces, glow, beam, lamp };
+  }
+
+  private refreshEstate(): void {
+    const e = this.estate;
+    if (!e) return;
+    const cp = project('clock'), lp = project('lighthouse');
+    const cs = cp ? stagesDoneOf(cp) : 0, ls = lp ? stagesDoneOf(lp) : 0;
+    if (cs !== e.clockStage) { e.clock.geometry.dispose(); e.clock.geometry = clockTowerGeometry(cs); e.clockStage = cs; }
+    if (ls !== e.lightStage) { e.light.geometry.dispose(); e.light.geometry = lighthouseGeometry(ls); e.lightStage = ls; }
+    for (const f of e.faces) f.visible = cs >= 3;
+    const h = new Date(game.now()).getHours();
+    const lit = ls >= 4 && (h >= 18 || h < 7);
+    e.glow.visible = lit;
+    e.beam.visible = lit;
+  }
+
   /** Show the wings that are rebuilt, the scaffold on the one being worked on, and the ruin until the grounds are clear. */
   private refreshManor(): void {
     const started = manorStarted(), cur = currentWing();
@@ -890,6 +976,7 @@ export class SquareView {
     }
     for (const a of this.animals) a.root.visible = restoration.isDone(a.lot);
     this.refreshManor();
+    this.refreshEstate();
   }
 
   /** The room just finished: bounce it. */
@@ -918,14 +1005,14 @@ export class SquareView {
   }
 
   /** What a tap hits: a room (its lot or board) or a villager, or nothing. */
-  pick(ray: THREE.Ray): { room?: string; villager?: string; manor?: boolean } | null {
+  pick(ray: THREE.Ray): { room?: string; villager?: string; manor?: boolean; estate?: boolean } | null {
     this.raycaster.ray.copy(ray);
     this.group.updateMatrixWorld(true);
     // villagers first (they stand in front of the lots)
     const hits = this.raycaster.intersectObjects(this.pickers, false);
     if (!hits.length) return null;
-    const ud = hits[0].object.userData as { room?: string; villager?: string; manor?: boolean };
-    return ud.villager ? { villager: ud.villager } : ud.room ? { room: ud.room } : ud.manor ? { manor: true } : null;
+    const ud = hits[0].object.userData as { room?: string; villager?: string; manor?: boolean; estate?: boolean };
+    return ud.villager ? { villager: ud.villager } : ud.room ? { room: ud.room } : ud.manor ? { manor: true } : ud.estate ? { estate: true } : null;
   }
 
   villagerObject(id: string): THREE.Object3D | null { return this.characters.find((c) => c.id === id)?.char.root ?? null; }
@@ -958,6 +1045,7 @@ export class SquareView {
       const m = now.getMinutes() + now.getSeconds() / 60, h = (now.getHours() % 12) + m / 60;
       for (const hd of this.hands) { hd.minute.rotation.z = -(m / 60) * Math.PI * 2; hd.hour.rotation.z = -(h / 12) * Math.PI * 2; }
     }
+    if (this.estate?.beam.visible) { this.estate.beam.rotation.y = this.t * 0.6; this.estate.glow.material.opacity = 0.75 + Math.sin(this.t * 2.2) * 0.15; }
     if (this.boat) { this.boat.position.y = -CLIFF_H + 0.4 + Math.sin(this.t * 1.4) * 0.04; this.boat.rotation.z = Math.sin(this.t * 1.1) * 0.03; }
   }
 

@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.26.0",
+   "date": "2026-10-17",
+   "title": "Estate Projects",
+   "icon": "hourglass",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "hourglass",
+     "text": "The Clock Tower (level 70): build it with Bram in four stages, from the foundations to the bell. Its clock keeps the real time and chimes on the hour in the village square"
+    },
+    {
+     "icon": "water_wave",
+     "text": "The Lighthouse (level 80): light the old lighthouse on the point with Old Tom. Its beam sweeps the bay every night, and Boat Visitors call three days a week instead of two"
+    },
+    {
+     "icon": "crown",
+     "text": "Each finished project gives you a model of it for your own farm. Find the Estate Projects in the Village screen once the village square is rebuilt"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.25.0",
    "date": "2026-10-17",
    "title": "Helping Hands",

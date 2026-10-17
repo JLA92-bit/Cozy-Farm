@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MANOR, MANOR_WINGS, ROOMS } from '../data';
 import { currentWing, manorStarted, wingsDone } from '../systems/Manor';
+import { clockTowerBuilt } from '../systems/Estate';
 import { game } from '../systems/Game';
 import { restoration } from '../systems/Restoration';
 import { festivals } from '../systems/Festivals';
@@ -232,6 +233,7 @@ function tapAt(p: Pointer): void {
   if (!hit) return;
   if (hit.room) { ui.open('square-room', { room: hit.room }); return; }
   if (hit.manor) { ui.open('manor'); return; }
+  if (hit.estate) { ui.open('estate'); return; }
   if (hit.villager) ui.open('village', { villager: hit.villager });
 }
 
@@ -304,9 +306,14 @@ function updateLabels(): void {
   }
 }
 
+let chimeHour = -1, estateSince = 0;
 function frame(dt: number): void {
   if (!inSquare || !view || !ctx) return;
   view.update(dt);
+  // 1.26 the Clock Tower chimes on the hour (real time); the Lighthouse lights up at dusk
+  const hour = new Date().getHours();
+  if (chimeHour !== hour) { if (chimeHour >= 0 && clockTowerBuilt()) audio.play('jingle', { volume: 0.5 }); chimeHour = hour; }
+  if ((estateSince += dt) > 20) { estateSince = 0; view.refresh(); }
   const scene = ctx.scene;
   scene.loop.wake(0.1);
   scene.env.fogFloor = scene.rig.distance + 22;

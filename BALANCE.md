@@ -792,3 +792,14 @@ Wage 2,500 coins a hand, paid on the first round they actually work each day (an
 | yield | Bumper Crop: 25% chance of +1 at a harvest | Batch Bonus: +10% chance a batch makes double |
 | gold | Golden Fields: +6% gold chance | Gold Standard: +5% gold chance for its goods |
 | speed | Quick Growth: grows 12% faster | Quick Hands: works 10% faster |
+
+## 1.26 Estate Projects (`estate.json`, `src/systems/Estate.ts`)
+
+Two projects in the village square, after the Village Festival. Stages open in order at the project's level; there is no wait between stages, the bundles are the pace (about 3-5 days of late-game play each):
+
+| Project | Level | Stages (coins) | Reward |
+| --- | --- | --- | --- |
+| The Clock Tower (Bram) | 70 | Foundations (150,000), The Tower (200,000), The Clockwork (250,000, a gold-star bundle), The Bell and the Face (300,000) | the square's clock shows the real time and chimes on the hour; Clock Tower Model (charm 400), 80,000 coins, 100 gems |
+| The Lighthouse (Old Tom) | 80 | The Rocks (150,000), The White Tower (200,000), The Lamp Room (250,000), The Light (300,000, a gold-star bundle) | Boat Visitors 3 days a week instead of 2; the beam at night; Lighthouse Model (charm 400), 80,000 coins, 100 gems |
+
+Every item asked for exists by the project's level (`validate-data` checks it): ores and gems from the woods, glazed tiles and pots, candles, honey, dishes and goods from the workshops.

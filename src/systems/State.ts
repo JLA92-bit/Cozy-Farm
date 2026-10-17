@@ -222,6 +222,8 @@ export interface RestorationState {
   grove?: Record<string, number>;
   /** 1.23 when the Elder Oak was whole (the finale was handed out) */
   oak?: number;
+  /** 1.26 Estate Projects finished (project id -> when its finale was handed out) */
+  estate?: Record<string, number>;
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

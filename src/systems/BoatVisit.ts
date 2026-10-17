@@ -4,6 +4,7 @@
  * plus gems. The wish list is chosen from the seed and the day and cached in the save so it never changes mid-visit.
  * Cosy by design: nothing is lost by ignoring a boat, and it is the same on every device.
  */
+import { lighthouseBoatDays } from './Estate';
 import { BOATVISITS, ITEMS, type BoatTheme } from '../data';
 import { game } from './Game';
 import { lateXp } from './Endless';
@@ -36,7 +37,7 @@ class BoatVisitSystem {
     const r = rng(hashString(`${game.state.seed}:boatweek:${monday}`));
     const days = [0, 1, 2, 3, 4, 5, 6];
     const chosen: number[] = [];
-    for (let i = 0; i < BOATVISITS.daysPerWeek; i++) chosen.push(days.splice(Math.floor(r() * days.length), 1)[0]);
+    for (let i = 0; i < BOATVISITS.daysPerWeek + lighthouseBoatDays(); i++) chosen.push(days.splice(Math.floor(r() * days.length), 1)[0]);
     return chosen.includes(dow);
   }
   /** Is the boat at the dock right now? */

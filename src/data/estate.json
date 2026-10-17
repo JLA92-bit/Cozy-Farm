@@ -1,0 +1,441 @@
+{
+ "_comment": "1.26 Estate Projects: long projects in the village square once the Village Festival has happened (all six rooms). Each stage is a restoration room (ids estate_<project>_<stage>; bundles like the manor's, minStar 2 = gold-star only) and opens when the stage before it is finished and the player has reached the project's `opensAt`. Rewards are read in src/systems/Estate.ts; the last stage hands out the project's `finale` (a model for the farm and a letter).",
+ "projects": [
+  {
+   "id": "clock",
+   "name": "The Clock Tower",
+   "icon": "hourglass",
+   "villager": "bram",
+   "opensAt": 70,
+   "about": "The square had a clock tower once. Bram is going to build it again, with your help, bell and all.",
+   "finale": {
+    "decor": "clock_tower_model",
+    "coins": 80000,
+    "gems": 100,
+    "title": "It chimes!",
+    "body": "{farmer},\n\nHear that? That's the square's clock. Right on time, every hour, for the next hundred years.\n\nI put a little model of it in your storage. Made it from the offcuts. Don't make a fuss.\n\nBram"
+   },
+   "stages": [
+    {
+     "id": "estate_clock_base",
+     "name": "Foundations",
+     "icon": "hammer_wrench",
+     "color": "yellow",
+     "villager": "bram",
+     "opensAt": 70,
+     "about": "Where the old clock tower stood there is only a ring of cracked stones. Bram wants it back, and he wants it done properly: deep foundations, good iron, and lunch.",
+     "rebuilds": "the clock tower foundations",
+     "reward": {
+      "id": "estate_clock_base",
+      "text": "The foundations are down."
+     },
+     "letter": {
+      "title": "Good stone",
+      "body": "{farmer},\n\nFoundations are in. Deep enough to hold a mountain. Probably too deep. I don't care.\n\nNext, the tower.\n\nBram"
+     },
+     "bundles": [
+      {
+       "id": "stone",
+       "name": "Iron and Stone",
+       "icon": "hammer_wrench",
+       "wants": {
+        "iron_ore": 20,
+        "copper_ore": 20,
+        "quartz": 10
+       }
+      },
+      {
+       "id": "lunch",
+       "name": "Builders' Lunch",
+       "icon": "basket",
+       "wants": {
+        "bread": 80,
+        "cheese": 30,
+        "apple_pie": 20
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Masons",
+       "icon": "coin",
+       "wants": {
+        "coins": 150000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_clock_tower",
+     "name": "The Tower",
+     "icon": "house",
+     "color": "yellow",
+     "villager": "bram",
+     "opensAt": 70,
+     "about": "Up it goes, brick by glazed brick. The crew works through the cold mornings, so hot drinks are not optional.",
+     "rebuilds": "the clock tower itself",
+     "reward": {
+      "id": "estate_clock_tower",
+      "text": "The tower stands over the square."
+     },
+     "letter": {
+      "title": "Taller than the bakery",
+      "body": "{farmer},\n\nThe tower is up. Taller than Rosa's chimney, which she says is showing off. It is.\n\nBram"
+     },
+     "bundles": [
+      {
+       "id": "bricks",
+       "name": "Glazed Bricks",
+       "icon": "house",
+       "wants": {
+        "glazed_tile": 40,
+        "clay_pot": 20
+       }
+      },
+      {
+       "id": "timber",
+       "name": "Timber and Varnish",
+       "icon": "axe",
+       "wants": {
+        "resin_varnish": 15,
+        "pine_resin": 30
+       }
+      },
+      {
+       "id": "crew",
+       "name": "Hot Drinks for the Crew",
+       "icon": "heart",
+       "wants": {
+        "hot_chocolate": 30,
+        "pancakes": 40
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Scaffolders",
+       "icon": "coin",
+       "wants": {
+        "coins": 200000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_clock_works",
+     "name": "The Clockwork",
+     "icon": "sparkles",
+     "color": "yellow",
+     "villager": "hazel",
+     "opensAt": 70,
+     "about": "Hazel found the old clockmaker's drawings in the village records. Gears of iron and gold, oiled with beeswax and honey, the way they did it a hundred years ago.",
+     "rebuilds": "the clockwork",
+     "reward": {
+      "id": "estate_clock_works",
+      "text": "The clockwork ticks."
+     },
+     "letter": {
+      "title": "Tick, tock",
+      "body": "Dear {farmer},\n\nI stood under the tower for an hour this afternoon just listening to it tick. Bram pretended not to be pleased. Bram was very pleased.\n\nWith love,\nHazel"
+     },
+     "bundles": [
+      {
+       "id": "gears",
+       "name": "Gears",
+       "icon": "hammer_wrench",
+       "wants": {
+        "iron_ore": 30,
+        "gold_flake": 20,
+        "topaz": 3
+       }
+      },
+      {
+       "id": "oil",
+       "name": "Oil and Polish",
+       "icon": "candle",
+       "wants": {
+        "beeswax_candle": 40,
+        "honey": 40
+       }
+      },
+      {
+       "id": "gold",
+       "name": "The Clockmaker's Fee",
+       "icon": "sparkles",
+       "wants": {
+        "cheese": 20,
+        "goat_cheese": 20
+       },
+       "minStar": 2
+      },
+      {
+       "id": "wages",
+       "name": "The Clockmaker",
+       "icon": "coin",
+       "wants": {
+        "coins": 250000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_clock_bell",
+     "name": "The Bell and the Face",
+     "icon": "crown",
+     "color": "yellow",
+     "villager": "bram",
+     "opensAt": 70,
+     "about": "Last of all, a bell for the top and a face everyone in the valley can read. Then the whole square gets to hear it.",
+     "rebuilds": "the bell and the clock face",
+     "reward": {
+      "id": "estate_clock_bell",
+      "text": "The Clock Tower keeps the real time and chimes on the hour, and a model of it is yours for your farm."
+     },
+     "letter": {
+      "title": "",
+      "body": ""
+     },
+     "bundles": [
+      {
+       "id": "bronze",
+       "name": "Bell Bronze",
+       "icon": "hammer_wrench",
+       "wants": {
+        "copper_ore": 40,
+        "amber": 2
+       }
+      },
+      {
+       "id": "face",
+       "name": "The Clock Face",
+       "icon": "sparkles",
+       "wants": {
+        "glazed_tile": 40,
+        "blue_vase": 10
+       }
+      },
+      {
+       "id": "party",
+       "name": "The First Chime",
+       "icon": "heart",
+       "wants": {
+        "celebration_cake": 20,
+        "berry_juice": 40
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Bell Hangers",
+       "icon": "coin",
+       "wants": {
+        "coins": 300000
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lighthouse",
+   "name": "The Lighthouse",
+   "icon": "water_wave",
+   "villager": "tom",
+   "opensAt": 80,
+   "about": "The old lighthouse on the point has been dark for forty years. Light it again and the boats will come more often.",
+   "finale": {
+    "decor": "lighthouse_model",
+    "coins": 80000,
+    "gems": 100,
+    "title": "The light is lit",
+    "body": "Ahoy {farmer},\n\nWe lit her at dusk. The whole valley was out on the point, and when the beam swung round the first time, everyone cheered. I may have cheered loudest.\n\nThe boats will see it from far off now. Expect visitors more often.\n\nThere's a little model of her in your storage. Thank you, {farmer}.\n\nOld Tom"
+   },
+   "stages": [
+    {
+     "id": "estate_lighthouse_rocks",
+     "name": "The Rocks",
+     "icon": "water_wave",
+     "color": "blue",
+     "villager": "tom",
+     "opensAt": 80,
+     "about": "Out on the point the old lighthouse is a stump on the rocks. Old Tom remembers it lit every night of his fishing life, and he would like to see it lit again before he hangs up his oars.",
+     "rebuilds": "the lighthouse footings",
+     "reward": {
+      "id": "estate_lighthouse_rocks",
+      "text": "The footings are set on the rocks."
+     },
+     "letter": {
+      "title": "Steady on the rocks",
+      "body": "Ahoy {farmer},\n\nThe footings are set and the sea didn't take a single one. I've seen storms take worse.\n\nOld Tom"
+     },
+     "bundles": [
+      {
+       "id": "stone",
+       "name": "Stone for the Footings",
+       "icon": "hammer_wrench",
+       "wants": {
+        "iron_ore": 20,
+        "quartz": 10,
+        "ammonite": 3
+       }
+      },
+      {
+       "id": "lunch",
+       "name": "A Fisherman's Lunch",
+       "icon": "fish",
+       "wants": {
+        "fish_pie": 30,
+        "oyster_chowder": 20
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Rock Crew",
+       "icon": "coin",
+       "wants": {
+        "coins": 150000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_lighthouse_tower",
+     "name": "The White Tower",
+     "icon": "house",
+     "color": "blue",
+     "villager": "tom",
+     "opensAt": 80,
+     "about": "A tall white tower with a red band, so ships see it by day as well as by night.",
+     "rebuilds": "the lighthouse tower",
+     "reward": {
+      "id": "estate_lighthouse_tower",
+      "text": "The tower stands white and red on the point."
+     },
+     "letter": {
+      "title": "Red and white",
+      "body": "Ahoy {farmer},\n\nThe tower's up, painted white with a red band, the way she always was. Pip painted the band. Mostly on the band.\n\nOld Tom"
+     },
+     "bundles": [
+      {
+       "id": "tiles",
+       "name": "Tiles and Pots",
+       "icon": "house",
+       "wants": {
+        "glazed_tile": 40,
+        "clay_pot": 20
+       }
+      },
+      {
+       "id": "crew",
+       "name": "Feed the Crew",
+       "icon": "fish",
+       "wants": {
+        "sushi_platter": 20,
+        "grilled_tuna": 15
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Painters",
+       "icon": "coin",
+       "wants": {
+        "coins": 200000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_lighthouse_lamp",
+     "name": "The Lamp Room",
+     "icon": "sparkles",
+     "color": "blue",
+     "villager": "juniper",
+     "opensAt": 80,
+     "about": "The lamp room at the top: glass from the creek's quartz, a lens polished with pearls, and a good supply of oil and candles for the long nights.",
+     "rebuilds": "the lamp room",
+     "reward": {
+      "id": "estate_lighthouse_lamp",
+      "text": "The lamp room is glazed and ready."
+     },
+     "letter": {
+      "title": "The lens",
+      "body": "Dear {farmer},\n\nI helped polish the lens today. When the sun came through it, it threw a rainbow across the whole bay. I need to paint that.\n\nJuniper"
+     },
+     "bundles": [
+      {
+       "id": "glass",
+       "name": "Glass and Lens",
+       "icon": "sparkles",
+       "wants": {
+        "quartz": 30,
+        "river_pearl": 6,
+        "gold_flake": 20
+       }
+      },
+      {
+       "id": "oil",
+       "name": "Oil and Candles",
+       "icon": "candle",
+       "wants": {
+        "maple_syrup": 20,
+        "beeswax_candle": 40
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Glaziers",
+       "icon": "coin",
+       "wants": {
+        "coins": 250000
+       }
+      }
+     ]
+    },
+    {
+     "id": "estate_lighthouse_light",
+     "name": "The Light",
+     "icon": "crown",
+     "color": "blue",
+     "villager": "tom",
+     "opensAt": 80,
+     "about": "One last thing: light it. The whole valley will walk out to the point to watch.",
+     "rebuilds": "the light itself",
+     "reward": {
+      "id": "estate_lighthouse_light",
+      "text": "The Lighthouse shines every night, and Boat Visitors call three days a week instead of two. A model of it is yours for your farm."
+     },
+     "letter": {
+      "title": "",
+      "body": ""
+     },
+     "bundles": [
+      {
+       "id": "gold",
+       "name": "The Keeper's Supper",
+       "icon": "sparkles",
+       "wants": {
+        "cheese": 20,
+        "honey": 20
+       },
+       "minStar": 2
+      },
+      {
+       "id": "feast",
+       "name": "A Feast on the Point",
+       "icon": "heart",
+       "wants": {
+        "seafood_curry": 20,
+        "celebration_cake": 10
+       }
+      },
+      {
+       "id": "wages",
+       "name": "Lamplighters",
+       "icon": "coin",
+       "wants": {
+        "coins": 300000
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

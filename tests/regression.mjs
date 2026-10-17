@@ -496,6 +496,36 @@ try {
     check('farmhands are paid once a day, only for work', r.noHands.paid === 0 && r.r1.paid === 3 * 2500 && r.r2.paid === 0, JSON.stringify(r));
   }
 
+  // 1.26 Estate Projects: stages open after the Village Festival, by level and in order; finishing the Lighthouse
+  // hands out its model once and brings the boats three days a week
+  {
+    const w = copy(); w.player.level = 85;
+    w.restoration = { given: {}, done: [], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, R = window.__restoration, Bt = window.__boat;
+      const DAY = 86400000;
+      const noFestival = R.isOpen('estate_lighthouse_rocks');
+      g.state.restoration.festival = 1;
+      g.state.player.level = 75;
+      const tooLow = R.isOpen('estate_lighthouse_rocks'), clockOpen = R.isOpen('estate_clock_base');
+      g.state.player.level = 85;
+      const firstOpen = R.isOpen('estate_lighthouse_rocks'), secondShut = R.isOpen('estate_lighthouse_tower');
+      // boat days in one week, at noon
+      const week = () => { const base = g.state.debugTimeOffset ?? 0; let n = 0; const d0 = new Date(g.now()); const mon = (d0.getDay() + 6) % 7; for (let i = 0; i < 7; i++) { const t = new Date(g.now() + (i - mon) * DAY); t.setHours(12, 0, 0, 0); g.state.debugTimeOffset = base + (t.getTime() - g.now()); if (Bt.here()) n++; g.state.debugTimeOffset = base; } return n; };
+      const before = week();
+      const fill = (id) => { const room = R.room(id); for (const b of room.bundles) for (const [it, n] of Object.entries(b.wants)) { if (it === 'coins') g.addCoins(n); else g.addItem(it, n, undefined, b.minStar ?? 0); R.give(id, b.id, it); } };
+      const models0 = g.state.storage.lighthouse_model ?? 0;
+      for (const s of ['rocks', 'tower', 'lamp', 'light']) fill(`estate_lighthouse_${s}`);
+      const models1 = g.state.storage.lighthouse_model ?? 0;
+      const after = week();
+      return { noFestival, tooLow, clockOpen, firstOpen, secondShut, before, after, models0, models1, finished: g.state.restoration.estate };
+    });
+    check('estate stages open after the festival, by level and in order', !r.noFestival && !r.tooLow && r.clockOpen && r.firstOpen && !r.secondShut, JSON.stringify(r));
+    check('the finished Lighthouse gives its model once and a third boat day', r.models1 === r.models0 + 1 && !!r.finished?.lighthouse && r.before === 2 && r.after === 3, JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

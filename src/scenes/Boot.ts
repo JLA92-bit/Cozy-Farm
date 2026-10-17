@@ -3,6 +3,7 @@ import { village } from '../systems/Village';
 import { villageRewards } from '../systems/VillageRewards';
 import { farmhands } from '../systems/Farmhands';
 import '../ui/panels/FarmhandsPanel';
+import '../ui/panels/EstatePanel';
 import { boatvisit } from '../systems/BoatVisit';
 import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';

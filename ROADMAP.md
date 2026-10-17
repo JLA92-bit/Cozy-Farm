@@ -34,7 +34,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.23 | The Ancient Grove (woods phase 4) | ~1 week | done (local) |
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | done (local) |
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | done (local) |
-| 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | |
+| 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | done (local) |
 | 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | |
 | 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | |
 | 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | needs the Play launch |
@@ -78,7 +78,9 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 - **Gentle field upkeep only if the dashboard shows players like the first month of upkeep.** Example: scarecrows lose shine and protect fewer tiles until polished. Never crop loss.
 - **Files:** `upkeep.json`, `Upkeep.ts`, `CarePanel.ts`, `skills.json`, `SkillEffects.ts`, `buildings.json` (`upgrades`), `Hints.ts`.
 
-### 1.19 Estate Projects
+### 1.26 Estate Projects
+
+Built in 1.26 (see BALANCE.md): the Clock Tower (level 70) and the Lighthouse (level 80), 4 stages each on the restoration bundle system (rooms `estate_*`), opened after the Village Festival; paid in goods and coins (no Master tokens). The other four projects below are not built.
 
 - **What:** long goals over several weeks that always show the next target past level 60. Each project has 3-5 stages paid in goods, coins and Master tokens, and places a unique building when done.
 - **Projects:**

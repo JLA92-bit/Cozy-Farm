@@ -7,6 +7,7 @@ import manorJson from './manor.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import farmhandsJson from './farmhands.json';
+import estateJson from './estate.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
 import masterJson from './master.json';
@@ -352,6 +353,14 @@ export interface GroveDef {
 export const GROVE = (woodsJson as unknown as { grove: GroveDef }).grove;
 export const GROVE_STAGES = GROVE.stages;
 for (const s of GROVE_STAGES) ROOM[s.id] = s;
+/** 1.26 Estate Projects (estate.json, src/systems/Estate.ts): each stage is a restoration room (estate_<project>_<stage>). */
+export interface EstateProject {
+  id: string; name: string; icon: string; villager: string; opensAt: number; about: string;
+  finale: { decor: string; coins: number; gems: number; title: string; body: string };
+  stages: RoomDef[];
+}
+export const ESTATE = (estateJson as unknown as { projects: EstateProject[] }).projects;
+for (const p of ESTATE) for (const s of p.stages) ROOM[s.id] = s;
 
 /** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */
 export interface MuseumShelf { id: string; name: string; icon: string; items?: string[]; kind?: 'gold'; slots?: number; reward: { coins: number; gems: number } }

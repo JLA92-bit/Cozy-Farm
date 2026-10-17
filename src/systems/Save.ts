@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CRITTERS, CROP, FARMHANDS, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CRITTERS, CROP, ESTATE, FARMHANDS, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -176,7 +176,8 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
   }
   const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
   return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined, manor: typeof v.manor === 'number' && v.manor > 0 ? v.manor : undefined,
-    grove: isObj(v.grove) ? countMap(v.grove, (k) => k.startsWith('grove_') && !!ROOM[k]) : undefined, oak: typeof v.oak === 'number' && v.oak > 0 ? v.oak : undefined };
+    grove: isObj(v.grove) ? countMap(v.grove, (k) => k.startsWith('grove_') && !!ROOM[k]) : undefined, oak: typeof v.oak === 'number' && v.oak > 0 ? v.oak : undefined,
+    estate: isObj(v.estate) ? countMap(v.estate, (k) => ESTATE.some((p) => p.id === k)) : undefined };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);

@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { currentStageOf, estateStarted } from '../../systems/Estate';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear, fmt } from '../dom';
 import { ui } from '../UI';
@@ -13,7 +14,7 @@ import { audio, haptics } from '../../systems/Audio';
 import { visiting } from '../../systems/Visiting';
 import { saves } from '../../systems/Save';
 import { restoration } from '../../systems/Restoration';
-import { MANOR_WINGS, ROOMS } from '../../data';
+import { ESTATE, MANOR_WINGS, ROOMS } from '../../data';
 import { currentWing, manorStarted, wingsDone } from '../../systems/Manor';
 import './village.css';
 
@@ -97,6 +98,14 @@ export function openVillage(arg?: { villager?: string }): void {
           h('div', { class: 'v-intro-text' }, !manorStarted() ? 'The old manor behind the square. Rebuild every room of the square to begin.'
             : wing ? `${done} of ${MANOR_WINGS.length} wings rebuilt. Now: ${wing.name}` : 'Every wing rebuilt. Willowmere is open!')),
         button([icon('crown'), 'Open'], () => ui.open('manor'), 'purple small', { 'aria-label': 'Open Willowmere Manor' })));
+    }
+    // 1.26: the Estate Projects (the Clock Tower and the Lighthouse), from level 70
+    if (game.level >= ESTATE[0].opensAt && ui.has('estate')) {
+      const left = ESTATE.filter((pr) => currentStageOf(pr)).map((pr) => `${pr.name}: ${currentStageOf(pr)!.name}`);
+      p.body.append(h('div', { class: 'v-square' }, icon('hourglass', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Estate Projects'),
+          h('div', { class: 'v-intro-text' }, !estateStarted() ? 'The Clock Tower and the Lighthouse. Rebuild every room of the square to begin.' : left.length ? `Now: ${left.join('; ')}` : 'The Clock Tower and the Lighthouse are finished!')),
+        button([icon('hourglass'), 'Open'], () => ui.open('estate'), 'blue small', { 'aria-label': 'Open the Estate Projects' })));
     }
     // 1.9: the Help Wanted board
     if (helpWanted.unlocked) {

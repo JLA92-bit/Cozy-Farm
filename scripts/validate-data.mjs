@@ -423,6 +423,36 @@ releases?.forEach((r, i) => {
   for (const id of wd.weather?.rarePan ?? []) if (!items[id]) err(`woods weather: rare pan find ${id} is not an item`);
   if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
 }
+// 1.26 Estate Projects: stages are restoration rooms estate_<project>_<stage> with real items that exist by the
+// project's level, a villager, a letter (but the last), and a finale decor that is a building
+{
+  const items = read('items.json').items, villagers = new Set(read('villagers.json').villagers.map((v) => v.id));
+  const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));
+  const lvl = {};
+  for (const c of read('crops.json').crops) lvl[c.id] = c.level;
+  for (const t of read('crops.json').trees ?? []) lvl[t.item] = t.level;
+  for (const a of read('animals.json').animals) lvl[a.product] = a.level;
+  for (const r of read('recipes.json').recipes) lvl[r.item] = Math.min(lvl[r.item] ?? 999, Math.max(r.level, bl[r.building] ?? 1));
+  const seen = new Set();
+  for (const p of read('estate.json').projects ?? []) {
+    if (!villagers.has(p.villager)) err(`estate ${p.id}: unknown villager ${p.villager}`);
+    if (!(p.finale?.decor in bl)) err(`estate ${p.id}: finale decor ${p.finale?.decor} is not a building`);
+    for (const st of p.stages ?? []) {
+      if (!st.id.startsWith(`estate_${p.id}_`) || seen.has(st.id)) err(`estate stage ${st.id}: id must be a new estate_${p.id}_<name>`);
+      seen.add(st.id);
+      if (!villagers.has(st.villager)) err(`estate stage ${st.id}: unknown villager ${st.villager}`);
+      if (st !== p.stages.at(-1) && (!st.letter?.title || !st.letter?.body)) err(`estate stage ${st.id}: needs a letter`);
+      for (const b of st.bundles ?? []) {
+        if (icons && !icons[b.icon]) err(`estate bundle ${st.id}/${b.id}: unknown icon ${b.icon}`);
+        for (const [it, n] of Object.entries(b.wants ?? {})) {
+          if (it !== 'coins' && !items[it]) err(`estate bundle ${st.id}/${b.id}: unknown item ${it}`);
+          if (!(Number.isInteger(n) && n > 0)) err(`estate bundle ${st.id}/${b.id}: ${it} needs a whole number above 0`);
+          if (lvl[it] !== undefined && lvl[it] > p.opensAt) err(`estate bundle ${st.id}/${b.id}: ${it} unlocks at level ${lvl[it]}, after the project opens (${p.opensAt})`);
+        }
+      }
+    }
+  }
+}
 // 1.25 farmhands and mastery lines
 {
   const fh = read('farmhands.json');
@@ -465,7 +495,7 @@ releases?.forEach((r, i) => {
   for (const room of read('restoration.json').rooms) for (const b of room.bundles) Object.keys(b.wants).forEach(add);
   for (const w of read('manor.json').wings) for (const b of w.bundles) Object.keys(b.wants).forEach(add);
   const wd = read('woods.json');
-  for (const t of [...(wd.trails ?? []), ...(wd.grove?.stages ?? [])]) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
+  for (const t of [...(wd.trails ?? []), ...(wd.grove?.stages ?? []), ...read('estate.json').projects.flatMap((p) => p.stages)]) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
   for (const c of wd.critters?.families ?? []) c.treats.forEach(add);
   for (const s of read('museum.json').shelves) (s.items ?? []).forEach(add);
   for (const a of read('animals.json').animals) add(a.feed);
