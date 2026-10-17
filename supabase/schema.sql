@@ -197,6 +197,8 @@ declare
   v_bx numeric;
   v_bv numeric;
   v_bc numeric;
+  v_mv bigint;
+  v_mc integer;
   v_why text := '';
   v_far boolean := false;
 begin
@@ -220,15 +222,23 @@ begin
     v_bx := least(120000, coalesce(v_prev.lb_xp_budget, 120000) + v_h * 40000);
     v_bv := least(3000000, coalesce(v_prev.lb_value_budget, 3000000) + v_h * 1000000);
     v_bc := least(1000, coalesce(v_prev.lb_charm_budget, 1000) + v_h * 400);
+    -- XP only grows: an older save (another device, a restored backup) never lowers the published total or level
+    if v_xp < v_prev.total_xp then v_xp := v_prev.total_xp; v_level := greatest(v_level, v_prev.level); end if;
     v_gain := v_xp - v_prev.total_xp;
     if v_gain > v_bx then v_why := v_why || 'xp '; v_far := v_far or v_gain > 3 * v_bx; v_xp := v_prev.total_xp + floor(v_bx); end if;
     v_bx := v_bx - greatest(v_xp - v_prev.total_xp, 0);
-    v_gain := v_value - v_prev.farm_value;
-    if v_gain > v_bv then v_why := v_why || 'farm_value '; v_far := v_far or v_gain > 3 * v_bv; v_value := v_prev.farm_value + floor(v_bv); end if;
-    v_bv := v_bv - greatest(v_value - v_prev.farm_value, 0);
-    v_gain := v_charm - v_prev.charm;
-    if v_gain > v_bc then v_why := v_why || 'charm '; v_far := v_far or v_gain > 3 * v_bc; v_charm := v_prev.charm + floor(v_bc); end if;
-    v_bc := v_bc - greatest(v_charm - v_prev.charm, 0);
+    -- farm value and charm can fall and rise again (selling, storing decor): only growth past the highest ever
+    -- published uses the allowance
+    v_mv := greatest(coalesce(v_prev.lb_value_max, 0), v_prev.farm_value);
+    v_mc := greatest(coalesce(v_prev.lb_charm_max, 0), v_prev.charm);
+    v_gain := v_value - v_mv;
+    if v_gain > v_bv then v_why := v_why || 'farm_value '; v_far := v_far or v_gain > 3 * v_bv; v_value := v_mv + floor(v_bv); end if;
+    v_bv := v_bv - greatest(v_value - v_mv, 0);
+    v_gain := v_charm - v_mc;
+    if v_gain > v_bc then v_why := v_why || 'charm '; v_far := v_far or v_gain > 3 * v_bc; v_charm := v_mc + floor(v_bc); end if;
+    v_bc := v_bc - greatest(v_charm - v_mc, 0);
+    v_mv := greatest(v_mv, v_value);
+    v_mc := greatest(v_mc, v_charm);
     v_cap := (case when v_prev.week_start = v_week then v_prev.weekly_xp else 0 end) + greatest(v_xp - v_prev.total_xp, 0) + 1000;
   else
     -- a new profile: what a long-time player could bring back on a fresh account, no more. A new account already
@@ -239,6 +249,7 @@ begin
     if v_value > 30000000 then v_why := v_why || 'farm_value '; v_value := 30000000; end if;
     if v_charm > 20000 then v_why := v_why || 'charm '; v_charm := 20000; end if;
     v_bx := 0; v_bv := 0; v_bc := 0;
+    v_mv := v_value; v_mc := v_charm;
     v_cap := least(v_xp, 6720000);
   end if;
   if v_weekly > v_cap then v_why := v_why || 'weekly_xp '; v_weekly := v_cap; end if;
@@ -246,7 +257,7 @@ begin
   for attempt in 1..5 loop
     begin
       insert into public.profiles as p (id, code, name, farm_name, level, total_xp, farm_value, charm, weekly_xp, week_start, look, updated_at,
-                                        lb_xp_budget, lb_value_budget, lb_charm_budget, lb_flag, lb_flagged_at, lb_hidden)
+                                        lb_xp_budget, lb_value_budget, lb_charm_budget, lb_value_max, lb_charm_max, lb_flag, lb_flagged_at, lb_hidden)
       values (
         uid,
         public.gen_friend_code(),
@@ -256,7 +267,7 @@ begin
         v_week,
         v_look,
         now(),
-        floor(v_bx), floor(v_bv), floor(v_bc),
+        floor(v_bx), floor(v_bv), floor(v_bc), v_mv, v_mc,
         case when v_why <> '' then left('new profile: ' || trim(v_why), 120) end,
         case when v_why <> '' then now() end,
         v_far)
@@ -276,6 +287,8 @@ begin
         lb_xp_budget = floor(v_bx),
         lb_value_budget = floor(v_bv),
         lb_charm_budget = floor(v_bc),
+        lb_value_max = v_mv,
+        lb_charm_max = v_mc,
         updated_at = now()
       returning p.* into r;
       return r;
@@ -1571,6 +1584,10 @@ alter table public.profiles add column if not exists lb_flagged_at timestamptz;
 alter table public.profiles add column if not exists lb_xp_budget bigint;
 alter table public.profiles add column if not exists lb_value_budget bigint;
 alter table public.profiles add column if not exists lb_charm_budget integer;
+-- the highest farm value and charm published so far: only growth past them uses the allowance, so a stale save or
+-- decor moved into storage and back never looks like a jump
+alter table public.profiles add column if not exists lb_value_max bigint;
+alter table public.profiles add column if not exists lb_charm_max integer;
 
 alter table public.admin_users  enable row level security;
 alter table public.admin_log    enable row level security;
@@ -3361,15 +3378,21 @@ create table if not exists public.coop_gifts (
   at          timestamptz not null default now()
 );
 
--- one per giver when a project closes: done (the reward) or a refund of exactly what they gave
+-- one per giver when a project closes: done (the reward, with the givers' names) or a refund of exactly what they
+-- gave. A claim keeps its own copy of what it needs, so it outlives the project (a host who deletes their account
+-- still leaves every friend's refund behind).
 create table if not exists public.coop_claims (
-  project     uuid not null references public.coop_projects (id) on delete cascade,
+  id          uuid primary key default gen_random_uuid(),
+  project     uuid references public.coop_projects (id) on delete set null,
   member      uuid not null references public.profiles (id) on delete cascade,
+  kind        text not null check (kind ~ '^[a-z_]{1,30}$'),
+  host_name   text not null check (char_length(host_name) between 1 and 24),
   done        boolean not null,
   refund      jsonb,
+  names       jsonb not null default '[]'::jsonb,
   created_at  timestamptz not null default now(),
   claimed_at  timestamptz,
-  primary key (project, member)
+  unique (project, member)
 );
 
 create index if not exists coop_projects_host_idx    on public.coop_projects (host, created_at desc);
@@ -3377,6 +3400,7 @@ create index if not exists coop_projects_open_idx    on public.coop_projects (ex
 create index if not exists coop_gifts_project_idx    on public.coop_gifts (project);
 create index if not exists coop_gifts_giver_idx      on public.coop_gifts (giver, at desc);
 create index if not exists coop_claims_unclaimed_idx on public.coop_claims (member) where claimed_at is null;
+create index if not exists coop_claims_created_idx   on public.coop_claims (created_at);
 
 alter table public.coop_projects enable row level security;
 alter table public.coop_gifts    enable row level security;
@@ -3405,16 +3429,19 @@ as $$
 $$;
 
 -- Internal: refund every giver of a project that closes without finishing (exactly what each gave).
-create or replace function public.coop_refund(p_id uuid)
+drop function if exists public.coop_refund(uuid);
+create or replace function public.coop_refund(p_id uuid, p_skip uuid default null)
 returns void
 language sql
 security definer
 set search_path = ''
 as $$
-  insert into public.coop_claims (project, member, done, refund)
-  select g.project, g.giver, false, jsonb_object_agg(g.item, g.n)
+  insert into public.coop_claims (project, member, kind, host_name, done, refund)
+  select g.project, g.giver, p.kind, p.host_name, false, jsonb_object_agg(g.item, g.n)
     from (select x.project, x.giver, x.item, sum(x.qty)::integer as n from public.coop_gifts x where x.project = p_id group by 1, 2, 3) g
-   group by g.project, g.giver
+    join public.coop_projects p on p.id = g.project
+   where g.giver <> coalesce(p_skip, '00000000-0000-0000-0000-000000000000'::uuid)
+   group by g.project, g.giver, p.kind, p.host_name
   on conflict (project, member) do nothing;
 $$;
 
@@ -3437,13 +3464,28 @@ begin
     perform public.coop_refund(v_id);
   end loop;
   delete from public.coop_projects p
-   where p.id in (select x.id from public.coop_projects x
-                   where x.status <> 'open' and x.closed_at < now() - interval '60 days'
-                     and (x.closed_at < now() - interval '120 days'
-                          or not exists (select 1 from public.coop_claims c where c.project = x.id and c.claimed_at is null))
+   where p.id in (select x.id from public.coop_projects x where x.status <> 'open' and x.closed_at < now() - interval '60 days' limit 200);
+  delete from public.coop_claims c
+   where c.id in (select x.id from public.coop_claims x
+                   where (x.claimed_at is not null and x.claimed_at < now() - interval '60 days') or x.created_at < now() - interval '180 days'
                    limit 200);
 end;
 $$;
+
+-- Internal: an open project that is deleted (its host deleted their account) refunds every other giver first.
+create or replace function public.coop_before_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if old.status = 'open' then perform public.coop_refund(old.id, old.host); end if;
+  return old;
+end;
+$$;
+drop trigger if exists coop_projects_refund on public.coop_projects;
+create trigger coop_projects_refund before delete on public.coop_projects for each row execute function public.coop_before_delete();
 
 -- Internal: a project as the caller sees it (givers by name only, the caller's own line marked).
 create or replace function public.coop_view(p public.coop_projects, p_uid uuid)
@@ -3538,8 +3580,10 @@ end;
 $$;
 
 -- Give up to p_qty (1-50) of p_item to a project you host or were invited to. Never more than is still needed:
--- returns {used, project}. When every need is met the project is done and every giver gets a claim.
-create or replace function public.coop_give(p_id uuid, p_item text, p_qty integer)
+-- returns {used, project}. When every need is met the project is done and every giver gets a claim. p_key (made
+-- by the game) makes a retry safe: giving again with the same key returns the first answer instead of giving twice.
+drop function if exists public.coop_give(uuid, text, integer);
+create or replace function public.coop_give(p_id uuid, p_item text, p_qty integer, p_key uuid default null)
 returns jsonb
 language plpgsql
 security definer
@@ -3560,19 +3604,27 @@ begin
   if not found then raise exception 'no profile'; end if;
   select x.* into r from public.coop_projects x where x.id = p_id for update;
   if not found or not (r.host = uid or uid = any (r.audience)) then raise exception 'not found'; end if;
+  -- already given with this key (the answer was lost on the way): the same answer again
+  if p_key is not null then
+    select g.qty into v_used from public.coop_gifts g where g.id = p_key and g.giver = uid and g.project = r.id;
+    if found then return jsonb_build_object('used', v_used, 'project', public.coop_view(r, uid)); end if;
+  end if;
   if r.status <> 'open' or r.expires_at <= now() then raise exception 'closed'; end if;
   v_need := coalesce((r.needs ->> p_item)::integer, 0) - coalesce((r.given ->> p_item)::integer, 0);
   if v_need <= 0 then raise exception 'not needed'; end if;
   if (select count(*) from public.coop_gifts x where x.giver = uid and x.at > now() - interval '1 day') >= 40 then raise exception 'too many today'; end if;
   v_used := least(p_qty, v_need);
-  insert into public.coop_gifts (project, giver, giver_name, item, qty) values (r.id, uid, v_name, p_item, v_used);
+  insert into public.coop_gifts (id, project, giver, giver_name, item, qty) values (coalesce(p_key, gen_random_uuid()), r.id, uid, v_name, p_item, v_used);
   update public.coop_projects x set given = x.given || jsonb_build_object(p_item, coalesce((x.given ->> p_item)::integer, 0) + v_used)
    where x.id = r.id returning * into r;
   -- every need met: done, and a reward claim for everyone who gave
   if not exists (select 1 from jsonb_each_text(r.needs) n where coalesce((r.given ->> n.key)::integer, 0) < n.value::integer) then
     update public.coop_projects x set status = 'done', closed_at = now() where x.id = r.id returning * into r;
-    insert into public.coop_claims (project, member, done)
-    select distinct r.id, g.giver, true from public.coop_gifts g where g.project = r.id
+    insert into public.coop_claims (project, member, kind, host_name, done, names)
+    select r.id, g.giver, r.kind, r.host_name, true,
+           (select coalesce(jsonb_agg(n.name order by n.qty desc, n.name), '[]'::jsonb) from (
+              select max(x.giver_name) as name, sum(x.qty) as qty from public.coop_gifts x where x.project = r.id group by x.giver order by 2 desc, 1 limit 30) n)
+      from (select distinct x.giver from public.coop_gifts x where x.project = r.id) g
     on conflict (project, member) do nothing;
   end if;
   return jsonb_build_object('used', v_used, 'project', public.coop_view(r, uid));
@@ -3618,14 +3670,12 @@ begin
   perform public.coop_cleanup();
   for c in
     update public.coop_claims x set claimed_at = now()
-      from public.coop_projects p
-     where x.member = uid and x.claimed_at is null and p.id = x.project
-    returning x.project, x.done, x.refund, p.kind, p.host_name, p.closed_at
+     where x.member = uid and x.claimed_at is null
+    returning x.id, x.project, x.done, x.refund, x.kind, x.host_name, x.names, x.created_at
   loop
     v_out := v_out || jsonb_build_array(jsonb_build_object(
-      'project', c.project, 'kind', c.kind, 'host', c.host_name, 'done', c.done, 'refund', c.refund, 'closed_at', c.closed_at,
-      'names', case when c.done then coalesce((select jsonb_agg(g.name order by g.n desc) from (
-                 select max(x.giver_name) as name, sum(x.qty) as n from public.coop_gifts x where x.project = c.project group by x.giver limit 30) g), '[]'::jsonb) else '[]'::jsonb end));
+      'project', coalesce(c.project, c.id), 'kind', c.kind, 'host', c.host_name, 'done', c.done, 'refund', c.refund,
+      'closed_at', c.created_at, 'names', c.names));
   end loop;
   return v_out;
 end;
@@ -3633,19 +3683,20 @@ $$;
 
 revoke all on function public.coop_catalog() from public;
 revoke all on function public.coop_enabled() from public, anon, authenticated;
-revoke all on function public.coop_refund(uuid) from public, anon, authenticated;
+revoke all on function public.coop_refund(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.coop_before_delete() from public, anon, authenticated;
 revoke all on function public.coop_cleanup() from public, anon, authenticated;
 revoke all on function public.coop_view(public.coop_projects, uuid) from public, anon, authenticated;
 revoke all on function public.coop_start(text, uuid[]) from public, anon;
 revoke all on function public.coop_set_friends(uuid[]) from public, anon;
 revoke all on function public.coop_list(uuid[]) from public, anon;
-revoke all on function public.coop_give(uuid, text, integer) from public, anon;
+revoke all on function public.coop_give(uuid, text, integer, uuid) from public, anon;
 revoke all on function public.coop_cancel(uuid) from public, anon;
 revoke all on function public.coop_claim() from public, anon;
 grant execute on function public.coop_catalog() to authenticated;
 grant execute on function public.coop_start(text, uuid[]) to authenticated;
 grant execute on function public.coop_set_friends(uuid[]) to authenticated;
 grant execute on function public.coop_list(uuid[]) to authenticated;
-grant execute on function public.coop_give(uuid, text, integer) to authenticated;
+grant execute on function public.coop_give(uuid, text, integer, uuid) to authenticated;
 grant execute on function public.coop_cancel(uuid) to authenticated;
 grant execute on function public.coop_claim() to authenticated;

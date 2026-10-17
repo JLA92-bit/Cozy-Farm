@@ -29,6 +29,10 @@ const WORDS: Record<string, string> = {
   'others joined': 'Friends have already given to it, so it cannot be cancelled. It closes by itself if it runs out of time, and everyone gets their goods back.',
 };
 
+/** Answers from the server that mean the gift did not happen (the goods come straight back). */
+const REFUSED = new Set(['closed', 'not needed', 'not found', 'too many today', 'switched off', 'bad qty', 'bad item', 'no profile', 'not signed in']);
+const newKey = (): string => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16)));
+
 class CoopSystem {
   projects: CoopProject[] = [];
   error = '';
@@ -37,6 +41,11 @@ class CoopSystem {
   private polling: Promise<void> | null = null;
   private listeners = new Set<() => void>();
   private audienceSig = '';
+  /** friends' projects already announced this session (the first look only announces, it does not list each) */
+  private seen = new Set<string>();
+  private firstLook = true;
+  /** last time rewards and refunds were asked for (they are checked now and then even with no friends) */
+  private claimedAt = 0;
 
   /** Open with Friends, from the project level, unless switched off from the dashboard. */
   get available(): boolean { return social.available && game.level >= COOP.level && gameConfig.coop; }
@@ -79,14 +88,18 @@ class CoopSystem {
     const n = Math.min(Math.floor(qty), coopLeft(p)[item] ?? 0, game.count(item), COOP.maxGive);
     if (n < 1) throw new Error(game.count(item) ? WORDS['not needed'] : `You have no ${ITEMS[item]?.name ?? 'items'} to give.`);
     const taken = take(item, n);
+    const key = newKey();
     let r: { used: number; project: CoopProject };
     try {
       await ensureOnline();
-      r = await online.coopGive(p.id, item, n);
+      r = await online.coopGive(p.id, item, n, key);
     } catch (e) {
-      giveBack(item, taken, n);
+      // refused: the goods come straight back. Anything else (the answer may have been lost on the way): they stay
+      // set aside and the same gift is tried again with the same key, so it never counts twice
+      if (REFUSED.has((e as Error)?.message ?? '')) { giveBack(item, taken, n); saves.save(); throw this.words(e); }
+      ((game.state.coop ??= { plaques: [] }).pending ??= []).push({ key, project: p.id, item, n, taken });
       saves.save();
-      throw this.words(e);
+      throw new Error('Could not reach the village. Your gift is set aside and will be delivered when the connection is back.');
     }
     if (r.used < n) giveBack(item, taken, n - r.used);
     this.projects = this.projects.map((x) => (x.id === p.id ? r.project : x));
@@ -113,21 +126,56 @@ class CoopSystem {
     return this.polling;
   }
   private async doPoll(): Promise<void> {
-    // stay quiet for players with no friends and no project of their own
-    if (!friendIds().length && !this.projects.length && this.loaded) { this.changed(); return; }
+    // stay quiet for players with no friends and no project of their own, but still look for rewards and refunds
+    // now and then (a friend removed later can still owe a refund)
+    const quiet = !friendIds().length && !this.projects.length && !game.state.coop?.pending?.length && this.loaded;
+    if (quiet && Date.now() - this.claimedAt < 15 * 60000) { this.changed(); return; }
     try {
       await ensureOnline();
-      this.projects = await online.coopList(friendIds());
-      if (!visiting.active) await this.collect();
+      this.projects = quiet ? [] : await online.coopList(friendIds());
+      if (!visiting.active) { await this.retryPending(); await this.collect(); }
+      this.announce();
       this.error = '';
       this.loaded = true;
     } catch { this.error = 'Could not reach the village right now.'; }
     this.changed();
   }
 
+  /** A friend started a project you can help with: a gentle toast (one summary on the first look of a session). */
+  private announce(): void {
+    const fresh = this.friends().filter((p) => p.status === 'open' && !this.seen.has(p.id));
+    for (const p of this.friends()) this.seen.add(p.id);
+    if (fresh.length && !(this.firstLook && fresh.every((p) => p.givers.some((g) => g.me)))) {
+      const p = fresh[0];
+      game.bus.emit('toast', fresh.length > 1 && this.firstLook
+        ? { title: 'Friends are building', sub: `${fresh.length} Village Projects could use your help. Open Village, then Village Projects.`, icon: 'hug' }
+        : { title: `${p.host.name} started a project`, sub: `${this.def(p.kind)?.name ?? 'A Village Project'}: open Village, then Village Projects, to help.`, icon: this.def(p.kind)?.icon ?? 'hug' });
+    }
+    this.firstLook = false;
+  }
+
+  /** Gifts whose answer was lost: try again with the same key; the server gives each once. */
+  private async retryPending(): Promise<void> {
+    const list = game.state.coop?.pending;
+    if (!list?.length) return;
+    for (const g of [...list]) {
+      try {
+        const r = await online.coopGive(g.project, g.item, g.n, g.key);
+        if (r.used < g.n) giveBack(g.item, g.taken, g.n - r.used);
+        this.projects = this.projects.map((x) => (x.id === g.project ? r.project : x));
+      } catch (e) {
+        if (!REFUSED.has((e as Error)?.message ?? '')) continue; // still unreachable: try again next time
+        giveBack(g.item, g.taken, g.n);
+      }
+      list.splice(list.indexOf(g), 1);
+      saves.save();
+    }
+  }
+
   /** Claims: finished projects bring the decoration and a plaque with everyone's names; refunds bring the goods back. */
   private async collect(): Promise<void> {
     const got: CoopClaim[] = await online.coopClaim();
+    this.claimedAt = Date.now();
     if (!got.length) return;
     for (const c of got) {
       const def = this.def(c.kind);

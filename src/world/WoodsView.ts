@@ -942,7 +942,7 @@ export class WoodsView {
       const ud = p.userData as WoodsHit;
       return ud.kind === 'forage' ? (this.forageNodes.get(ud.i)?.group.visible ?? false) : ud.kind === 'villager' ? (this.folk.get(ud.id ?? '')?.pick.visible ?? false)
         : ud.kind === 'firefly' ? (this.fireflyNodes.get(ud.i)?.mesh.visible ?? false)
-        : ud.kind === 'critter' || ud.kind === 'wren' ? p.visible : true;
+        : ud.kind === 'critter' || ud.kind === 'wren' || ud.kind === 'wild' ? p.visible : true;
     });
     const hits = this.raycaster.intersectObjects(live, false);
     return hits.length ? (hits[0].object.userData as WoodsHit) : null;

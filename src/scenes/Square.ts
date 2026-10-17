@@ -311,9 +311,9 @@ function frame(dt: number): void {
   if (!inSquare || !view || !ctx) return;
   view.update(dt);
   // 1.26 the Clock Tower chimes on the hour (real time); the Lighthouse lights up at dusk
-  const hour = new Date().getHours();
+  const hour = new Date(game.now()).getHours();
   if (chimeHour !== hour) { if (chimeHour >= 0 && clockTowerBuilt()) audio.play('jingle', { volume: 0.5 }); chimeHour = hour; }
-  if ((estateSince += dt) > 20) { estateSince = 0; view.refresh(); }
+  if ((estateSince += dt) > 20) { estateSince = 0; view.refreshEstate(); }
   const scene = ctx.scene;
   scene.loop.wake(0.1);
   scene.env.fogFloor = scene.rig.distance + 22;

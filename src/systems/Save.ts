@@ -121,7 +121,9 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.farmhands = repairFarmhands(s.farmhands);
   out.wildlife = repairWildlife(s.wildlife);
   out.coop = isObj(s.coop) && Array.isArray(s.coop.plaques) ? { plaques: (s.coop.plaques as unknown[]).filter((p): p is Record<string, unknown> => isObj(p) && typeof p.project === 'string' && COOP.projects.some((d) => d.id === p.kind)).slice(-50)
-    .map((p) => ({ project: p.project as string, kind: p.kind as string, host: typeof p.host === 'string' ? p.host.slice(0, 24) : '', names: strArr(p.names).slice(0, 30).map((n) => n.slice(0, 24)), at: finite(p.at, 0, 0) })) } : undefined;
+    .map((p) => ({ project: p.project as string, kind: p.kind as string, host: typeof p.host === 'string' ? p.host.slice(0, 24) : '', names: strArr(p.names).slice(0, 30).map((n) => n.slice(0, 24)), at: finite(p.at, 0, 0) })),
+    ...(Array.isArray(s.coop.pending) ? { pending: (s.coop.pending as unknown[]).filter((x): x is Record<string, unknown> => isObj(x) && typeof x.key === 'string' && typeof x.project === 'string' && typeof x.item === 'string' && !!ITEMS[x.item] && Array.isArray(x.taken)).slice(0, 20)
+      .map((x) => ({ key: x.key as string, project: x.project as string, item: x.item as string, n: Math.floor(finite(x.n, 0, 0)), taken: [0, 1, 2].map((i) => Math.floor(finite((x.taken as unknown[])[i], 0, 0))) as [number, number, number] })) } : {}) } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}) } : undefined;
   return sanitize(out, base);
 }

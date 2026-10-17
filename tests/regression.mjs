@@ -618,6 +618,43 @@ try {
     check('a cancelled co-op project gives back exactly what was given', r.refunded === 0, JSON.stringify(r));
   }
 
+  // review fixes: a co-op gift whose answer is lost is set aside and delivered exactly once on the retry; a wild
+  // visitor that is not out today cannot take a tap meant for the forage or dig spot under it
+  {
+    const w = copy(); w.player.level = 40; w.player.coins = 50000;
+    w.inventory = { ...w.inventory, wheat: 500 };
+    w.restoration = { given: {}, done: ['trail_hollow', 'trail_creek', 'trail_pines'], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(w), 'cozy-acres-online-coop': '' });
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, C = window.__coop, O = window.__online, S = window.__social;
+      const bot = (await O.leaderboard('level', 50)).find((b) => b.bot);
+      S.addProfile(bot);
+      await C.poll();
+      const p = await C.host('footbridge');
+      const wheat0 = g.count('wheat');
+      // the server records the gift but the answer never arrives
+      const real = O.coopGive.bind(O);
+      O.coopGive = async (...a) => { await real(...a); O.coopGive = real; throw new Error('Failed to fetch'); };
+      let msg = '';
+      try { await C.give(p, 'wheat', 40); } catch (e) { msg = e.message; }
+      const setAside = wheat0 - g.count('wheat'), pending = g.state.coop?.pending?.length ?? 0;
+      await C.poll();
+      const given = C.mine()?.given.wheat ?? -1, after = wheat0 - g.count('wheat'), pendingAfter = g.state.coop?.pending?.length ?? 0;
+      // the woods: every visitor away, then tap straight down on where one would stand
+      await window.__woods.enter();
+      await new Promise((res) => setTimeout(res, 2500));
+      const Wl = window.__wildlife.sys;
+      Wl.present = () => false;
+      window.__woods.view.refresh();
+      const at = window.__woods.view.spotAt({ kind: 'wild', i: 0, id: 'red_deer' });
+      const hit = window.__woods.view.pick({ origin: { x: at.x, y: 40, z: at.z }, direction: { x: 0, y: -1, z: 0 } });
+      return { msg: /set aside/.test(msg), setAside, pending, given, after, pendingAfter, hitKind: hit?.kind ?? null };
+    });
+    check('a co-op gift whose answer is lost is delivered exactly once on the retry', r.msg && r.setAside === 40 && r.pending === 1 && r.given === 40 && r.after === 40 && r.pendingAfter === 0, JSON.stringify(r));
+    check('a wild visitor that is away does not take taps', r.hitKind !== 'wild', JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

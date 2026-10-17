@@ -1,6 +1,44 @@
 {
  "releases": [
   {
+   "version": "1.28.1",
+   "date": "2026-10-17",
+   "title": "Fixes and Polish",
+   "icon": "hammer",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "hug",
+     "text": "Village Projects: a gift sent while the connection drops is set aside and delivered once, as soon as you are back online"
+    },
+    {
+     "icon": "basket",
+     "text": "If a host deletes their account, everyone who gave to their open project still gets their goods back"
+    },
+    {
+     "icon": "bell",
+     "text": "A toast when a friend starts a new Village Project, and finished projects are found even when your friends list is empty"
+    },
+    {
+     "icon": "hourglass",
+     "text": "Farmhands show when their next round is, never spend the coins set aside for their wages on seeds, and no longer start working the moment you give them a new job"
+    },
+    {
+     "icon": "camera",
+     "text": "A hint when a wild visitor turns up at the edge of your farm, and visitors that have wandered off no longer block your taps in the woods"
+    },
+    {
+     "icon": "trophy",
+     "text": "Leaderboards: loading an older save no longer drops you down the boards or hides you"
+    },
+    {
+     "icon": "pumpkin",
+     "text": "Halloween decorations stay on your own farm when you visit a friend, and the Clock Tower keeps time without slowing the square"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.0",
    "date": "2026-10-17",
    "title": "Together",

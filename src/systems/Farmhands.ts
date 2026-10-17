@@ -22,6 +22,8 @@ export interface RoundResult { planted: number; fed: number; queued: number; pai
 
 class FarmhandsSystem {
   private started = false;
+  /** when the last round ran (ms, real time), for 'next round in' */
+  lastRound = 0;
   get st(): St { return (game.state.farmhands ??= { hired: [], paid: {}, lastCrop: {}, lastRecipe: {} }); }
 
   hands(): FarmhandDef[] { return FARMHANDS.hands; }
@@ -29,6 +31,8 @@ class FarmhandsSystem {
   /** A hand can be hired once the farm reaches their level. */
   unlocked(id: string): boolean { const d = this.def(id); return !!d && game.level >= d.level; }
   isOpen(): boolean { return game.level >= FARMHANDS.hands[0].level; }
+  /** Minutes until the hands next look at their chores. */
+  nextRoundIn(): number { return Math.max(1, Math.ceil((this.lastRound + FARMHANDS.roundMinutes * 60000 - Date.now()) / 60000)); }
   hired(id: string): St['hired'][number] | undefined { return game.state.farmhands?.hired.find((h) => h.id === id); }
   /** Festival days are days off. */
   resting(): boolean { return cycleNow().festival; }
@@ -73,7 +77,7 @@ class FarmhandsSystem {
   }
 
   /** What a hand would do now, without doing it (so no wage is paid for an idle round). */
-  private work(h: St['hired'][number], dry: boolean): number {
+  private work(h: St['hired'][number], dry: boolean, reserve = 0): number {
     const now = game.now();
     if (h.chore === 'fields') {
       const st = this.st;
@@ -82,6 +86,8 @@ class FarmhandsSystem {
         if (n >= FARMHANDS.fieldsPerRound) break;
         const crop = st.lastCrop[b.uid];
         if (b.type !== 'plot' || b.plot || !crop || !CROP[crop] || !farming.canPlant(b, crop).ok) continue;
+        // a dry run keeps the day's wage aside: a hand is never paid for a round the seeds cannot be bought for
+        if (dry && game.coins - reserve < CROP[crop].seedCost) continue;
         if (!dry) {
           // a hand sows plain seed: the seed tray's fertiliser and rare-seed switches are the farmer's own
           const fert = farming.useFert, rare = farming.useRare;
@@ -109,11 +115,13 @@ class FarmhandsSystem {
   /** One round of chores for every hired hand. */
   round(): RoundResult {
     const out: RoundResult = { planted: 0, fed: 0, queued: 0, paid: 0, resting: false, broke: [] };
+    this.lastRound = Date.now();
     if (visiting.active || !game.state?.farmhands?.hired.length) return out;
     if (this.resting()) { out.resting = true; return out; }
     const t = this.today();
     for (const h of this.st.hired) {
-      if (!this.unlocked(h.id) || this.work(h, true) <= 0) continue;
+      const owed = this.st.paid[h.id] === localDay(game.now()) ? 0 : FARMHANDS.wage;
+      if (!this.unlocked(h.id) || this.work(h, true, owed) <= 0) continue;
       const wage = this.pay(h.id);
       if (wage < 0) { out.broke.push(h.id); continue; }
       out.paid += wage;

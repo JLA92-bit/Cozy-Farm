@@ -22,7 +22,8 @@ export function openFarmhands(): void {
     p.body.append(h('div', { class: 'fh-hands-intro' },
       h('div', null, `Each farmhand takes one chore and sees to it every ${FARMHANDS.roundMinutes} minutes while you play. They are paid ${fmt(FARMHANDS.wage)} coins on the days they work, rest on festival days, and never sell or deliver anything for you.`),
       farmhands.resting() ? h('div', { class: 'fh-hands-rest' }, icon('sparkles'), 'It is a festival day: your farmhands are off enjoying it.') : null,
-      h('div', { class: 'muted' }, `Today: ${t.planted} fields replanted, ${t.fed} animals fed, ${t.queued} batches started, ${fmt(t.wages)} coins in wages.`)));
+      h('div', { class: 'muted' }, `Today: ${t.planted} fields replanted, ${t.fed} animals fed, ${t.queued} batches started, ${fmt(t.wages)} coins in wages.`),
+      game.state.farmhands?.hired.length ? h('div', { class: 'muted' }, `Next round in about ${farmhands.nextRoundIn()} min.`) : null));
     for (const d of farmhands.hands()) {
       const hired = farmhands.hired(d.id), open = farmhands.unlocked(d.id);
       const card = h('div', { class: `card fh-hand${hired ? ' hired' : ''}${open ? '' : ' locked'}` },
@@ -59,8 +60,8 @@ export function openFarmhands(): void {
       return;
     }
     audio.play('reward');
-    const r = farmhands.round();
-    if (r.broke.includes(id)) ui.feedback.toast('Not enough coins', `${FARMHANDS.hands.find((x) => x.id === id)?.name} starts once you can pay the day's wage.`, 'coin');
+    // the hand starts on the next round (every few minutes); a heads-up if the day's wage is not there yet
+    if (game.coins < FARMHANDS.wage) ui.feedback.toast('Not enough coins yet', `${FARMHANDS.hands.find((x) => x.id === id)?.name} starts once you can pay the day's wage.`, 'coin');
     render();
   };
   render();

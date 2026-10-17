@@ -20,11 +20,12 @@ export function syncHalloween(): void {
   if (on && !decor && !building) {
     building = true;
     const d = new HalloweenDecor(scene.renderer.profile.ambientLife);
-    d.build().then(() => { decor = d; scene!.scene.add(d.group); d.group.visible = halloweenOn(); scene!.loop.wake(1); })
+    d.build().then(() => { decor = d; scene!.scene.add(d.group); d.group.visible = halloweenOn() && !scene!.visit; scene!.loop.wake(1); })
       .catch((e) => console.warn('[halloween] decor could not be drawn', e))
       .finally(() => { building = false; });
   }
-  if (decor) decor.group.visible = on;
+  // (left alone while visiting a neighbour: the visit hides the player's own farm and shows it again after)
+  if (decor && !scene.visit) decor.group.visible = on;
   document.documentElement.classList.toggle('halloween', on);
   overlay(on);
   if (on !== was) { was = on; applyFarmLook(scene); }

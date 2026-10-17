@@ -161,7 +161,9 @@ export interface SaveData {
   restoration?: RestorationState;
   /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
   /** 1.28 Together: plaques from finished co-op projects (who helped), newest last */
-  coop?: { plaques: { project: string; kind: string; host: string; names: string[]; at: number }[] };
+  coop?: { plaques: { project: string; kind: string; host: string; names: string[]; at: number }[];
+    /** gifts whose answer was lost on the way: retried with the same key (the goods stay out until the server answers) */
+    pending?: { key: string; project: string; item: string; n: number; taken: [number, number, number] }[] };
   /** 1.27 Wildlife Album: species photographed (first photo time, photos taken), sets rewarded, and today's photos */
   wildlife?: { photos: Record<string, { first: number; n: number }>; sets: string[]; complete?: number; today?: { day: string; shot: string[] } };
   /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */

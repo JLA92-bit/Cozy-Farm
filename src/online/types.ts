@@ -261,8 +261,8 @@ export interface OnlineBackend {
   coopSetFriends(friends: string[]): Promise<void>;
   /** The caller's own projects and these friends' projects they were invited to (open, or closed this week). */
   coopList(friends: string[]): Promise<CoopProject[]>;
-  /** Give up to qty (1-50) of an item; never more than still needed. Rejects 'closed' | 'not needed' | 'not found' | 'too many today' | 'switched off'. */
-  coopGive(id: string, item: string, qty: number): Promise<{ used: number; project: CoopProject }>;
+  /** Give up to qty (1-50) of an item; never more than still needed. `key` (a uuid made by the game) makes a retry safe: the same key gives once. Rejects 'closed' | 'not needed' | 'not found' | 'too many today' | 'switched off'. */
+  coopGive(id: string, item: string, qty: number, key?: string): Promise<{ used: number; project: CoopProject }>;
   /** Cancel the caller's own open project while nobody else has given. Rejects 'others joined' | 'closed' | 'not found'. */
   coopCancel(id: string): Promise<CoopProject>;
   /** Hand over the caller's waiting claims, each exactly once. */

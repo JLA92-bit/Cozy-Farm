@@ -691,9 +691,9 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     const rows = await this.rpc<unknown[]>('coop_list', { p_ids: this.friendIds(friends) });
     return (Array.isArray(rows) ? rows : []).map((r) => cleanCoop(r as Record<string, unknown>)).filter((p): p is CoopProject => !!p);
   }
-  async coopGive(id: string, item: string, qty: number): Promise<{ used: number; project: CoopProject }> {
+  async coopGive(id: string, item: string, qty: number, key?: string): Promise<{ used: number; project: CoopProject }> {
     if (!UUID.test(id)) throw new Error('not found');
-    const r = await this.rpc<{ used?: unknown; project?: unknown }>('coop_give', { p_id: id, p_item: item, p_qty: int(qty, 50) });
+    const r = await this.rpc<{ used?: unknown; project?: unknown }>('coop_give', { p_id: id, p_item: item, p_qty: int(qty, 50), p_key: key && UUID.test(key) ? key : null });
     return { used: int(Number(r.used), 50), project: this.coop(r.project) };
   }
   async coopCancel(id: string): Promise<CoopProject> {

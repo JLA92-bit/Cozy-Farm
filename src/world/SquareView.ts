@@ -910,7 +910,8 @@ export class SquareView {
     this.estate = { clock, light, clockStage: 0, lightStage: 0, faces, glow, beam, lamp };
   }
 
-  private refreshEstate(): void {
+  /** The tower's stage, the lighthouse's stage and whether its light is on (after dark): cheap, called now and then. */
+  refreshEstate(): void {
     const e = this.estate;
     if (!e) return;
     const cp = project('clock'), lp = project('lighthouse');
