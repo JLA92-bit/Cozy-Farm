@@ -1,8 +1,60 @@
 {
-  "_comment": "1.8.6 Mastery plaques. From unlockLevel, every crop and every workshop that makes starred goods has a gold-star challenge: grow or make `cropGold` gold crops of that kind, or `workshopGold` gold goods from that workshop (counted by the stats gold_<item>, from the moment 1.8.6 is installed). Finishing one gives the reward and a Mastery Plaque decoration (item `plaque`).",
-  "unlockLevel": 40,
-  "cropGold": 10,
-  "workshopGold": 6,
-  "reward": { "coins": 1500, "gems": 3 },
-  "plaque": "mastery_plaque"
+ "_comment": "1.8.6 Mastery plaques. From unlockLevel, every crop and every workshop that makes starred goods has a gold-star challenge: grow or make `cropGold` gold crops of that kind, or `workshopGold` gold goods from that workshop (counted by the stats gold_<item>, from the moment 1.8.6 is installed). Finishing one gives the reward and a Mastery Plaque decoration (item `plaque`).",
+ "unlockLevel": 40,
+ "cropGold": 10,
+ "workshopGold": 6,
+ "reward": {
+  "coins": 1500,
+  "gems": 3
+ },
+ "plaque": "mastery_plaque",
+ "lines": {
+  "_comment": "1.25 mastery lines: once a crop or workshop is mastered, pick one of its lines for good (no resets). Read in src/systems/MasteryEffects.ts.",
+  "crop": [
+   {
+    "id": "yield",
+    "name": "Bumper Crop",
+    "icon": "basket",
+    "text": "A {pct} chance of one extra {name} at every harvest.",
+    "chance": 0.25
+   },
+   {
+    "id": "gold",
+    "name": "Golden Fields",
+    "icon": "sparkles",
+    "text": "{name} is {pct} likelier to come up gold.",
+    "gold": 0.06
+   },
+   {
+    "id": "speed",
+    "name": "Quick Growth",
+    "icon": "hourglass",
+    "text": "{name} grows {pct} faster.",
+    "mult": 0.88
+   }
+  ],
+  "workshop": [
+   {
+    "id": "yield",
+    "name": "Batch Bonus",
+    "icon": "basket",
+    "text": "A {pct} chance that a batch at the {name} makes double.",
+    "chance": 0.1
+   },
+   {
+    "id": "gold",
+    "name": "Gold Standard",
+    "icon": "sparkles",
+    "text": "Goods from the {name} are {pct} likelier to come out gold.",
+    "gold": 0.05
+   },
+   {
+    "id": "speed",
+    "name": "Quick Hands",
+    "icon": "hourglass",
+    "text": "The {name} works {pct} faster.",
+    "mult": 0.9
+   }
+  ]
+ }
 }

@@ -1,4 +1,5 @@
 import { Panel } from '../Panel';
+import { farmhands } from '../../systems/Farmhands';
 import { h, icon, button, priceTag, clear, fmt } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, FARMHOUSE } from '../../data';
@@ -58,6 +59,15 @@ export function openFarmhouse(): void {
           ui.feedback.toast('Care round done', `${r.treated ? `${r.treated} treated` : ''}${r.treated && r.repaired ? ', ' : ''}${r.repaired ? `${r.repaired} repaired` : ''} for ${fmt(r.spent)} coins${r.left ? `. ${r.left} still to do` : ''}.`, 'heart');
           render();
         }, `small ${game.coins >= Math.min(...[...plan.treat, ...plan.repair].map((x) => x.cost)) ? 'yellow' : 'disabled'}`)));
+    }
+
+    // 1.25 farmhands: a card to hire and task them
+    if (farmhands.isOpen()) {
+      const n = game.state.farmhands?.hired.length ?? 0, of = farmhands.hands().filter((d) => farmhands.unlocked(d.id)).length;
+      p.body.append(h('div', { class: 'card' },
+        h('div', { class: 'title' }, icon('seedling'), ' Farmhands'),
+        h('div', { class: 'sub' }, n ? `${n} of ${of} hired. They replant, feed and keep workshops busy while you play.` : 'Hire help from the village: replanting, feeding or keeping a workshop busy.'),
+        button(n ? 'See your farmhands' : 'Hire a farmhand', () => { p.close(); ui.open('farmhands'); }, 'small green')));
     }
 
     // what you can have right now

@@ -10,6 +10,7 @@ import { saves } from './Save';
 import { rollsQuality } from './Quality';
 import { logEvent } from '../online/Events';
 import { hints } from './Hints';
+import { LINES, type LineDef } from './MasteryEffects';
 
 export interface MasteryEntry { id: string; kind: 'crop' | 'workshop'; name: string; icon: string; target: number; items: string[] }
 
@@ -28,7 +29,28 @@ class MasterySystem {
   private started = false;
 
   get entries(): MasteryEntry[] { return (this.cached ??= buildEntries()); }
-  get st(): { done: string[] } { return (game.state.mastery ??= { done: [] }); }
+  get st(): { done: string[]; picks?: Record<string, string> } { return (game.state.mastery ??= { done: [] }); }
+
+  /** 1.25 the lines a mastered entry can take, and the one picked (picked once, for good). */
+  lines(e: MasteryEntry): LineDef[] { return LINES[e.kind] ?? []; }
+  picked(id: string): string | undefined { return game.state.mastery?.picks?.[id]; }
+  /** A line's text for this entry ({name}, {pct}). */
+  lineText(e: MasteryEntry, l: LineDef): string {
+    const pct = `${Math.round(((l.chance ?? l.gold ?? (l.mult !== undefined ? 1 - l.mult : 0)) as number) * 100)}%`;
+    return l.text.split('{name}').join(e.name).split('{pct}').join(pct);
+  }
+  /** Pick a line for a mastered entry. False when it is not mastered, already has a line, or the line is unknown. */
+  pick(id: string, line: string): boolean {
+    const e = this.entries.find((x) => x.id === id);
+    if (!e || !this.isDone(id) || this.picked(id) || !this.lines(e).some((l) => l.id === line)) return false;
+    (this.st.picks ??= {})[id] = line;
+    game.incStat('mastery_lines');
+    logEvent('mastery_line', { id, line });
+    saves.save();
+    return true;
+  }
+  /** Mastered entries still waiting for a line (the dot on Me > Mastery). */
+  unpicked(): number { return this.entries.filter((e) => this.isDone(e.id) && !this.picked(e.id)).length; }
 
   isOpen(): boolean { return game.level >= MASTERY.unlockLevel; }
   isDone(id: string): boolean { return !!game.state.mastery?.done.includes(id); }
@@ -50,7 +72,7 @@ class MasterySystem {
       game.discover(MASTERY.plaque, 'building');
       game.incStat('masteries');
       game.setGauge('masteries', this.doneCount());
-      game.bus.emit('toast', { title: `${e.name} mastered!`, sub: `A Mastery Plaque is in your storage, plus ${MASTERY.reward.coins} coins and ${MASTERY.reward.gems} gems`, icon: 'trophy' });
+      game.bus.emit('toast', { title: `${e.name} mastered!`, sub: `A Mastery Plaque is in your storage, plus ${MASTERY.reward.coins} coins and ${MASTERY.reward.gems} gems. Pick its mastery line in Me > Mastery.`, icon: 'trophy' });
       game.bus.emit('sfx', { name: 'levelup' });
       logEvent('mastery', { id: e.id, level: game.level });
     }

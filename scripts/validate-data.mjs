@@ -423,6 +423,24 @@ releases?.forEach((r, i) => {
   for (const id of wd.weather?.rarePan ?? []) if (!items[id]) err(`woods weather: rare pan find ${id} is not an item`);
   if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
 }
+// 1.25 farmhands and mastery lines
+{
+  const fh = read('farmhands.json');
+  let prev = 0;
+  for (const d of fh.hands ?? []) {
+    if (!d.id || !d.name || !d.about || !(d.level >= prev)) err(`farmhand ${d.id}: needs id, name, about and a level not below the one before`);
+    if (icons && !icons[d.icon]) err(`farmhand ${d.id}: unknown icon ${d.icon}`);
+    prev = d.level;
+  }
+  for (const c of ['fields', 'animals', 'workshop']) if (!fh.chores?.[c]?.name || (icons && !icons[fh.chores[c].icon])) err(`farmhands: chore ${c} needs a name and a known icon`);
+  if (!(fh.wage > 0 && fh.roundMinutes >= 1 && fh.fieldsPerRound >= 1)) err('farmhands: wage, roundMinutes and fieldsPerRound must be positive');
+  const lines = read('mastery.json').lines ?? {};
+  for (const kind of ['crop', 'workshop']) {
+    const ids = (lines[kind] ?? []).map((l) => l.id).sort().join(',');
+    if (ids !== 'gold,speed,yield') err(`mastery lines ${kind}: needs exactly yield, gold and speed`);
+    for (const l of lines[kind] ?? []) if (!l.name || !l.text || (icons && !icons[l.icon])) err(`mastery line ${kind}/${l.id}: needs a name, text and a known icon`);
+  }
+}
 // 1.24 villager arcs: letters in day order with text; the gift's items are real
 {
   const items = read('items.json').items;

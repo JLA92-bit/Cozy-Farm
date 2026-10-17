@@ -457,6 +457,45 @@ try {
     check('a best-friend arc sends one letter a day on its days, then the next friend starts', JSON.stringify(r.steps.slice(1)) === JSON.stringify([1, 2, 2, 3, 3, 4, 4, 5]) && r.gift && r.tomStarted && !r.juniper, JSON.stringify(r));
   }
 
+  // 1.25 farmhands replant, feed and restart a workshop, paid once a day only when they work; a mastery line is
+  // picked once and speeds its crop up
+  {
+    const w = copy(); w.player.level = 95; w.player.coins = 100000; w.upkeep = undefined;
+    w.inventory = { ...w.inventory, chicken_feed: 10, wheat: 40, corn: 20 };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, F = window.__farmhands;
+      const free = (type) => { for (let z = 10; z < 44; z++) for (let x = 10; x < 44; x++) if (g.canPlace(type, x, z, 0)) return [x, z]; return null; };
+      const add = async (type, extra = {}) => { const [x, z] = free(type); const b = { uid: g.newUid(), type, x, z, rot: 0, level: 1, ...extra }; g.state.buildings.push(b); g.markBuilding(b, b.uid); await window.__ui.scene.farm.addBuilding(b); return b; };
+      const plots = [await add('plot'), await add('plot'), await add('plot')];
+      const coop = await add('coop', { animals: [{ fedAt: null }, { fedAt: null }] });
+      const mill = await add('feed_mill');
+      const noHands = F.round();
+      // what to redo: wheat on two fields, chicken feed at the mill
+      F.st.lastCrop[plots[0].uid] = 'wheat'; F.st.lastCrop[plots[1].uid] = 'wheat';
+      const hiredFields = F.hire('fern', 'fields'), hiredAnimals = F.hire('ollie', 'animals', coop.uid), hiredMill = F.hire('mabel', 'workshop', mill.uid);
+      F.st.lastRecipe[mill.uid] = 'chicken_feed';
+      const coins0 = g.state.player.coins;
+      const r1 = F.round();
+      const coins1 = g.state.player.coins;
+      const r2 = F.round();
+      const coins2 = g.state.player.coins;
+      // a mastery line: master wheat, pick Quick Growth, the next sowing is faster
+      g.state.mastery = { done: ['crop:wheat'] };
+      const M = window.__mastery;
+      const picked = M.pick('crop:wheat', 'speed'), again = M.pick('crop:wheat', 'gold'), notMastered = M.pick('crop:corn', 'speed');
+      const p4 = await add('plot');
+      F.st.lastCrop[p4.uid] = 'wheat';
+      F.round();
+      const ratio = p4.plot && plots[0].plot ? p4.plot.growSec / plots[0].plot.growSec : null;
+      return { noHands, hiredFields, hiredAnimals, hiredMill, r1, r2, coins0, coins1, coins2, planted: plots.map((p) => p.plot?.crop ?? null), fed: coop.animals.filter((a) => a.fedAt).length, queue: (mill.queue ?? []).length, picked, again, notMastered, ratio, pick: g.state.mastery.picks };
+    });
+    check('farmhands replant, feed and restart a workshop', r.hiredFields && r.hiredAnimals && r.hiredMill && r.r1.planted === 2 && r.planted[2] === null && r.fed === 2 && r.queue > 0, JSON.stringify(r));
+    check('a mastery line is picked once and speeds its crop', r.picked && !r.again && !r.notMastered && r.ratio !== null && Math.abs(r.ratio - 0.88) < 0.02, JSON.stringify(r));
+    check('farmhands are paid once a day, only for work', r.noHands.paid === 0 && r.r1.paid === 3 * 2500 && r.r2.paid === 0, JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

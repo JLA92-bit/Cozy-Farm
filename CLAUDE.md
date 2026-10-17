@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.24.0, committed locally after 1.20.1, 1.21.0, the leaderboard fair-play commit, 1.22.0 and 1.23.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
+Last updated: 17 October 2026 (game version 1.25.0, committed locally after 1.20.1, 1.21.0, the leaderboard fair-play commit, 1.22.0, 1.23.0 and 1.24.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.24.0 "Tea and Flowers"** (local; before it, local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days" and 1.23.0 "The Ancient Grove"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.25.0 "Helping Hands"** (local; before it, local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove" and 1.24.0 "Tea and Flowers"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.25.0 (local, 17 Oct):** Helping Hands. Farmhands: `farmhands.json`, `src/systems/Farmhands.ts` (rounds every 10 min while open via `setInterval`; chores call `farming.plant`, `animals.feedAll`, `production.queue`; remembers `lastCrop`/`lastRecipe` from `crop:harvested`/`production:queued`; wage paid on the first working round of a day; rests when `cycleNow().festival`), state `farmhands` with save repair, `FarmhandsPanel.ts` (ui `farmhands`, a card on the Farmhouse screen). Mastery lines: `mastery.json` `lines`, `src/systems/MasteryEffects.ts` (hooks in `Farming.plant/harvest`, `Production.duration/queue`, a `qualityBoosts` entry), `mastery.pick`, picker in `MasteryPanel.ts`, state `mastery.picks`. Debug: `__farmhands`, `__mastery`.
 
 **1.24.0 (local, 17 Oct):** Tea and Flowers. Crops `tea_leaf` (104) and `rose` (112); workshops `tea_house` (106) and `florist` (112), procedural models in `models/teahouse.ts`; 17 recipes. Items with `"bouquet": true` are loved by every villager (`village.taste`; `validate-data` counts them as used). Best-friend arcs: `villagers.json` `arc` per villager (5 letters by `day`), `VillageRewards.arcs()` from `daily()` (one arc at a time, one letter a day; state `friends[id].arc` {day, sent, last}), shown on the villager page. Debug: `__village`.
 
@@ -207,9 +209,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove) and **1.24.0** (Tea and Flowers); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers) and **1.25.0** (Helping Hands); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks are pushed (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
-- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.25 Helping Hands).
+- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.26 Estate Projects).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
@@ -236,6 +238,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: 1.25.0 (local): Helping Hands (three farmhands for replanting, feeding and workshops; mastery lines).
 - 2026-10-17: 1.24.0 (local): Tea and Flowers (Tea House, Florist, tea leaves and roses, bouquets every villager loves, six best-friend arcs in letters).
 - 2026-10-17: 1.23.0 (local): The Ancient Grove (Root Path, the Elder Oak in 5 stages with lasting woods perks, sapling finale, acorns and moonflowers).
 - 2026-10-17: 1.22.0 (local): Orchard Days (levels 101-120: 4 crops, 3 trees, 12 dishes, 4 decor, Farmhouse 15) and leaderboard fair play (server checks).
@@ -245,4 +248,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-16: 1.20.0 (pushed, run 54): Woodland Friends (critter stumps, Critter Journal, Wren), Care and Craft (vet/carpenter levels, check-ups, fresh paint, care round), every item has a use (27 recipes, Aquarium and Creek Treasures, Picnic and Craft Fair boats, validator rule), the decor-vanishing fix; ROADMAP re-sequenced.
 - 2026-10-19: 1.19.0 (pushed): the Deep Woods (three regions behind trails; fireflies, panning, sap taps; 23 items).
 - 2026-10-18: 1.18.0 (pushed): Willowmere Manor (8 wings, `manor.json`, `Manor.ts`, `ManorPanel.ts`, 3D in the square); bundle coins kept on load. 1.15.1-1.17.0 pushed and live.
-- 2026-10-17: 1.17.0 (pushed): flat XP past 60, late-game XP from Master/boats/festivals, trophy charm cap, Hazel's letter, simulator to 120.

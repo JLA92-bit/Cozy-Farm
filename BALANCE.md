@@ -772,3 +772,23 @@ New crops: tea leaves (level 104, sells 770) and roses (level 112, sells 850), 2
 **Bouquets** (`"bouquet": true` in items.json) are loved by every villager (`village.taste`), so they give 40 friendship (more with stars and on birthdays). The wildflower bouquet is cheap on purpose: it is made from glade forage and is the everyday gift.
 
 **Best-friend arcs:** at 10 hearts each villager's second story arrives as 5 letters on days 0, 1, 3, 5 and 7 after it starts, at most one letter a day. One arc runs at a time, in villager order. The last letter carries 20,000-30,000 coins, 25-30 gems and a few favourite goods.
+
+## 1.25 Helping Hands (`farmhands.json`, `mastery.json` `lines`)
+
+**Farmhands:** Fern (level 50), Ollie (70) and Mabel (90). Each takes one chore and does it every 10 minutes while the game is open (not offline):
+
+| Chore | What it does |
+| --- | --- |
+| Replant fields | up to 12 empty fields a round, with the crop last harvested on each, paying the seeds (plain seed: the seed tray's fertiliser and rare-seed switches are not used) |
+| Feed animals | the hungry animals of one chosen home, from the barn's feed |
+| Run a workshop | restarts the recipe the chosen workshop last made whenever a slot is free and the ingredients are there |
+
+Wage 2,500 coins a hand, paid on the first round they actually work each day (an idle day costs nothing; if the coins are short they wait). Festival days are days off. They never collect, sell or deliver. Late-game income is far above 7,500 a day, so three hands are an easy yes once the farm runs several workshops; they save taps, not decisions.
+
+**Mastery lines:** each mastered crop or workshop takes one line for good:
+
+| Line | Crop | Workshop |
+| --- | --- | --- |
+| yield | Bumper Crop: 25% chance of +1 at a harvest | Batch Bonus: +10% chance a batch makes double |
+| gold | Golden Fields: +6% gold chance | Gold Standard: +5% gold chance for its goods |
+| speed | Quick Growth: grows 12% faster | Quick Hands: works 10% faster |

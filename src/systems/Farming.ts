@@ -1,4 +1,5 @@
 import { CROP, ECONOMY, TREE, BUILDING, ITEMS } from '../data';
+import { cropExtraChance, cropGrowMultFor } from './MasteryEffects';
 import { manorGrowTimeMult } from './Manor';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
@@ -53,7 +54,7 @@ export class FarmingSystem {
     const def = CROP[crop];
     game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
-    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * manorGrowTimeMult()));
+    const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * manorGrowTimeMult() * cropGrowMultFor(crop)));
     b.plot = { crop, plantedAt: game.now(), growSec };
     if (this.useFert && fertStock() > 0) {
       const q = game.count(QUALITY_FERT) > 0;
@@ -82,7 +83,8 @@ export class FarmingSystem {
     const def = CROP[b.plot.crop];
     // 1.8.5 skills: Big Harvest sometimes doubles the crop, Seed Saver sometimes gives the seed money back
     const double = Math.random() < bigHarvestChance();
-    const qty = def.yield * (double ? 2 : 1);
+    // 1.25 Bumper Crop (a mastery line): now and then one more
+    const qty = def.yield * (double ? 2 : 1) + (Math.random() < cropExtraChance(def.id) ? 1 : 0);
     harvestingFert = !!b.plot.fert && !b.plot.qfert;
     harvestingQFert = !!b.plot.qfert;
     harvestingRare = !!b.plot.rare;

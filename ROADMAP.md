@@ -33,7 +33,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.22 | Server-side leaderboard checks and Orchard Days (levels 101-120) | ~1.5 weeks + schema | done (local) |
 | 1.23 | The Ancient Grove (woods phase 4) | ~1 week | done (local) |
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | done (local) |
-| 1.25 | Helping Hands (farmhands and masteries) | ~1 week | |
+| 1.25 | Helping Hands (farmhands and masteries) | ~1 week | done (local) |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | |
 | 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | |
 | 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | |
@@ -91,7 +91,9 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 - **Pace:** each stage is about 3-5 days of normal play at 2-3 hours a week, never more than 4 projects open at once. No time limit, nothing lost if paused.
 - **Build it on the Restoration bundle system** (`Restoration.ts`, `restoration.json`, `SquarePanel.ts`), not a new one. Save field `estate` with a repair rule.
 
-### 1.20 Helping Hands (farmhands and masteries)
+### 1.25 Helping Hands (farmhands and masteries)
+
+Built in 1.25 (see BALANCE.md): three named farmhands (levels 50, 70, 90) with the three chores (no watering: the farm has none), and mastery lines (yield, gold or speed) for every mastered crop and workshop. Animal masteries (like double eggs on rainy days) are not built, since animals have no mastery plaques.
 
 - **Farmhands:** hire up to 3 helpers from the village. Each takes one chore with a simple schedule:
   - water and replant one row of fields;

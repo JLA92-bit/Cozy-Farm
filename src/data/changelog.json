@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.25.0",
+   "date": "2026-10-17",
+   "title": "Helping Hands",
+   "icon": "seedling",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "seedling",
+     "text": "Farmhands: from level 50 hire Fern, then Ollie (70) and Mabel (90). Each takes one chore: replanting your harvested fields, feeding an animal home or keeping a workshop busy. They are paid on the days they work, rest on festival days, and never sell anything for you"
+    },
+    {
+     "icon": "trophy",
+     "text": "Mastery lines: every crop and workshop you master now gets a bonus of your choice for good: more harvest or double batches, a better gold-star chance, or faster growing and making"
+    },
+    {
+     "icon": "house",
+     "text": "Find your farmhands on the Farmhouse screen, and your mastery lines in Me > Mastery"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.24.0",
    "date": "2026-10-17",
    "title": "Tea and Flowers",

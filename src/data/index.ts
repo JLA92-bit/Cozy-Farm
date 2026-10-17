@@ -6,6 +6,7 @@ import restorationJson from './restoration.json';
 import manorJson from './manor.json';
 import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
+import farmhandsJson from './farmhands.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
 import masterJson from './master.json';
@@ -225,6 +226,13 @@ export const MASTER = masterJson;
 
 /** 1.8.6 Mastery plaques (mastery.json). */
 export const MASTERY = masteryJson;
+/** 1.25 Farmhands (farmhands.json, src/systems/Farmhands.ts). */
+export type ChoreId = 'fields' | 'animals' | 'workshop';
+export interface FarmhandDef { id: string; name: string; level: number; icon: string; about: string }
+export const FARMHANDS = farmhandsJson as unknown as {
+  roundMinutes: number; fieldsPerRound: number; wage: number; hands: FarmhandDef[];
+  chores: Record<ChoreId, { name: string; icon: string; text: string }>;
+};
 
 /** 1.8.5 Village Restoration (restoration.json). */
 export interface BundleDef { id: string; name: string; icon: string; wants: Record<string, number>; minStar?: 1 | 2 }

@@ -1,0 +1,13 @@
+/* 1.25 Farmhands */
+.fh-hands-intro { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; font-size: 14px; }
+.fh-hands-rest { display: flex; gap: 6px; align-items: center; font-weight: 700; }
+.fh-hands-rest img, .fh-hands-rest svg { width: 20px; height: 20px; }
+.fh-hand { margin-bottom: 8px; text-align: left; }
+.fh-hand .title, .fh-hand .sub { text-align: left; }
+.fh-hand.hired { background: linear-gradient(180deg, #eaffd9, #fff); }
+.fh-hand.locked { opacity: .7; }
+.fh-hand-head { display: flex; gap: 10px; align-items: center; }
+.fh-hand-icon { width: 36px; height: 36px; flex: none; }
+.fh-hand-job { display: flex; gap: 8px; align-items: center; margin: 8px 0 6px; font-size: 14px; }
+.fh-hand-job img, .fh-hand-job svg { width: 24px; height: 24px; flex: none; }
+.fh-hand-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }

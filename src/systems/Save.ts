@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CRITTERS, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CRITTERS, CROP, FARMHANDS, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -118,7 +118,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     reqs: Array.isArray(s.helpwanted.reqs) ? s.helpwanted.reqs.filter((r: unknown) => isObj(r) && typeof r.who === 'string' && !!VILLAGER[r.who] && typeof r.item === 'string' && !!ITEMS[r.item] && Number.isFinite(r.n) && Number.isFinite(r.coins)).slice(0, 3)
       .map((r: { who: string; item: string; n: number; star: number; coins: number; points: number; gems: number }) => ({ who: r.who, item: r.item, n: Math.max(1, Math.floor(r.n)), star: (r.star === 2 ? 2 : 0) as 0 | 2, coins: Math.floor(r.coins), points: Math.floor(Number(r.points) || 0), gems: Math.floor(Number(r.gems) || 0) })) : undefined } : undefined;
   out.petfind = isObj(s.petfind) && typeof s.petfind.day === 'string' ? { day: s.petfind.day } : undefined;
-  out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done) } : undefined;
+  out.farmhands = repairFarmhands(s.farmhands);
+  out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}) } : undefined;
   return sanitize(out, base);
 }
 
@@ -141,6 +142,23 @@ function repairSkills(v: unknown): SaveData['skills'] {
     xp, perks, headStart: v.headStart === true,
     letter: typeof v.letter === 'number' ? v.letter : undefined,
     shepherdDay: typeof v.shepherdDay === 'string' ? v.shepherdDay : undefined,
+  };
+}
+
+/** 1.25 farmhands: only known hands with a known chore; targets must be numbers; remembered crops and recipes must exist. */
+function repairFarmhands(v: unknown): SaveData['farmhands'] {
+  if (!isObj(v)) return undefined;
+  const seen = new Set<string>();
+  const hired = (Array.isArray(v.hired) ? v.hired : []).filter((x): x is Record<string, unknown> => isObj(x)).filter((x) => {
+    const ok = typeof x.id === 'string' && FARMHANDS.hands.some((f) => f.id === x.id) && !seen.has(x.id) && (x.chore === 'fields' || x.chore === 'animals' || x.chore === 'workshop');
+    if (ok) seen.add(x.id as string);
+    return ok;
+  }).map((x) => ({ id: x.id as string, chore: x.chore as 'fields' | 'animals' | 'workshop', ...(Number.isInteger(x.target) ? { target: x.target as number } : {}) }));
+  const strMap = (m: unknown, ok: (s: string) => boolean): Record<string, string> => Object.fromEntries(Object.entries(isObj(m) ? m : {}).filter(([, s]) => typeof s === 'string' && ok(s))) as Record<string, string>;
+  const t = isObj(v.today) && typeof v.today.day === 'string' ? v.today : null;
+  return {
+    hired, paid: strMap(v.paid, () => true), lastCrop: strMap(v.lastCrop, (s) => !!CROP[s]), lastRecipe: strMap(v.lastRecipe, (s) => !!RECIPE[s]),
+    ...(t ? { today: { day: t.day as string, planted: Math.floor(finite(t.planted, 0, 0)), fed: Math.floor(finite(t.fed, 0, 0)), queued: Math.floor(finite(t.queued, 0, 0)), wages: Math.floor(finite(t.wages, 0, 0)) } } : {}),
   };
 }
 

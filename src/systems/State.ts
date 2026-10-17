@@ -160,7 +160,18 @@ export interface SaveData {
   /** 1.8.5 Village Restoration: bundle progress per room (optional; src/systems/Restoration.ts). */
   restoration?: RestorationState;
   /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
-  mastery?: { done: string[] };
+  /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */
+  farmhands?: {
+    hired: { id: string; chore: 'fields' | 'animals' | 'workshop'; target?: number }[];
+    /** hand id -> local day they were last paid */
+    paid: Record<string, string>;
+    /** field uid -> crop last harvested there; workshop uid -> recipe last started there */
+    lastCrop: Record<string, string>;
+    lastRecipe: Record<string, string>;
+    /** what the hands did today (local day) */
+    today?: { day: string; planted: number; fed: number; queued: number; wages: number };
+  };
+  mastery?: { done: string[]; /** 1.25 the line picked for each mastered crop or workshop (entry id -> line id) */ picks?: Record<string, string> };
 }
 
 /** 1.9 The Wild Woods (src/systems/Woods.ts). */

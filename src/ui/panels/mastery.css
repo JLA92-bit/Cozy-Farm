@@ -11,3 +11,9 @@
 .ms-tag svg, .ms-tag img { width: 14px; height: 14px; }
 .ms-sub { font-size: 13px; opacity: .8; margin-bottom: 4px; }
 .ms-bar { height: 18px; }
+/* 1.25 mastery lines */
+.ms-lines { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.ms-line-btn { justify-content: flex-start; text-align: left; white-space: normal; line-height: 1.2; }
+.ms-line-btn small { font-weight: 600; opacity: .85; }
+.ms-line { margin-top: 6px; display: flex; gap: 6px; align-items: center; font-size: 13px; padding: 4px 8px; border-radius: 10px; background: #fff; border: 2px solid var(--outline); }
+.ms-line img, .ms-line svg { width: 20px; height: 20px; flex: none; }

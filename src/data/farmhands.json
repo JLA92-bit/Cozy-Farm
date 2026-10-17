@@ -1,0 +1,16 @@
+{
+ "_comment": "1.25 Farmhands (src/systems/Farmhands.ts): hire helpers from the village, one per slot as the farm grows (`level`). Each takes one chore and does it every `roundMinutes` while the game is open: `fields` replants fields with the crop last harvested there (paying the seeds, at most `fieldsPerRound` a round), `animals` feeds one animal home from the barn, `workshop` restarts one workshop with the recipe it last made when a slot is free. Each is paid `wage` coins on the first round they work each day (no work, no wage; not enough coins, no work that day) and rests on festival days. They never sell, deliver or collect anything.",
+ "roundMinutes": 10,
+ "fieldsPerRound": 12,
+ "wage": 2500,
+ "hands": [
+  { "id": "fern", "name": "Fern", "level": 50, "icon": "seedling", "about": "Rosa's niece, up before the sun and never without a hat." },
+  { "id": "ollie", "name": "Ollie", "level": 70, "icon": "hammer_wrench", "about": "Bram's old apprentice. Quiet, careful, good with machines and animals." },
+  { "id": "mabel", "name": "Mabel", "level": 90, "icon": "heart", "about": "Retired from the dairy across the valley and bored stiff. Happy to help." }
+ ],
+ "chores": {
+  "fields": { "name": "Replant fields", "icon": "seedling", "text": "Replants up to {n} empty fields a round with what you last harvested there, paying for the seeds." },
+  "animals": { "name": "Feed animals", "icon": "chicken", "text": "Feeds the hungry animals in one home from your barn." },
+  "workshop": { "name": "Run a workshop", "icon": "hammer_wrench", "text": "Starts the recipe this workshop last made whenever a slot is free and you have the ingredients." }
+ }
+}

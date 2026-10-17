@@ -1,6 +1,8 @@
 import { assets } from '../core/Assets';
 import { village } from '../systems/Village';
 import { villageRewards } from '../systems/VillageRewards';
+import { farmhands } from '../systems/Farmhands';
+import '../ui/panels/FarmhandsPanel';
 import { boatvisit } from '../systems/BoatVisit';
 import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
@@ -149,6 +151,7 @@ export async function boot(): Promise<void> {
   skills.init();
   restoration.init();
   mastery.init();
+  farmhands.init();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -249,7 +252,7 @@ export async function boot(): Promise<void> {
   setTimeout(() => festivals.announce(), 4000);
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   if (saves.unreadableKept) setTimeout(() => ui.feedback.toast('Your old save could not be read', 'A copy is kept safely on this device. Send us a note from Settings > Feedback and we will help.', 'info'), 1200);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills, __master: master, __restoration: restoration, __boat: boatvisit, __buildings: buildings, __village: { village, rewards: villageRewards } });
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills, __master: master, __restoration: restoration, __boat: boatvisit, __buildings: buildings, __village: { village, rewards: villageRewards }, __farmhands: farmhands, __mastery: mastery });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 
