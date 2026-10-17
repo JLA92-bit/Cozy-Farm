@@ -1,9 +1,11 @@
 import { assets } from '../core/Assets';
+import { initWildlife } from './WildlifeApply';
 import { village } from '../systems/Village';
 import { villageRewards } from '../systems/VillageRewards';
 import { farmhands } from '../systems/Farmhands';
 import '../ui/panels/FarmhandsPanel';
 import '../ui/panels/EstatePanel';
+import '../ui/panels/TreehousePanel';
 import { boatvisit } from '../systems/BoatVisit';
 import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
@@ -178,6 +180,7 @@ export async function boot(): Promise<void> {
   await scene.farm.build();
   applyFarmLook(scene);
   initHalloween(scene);
+  initWildlife(scene);
   buildings.updateGauges();
   await player.init(scene);
   events.check();

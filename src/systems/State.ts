@@ -160,6 +160,8 @@ export interface SaveData {
   /** 1.8.5 Village Restoration: bundle progress per room (optional; src/systems/Restoration.ts). */
   restoration?: RestorationState;
   /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
+  /** 1.27 Wildlife Album: species photographed (first photo time, photos taken), sets rewarded, and today's photos */
+  wildlife?: { photos: Record<string, { first: number; n: number }>; sets: string[]; complete?: number; today?: { day: string; shot: string[] } };
   /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */
   farmhands?: {
     hired: { id: string; chore: 'fields' | 'animals' | 'workshop'; target?: number }[];
@@ -222,6 +224,8 @@ export interface RestorationState {
   grove?: Record<string, number>;
   /** 1.23 when the Elder Oak was whole (the finale was handed out) */
   oak?: number;
+  /** 1.27 when the treehouse was fully furnished (Juniper's letter) */
+  treehouse?: number;
   /** 1.26 Estate Projects finished (project id -> when its finale was handed out) */
   estate?: Record<string, number>;
 }

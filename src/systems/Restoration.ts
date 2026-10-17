@@ -4,10 +4,11 @@
  * bundle of a room is full the room is rebuilt for good and its reward turns on (see RestorationEffects.ts).
  * Rooms marked `soon` in restoration.json open in a later update.
  */
-import { ESTATE, GROVE, GROVE_STAGES, MANOR, MANOR_WINGS, RESTORATION, ROOMS, ROOM, type BundleDef, type RoomDef } from '../data';
+import { ESTATE, GROVE, TREEHOUSE, GROVE_STAGES, MANOR, MANOR_WINGS, RESTORATION, ROOMS, ROOM, type BundleDef, type RoomDef } from '../data';
 import { isWing, manorFinished, wingOpen } from './Manor';
 import { groveFinished, isStage, stageOpen } from './Grove';
 import { estateOpen, isEstateStage, projectDone, projectOf } from './Estate';
+import { furnished, isTreehouse, treehouseOpen } from './Treehouse';
 import { game } from './Game';
 import { saves } from './Save';
 import { mail } from './Mail';
@@ -33,7 +34,7 @@ class RestorationSystem {
   room(id: string): RoomDef | undefined { return ROOM[id]; }
 
   /** A room can be worked on once it is built in this version and the player has reached its level. */
-  isOpen(id: string): boolean { if (isWing(id)) return wingOpen(id); if (isStage(id)) return stageOpen(id); if (isEstateStage(id)) return estateOpen(id); const r = ROOM[id]; return !!r && !r.soon && game.level >= r.opensAt; }
+  isOpen(id: string): boolean { if (isWing(id)) return wingOpen(id); if (isStage(id)) return stageOpen(id); if (isEstateStage(id)) return estateOpen(id); if (isTreehouse(id)) return treehouseOpen(id); const r = ROOM[id]; return !!r && !r.soon && game.level >= r.opensAt; }
   isSoon(id: string): boolean { return !!ROOM[id]?.soon; }
   isDone(id: string): boolean { return roomDone(id); }
 
@@ -72,7 +73,7 @@ class RestorationSystem {
   /** Bundles waiting for something the player has right now (the dot on the Village screen). */
   givable(): number {
     let n = 0;
-    for (const r of [...ROOMS, ...MANOR_WINGS, ...GROVE_STAGES, ...ESTATE.flatMap((p) => p.stages)]) {
+    for (const r of [...ROOMS, ...MANOR_WINGS, ...GROVE_STAGES, ...ESTATE.flatMap((p) => p.stages), ...TREEHOUSE.stages, ...TREEHOUSE.furnishings]) {
       if (!this.isOpen(r.id) || this.isDone(r.id)) continue;
       for (const b of r.bundles) if (!this.bundleDone(r.id, b.id) && this.lines(r.id, b.id).some((l) => l.left > 0 && this.canGive(r.id, b.id, l.item) > 0)) n++;
     }
@@ -141,12 +142,21 @@ class RestorationSystem {
     const farmer = game.state.player.name;
     if (r.letter.title) mail.send(r.villager, r.letter.title, r.letter.body.split('{farmer}').join(farmer));
     game.bus.emit('restoration:room', { room });
-    game.bus.emit('toast', { title: isStage(room) ? `${r.name}: the Elder Oak grows!` : isEstateStage(room) ? `${r.name} is built!` : `${r.name} is rebuilt!`, sub: r.reward.text, icon: r.icon });
+    game.bus.emit('toast', { title: isStage(room) ? `${r.name}: the Elder Oak grows!` : isTreehouse(room) ? `${r.name}: done!` : isEstateStage(room) ? `${r.name} is built!` : `${r.name} is rebuilt!`, sub: r.reward.text, icon: r.icon });
     game.bus.emit('sfx', { name: 'levelup' });
     logEvent('room_done', { room, level: game.level, rooms: this.roomsDone() });
     if (isWing(room)) { if (manorFinished()) this.manorFinale(); return; }
     if (isStage(room)) { (st.grove ??= {})[room] = game.now(); if (groveFinished()) this.oakFinale(); return; }
     if (isEstateStage(room)) { const p = projectOf(room); if (p && projectDone(p.id)) this.estateFinale(p.id); return; }
+    if (isTreehouse(room)) {
+      // every furnishing in: Juniper writes, once
+      if (furnished() === TREEHOUSE.furnishings.length && !st.treehouse) {
+        st.treehouse = game.now();
+        mail.send('juniper', 'Home in the trees', `Dear ${game.state.player.name},\n\nThe treehouse is finished, lamp and rug and all. I climbed up at dusk with a cup of tea and watched the fireflies come out over the Pines.\n\nIt's the cosiest place in the valley. Thank you for letting me visit.\n\nJuniper`, { gems: 30 });
+        game.incStat('treehouse_done');
+      }
+      return;
+    }
     if (ROOMS.every((x) => st.done.includes(x.id))) this.startFestival();
   }
 

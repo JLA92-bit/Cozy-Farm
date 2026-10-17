@@ -35,7 +35,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | done (local) |
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | done (local) |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | done (local) |
-| 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | |
+| 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | done (local) |
 | 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | |
 | 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | needs the Play launch |
 | 2.x | Neighbourhoods, second plot, iOS | later | |
@@ -151,7 +151,9 @@ Built in 1.24 (see BALANCE.md): tea leaves, roses, the Tea House (8 recipes) and
 - Server tables follow the Ask a friend pattern: exactly-once claims, friends only, deleted with the account. Append a marked section to `schema.sql`. Update the Play Data safety answers.
 - A `game_config` switch turns it off without a release.
 
-### 1.24 Wildlife Album
+### 1.27 Wildlife Album
+
+Built in 1.27 (see BALANCE.md): 17 species in 4 sets at the farm edge and in the woods, tap to photograph, a Collection Book page, set rewards; the treehouse telescope shows who is out. Not built: photo mode (hide the HUD, frames, share card, save to phone) and a Frosty Cove decor set (the penguin and polar bear visit the farm edge on festival days instead).
 
 - Gentle wildlife visits the Wild Woods and the farm's edges at different times of day and in different weather: deer, fox, rabbit families, ducks. The models exist and are unused: `pet/deer`, `pet/fox`, `pet/penguin`, `pet/panda`, `pet/polar`.
 - Tap to take a photo for the **Wildlife Album**, a new Collection Book page with a reward per set.
@@ -218,7 +220,7 @@ The Wild Woods today is one island: about 10 forage spots, 4 digs a day, the Mus
   - a glowing canopy at night.
 - The final stage plants a sapling of the Elder Oak for your own farm.
 
-**Phase 5 (1.23 The Treehouse):**
+**Phase 5 (1.27 The Treehouse, built 17 Oct):** three build stages and six fixed furnishings (restoration rooms `treehouse_*`) instead of a free decor placement up there; it adds camp finds and the telescope. Original idea:
 - Build and decorate your own treehouse in the Pines (multi-stage), with a small woods decor set (log chairs, mushroom lamps, hanging lanterns, moss rugs) usable only up there. A cozy base and a photo spot.
 
 **Ideas bank for the woods:**

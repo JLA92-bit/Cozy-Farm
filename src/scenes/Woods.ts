@@ -15,7 +15,9 @@ import { audio } from '../systems/Audio';
 import { hints } from '../systems/Hints';
 import { critters } from '../systems/Critters';
 import * as grove from '../systems/Grove';
+import * as treehouse from '../systems/Treehouse';
 import { currentStage } from '../systems/Grove';
+import { takePhoto } from '../ui/Photo';
 import { sayHello } from '../ui/panels/CritterPanel';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import { isInSquare } from './Square';
@@ -58,7 +60,7 @@ export function initWoods(scene: FarmScene, interaction: Interaction): void {
   // 1.19 a trail restored: its bridge is whole and the region opens
   game.bus.on('restoration:room', ({ room }) => { if (room.startsWith('trail_') || room.startsWith('grove_')) { view?.refresh(); updateBanner(); } });
   game.bus.on('state:changed', () => { if (inWoods) view?.refresh(); });
-  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods, critters, grove } });
+  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods, critters, grove, treehouse } });
 }
 
 async function loadView(): Promise<WoodsView> {
@@ -222,6 +224,14 @@ function act(hit: WoodsHit): void {
     return;
   }
   // 1.19 the Deep Woods
+  // 1.27 the treehouse: its stages and furnishings
+  if (hit.kind === 'treehouse') {
+    if (!woods.regionOpen('pines')) { ui.feedback.toast('Whispering Pines is closed', `Restore ${ROOM.trail_pines?.name ?? 'the trail'} at the sign to get there.`, 'lock'); return; }
+    ui.open('treehouse');
+    return;
+  }
+  // 1.27 a wild visitor: take its photo for the Wildlife Album
+  if (hit.kind === 'wild') { if (hit.id) takePhoto(hit.id, at); return; }
   // 1.23 the Elder Oak: the stage growing now (or a word from the old tree once it is whole)
   if (hit.kind === 'oak') {
     if (!woods.regionOpen('grove')) { ui.feedback.toast('The Ancient Grove is closed', `Restore ${ROOM.trail_grove?.name ?? 'the Root Path'} at the sign to get there.`, 'lock'); return; }

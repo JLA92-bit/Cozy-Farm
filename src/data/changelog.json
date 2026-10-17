@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.27.0",
+   "date": "2026-10-17",
+   "title": "The Treehouse and the Wildlife Album",
+   "icon": "camera",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "camera",
+     "text": "The Wildlife Album: deer, foxes, ducks, herons, otters, owls, robins, badgers and more visit the Wild Woods and the edge of your farm at their own times and in their own weather. Tap one to take its photo, and complete a set for a reward. Look out for penguins and a polar bear on festival days!"
+    },
+    {
+     "icon": "house",
+     "text": "Build a treehouse in the great pine in Whispering Pines (from level 45), then furnish it with log chairs, a mushroom lamp, lanterns, a moss rug, a bookshelf and a telescope"
+    },
+    {
+     "icon": "tent",
+     "text": "A finished treehouse brings 2 more finds to every camp morning, and the telescope shows which wild animals are out today in your album"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.26.0",
    "date": "2026-10-17",
    "title": "Estate Projects",

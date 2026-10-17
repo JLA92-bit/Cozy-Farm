@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { assets } from '../core/Assets';
-import { CRITTERS, WOODS, WOODS_REGIONS, WREN, type CritterDef } from '../data';
+import { CRITTERS, TREEHOUSE, WOODS, WOODS_REGIONS, WREN, type CritterDef } from '../data';
 import { REGION_IDS, woods } from '../systems/Woods';
 import { schedules } from '../systems/Schedules';
 import { VILLAGERS } from '../data';
@@ -11,11 +11,15 @@ import { geo, rng } from './Procedural';
 import { costume, currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
-import { elderOakGeometry, FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
+import { FURNISH_GEO, TREEHOUSE_Y, treehouseGeometry, elderOakGeometry, FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
 import { restoration } from '../systems/Restoration';
 import { game } from '../systems/Game';
 import { critters } from '../systems/Critters';
 import { canopyGlows, currentStage, stageOpen, stagesDone } from '../systems/Grove';
+import { wildlife } from '../systems/Wildlife';
+import { hasFurnishing, treehouseStage } from '../systems/Treehouse';
+import { wildObject } from './Wild';
+import { localDay } from '../systems/Progression';
 import type { CharacterLook } from '../systems/State';
 
 /**
@@ -28,7 +32,7 @@ const JETTY_ANGLE = Math.PI / 4;
 const POND = { x: -7.5, z: -6, r: 4.1 };
 const TREES = ['nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple'] as const;
 
-export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly' | 'stump' | 'critter' | 'wren' | 'camp' | 'oak'; i: number; id?: string }
+export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly' | 'stump' | 'critter' | 'wren' | 'camp' | 'oak' | 'wild' | 'treehouse'; i: number; id?: string }
 /** Fixed places in island space: the Museum at the top of the island and the expedition board at the landing. */
 const MUSEUM_AT = { x: -1, z: -15 };
 const BOARD_AT = { x: 10.5, z: 13.5 };
@@ -80,6 +84,10 @@ export class WoodsView {
   private wren?: { char: Character; pick: THREE.Mesh; glint: THREE.Mesh; cabin: THREE.Object3D };
   private wrenAt?: THREE.Vector3;
   private camp?: { tent: THREE.Object3D; fire: THREE.Sprite; flames: THREE.Mesh; glint: THREE.Mesh };
+  /** 1.27 the treehouse in Whispering Pines: the tree and house (rebuilt as it grows) and its furnishings */
+  private treehouse?: { mesh: THREE.Mesh; stage: number; furnish: Map<string, THREE.Mesh>; glow: THREE.Sprite; at: THREE.Vector3; glint: THREE.Mesh };
+  /** 1.27 wild visitors for the Wildlife Album: where each stands today, by species */
+  private wild = new Map<string, { obj: THREE.Object3D; pick: THREE.Mesh; base: THREE.Vector3; day: string }>();
   /** 1.23 the Elder Oak in the Ancient Grove: its look follows the stages grown, its canopy glows at night once grown */
   private oak?: { mesh: THREE.Mesh; stage: number; glow: THREE.Sprite; lights: THREE.Mesh[]; glint: THREE.Mesh; at: THREE.Vector3 };
   private pickers: THREE.Object3D[] = [];
@@ -168,6 +176,7 @@ export class WoodsView {
     await this.buildRegions();
     for (const c of CRITTERS.families) if (c.region === 'glade') await this.buildStump(c, new THREE.Vector2(GLADE_STUMP.x, GLADE_STUMP.z), Math.PI / 4);
     await this.buildCamp();
+    await this.buildWild();
     this.refresh();
   }
 
@@ -411,6 +420,13 @@ export class WoodsView {
         taken.push(new THREE.Vector2(ax + dir.x * 1.6 + side.x * 2.2, az + dir.y * 1.6 + side.y * 2.2));
         await this.buildWren(cab, new THREE.Vector2(ax + dir.x * 1.6 + side.x * 2.2, az + dir.y * 1.6 + side.y * 2.2), Math.atan2(-dir.x, -dir.y));
       }
+      // 1.27 the treehouse in the great pine, to the side of the island
+      if (reg.id === TREEHOUSE.region) {
+        const th = new THREE.Vector2(ax - side.x * 5.4 - dir.x * 1.5, az - side.y * 5.4 - dir.y * 1.5);
+        taken.push(th);
+        for (let k = 0; k < 8; k++) taken.push(new THREE.Vector2(th.x + Math.cos(k * Math.PI / 4) * 2.6, th.y + Math.sin(k * Math.PI / 4) * 2.6));
+        this.buildTreehouse(new THREE.Vector3(th.x, 0, th.y));
+      }
       for (const c of CRITTERS.families) if (c.region === reg.id) {
         const p = spot(3, reg.r - 3.6, 3.4);
         // keep the camera's side of the stump clear of trees so the visitor can be seen
@@ -538,6 +554,107 @@ export class WoodsView {
     for (const l of o.lights) l.visible = night;
     const cur = currentStage();
     o.glint.visible = woods.regionOpen('grove') && !!cur && stageOpen(cur.id);
+  }
+
+  /** 1.27 the treehouse: one mesh that grows by stage, a mesh per furnishing, the lamp's glow at night. */
+  private buildTreehouse(at: THREE.Vector3): void {
+    const mat = assets.vertexMaterial;
+    const mesh = new THREE.Mesh(treehouseGeometry(0), mat);
+    mesh.position.copy(at);
+    // the cabin's door faces the camera
+    mesh.rotation.y = Math.PI / 4;
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    this.group.add(mesh);
+    const furnish = new Map<string, THREE.Mesh>();
+    for (const [name, make] of Object.entries(FURNISH_GEO)) {
+      const m = new THREE.Mesh(make(), mat);
+      m.visible = false;
+      m.castShadow = true;
+      mesh.add(m);
+      furnish.set(name, m);
+    }
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g2 = c.getContext('2d')!;
+    const grad = g2.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,230,160,1)');
+    grad.addColorStop(1, 'rgba(255,200,120,0)');
+    g2.fillStyle = grad;
+    g2.fillRect(0, 0, 64, 64);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8 }));
+    glow.position.set(at.x, TREEHOUSE_Y + 1.0, at.z);
+    glow.scale.setScalar(4);
+    glow.visible = false;
+    this.group.add(glow);
+    const glint = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), this.glintMat);
+    glint.position.set(at.x + 1.4, 1.8, at.z + 1.4);
+    this.group.add(glint);
+    const pick = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 6, 10), new THREE.MeshBasicMaterial({ visible: false }));
+    pick.position.set(at.x, 3, at.z);
+    pick.userData = { kind: 'treehouse', i: 0 };
+    this.group.add(pick);
+    this.pickers.push(pick);
+    this.treehouse = { mesh, stage: 0, furnish, glow, at, glint };
+  }
+
+  private refreshTreehouse(): void {
+    const t = this.treehouse;
+    if (!t) return;
+    const stage = treehouseStage();
+    if (stage !== t.stage) { t.mesh.geometry.dispose(); t.mesh.geometry = treehouseGeometry(stage); t.stage = stage; }
+    for (const [name, m] of t.furnish) m.visible = hasFurnishing(name);
+    const h = new Date(game.now()).getHours();
+    t.glow.visible = (hasFurnishing('lamp') || hasFurnishing('lanterns')) && (h >= 19 || h < 6);
+    const open = [...TREEHOUSE.stages, ...TREEHOUSE.furnishings].some((r) => restoration.isOpen(r.id) && !restoration.isDone(r.id));
+    t.glint.visible = woods.regionOpen(TREEHOUSE.region) && open;
+  }
+
+  /** 1.27 the Wild Woods' visitors (hidden until they are out): one object each, placed afresh every day. */
+  private async buildWild(): Promise<void> {
+    for (const s of wildlife.species().filter((x) => x.place !== 'farm')) {
+      try {
+        const obj = await wildObject(s);
+        obj.visible = false;
+        const pick = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+        pick.userData = { kind: 'wild', i: 0, id: s.id };
+        pick.visible = false;
+        this.group.add(obj, pick);
+        this.pickers.push(pick);
+        this.wild.set(s.id, { obj, pick, base: new THREE.Vector3(), day: '' });
+      } catch (e) { console.warn('[woods] wild visitor could not be drawn', s.id, e); }
+    }
+  }
+
+  /** Where a visitor stands today: in the glade between the landmarks, or round its region's island. */
+  private wildSpot(place: string, t: number): THREE.Vector3 {
+    if (place === 'glade') {
+      const GLADE = [[-4, 9], [5, -10], [-14, 5], [3, 17], [-10, -14], [17, 6]];
+      const [x, z] = GLADE[Math.floor(t * GLADE.length) % GLADE.length];
+      return new THREE.Vector3(x, 0.02, z);
+    }
+    const c = this.regionParts.get(place)?.centre;
+    if (!c) return new THREE.Vector3();
+    // round the island's middle, clear of the oak (the panda naps beside it)
+    const a = t * Math.PI * 2, d = place === 'grove' ? 5.2 : 5.5 + (t * 7 % 1) * 2.5;
+    return new THREE.Vector3(c.x + Math.cos(a) * d, 0.02, c.z + Math.sin(a) * d);
+  }
+
+  private refreshWild(): void {
+    const day = localDay(game.now());
+    for (const [id, w] of this.wild) {
+      const s = wildlife.def(id);
+      if (!s) continue;
+      if (w.day !== day) {
+        w.day = day;
+        w.base.copy(this.wildSpot(s.place, wildlife.spot(s)));
+        w.obj.position.copy(w.base);
+        w.obj.rotation.y = Math.PI / 4 + (wildlife.spot(s) - 0.5);
+        w.pick.position.set(w.base.x, 0.8, w.base.z);
+      }
+      const here = wildlife.present(id);
+      w.obj.visible = here;
+      w.pick.visible = here;
+    }
   }
 
   /** 1.21 the campsite in the glade: a campfire and a log, and a tent while it is pitched. */
@@ -788,6 +905,8 @@ export class WoodsView {
     this.refreshRegions();
     this.refreshCritters();
     this.refreshOak();
+    this.refreshWild();
+    this.refreshTreehouse();
     if (this.camp) {
       const st = woods.campStatus();
       this.camp.tent.visible = st === 'sleeping' || st === 'ready';
@@ -807,6 +926,8 @@ export class WoodsView {
     if (hit.kind === 'pan') { const p = this.panNodes[hit.i]; return p ? this.world(p.at.x, 0.6, p.at.z) : null; }
     if (hit.kind === 'stump' || hit.kind === 'critter') { const st = this.stumps.get(hit.id ?? ''); if (!st) return null; const at = hit.kind === 'critter' ? st.critter.position : st.at; return this.world(at.x, 1, at.z); }
     if (hit.kind === 'camp') return this.world(CAMP_AT.x, 1.2, CAMP_AT.z);
+    if (hit.kind === 'treehouse') return this.treehouse ? this.world(this.treehouse.at.x, 2, this.treehouse.at.z) : null;
+    if (hit.kind === 'wild') { const w = this.wild.get(hit.id ?? ''); return w ? this.world(w.base.x, 0.9, w.base.z) : null; }
     if (hit.kind === 'oak') return this.oak ? this.world(this.oak.at.x, 2.5, this.oak.at.z + 1.5) : null;
     if (hit.kind === 'wren') return this.wrenAt ? this.world(this.wrenAt.x, 1.6, this.wrenAt.z) : null;
     if (hit.kind === 'tap') { const t = this.tapNodes.get(hit.id ?? ''); return t ? this.world(t.at.x, 0.8, t.at.z) : null; }
@@ -854,6 +975,7 @@ export class WoodsView {
     if (this.wren?.glint.visible) { this.wren.glint.position.y = 3.0 + Math.sin(this.t * 2.4) * 0.1; this.wren.glint.rotation.y = this.t * 1.5; }
     if (this.boardDot?.visible) { this.boardDot.position.y = 3.6 + Math.sin(this.t * 2.4) * 0.1; this.boardDot.rotation.y = this.t * 1.5; }
     for (const n of this.digNodes) if (n.glint.visible) { n.glint.position.y = 1.3 + Math.sin(this.t * 2.2 + n.i) * 0.08; n.glint.rotation.y = this.t * 1.5; }
+    if (this.treehouse?.glint.visible) { const g = this.treehouse.glint; g.position.y = 1.8 + Math.sin(this.t * 2.4) * 0.1; g.rotation.y = this.t * 1.5; }
     if (this.oak) {
       const o = this.oak;
       if (o.glint.visible) { o.glint.position.y = 1.8 + Math.sin(this.t * 2.4) * 0.1; o.glint.rotation.y = this.t * 1.5; }

@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CRITTERS, CROP, ESTATE, FARMHANDS, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -119,6 +119,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
       .map((r: { who: string; item: string; n: number; star: number; coins: number; points: number; gems: number }) => ({ who: r.who, item: r.item, n: Math.max(1, Math.floor(r.n)), star: (r.star === 2 ? 2 : 0) as 0 | 2, coins: Math.floor(r.coins), points: Math.floor(Number(r.points) || 0), gems: Math.floor(Number(r.gems) || 0) })) : undefined } : undefined;
   out.petfind = isObj(s.petfind) && typeof s.petfind.day === 'string' ? { day: s.petfind.day } : undefined;
   out.farmhands = repairFarmhands(s.farmhands);
+  out.wildlife = repairWildlife(s.wildlife);
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}) } : undefined;
   return sanitize(out, base);
 }
@@ -143,6 +144,15 @@ function repairSkills(v: unknown): SaveData['skills'] {
     letter: typeof v.letter === 'number' ? v.letter : undefined,
     shepherdDay: typeof v.shepherdDay === 'string' ? v.shepherdDay : undefined,
   };
+}
+
+/** 1.27 Wildlife Album: only known species and sets. */
+function repairWildlife(v: unknown): SaveData['wildlife'] {
+  if (!isObj(v)) return undefined;
+  const photos: Record<string, { first: number; n: number }> = {};
+  if (isObj(v.photos)) for (const [k, p] of Object.entries(v.photos)) if (WILDLIFE.species.some((x) => x.id === k) && isObj(p)) photos[k] = { first: finite(p.first, 0, 0), n: Math.max(1, Math.floor(finite(p.n, 1, 1))) };
+  const t = isObj(v.today) && typeof v.today.day === 'string' ? { day: v.today.day as string, shot: strArr(v.today.shot).filter((k) => !!photos[k]) } : undefined;
+  return { photos, sets: strArr(v.sets).filter((k) => WILDLIFE.sets.some((x) => x.id === k)), ...(typeof v.complete === 'number' && v.complete > 0 ? { complete: v.complete } : {}), ...(t ? { today: t } : {}) };
 }
 
 /** 1.25 farmhands: only known hands with a known chore; targets must be numbers; remembered crops and recipes must exist. */
@@ -177,6 +187,7 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
   const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
   return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined, manor: typeof v.manor === 'number' && v.manor > 0 ? v.manor : undefined,
     grove: isObj(v.grove) ? countMap(v.grove, (k) => k.startsWith('grove_') && !!ROOM[k]) : undefined, oak: typeof v.oak === 'number' && v.oak > 0 ? v.oak : undefined,
+    treehouse: typeof v.treehouse === 'number' && v.treehouse > 0 ? v.treehouse : undefined,
     estate: isObj(v.estate) ? countMap(v.estate, (k) => ESTATE.some((p) => p.id === k)) : undefined };
 }
 

@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.26.0, committed locally after 1.20.1, 1.21.0, the leaderboard fair-play commit and 1.22.0-1.25.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
+Last updated: 17 October 2026 (game version 1.27.0, committed locally after 1.20.1, 1.21.0, the leaderboard fair-play commit and 1.22.0-1.26.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.26.0 "Estate Projects"** (local; before it, local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove", 1.24.0 "Tea and Flowers" and 1.25.0 "Helping Hands"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.27.0 "The Treehouse and the Wildlife Album"** (local; before it, 1.26.0 "Estate Projects" and local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove", 1.24.0 "Tea and Flowers" and 1.25.0 "Helping Hands"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.27.0 (local, 17 Oct):** The Treehouse and the Wildlife Album. Album: `wildlife.json` (17 species, 4 sets), `src/systems/Wildlife.ts` (seeded daily presence by hours/weather/festival, `photograph`, set rewards; state `wildlife`), farm-edge visitors `src/world/Wild.ts` (`FarmWildlife`, `farmEdgeSpot`) + `scenes/WildlifeApply.ts` (ui.extraPick), woods visitors in `WoodsView.buildWild` (tap kind `wild`), `ui/Photo.ts` (flash + toast), Book page `WildlifePage.ts`; new procedural animals in `models/woods.ts` (`WILD_PROC`). Treehouse: `woods.json` `treehouse` (3 stages + 6 furnishings, rooms `treehouse_*`), `src/systems/Treehouse.ts`, `TreehousePanel.ts` (ui `treehouse`), `WoodsView.buildTreehouse` (tap kind `treehouse`), camp finds +2. Debug: `__wildlife`, `__woods.treehouse`.
 
 **1.26.0 (local, 17 Oct):** Estate Projects. `estate.json` (the Clock Tower, level 70; the Lighthouse, level 80; 4 stages each, restoration rooms `estate_<project>_<stage>` merged into `ROOM`), `src/systems/Estate.ts` (locks after `restoration.festival`, `clockTowerBuilt`, `lighthouseBoatDays` used by `BoatVisit.isBoatDay`), finale `Restoration.estateFinale` (`restoration.estate`, decor `clock_tower_model`/`lighthouse_model`), `EstatePanel.ts` (ui `estate`, a Village card). 3D: `models/estate.ts`, `SquareView.buildEstate/refreshEstate` (live clock hands, beam at night), hourly chime in `scenes/Square.ts`. A procedural model must never be empty (an empty builder broke the square once).
 
@@ -211,9 +213,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers), **1.25.0** (Helping Hands) and **1.26.0** (Estate Projects); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers), **1.25.0** (Helping Hands), **1.26.0** (Estate Projects) and **1.27.0** (Treehouse and Wildlife Album); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks are pushed (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
-- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.27 The Treehouse and Wildlife Album).
+- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.28 Together, co-op Village Projects, needs a schema change).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
@@ -240,6 +242,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).
 - 2026-10-17: 1.26.0 (local): Estate Projects (the Clock Tower with a real-time clock and chime; the Lighthouse with a night beam and a third boat day).
 - 2026-10-17: 1.25.0 (local): Helping Hands (three farmhands for replanting, feeding and workshops; mastery lines).
 - 2026-10-17: 1.24.0 (local): Tea and Flowers (Tea House, Florist, tea leaves and roses, bouquets every villager loves, six best-friend arcs in letters).
@@ -249,4 +252,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.21.0 (local): Woodcraft (Woodcraft Lodge and 12 recipes, camping, woods weather).
 - 2026-10-16: 1.20.1 (local): Spooky season, a cosmetic Halloween look for October (pumpkins, ghosts, bats, dusky light, villager costumes; Settings switch).
 - 2026-10-16: 1.20.0 (pushed, run 54): Woodland Friends (critter stumps, Critter Journal, Wren), Care and Craft (vet/carpenter levels, check-ups, fresh paint, care round), every item has a use (27 recipes, Aquarium and Creek Treasures, Picnic and Craft Fair boats, validator rule), the decor-vanishing fix; ROADMAP re-sequenced.
-- 2026-10-19: 1.19.0 (pushed): the Deep Woods (three regions behind trails; fireflies, panning, sap taps; 23 items).

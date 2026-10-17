@@ -453,6 +453,35 @@ releases?.forEach((r, i) => {
     }
   }
 }
+// 1.27 the treehouse (rooms treehouse_<name> with real items) and the Wildlife Album (species with known sets,
+// places and hours, every set reachable)
+{
+  const items = read('items.json').items, villagers = new Set(read('villagers.json').villagers.map((v) => v.id));
+  const th = read('woods.json').treehouse;
+  const ids = new Set();
+  for (const r of [...(th?.stages ?? []), ...(th?.furnishings ?? [])]) {
+    if (!/^treehouse_[a-z]+$/.test(r.id) || ids.has(r.id)) err(`treehouse room ${r.id}: id must be a new treehouse_<name>`);
+    ids.add(r.id);
+    if (!villagers.has(r.villager)) err(`treehouse room ${r.id}: unknown villager ${r.villager}`);
+    for (const b of r.bundles ?? []) {
+      if (icons && !icons[b.icon]) err(`treehouse bundle ${r.id}/${b.id}: unknown icon ${b.icon}`);
+      for (const [it, n] of Object.entries(b.wants ?? {})) if ((it !== 'coins' && !items[it]) || !(Number.isInteger(n) && n > 0)) err(`treehouse bundle ${r.id}/${b.id}: bad want ${it} ${n}`);
+    }
+  }
+  const wl = read('wildlife.json');
+  const sets = new Set(wl.sets.map((x) => x.id)), places = new Set(['farm', 'glade', ...read('woods.json').regions.map((r) => r.id)]);
+  const seen = new Set();
+  for (const sp of wl.species) {
+    if (seen.has(sp.id)) err(`wildlife ${sp.id}: duplicate id`);
+    seen.add(sp.id);
+    if (!sets.has(sp.set)) err(`wildlife ${sp.id}: unknown set ${sp.set}`);
+    if (!places.has(sp.place)) err(`wildlife ${sp.id}: unknown place ${sp.place}`);
+    if (!(sp.from >= 0 && sp.from <= 24 && sp.to >= 0 && sp.to <= 24 && sp.from !== sp.to)) err(`wildlife ${sp.id}: hours must be 0-24 and differ`);
+    if (!(sp.chance > 0 && sp.chance <= 1)) err(`wildlife ${sp.id}: chance must be above 0 and at most 1`);
+    if (icons && !icons[`wild_${sp.id}`]) err(`wildlife ${sp.id}: needs an icon wild_${sp.id}`);
+  }
+  for (const st of wl.sets) { if (!wl.species.some((sp) => sp.set === st.id)) err(`wildlife set ${st.id}: has no species`); if (icons && !icons[st.icon]) err(`wildlife set ${st.id}: unknown icon ${st.icon}`); }
+}
 // 1.25 farmhands and mastery lines
 {
   const fh = read('farmhands.json');
@@ -495,7 +524,7 @@ releases?.forEach((r, i) => {
   for (const room of read('restoration.json').rooms) for (const b of room.bundles) Object.keys(b.wants).forEach(add);
   for (const w of read('manor.json').wings) for (const b of w.bundles) Object.keys(b.wants).forEach(add);
   const wd = read('woods.json');
-  for (const t of [...(wd.trails ?? []), ...(wd.grove?.stages ?? []), ...read('estate.json').projects.flatMap((p) => p.stages)]) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
+  for (const t of [...(wd.trails ?? []), ...(wd.grove?.stages ?? []), ...read('estate.json').projects.flatMap((p) => p.stages), ...(wd.treehouse?.stages ?? []), ...(wd.treehouse?.furnishings ?? [])]) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
   for (const c of wd.critters?.families ?? []) c.treats.forEach(add);
   for (const s of read('museum.json').shelves) (s.items ?? []).forEach(add);
   for (const a of read('animals.json').animals) add(a.feed);

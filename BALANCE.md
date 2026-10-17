@@ -803,3 +803,18 @@ Two projects in the village square, after the Village Festival. Stages open in o
 | The Lighthouse (Old Tom) | 80 | The Rocks (150,000), The White Tower (200,000), The Lamp Room (250,000), The Light (300,000, a gold-star bundle) | Boat Visitors 3 days a week instead of 2; the beam at night; Lighthouse Model (charm 400), 80,000 coins, 100 gems |
 
 Every item asked for exists by the project's level (`validate-data` checks it): ores and gems from the woods, glazed tiles and pots, candles, honey, dishes and goods from the workshops.
+
+## 1.27 The Treehouse and the Wildlife Album (`woods.json` `treehouse`, `wildlife.json`)
+
+**Wildlife Album** (from level 14): 17 species in 4 sets. Each is out on a day with its `chance` (seeded, the same on every device), in its hours, and only in its weather or on festival days where given; nothing is missable for good. One photo per species a day; the first puts it in the album (a Collection Book page with hints for the missing ones).
+
+| Set | Species | Full-set reward |
+| --- | --- | --- |
+| Woodland | red deer, fox (glade), wild rabbit, hedgehog (Mossy Hollow), red squirrel, barn owl (Whispering Pines) | 6,000 coins, 15 gems |
+| Waterside | mallard, grey heron, frog (rainy days), river otter (Crystal Creek) | 6,000 coins, 15 gems |
+| Farm Edge | brown hare, robin (sunny), peacock butterfly (sunny), badger (night) | 5,000 coins, 10 gems |
+| Rare Visitors | penguin and polar bear (farm, festival days), panda (Ancient Grove, 35% of days) | 15,000 coins, 40 gems |
+
+The whole album: Juniper's letter with 20,000 coins and 50 gems.
+
+**The Treehouse** (Whispering Pines): The Platform (level 45), The Cabin (50), The Roof (55), in order, paid in woods produce and Lodge goods (no coins). Then six furnishings, one small bundle each: log chairs, mushroom lamp, hanging lanterns, moss rug, bookshelf, telescope. The finished treehouse adds 2 finds to every camp morning; the telescope lists today's visitors in the album; all six furnishings bring Juniper's letter (30 gems).

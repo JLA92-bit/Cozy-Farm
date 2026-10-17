@@ -1,6 +1,7 @@
 import { gameConfig } from '../../online/GameConfig';
 import { renderAlmanac } from './AlmanacPage';
 import { renderCritterJournal } from './CritterPanel';
+import { renderWildlifeAlbum } from './WildlifePage';
 import { roomDone } from '../../systems/RestorationEffects';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear } from '../dom';
@@ -28,6 +29,7 @@ export const BOOK18_TABS = [
   { id: 'Guide', label: 'Village Guide', icon: 'book' },
   { id: 'Almanac', label: 'Almanac', icon: 'sun' },
   { id: 'Critters', label: 'Critter Journal', icon: 'paw_prints' },
+  { id: 'Wildlife', label: 'Wildlife Album', icon: 'camera' },
 ];
 
 /** Red dot count for a page's tab. */
@@ -42,6 +44,7 @@ export function renderBook18(id: string, p: Panel): boolean {
   if (id === 'Guide') { renderGuide(p, guideAt); return true; }
   if (id === 'Almanac') { renderAlmanac(p); return true; }
   if (id === 'Critters') { renderCritterJournal(p); return true; }
+  if (id === 'Wildlife') { renderWildlifeAlbum(p); return true; }
   return false;
 }
 

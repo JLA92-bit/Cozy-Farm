@@ -1219,5 +1219,334 @@
     ]
    }
   ]
+ },
+ "treehouse": {
+  "_comment": "1.27 The Treehouse in Whispering Pines (src/systems/Treehouse.ts): three build stages, then six furnishings, all restoration rooms (ids treehouse_<name>). Stages open in order at their level once the Pines are open; furnishings once the roof is on. The finished treehouse adds `campFinds` to every camp morning; the telescope shows which wild animals are out today in the Wildlife Album.",
+  "region": "pines",
+  "campFinds": 2,
+  "stages": [
+   {
+    "id": "treehouse_platform",
+    "name": "The Platform",
+    "icon": "axe",
+    "color": "green",
+    "villager": "bram",
+    "opensAt": 45,
+    "about": "The biggest pine in Whispering Pines has a perfect fork three storeys up. Bram says a platform will sit in it like a nest, if the timber is good and the rope is strong.",
+    "rebuilds": "a platform and a ladder in the great pine",
+    "reward": {
+     "id": "treehouse_platform",
+     "text": "A platform and a rope ladder up the great pine."
+    },
+    "letter": {
+     "title": "Up we go",
+     "body": "{farmer},\n\nPlatform's up. Ladder's tied. Don't look down. Actually, do: the view is good.\n\nBram"
+    },
+    "bundles": [
+     {
+      "id": "timber",
+      "name": "Timber",
+      "icon": "axe",
+      "wants": {
+       "pinecone": 40,
+       "pine_resin": 20,
+       "resin_varnish": 6
+      }
+     },
+     {
+      "id": "rope",
+      "name": "Rope and Pegs",
+      "icon": "sheep",
+      "wants": {
+       "yarn": 30,
+       "cotton_fabric": 20
+      }
+     },
+     {
+      "id": "lunch",
+      "name": "Lunch Up the Tree",
+      "icon": "basket",
+      "wants": {
+       "chestnut_bread": 15,
+       "forest_tea": 10
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_cabin",
+    "name": "The Cabin",
+    "icon": "house",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 50,
+    "about": "A little cabin on the platform: walls of pine, a round window to paint the sunset from, and a door just big enough.",
+    "rebuilds": "a cabin on the platform",
+    "reward": {
+     "id": "treehouse_cabin",
+     "text": "A cabin with a round window on the platform."
+    },
+    "letter": {
+     "title": "A room in the trees",
+     "body": "Dear {farmer},\n\nI sat in the new cabin this evening and watched the light go gold through the round window. It's the best room in the valley and it's yours.\n\nJuniper"
+    },
+    "bundles": [
+     {
+      "id": "walls",
+      "name": "Pine Walls",
+      "icon": "axe",
+      "wants": {
+       "pinecone": 60,
+       "resin_varnish": 10,
+       "iron_ore": 10
+      }
+     },
+     {
+      "id": "window",
+      "name": "The Round Window",
+      "icon": "sparkles",
+      "wants": {
+       "quartz": 12,
+       "river_pearl": 2
+      }
+     },
+     {
+      "id": "paint",
+      "name": "Paint and Polish",
+      "icon": "heart",
+      "wants": {
+       "beeswax_candle": 20,
+       "maple_syrup": 10
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_roof",
+    "name": "The Roof",
+    "icon": "house",
+    "color": "green",
+    "villager": "pip",
+    "opensAt": 55,
+    "about": "A mossy roof with a flag on top, so everyone knows whose treehouse it is.",
+    "rebuilds": "a mossy roof and a flag",
+    "reward": {
+     "id": "treehouse_roof",
+     "text": "The treehouse is finished: furnish it, and camp mornings bring 2 more finds."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "moss",
+      "name": "Moss Tiles",
+      "icon": "leaf",
+      "wants": {
+       "moss": 80,
+       "fern_frond": 40
+      }
+     },
+     {
+      "id": "flag",
+      "name": "A Flag",
+      "icon": "sparkles",
+      "wants": {
+       "wool": 30,
+       "lingonberry": 20
+      }
+     },
+     {
+      "id": "party",
+      "name": "A Treehouse Party",
+      "icon": "basket",
+      "wants": {
+       "woodland_pie": 6,
+       "elderberry_cordial": 10,
+       "maple_candy": 6
+      }
+     }
+    ]
+   }
+  ],
+  "furnishings": [
+   {
+    "id": "treehouse_chairs",
+    "name": "Log Chairs",
+    "icon": "axe",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "Two log chairs to sit on, rubbed smooth with resin.",
+    "rebuilds": "log chairs",
+    "reward": {
+     "id": "treehouse_chairs",
+     "text": "Two log chairs to sit on, rubbed smooth with resin."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Log Chairs",
+      "icon": "axe",
+      "wants": {
+       "pinecone": 30,
+       "resin_varnish": 4
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_lamp",
+    "name": "Mushroom Lamp",
+    "icon": "mushroom",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "A lamp made from a giant puffball, glowing softly at night.",
+    "rebuilds": "mushroom lamp",
+    "reward": {
+     "id": "treehouse_lamp",
+     "text": "A lamp made from a giant puffball, glowing softly at night."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Mushroom Lamp",
+      "icon": "mushroom",
+      "wants": {
+       "puffball": 15,
+       "firefly": 8
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_lanterns",
+    "name": "Hanging Lanterns",
+    "icon": "candle",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "Firefly lanterns strung from the branches.",
+    "rebuilds": "hanging lanterns",
+    "reward": {
+     "id": "treehouse_lanterns",
+     "text": "Firefly lanterns strung from the branches."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Hanging Lanterns",
+      "icon": "candle",
+      "wants": {
+       "firefly_lantern": 3,
+       "pine_candle": 4
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_rug",
+    "name": "Moss Rug",
+    "icon": "leaf",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "A soft green rug of woven moss.",
+    "rebuilds": "moss rug",
+    "reward": {
+     "id": "treehouse_rug",
+     "text": "A soft green rug of woven moss."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Moss Rug",
+      "icon": "leaf",
+      "wants": {
+       "moss": 40,
+       "cotton_fabric": 10
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_books",
+    "name": "Bookshelf",
+    "icon": "book",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "A shelf of field guides and storybooks. Hazel brought most of them.",
+    "rebuilds": "bookshelf",
+    "reward": {
+     "id": "treehouse_books",
+     "text": "A shelf of field guides and storybooks. Hazel brought most of them."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Bookshelf",
+      "icon": "book",
+      "wants": {
+       "chestnut_bread": 10,
+       "herbal_salve": 8,
+       "wool": 20
+      }
+     }
+    ]
+   },
+   {
+    "id": "treehouse_telescope",
+    "name": "Telescope",
+    "icon": "sparkles",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 55,
+    "about": "A brass telescope. From up here you can spot which wild animals are out today.",
+    "rebuilds": "telescope",
+    "reward": {
+     "id": "treehouse_telescope",
+     "text": "A brass telescope. From up here you can spot which wild animals are out today."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "make",
+      "name": "Telescope",
+      "icon": "sparkles",
+      "wants": {
+       "copper_ore": 15,
+       "quartz": 8,
+       "gold_flake": 10
+      }
+     }
+    ]
+   }
+  ]
  }
 }

@@ -15,6 +15,7 @@ import { rollQuality, type Quality } from './Quality';
 import { extraDigs, keenEyesChance, luckyFinds } from './SkillEffects';
 import { manorDigs, manorForageFull } from './Manor';
 import { groveDigs, grovePans } from './Grove';
+import { treehouseCampFinds } from './Treehouse';
 import { hints } from './Hints';
 import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
@@ -269,7 +270,7 @@ class WoodsSystem {
     const pool = [...WOODS.foraged];
     for (const r of WOODS_REGIONS) if (this.regionOpen(r.id)) pool.push(...r.foraged);
     const got: string[] = [];
-    for (let i = 0; i < WOODS_CAMP.finds; i++) got.push(pickWeighted(pool, Math.random).id);
+    for (let i = 0; i < WOODS_CAMP.finds + treehouseCampFinds(); i++) got.push(pickWeighted(pool, Math.random).id);
     if (Math.random() < WOODS_CAMP.digChance) got.push(pickWeighted(WOODS.finds[Math.random() < 0.6 ? 'mineral' : 'fossil'], Math.random).id);
     for (const id of got) { game.addItem(id, 1, at); this.noteFound(id); }
     const w = this.st();

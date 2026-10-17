@@ -278,3 +278,186 @@ export function elderOakGeometry(stage: number): THREE.BufferGeometry {
   }
   return b.build();
 }
+
+// ------------------------------------------------------------------ 1.27 wildlife (each about 0.5-0.7 long, facing +z)
+
+/** A mallard drake: green head, white collar, grey body. */
+export function duckGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.2, '#9a9a92', [0, 0.16, -0.02], 1, [0.9, 0.7, 1.35])
+    .sphere(0.12, '#6a4a3a', [0, 0.2, 0.18], 1, [0.9, 0.9, 0.7])
+    .sphere(0.1, '#2f7a3a', [0, 0.36, 0.22], 1)
+    .torus(0.07, 0.015, '#ffffff', [0, 0.28, 0.21], [Math.PI / 2, 0, 0])
+    .box(0.07, 0.03, 0.1, '#f2b83a', [0, 0.34, 0.33])
+    .sphere(0.018, '#111111', [0.06, 0.39, 0.27], 0)
+    .sphere(0.018, '#111111', [-0.06, 0.39, 0.27], 0)
+    .cone(0.07, 0.12, '#2a2a2a', [0, 0.16, -0.32], 4, [-1.6, 0, 0])
+    .sphere(0.08, '#3f5fb0', [0.16, 0.2, -0.02], 0, [0.4, 0.6, 1.2])
+    .sphere(0.08, '#3f5fb0', [-0.16, 0.2, -0.02], 0, [0.4, 0.6, 1.2])
+    .build();
+}
+
+/** A grey heron standing in the shallows on its long legs. */
+export function heronGeometry(): THREE.BufferGeometry {
+  return geo()
+    .cyl(0.012, 0.014, 0.42, '#c9a046', [0.05, 0, 0], 4)
+    .cyl(0.012, 0.014, 0.42, '#c9a046', [-0.05, 0, 0], 4)
+    .sphere(0.15, '#a7adb2', [0, 0.5, -0.04], 1, [0.8, 0.85, 1.4])
+    .sphere(0.08, '#5a6068', [0, 0.53, -0.24], 0, [0.6, 0.5, 1.2])
+    .cyl(0.035, 0.045, 0.3, '#d9dde0', [0, 0.6, 0.12], 6, [0.5, 0, 0])
+    .sphere(0.07, '#e6e9ec', [0, 0.86, 0.2], 1)
+    .box(0.12, 0.03, 0.03, '#2a2a2a', [0.03, 0.9, 0.2], [0, -0.3, 0])
+    .cone(0.02, 0.2, '#e0b030', [0, 0.85, 0.32], 4, [Math.PI / 2, 0, 0])
+    .sphere(0.015, '#111111', [0.05, 0.88, 0.24], 0)
+    .sphere(0.015, '#111111', [-0.05, 0.88, 0.24], 0)
+    .build();
+}
+
+/** A green frog sitting on a lily pad. */
+export function frogGeometry(): THREE.BufferGeometry {
+  return geo()
+    .cyl(0.32, 0.32, 0.02, '#4f9a3a', [0, 0, 0], 14)
+    .sphere(0.16, '#6fbf4a', [0, 0.13, 0], 1, [1.1, 0.7, 1.1])
+    .sphere(0.06, '#6fbf4a', [0.08, 0.24, 0.08], 0)
+    .sphere(0.06, '#6fbf4a', [-0.08, 0.24, 0.08], 0)
+    .sphere(0.03, '#111111', [0.09, 0.27, 0.12], 0)
+    .sphere(0.03, '#111111', [-0.09, 0.27, 0.12], 0)
+    .sphere(0.11, '#e8f0c8', [0, 0.09, 0.08], 0, [1, 0.6, 0.8])
+    .sphere(0.06, '#5aa83a', [0.15, 0.05, -0.08], 0, [0.8, 0.5, 1.6])
+    .sphere(0.06, '#5aa83a', [-0.15, 0.05, -0.08], 0, [0.8, 0.5, 1.6])
+    .build();
+}
+
+/** A river otter on its belly, head up. */
+export function otterGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.16, '#6a4a30', [0, 0.14, -0.05], 1, [0.85, 0.7, 1.8])
+    .sphere(0.12, '#6a4a30', [0, 0.26, 0.24], 1)
+    .sphere(0.08, '#d9c2a0', [0, 0.22, 0.32], 0, [1, 0.8, 0.8])
+    .sphere(0.025, '#1a1410', [0, 0.25, 0.39], 0)
+    .sphere(0.02, '#111111', [0.05, 0.31, 0.33], 0)
+    .sphere(0.02, '#111111', [-0.05, 0.31, 0.33], 0)
+    .sphere(0.03, '#5a3a24', [0.08, 0.36, 0.22], 0)
+    .sphere(0.03, '#5a3a24', [-0.08, 0.36, 0.22], 0)
+    .cone(0.07, 0.36, '#5a3a24', [0, 0.1, -0.5], 5, [-1.65, 0, 0])
+    .build();
+}
+
+/** A robin: round, brown, with an orange-red breast. */
+export function robinGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.14, '#8a6a46', [0, 0.18, 0], 1, [0.9, 0.95, 1.1])
+    .sphere(0.1, '#e8642e', [0, 0.17, 0.08], 1, [1, 1.1, 0.6])
+    .sphere(0.09, '#8a6a46', [0, 0.33, 0.06], 1)
+    .sphere(0.06, '#e8642e', [0, 0.3, 0.12], 0, [1, 1, 0.6])
+    .cone(0.025, 0.07, '#3a2a1a', [0, 0.33, 0.17], 4, [Math.PI / 2, 0, 0])
+    .sphere(0.018, '#111111', [0.05, 0.35, 0.12], 0)
+    .sphere(0.018, '#111111', [-0.05, 0.35, 0.12], 0)
+    .box(0.1, 0.02, 0.16, '#6a4a30', [0, 0.2, -0.16], [0.5, 0, 0])
+    .cyl(0.01, 0.01, 0.08, '#4a3624', [0.04, 0.02, 0], 4)
+    .cyl(0.01, 0.01, 0.08, '#4a3624', [-0.04, 0.02, 0], 4)
+    .build();
+}
+
+/** A peacock butterfly resting on a flower head, wings open. */
+export function butterflyGeometry(): THREE.BufferGeometry {
+  const b = geo()
+    .cyl(0.012, 0.015, 0.35, '#4f8a3a', [0, 0, 0], 4)
+    .sphere(0.07, '#ffd23a', [0, 0.36, 0], 0, [1, 0.5, 1])
+    .cyl(0.015, 0.015, 0.18, '#2a2018', [0, 0.4, -0.06], 4, [Math.PI / 2, 0, 0]);
+  for (const s of [1, -1]) {
+    b.sphere(0.13, '#b5302a', [s * 0.13, 0.42, 0.0], 0, [1, 0.12, 0.85]);
+    b.sphere(0.04, '#3f6fb5', [s * 0.17, 0.44, 0.02], 0, [1, 0.3, 1]);
+    b.sphere(0.09, '#8a2420', [s * 0.1, 0.41, -0.12], 0, [1, 0.12, 0.8]);
+  }
+  return b.build();
+}
+
+/** A badger, low and stripy-faced. */
+export function badgerGeometry(): THREE.BufferGeometry {
+  return geo()
+    .sphere(0.2, '#7d7d78', [0, 0.18, -0.04], 1, [1, 0.75, 1.5])
+    .sphere(0.12, '#f2f2ee', [0, 0.2, 0.26], 1, [0.9, 0.8, 1.2])
+    .box(0.04, 0.05, 0.22, '#1a1a1a', [0.05, 0.27, 0.27])
+    .box(0.04, 0.05, 0.22, '#1a1a1a', [-0.05, 0.27, 0.27])
+    .sphere(0.03, '#111111', [0, 0.18, 0.4], 0)
+    .sphere(0.035, '#3a3a38', [0.08, 0.3, 0.18], 0)
+    .sphere(0.035, '#3a3a38', [-0.08, 0.3, 0.18], 0)
+    .cyl(0.04, 0.04, 0.08, '#2a2a28', [0.12, 0, 0.14], 5)
+    .cyl(0.04, 0.04, 0.08, '#2a2a28', [-0.12, 0, 0.14], 5)
+    .cyl(0.04, 0.04, 0.08, '#2a2a28', [0.12, 0, -0.22], 5)
+    .cyl(0.04, 0.04, 0.08, '#2a2a28', [-0.12, 0, -0.22], 5)
+    .build();
+}
+
+/** The procedural wild animals by model id ('proc:<name>'). */
+export const WILD_PROC: Record<string, () => THREE.BufferGeometry> = {
+  'proc:hedgehog': hedgehogGeometry, 'proc:squirrel': squirrelGeometry, 'proc:owl': owlGeometry,
+  'proc:duck': duckGeometry, 'proc:heron': heronGeometry, 'proc:frog': frogGeometry, 'proc:otter': otterGeometry,
+  'proc:robin': robinGeometry, 'proc:butterfly': butterflyGeometry, 'proc:badger': badgerGeometry,
+};
+
+// ------------------------------------------------------------------ 1.27 the treehouse
+
+/** Height of the treehouse platform. */
+export const TREEHOUSE_Y = 3.2;
+
+/**
+ * The great pine with the treehouse at `stage` 0 (just the tree and a sign) to 3 (platform, cabin and a mossy roof
+ * with a flag). The cabin faces +z. About 4 wide and 10 tall.
+ */
+export function treehouseGeometry(stage: number): THREE.BufferGeometry {
+  const b = geo();
+  const Y = TREEHOUSE_Y, wood = '#a8743a', dark = '#7a4a2a';
+  // the great pine: a tall trunk and tiers of needles above the house
+  // (the needles start above the roof, so the house is not hidden from the camera)
+  b.cyl(0.3, 0.5, 9.0, '#6a4a2e', [0, 0, -0.5], 8);
+  for (const [y, r, h] of [[6.9, 1.7, 1.5], [7.8, 1.4, 1.4], [8.6, 1.1, 1.2], [9.3, 0.8, 1.0], [9.9, 0.5, 0.9]] as const) b.cone(r, h, y % 2 < 1 ? '#2f6a3a' : '#3a7a40', [0, y, -0.5], 8);
+  if (stage === 0) {
+    // a sign at the foot: "treehouse coming soon"
+    b.block(0.08, 0.9, 0.08, dark, [0.9, 0, 0.6]);
+    b.block(0.7, 0.4, 0.06, wood, [0.9, 0.7, 0.62]);
+    return b.build();
+  }
+  // platform, beams, railing and a rope ladder
+  b.cyl(1.9, 1.9, 0.14, wood, [0, Y, 0], 16);
+  for (let k = 0; k < 4; k++) { const a = (k / 4) * Math.PI * 2 + 0.4; b.cyl(0.06, 0.08, 1.9, dark, [Math.cos(a) * 0.9, Y - 1.5, Math.sin(a) * 0.9 - 0.25], 5, [Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5]); }
+  for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2; if (Math.abs(a - Math.PI / 2) < 0.3) continue; b.cyl(0.035, 0.035, 0.5, dark, [Math.cos(a) * 1.82, Y + 0.14, Math.sin(a) * 1.82], 4); }
+  b.torus(1.82, 0.03, dark, [0, Y + 0.62, 0], [Math.PI / 2, 0, 0]);
+  for (const x of [-0.18, 0.18]) b.cyl(0.02, 0.02, Y, '#c9a46a', [x, 0, 1.86], 4);
+  for (let i = 1; i < 7; i++) b.box(0.42, 0.04, 0.05, wood, [0, (i * Y) / 7, 1.86]);
+  if (stage >= 2) {
+    // the cabin: pine walls, a door and a round window
+    b.block(1.7, 1.35, 1.3, '#c98a4b', [0, Y + 0.14, -0.35]);
+    b.block(0.4, 0.8, 0.05, dark, [-0.4, Y + 0.14, 0.31]);
+    b.cyl(0.22, 0.22, 0.05, dark, [0.35, Y + 0.85, 0.31], 14, [Math.PI / 2, 0, 0]);
+    b.cyl(0.17, 0.17, 0.06, '#ffe9a8', [0.35, Y + 0.85, 0.32], 14, [Math.PI / 2, 0, 0]);
+  }
+  if (stage >= 3) {
+    // a mossy roof and a flag
+    b.prism(2.0, 0.8, 1.6, '#5f9a3a', [0, Y + 1.49, -0.35]);
+    b.cyl(0.025, 0.025, 1.0, dark, [0.75, Y + 1.5, -0.35], 4);
+    b.box(0.45, 0.28, 0.03, '#e2533c', [0.98, Y + 2.3, -0.35]);
+  }
+  return b.build();
+}
+
+/** The six furnishings, placed on the treehouse platform (shown once each is made). */
+export const FURNISH_GEO: Record<string, () => THREE.BufferGeometry> = {
+  chairs: () => geo().cyl(0.18, 0.2, 0.36, '#8a5a30', [0.9, TREEHOUSE_Y + 0.07, 0.75], 8).cyl(0.18, 0.2, 0.36, '#8a5a30', [1.25, TREEHOUSE_Y + 0.07, 0.25], 8).cyl(0.17, 0.17, 0.02, '#d9b98a', [0.9, TREEHOUSE_Y + 0.43, 0.75], 8).cyl(0.17, 0.17, 0.02, '#d9b98a', [1.25, TREEHOUSE_Y + 0.43, 0.25], 8).build(),
+  lamp: () => geo().cyl(0.05, 0.07, 0.45, '#f2eee2', [-1.25, TREEHOUSE_Y + 0.07, 0.7], 6).sphere(0.26, '#ffe9b0', [-1.25, TREEHOUSE_Y + 0.6, 0.7], 1, [1, 0.6, 1]).build(),
+  lanterns: () => {
+    const b = geo();
+    for (const [x, z] of [[1.3, -1.1], [-1.4, -0.9], [0.2, 1.5]] as const) { b.cyl(0.01, 0.01, 0.5, '#3a3a46', [x, TREEHOUSE_Y + 1.9, z], 3); b.cyl(0.1, 0.12, 0.2, '#ffd27a', [x, TREEHOUSE_Y + 1.7, z], 6); }
+    return b.build();
+  },
+  rug: () => geo().cyl(0.75, 0.75, 0.03, '#6fae4a', [0.2, TREEHOUSE_Y + 0.14, 0.95], 16).cyl(0.5, 0.5, 0.035, '#8fd06a', [0.2, TREEHOUSE_Y + 0.14, 0.95], 16).build(),
+  books: () => {
+    const b = geo().block(0.6, 0.9, 0.25, '#7a4a2a', [-1.2, TREEHOUSE_Y + 0.07, -0.95]);
+    const cols = ['#d9473a', '#3f86d8', '#ffcf3f', '#4fae3a', '#a77bf3'];
+    for (let i = 0; i < 5; i++) b.block(0.09, 0.3, 0.2, cols[i], [-1.42 + i * 0.11, TREEHOUSE_Y + 0.45, -0.93]);
+    return b.build();
+  },
+  telescope: () => geo().cyl(0.02, 0.02, 0.6, '#3a3a46', [-0.9, TREEHOUSE_Y + 0.07, 1.15], 4, [0.25, 0, 0]).cyl(0.02, 0.02, 0.6, '#3a3a46', [-1.05, TREEHOUSE_Y + 0.07, 1.0], 4, [-0.2, 0, 0.2])
+    .cyl(0.07, 0.1, 0.7, '#d9a43a', [-0.95, TREEHOUSE_Y + 0.62, 1.15], 10, [0.9, 0, 0]).build(),
+};

@@ -8,6 +8,7 @@ import craftingJson from './crafting.json';
 import masteryJson from './mastery.json';
 import farmhandsJson from './farmhands.json';
 import estateJson from './estate.json';
+import wildlifeJson from './wildlife.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
 import masterJson from './master.json';
@@ -353,6 +354,9 @@ export interface GroveDef {
 export const GROVE = (woodsJson as unknown as { grove: GroveDef }).grove;
 export const GROVE_STAGES = GROVE.stages;
 for (const s of GROVE_STAGES) ROOM[s.id] = s;
+/** 1.27 The Treehouse: build stages and furnishings are restoration rooms too (ids treehouse_<name>), see src/systems/Treehouse.ts. */
+export const TREEHOUSE = (woodsJson as unknown as { treehouse: { region: string; campFinds: number; stages: RoomDef[]; furnishings: RoomDef[] } }).treehouse;
+for (const s of [...TREEHOUSE.stages, ...TREEHOUSE.furnishings]) ROOM[s.id] = s;
 /** 1.26 Estate Projects (estate.json, src/systems/Estate.ts): each stage is a restoration room (estate_<project>_<stage>). */
 export interface EstateProject {
   id: string; name: string; icon: string; villager: string; opensAt: number; about: string;
@@ -360,6 +364,13 @@ export interface EstateProject {
   stages: RoomDef[];
 }
 export const ESTATE = (estateJson as unknown as { projects: EstateProject[] }).projects;
+/** 1.27 Wildlife Album (wildlife.json, src/systems/Wildlife.ts). */
+export interface WildSpecies {
+  id: string; name: string; set: string; model: string; size: number; place: string; from: number; to: number;
+  weather?: ('sunny' | 'rain' | 'mist')[]; festival?: boolean; chance: number; about: string;
+}
+export interface WildSet { id: string; name: string; icon: string; reward: { coins: number; gems: number } }
+export const WILDLIFE = wildlifeJson as unknown as { level: number; species: WildSpecies[]; sets: WildSet[]; complete: { coins: number; gems: number } };
 for (const p of ESTATE) for (const s of p.stages) ROOM[s.id] = s;
 
 /** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */

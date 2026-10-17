@@ -1,0 +1,30 @@
+{
+ "_comment": "1.27 Wildlife Album (src/systems/Wildlife.ts): wild animals visit the Wild Woods and the edge of the farm. A species is out on a local day with `chance` (from the farm seed and the date, the same on every device), during its hours `from`-`to` (local time, may wrap past midnight), only in `weather` if given and only on festival days if `festival`. `place` is 'farm' (just off the fields), 'glade' or a woods region id (that region must be open). Tap one to photograph it: the first photo puts it in the album, and a full set pays its reward once. Nothing is caught and nothing can be missed for good: every species comes back.",
+ "level": 14,
+ "species": [
+  { "id": "red_deer", "name": "Red Deer", "set": "woodland", "model": "pet/deer", "size": 1.9, "place": "glade", "from": 6, "to": 10, "chance": 0.8, "about": "Grazes in the glade in the early morning, ears always moving." },
+  { "id": "fox", "name": "Red Fox", "set": "woodland", "model": "pet/fox", "size": 1.25, "place": "glade", "from": 17, "to": 21, "chance": 0.7, "about": "Trots through the glade at dusk, tail held high." },
+  { "id": "wild_rabbit", "name": "Wild Rabbit", "set": "woodland", "model": "pet/bunny", "size": 0.9, "place": "hollow", "from": 7, "to": 19, "chance": 0.8, "about": "Nibbles clover in Mossy Hollow most of the day." },
+  { "id": "hedgehog", "name": "Hedgehog", "set": "woodland", "model": "proc:hedgehog", "size": 2.1, "place": "hollow", "from": 19, "to": 1, "chance": 0.7, "about": "Snuffles through the leaves of Mossy Hollow after dark." },
+  { "id": "red_squirrel", "name": "Red Squirrel", "set": "woodland", "model": "proc:squirrel", "size": 2.1, "place": "pines", "from": 8, "to": 17, "chance": 0.8, "about": "Darts between the pines, cheeks full of seeds." },
+  { "id": "barn_owl", "name": "Barn Owl", "set": "woodland", "model": "proc:owl", "size": 2.1, "place": "pines", "from": 20, "to": 5, "chance": 0.6, "about": "Watches over Whispering Pines all night." },
+  { "id": "mallard", "name": "Mallard Duck", "set": "waterside", "model": "proc:duck", "size": 2.1, "place": "creek", "from": 6, "to": 18, "chance": 0.85, "about": "Paddles along Crystal Creek, quacking at nothing in particular." },
+  { "id": "heron", "name": "Grey Heron", "set": "waterside", "model": "proc:heron", "size": 2.4, "place": "creek", "from": 5, "to": 11, "chance": 0.5, "about": "Stands perfectly still in the shallows on quiet mornings." },
+  { "id": "frog", "name": "Common Frog", "set": "waterside", "model": "proc:frog", "size": 1.9, "place": "creek", "from": 0, "to": 24, "weather": ["rain"], "chance": 1, "about": "Only comes out to sing when it rains." },
+  { "id": "otter", "name": "River Otter", "set": "waterside", "model": "proc:otter", "size": 2.1, "place": "creek", "from": 16, "to": 20, "chance": 0.5, "about": "Plays in the creek in the late afternoon. Very busy, very wet." },
+  { "id": "brown_hare", "name": "Brown Hare", "set": "farm", "model": "pet/bunny", "size": 1.2, "place": "farm", "from": 5, "to": 9, "chance": 0.7, "about": "Boxes and bounds along the edge of the fields at dawn." },
+  { "id": "robin", "name": "Robin", "set": "farm", "model": "proc:robin", "size": 2.2, "place": "farm", "from": 7, "to": 17, "weather": ["sunny"], "chance": 0.8, "about": "Sings from the fence posts on sunny days." },
+  { "id": "butterfly", "name": "Peacock Butterfly", "set": "farm", "model": "proc:butterfly", "size": 2.2, "place": "farm", "from": 10, "to": 16, "weather": ["sunny"], "chance": 0.8, "about": "Flutters over the farm's edges on warm, sunny days." },
+  { "id": "badger", "name": "Badger", "set": "farm", "model": "proc:badger", "size": 2.3, "place": "farm", "from": 21, "to": 4, "chance": 0.6, "about": "Shuffles past the farm at night, looking for worms." },
+  { "id": "penguin", "name": "Penguin", "set": "rare", "model": "pet/penguin", "size": 1.1, "place": "farm", "from": 10, "to": 17, "festival": true, "chance": 1, "about": "Comes by boat for festival days. Nobody knows from where." },
+  { "id": "polar_bear", "name": "Polar Bear", "set": "rare", "model": "pet/polar", "size": 1.6, "place": "farm", "from": 10, "to": 17, "festival": true, "chance": 0.5, "about": "A very polite visitor on some festival days. Brings its own ice." },
+  { "id": "panda", "name": "Panda", "set": "rare", "model": "pet/panda", "size": 1.6, "place": "grove", "from": 11, "to": 15, "chance": 0.35, "about": "Naps under the Elder Oak around midday, now and then." }
+ ],
+ "sets": [
+  { "id": "woodland", "name": "Woodland", "icon": "deer", "reward": { "coins": 6000, "gems": 15 } },
+  { "id": "waterside", "name": "Waterside", "icon": "water_wave", "reward": { "coins": 6000, "gems": 15 } },
+  { "id": "farm", "name": "Farm Edge", "icon": "wheat", "reward": { "coins": 5000, "gems": 10 } },
+  { "id": "rare", "name": "Rare Visitors", "icon": "sparkles", "reward": { "coins": 15000, "gems": 40 } }
+ ],
+ "complete": { "coins": 20000, "gems": 50 }
+}

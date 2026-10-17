@@ -9,6 +9,7 @@ import { isMarketDay } from '../../systems/RestorationEffects';
 import { isWing, wingLock } from '../../systems/Manor';
 import { isStage, stageLock } from '../../systems/Grove';
 import { estateLock, isEstateStage } from '../../systems/Estate';
+import { isTreehouse, treehouseLock } from '../../systems/Treehouse';
 import { audio, haptics } from '../../systems/Audio';
 import { enterSquare, refreshSquare } from '../../scenes/Square';
 import { askButton } from './HelpPanel';
@@ -100,7 +101,7 @@ export function openRoom(roomId: string): void {
     const fin = restoration.isDone(room.id), open = restoration.isOpen(room.id);
     p.body.append(h('div', { class: 'sq-intro' }, senderBadge(room.villager, 48), h('div', { class: 'sq-intro-text' }, room.about)));
     p.body.append(h('div', { class: `sq-reward${fin ? ' on' : ''}` }, icon(fin ? 'sparkles' : 'lock'),
-      h('div', { class: 'grow' }, h('div', { class: 'sq-reward-title' }, fin ? (isStage(room.id) ? 'Grown: the Elder Oak thanks you' : isEstateStage(room.id) ? 'Built: the village thanks you' : 'Rebuilt: the village thanks you') : `When it is ${isStage(room.id) ? 'grown' : 'rebuilt'}: ${room.rebuilds}`), h('div', { class: 'sq-reward-text' }, room.reward.text))));
+      h('div', { class: 'grow' }, h('div', { class: 'sq-reward-title' }, fin ? (isStage(room.id) ? 'Grown: the Elder Oak thanks you' : isEstateStage(room.id) || isTreehouse(room.id) ? 'Built: the village thanks you' : 'Rebuilt: the village thanks you') : `When it is ${isStage(room.id) ? 'grown' : 'rebuilt'}: ${room.rebuilds}`), h('div', { class: 'sq-reward-text' }, room.reward.text))));
     if (fin && room.id === 'pantry') p.body.append(seedStall(render));
     if (fin && room.id === 'workshop') p.body.append(forge(render));
     if (fin && room.id === 'treasury') {
@@ -113,10 +114,10 @@ export function openRoom(roomId: string): void {
       return;
     }
     if (!open && !fin) {
-      p.body.append(h('div', { class: 'empty-state' }, icon('lock'), h('div', null, isWing(room.id) ? wingLock(room.id) ?? '' : isStage(room.id) ? stageLock(room.id) ?? '' : isEstateStage(room.id) ? estateLock(room.id) ?? '' : `This room opens at level ${room.opensAt}.`), h('div', { class: 'muted' }, 'Here is what it will want.')));
+      p.body.append(h('div', { class: 'empty-state' }, icon('lock'), h('div', null, isWing(room.id) ? wingLock(room.id) ?? '' : isStage(room.id) ? stageLock(room.id) ?? '' : isEstateStage(room.id) ? estateLock(room.id) ?? '' : isTreehouse(room.id) ? treehouseLock(room.id) ?? '' : `This room opens at level ${room.opensAt}.`), h('div', { class: 'muted' }, 'Here is what it will want.')));
     }
     for (const b of room.bundles) p.body.append(bundleCard(room, b, open && !fin, render));
-    if (fin) p.footer.append(button([icon('check'), isWing(room.id) || isStage(room.id) || isEstateStage(room.id) || room.id.startsWith('trail_') ? 'Back' : 'Back to the square'], () => p.close(), 'green'));
+    if (fin) p.footer.append(button([icon('check'), isWing(room.id) || isStage(room.id) || isEstateStage(room.id) || isTreehouse(room.id) || room.id.startsWith('trail_') ? 'Back' : 'Back to the square'], () => p.close(), 'green'));
     p.footer.style.display = fin ? '' : 'none';
   };
   p.onClose = () => { if (current === p) current = null; };

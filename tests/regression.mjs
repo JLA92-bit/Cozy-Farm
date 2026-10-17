@@ -526,6 +526,48 @@ try {
     check('the finished Lighthouse gives its model once and a third boat day', r.models1 === r.models0 + 1 && !!r.finished?.lighthouse && r.before === 2 && r.after === 3, JSON.stringify(r));
   }
 
+  // 1.27 the Wildlife Album: a visitor out now can be photographed once a day, a full set pays once, all of it saved;
+  // the treehouse builds in order after the Pines and its level, furnishings after the roof, and adds camp finds
+  {
+    const w = copy(); w.player.level = 60;
+    w.restoration = { given: {}, done: ['trail_hollow', 'trail_creek', 'trail_pines'], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, Wl = window.__wildlife.sys, R = window.__restoration, T = window.__woods.treehouse;
+      // find a visitor that is out at some hour today
+      let id = null;
+      for (let hh = 0; hh < 24 && !id; hh++) {
+        const n = new Date(); const t = new Date(n); t.setHours(hh, 30, 0, 0); g.state.debugTimeOffset = t.getTime() - n.getTime();
+        id = Wl.species().find((s) => Wl.present(s.id))?.id ?? null;
+      }
+      const sp = Wl.def(id);
+      // every other member of its set already in the album, so this photo completes the set
+      g.state.wildlife = { photos: Object.fromEntries(Wl.species().filter((s) => s.set === sp.set && s.id !== id).map((s) => [s.id, { first: 1, n: 1 }])), sets: [] };
+      const coins0 = g.state.player.coins;
+      const p1 = Wl.photograph(id), p2 = Wl.photograph(id);
+      const gained = g.state.player.coins - coins0;
+      // the treehouse
+      const fill = (rid) => { const room = R.room(rid); for (const b of room.bundles) for (const [it, n] of Object.entries(b.wants)) { if (it === 'coins') g.addCoins(n); else g.addItem(it, n, undefined, b.minStar ?? 0); R.give(rid, b.id, it); } };
+      g.state.player.level = 44;
+      const tooLow = R.isOpen('treehouse_platform');
+      g.state.player.level = 60;
+      const lampShut = R.isOpen('treehouse_lamp');
+      const camp0 = T.treehouseCampFinds();
+      for (const s of ['platform', 'cabin', 'roof']) fill(`treehouse_${s}`);
+      const lampOpen = R.isOpen('treehouse_lamp'), camp1 = T.treehouseCampFinds();
+      return { id, first: p1?.first, set: p1?.set, again: !!p2, gained, tooLow, lampShut, lampOpen, camp0, camp1, built: T.treehouseBuilt() };
+    });
+    check('a wild visitor is photographed once a day and completes its set', !!r.id && r.first && !!r.set && !r.again && r.gained > 0, JSON.stringify(r));
+    check('the treehouse builds in order, then opens its furnishings and adds camp finds', !r.tooLow && !r.lampShut && r.lampOpen && r.built && r.camp0 === 0 && r.camp1 === 2, JSON.stringify(r));
+    await page.evaluate(() => dispatchEvent(new Event('pagehide')));
+    await page.reload();
+    await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const kept = await state();
+    check('the album and the treehouse are saved', !!kept.wildlife?.photos?.[r.id] && kept.wildlife.sets.length === 1 && kept.restoration.done.includes('treehouse_roof'), JSON.stringify(kept.wildlife));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;
