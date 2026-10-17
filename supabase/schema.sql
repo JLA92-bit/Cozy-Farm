@@ -1920,10 +1920,12 @@ begin
   perform public.admin_guard();
   with base as (
     select p.id, p.name, p.farm_name, p.code, p.level, p.total_xp, p.farm_value, p.charm, p.created_at, p.updated_at, p.lb_hidden,
+           p.weekly_xp, p.lb_flag,
+           (select count(*) from public.feedback fb where fb.user_id = p.id and fb.status = 'new') as feedback_new,
            (select lower(i.identity_data ->> 'email') from auth.identities i where i.user_id = p.id and i.provider = 'google' limit 1) as email,
            c.updated_at as cloud_at, c.device as cloud_device,
            f.updated_at as snap_at,
-           a.days, a.minutes, a.last_day, a.platform, a.version,
+           a.days, a.minutes, a.last_day, a.platform, a.version, a.sessions, a.min7,
            exists (select 1 from public.push_subscriptions s where s.user_id = p.id) as push,
            (select count(*) from public.admin_gifts g where g.user_id = p.id and g.claimed_at is null) as gifts_pending,
            (select count(*) from public.admin_notes n where n.user_id = p.id) as notes
@@ -1931,6 +1933,8 @@ begin
       left join public.cloud_saves c on c.user_id = p.id
       left join public.farm_snapshots f on f.user_id = p.id
       left join lateral (select count(*) as days, coalesce(sum(d.minutes), 0) as minutes, max(d.day) as last_day,
+                                coalesce(sum(d.sessions), 0) as sessions,
+                                coalesce(sum(d.minutes) filter (where d.day > today - 7), 0) as min7,
                                 (array_agg(d.platform order by d.day desc))[1] as platform,
                                 (array_agg(d.version order by d.day desc))[1] as version
                            from public.player_days d where d.user_id = p.id) a on true
@@ -1946,6 +1950,16 @@ begin
              when 'new7' then b.created_at > now() - interval '7 days'
              when 'hidden' then b.lb_hidden
              when 'gifts' then b.gifts_pending > 0
+             -- the dashboard's player list (admin player deep dive section)
+             when 'online' then b.updated_at > now() - interval '3 minutes'
+             when 'today' then b.last_day = today
+             when 'flagged' then b.lb_flag is not null
+             when 'push' then b.push
+             when 'feedback' then b.feedback_new > 0
+             when 'regulars' then b.days >= 30
+             when 'drifting' then b.days >= 5 and b.last_day <= today - 7 and b.last_day > today - 30
+             when 'level60' then b.level >= 60
+             when 'notes' then b.notes > 0
              else true end
   )
   select jsonb_build_object(
@@ -1959,6 +1973,11 @@ begin
                 case when p_sort = 'minutes' then h.minutes end desc nulls last,
                 case when p_sort = 'days' then h.days end desc nulls last,
                 case when p_sort = 'charm' then h.charm end desc nulls last,
+                case when p_sort = 'xp' then h.total_xp end desc nulls last,
+                case when p_sort = 'value' then h.farm_value end desc nulls last,
+                case when p_sort = 'week' then h.weekly_xp end desc nulls last,
+                case when p_sort = 'min7' then h.min7 end desc nulls last,
+                case when p_sort = 'sessions' then h.sessions end desc nulls last,
                 h.updated_at desc
        limit least(greatest(coalesce(p_limit, 100), 1), 5000) offset greatest(coalesce(p_offset, 0), 0)) r), '[]'::jsonb)
   ) into out;
@@ -3894,3 +3913,170 @@ revoke all on function public.admin_visits_overview(integer) from public, anon;
 revoke all on function public.admin_player_visits(uuid) from public, anon;
 grant execute on function public.admin_visits_overview(integer) to authenticated;
 grant execute on function public.admin_player_visits(uuid) to authenticated;
+
+-- ===== admin player deep dive =====
+-- The dashboard's player page (ADMIN.md "Player page"): everything about one player in one call, their full save
+-- (logged, since it is the whole farm), and actions for one player: a letter in their mailbox, a phone
+-- notification, clearing a leaderboard flag. Admins only (admin_guard); every action is written to admin_log.
+
+create or replace function public.admin_player_deep(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  p public.profiles;
+  v_today date := (now() at time zone 'utc')::date;
+begin
+  perform public.admin_guard();
+  select * into p from public.profiles x where x.id = p_id;
+  return jsonb_build_object(
+    -- the newest 400 game events, and how many of each kind ever
+    'events', (select coalesce(jsonb_agg(jsonb_build_object('at', e.at, 'kind', e.kind, 'detail', e.detail) order by e.at desc), '[]'::jsonb)
+                 from (select * from public.player_events e where e.user_id = p_id order by e.at desc limit 400) e),
+    'eventKinds', (select coalesce(jsonb_object_agg(k.kind, k.n), '{}'::jsonb)
+                     from (select e.kind, count(*) as n from public.player_events e where e.user_id = p_id group by e.kind) k),
+    -- when they play (UTC hour), from events and from the start and end of each play day
+    'hours', (select coalesce(jsonb_agg(coalesce(c.n, 0) order by g.h), '[]'::jsonb)
+                from generate_series(0, 23) g(h)
+                left join (select extract(hour from x.t)::integer as h, count(*) as n from (
+                             select e.at as t from public.player_events e where e.user_id = p_id and e.at > now() - interval '90 days'
+                             union all select d.first_at from public.player_days d where d.user_id = p_id and d.day > v_today - 90
+                             union all select d.last_at from public.player_days d where d.user_id = p_id and d.day > v_today - 90) x
+                           group by 1) c on c.h = g.h),
+    'weekdays', (select coalesce(jsonb_agg(coalesce(c.m, 0) order by g.d), '[]'::jsonb)
+                   from generate_series(0, 6) g(d)
+                   left join (select extract(dow from d.day)::integer as d, sum(d.minutes) as m from public.player_days d
+                               where d.user_id = p_id group by 1) c on c.d = g.d),
+    -- where they stand: rank on each board among farmers shown on the leaderboards, and against everyone's play time
+    'ranks', case when p.id is null then null else jsonb_build_object(
+        'players', (select count(*) from public.profiles x where not x.lb_hidden),
+        'level', (select count(*) + 1 from public.profiles x where not x.lb_hidden and x.level > p.level),
+        'xp', (select count(*) + 1 from public.profiles x where not x.lb_hidden and x.total_xp > p.total_xp),
+        'value', (select count(*) + 1 from public.profiles x where not x.lb_hidden and x.farm_value > p.farm_value),
+        'charm', (select count(*) + 1 from public.profiles x where not x.lb_hidden and x.charm > p.charm),
+        'weekly', (select count(*) + 1 from public.profiles x where not x.lb_hidden and x.week_start = p.week_start and x.weekly_xp > p.weekly_xp),
+        'minutesPct', (with m as (select d.user_id, sum(d.minutes) as m from public.player_days d group by d.user_id)
+                       select round(100.0 * count(*) filter (where m.m <= coalesce((select m2.m from m m2 where m2.user_id = p_id), 0)) / greatest(count(*), 1))
+                         from m),
+        'medianLevel', (select percentile_cont(0.5) within group (order by x.level) from public.profiles x),
+        'medianMinutes', (select percentile_cont(0.5) within group (order by m.m) from (select sum(d.minutes) as m from public.player_days d group by d.user_id) m)) end,
+    -- the players they deal with most (gifts and help, both ways)
+    'contacts', (select coalesce(jsonb_agg(jsonb_build_object('id', c.other, 'name', pr.name, 'level', pr.level, 'giftsOut', c.go, 'giftsIn', c.gi, 'helpOut', c.ho, 'helpIn', c.hi, 'coop', c.co) order by c.go + c.gi + c.ho + c.hi + c.co desc), '[]'::jsonb)
+                   from (select x.other, sum(x.go) as go, sum(x.gi) as gi, sum(x.ho) as ho, sum(x.hi) as hi, sum(x.co) as co from (
+                           select g.to_id as other, 1 as go, 0 as gi, 0 as ho, 0 as hi, 0 as co from public.gifts g where g.from_id = p_id
+                           union all select g.from_id, 0, 1, 0, 0, 0 from public.gifts g where g.to_id = p_id
+                           union all select h.owner_id, 0, 0, 1, 0, 0 from public.farm_help h where h.helper_id = p_id
+                           union all select h.helper_id, 0, 0, 0, 1, 0 from public.farm_help h where h.owner_id = p_id
+                           union all select c.host, 0, 0, 0, 0, 1 from public.coop_gifts g join public.coop_projects c on c.id = g.project where g.giver = p_id and c.host <> p_id
+                           union all select g.giver, 0, 0, 0, 0, 1 from public.coop_gifts g join public.coop_projects c on c.id = g.project where c.host = p_id and g.giver <> p_id) x
+                         group by x.other order by count(*) desc limit 15) c
+                   join public.profiles pr on pr.id = c.other),
+    'askHelp', (select coalesce(jsonb_agg(jsonb_build_object('at', r.created_at, 'item', r.item, 'qty', r.qty, 'filled', r.filled, 'reason', r.reason, 'closed', r.closed_at) order by r.created_at desc), '[]'::jsonb)
+                  from (select * from public.help_requests r where r.requester = p_id order by r.created_at desc limit 20) r),
+    'askFilled', (select count(*) from public.help_fills f where f.helper = p_id),
+    'letters', (select coalesce(jsonb_agg(jsonb_build_object('title', l.title, 'audience', l.audience, 'sent', l.created_at, 'delivered', i.delivered_at) order by l.created_at desc), '[]'::jsonb)
+                  from public.admin_letter_inbox i join public.admin_letters l on l.id = i.letter_id where i.user_id = p_id),
+    'pushQueue', (select coalesce(jsonb_agg(jsonb_build_object('kind', s.kind, 'title', s.title, 'body', s.body, 'fire', s.fire_at, 'sent', s.sent_at, 'status', s.status) order by s.fire_at desc), '[]'::jsonb)
+                    from (select * from public.push_schedule s where s.user_id = p_id order by s.fire_at desc limit 30) s),
+    'codes', (select coalesce(jsonb_agg(jsonb_build_object('code', c.code, 'at', c.at) order by c.at desc), '[]'::jsonb) from public.reward_claims c where c.user_id = p_id),
+    'adminLog', (select coalesce(jsonb_agg(jsonb_build_object('at', l.at, 'admin', l.admin, 'action', l.action, 'detail', l.detail) order by l.at desc), '[]'::jsonb)
+                   from (select * from public.admin_log l where l.target = p_id order by l.at desc limit 60) l),
+    'coopGifts', (select coalesce(jsonb_agg(jsonb_build_object('at', g.at, 'item', g.item, 'qty', g.qty, 'kind', c.kind, 'host', c.host_name) order by g.at desc), '[]'::jsonb)
+                    from (select * from public.coop_gifts g where g.giver = p_id order by g.at desc limit 30) g join public.coop_projects c on c.id = g.project),
+    'refusal', (select to_jsonb(r) - 'user_id' from public.farm_share_refusals r where r.user_id = p_id),
+    'saveAt', (select c.updated_at from public.cloud_saves c where c.user_id = p_id)
+  );
+end;
+$$;
+
+-- A player's whole cloud save for the dashboard's farm inspector (read only; logged because it is the whole farm).
+create or replace function public.admin_player_save(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v jsonb;
+begin
+  select c.data into v from public.cloud_saves c where c.user_id = p_id;
+  if v is null then return null; end if;
+  perform public.admin_note_log(v_admin, 'view save', p_id, null);
+  return v;
+end;
+$$;
+
+-- A letter from the developer to one player (arrives in their mailbox the next time they play).
+create or replace function public.admin_letter_to(p_id uuid, p_title text, p_body text)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_id uuid;
+begin
+  if coalesce(btrim(p_title), '') = '' or coalesce(btrim(p_body), '') = '' then raise exception 'empty'; end if;
+  if not exists (select 1 from auth.users u where u.id = p_id) then raise exception 'not found'; end if;
+  insert into public.admin_letters (title, body, audience, recipients, created_by)
+  values (left(btrim(p_title), 80), left(btrim(p_body), 2000), 'player', 1, v_admin)
+  returning id into v_id;
+  insert into public.admin_letter_inbox (letter_id, user_id) values (v_id, p_id);
+  perform public.admin_note_log(v_admin, 'letter to player', p_id, jsonb_build_object('title', p_title));
+  return v_id;
+end;
+$$;
+
+-- A phone notification to one player (on every device they switched notifications on). Returns the devices.
+create or replace function public.admin_push_to(p_id uuid, p_title text, p_body text)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  n integer;
+begin
+  if coalesce(btrim(p_title), '') = '' or coalesce(btrim(p_body), '') = '' then raise exception 'empty'; end if;
+  select count(*) into n from public.push_subscriptions s where s.user_id = p_id;
+  if n = 0 then raise exception 'notifications are off for this player'; end if;
+  insert into public.push_schedule (user_id, fire_at, kind, title, body)
+  values (p_id, now(), 'news', left(btrim(p_title), 80), left(btrim(p_body), 200));
+  perform public.admin_note_log(v_admin, 'notification to player', p_id, jsonb_build_object('title', p_title, 'body', p_body));
+  return n;
+end;
+$$;
+
+-- Clear a leaderboard fair-play flag (the player stays hidden or shown as they are; use admin_set_hidden for that).
+create or replace function public.admin_clear_lb_flag(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_flag text;
+begin
+  select p.lb_flag into v_flag from public.profiles p where p.id = p_id;
+  update public.profiles p set lb_flag = null, lb_flagged_at = null where p.id = p_id;
+  perform public.admin_note_log(v_admin, 'clear leaderboard flag', p_id, jsonb_build_object('flag', v_flag));
+end;
+$$;
+
+revoke all on function public.admin_player_deep(uuid) from public, anon;
+revoke all on function public.admin_player_save(uuid) from public, anon;
+revoke all on function public.admin_letter_to(uuid, text, text) from public, anon;
+revoke all on function public.admin_push_to(uuid, text, text) from public, anon;
+revoke all on function public.admin_clear_lb_flag(uuid) from public, anon;
+grant execute on function public.admin_player_deep(uuid) to authenticated;
+grant execute on function public.admin_player_save(uuid) to authenticated;
+grant execute on function public.admin_letter_to(uuid, text, text) to authenticated;
+grant execute on function public.admin_push_to(uuid, text, text) to authenticated;
+grant execute on function public.admin_clear_lb_flag(uuid) to authenticated;

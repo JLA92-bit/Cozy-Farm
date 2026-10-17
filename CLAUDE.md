@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
+**Admin player deep dive (17 Oct, dashboard and server only, no game version):** the player page is tabbed (`admin/src/views/player.ts`, game names and icons from `admin/src/gamedata.ts`, which imports `src/data/*.json`; icons load from `../play/assets/icons/`), new SQL section `admin player deep dive` (`admin_player_deep`, `admin_player_save` (logs "view save"), `admin_letter_to`, `admin_push_to`, `admin_clear_lb_flag`) and `admin_players` has more filters, sorts and columns. Needs `schema.sql` re-run. ADMIN.md "Player page".
+
 **1.28.4 (17 Oct):** the Halloween look removed altogether (see 1.20.1 below). Regression check "nothing invisible covers the farm" kept.
 
 **1.28.3 (17 Oct, hotfix):** the Halloween vignette (`.hw-vignette`, full screen) swallowed every touch because `#ui-root > * { pointer-events: auto }` beats a class rule; overlays that are direct children of `#ui-root` need `pointer-events: none !important` (now on the vignette, spider, ribbon and `.toast-stack`). Regression check "nothing invisible covers the farm".
@@ -252,6 +254,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: admin player deep dive: tabbed player page (farm, barn, progress, stats, activity, social, support, raw), letters and notifications to one player, richer player list.
 - 2026-10-17: 1.28.4: the Halloween look removed altogether (owner: a failed trial).
 - 2026-10-17: 1.28.3 hotfix: the Halloween vignette blocked all touches (no moving around); overlays now pass touches through.
 - 2026-10-17: 1.28.2 (local): big farms shared again for visitors (higher limits, trimming, refusals logged), help at busy workshops, Visits & help dashboard page.
@@ -261,4 +264,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.26.0 (local): Estate Projects (the Clock Tower with a real-time clock and chime; the Lighthouse with a night beam and a third boat day).
 - 2026-10-17: 1.25.0 (local): Helping Hands (three farmhands for replanting, feeding and workshops; mastery lines).
 - 2026-10-17: 1.24.0 (local): Tea and Flowers (Tea House, Florist, tea leaves and roses, bouquets every villager loves, six best-friend arcs in letters).
-- 2026-10-17: 1.23.0 (local): The Ancient Grove (Root Path, the Elder Oak in 5 stages with lasting woods perks, sapling finale, acorns and moonflowers).

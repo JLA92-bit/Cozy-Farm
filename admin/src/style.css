@@ -237,3 +237,29 @@ dialog.modal::backdrop { background: rgba(20, 18, 12, .45); }
 .letter-preview .lp-title { font-family: var(--display); font-size: 21px; line-height: 1.2; color: #b03a6a; margin: 2px 0 8px; }
 .letter-preview p { margin: 0 0 12px; white-space: pre-wrap; }
 .letter-preview p:last-child { margin-bottom: 0; }
+/* player page (views/player.ts) */
+.phead { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.phead h1 { margin: 4px 0 2px; }
+.phead-main { min-width: 0; flex: 1 1 320px; }
+.phead-nums { display: grid; grid-template-columns: repeat(3, minmax(90px, 1fr)); gap: 10px 18px; align-content: center; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; }
+.ptoolbar { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 10px 14px; position: sticky; top: 0; z-index: 5; }
+.tb-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tb-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-right: 2px; }
+.ptabs { display: flex; gap: 4px; overflow-x: auto; margin: 0 0 16px; border-bottom: 1px solid var(--border); scrollbar-width: thin; }
+.ptabs button { border: none; background: none; padding: 9px 14px; font: 800 14px var(--font); color: var(--text-secondary); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+.ptabs button:hover { color: var(--text-primary); }
+.ptabs button.active { color: var(--accent-strong); border-bottom-color: var(--accent); }
+.item-ico { width: 20px; height: 20px; vertical-align: -5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px 2px 6px; font-size: 13px; font-weight: 700; }
+.chip.dim { opacity: .45; }
+.hearts { color: #e0457b; letter-spacing: 1px; white-space: nowrap; }
+.story li { margin: 6px 0; }
+details > summary { cursor: pointer; font-weight: 700; margin: 6px 0; }
+pre.json { font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; max-height: 420px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+.card h4 { margin: 14px 0 6px; font-size: 14px; }
+@media (max-width: 760px) {
+  .phead-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+  .ptoolbar { position: static; }
+}
