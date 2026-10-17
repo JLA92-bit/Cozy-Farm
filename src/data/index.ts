@@ -323,6 +323,9 @@ export interface CritterDef {
 export const CRITTERS = (woodsJson as unknown as {
   critters: { visitsPerHeart: number; maxHearts: number; heartCoins: number; rareBase: number; rarePerHeart: number; families: CritterDef[] };
 }).critters;
+/** 1.21 camping in the glade and woods weather (woods.json `camp`, `weather`). */
+export const WOODS_CAMP = (woodsJson as unknown as { camp: { pitchFrom: number; pitchTo: number; wakeFrom: number; finds: number; digChance: number } }).camp;
+export const WOODS_WEATHER = (woodsJson as unknown as { weather: { mushroomWeight: number; rareMult: number; sunnyWeight: number; rarePan: string[] } }).weather;
 export const WREN = (woodsJson as unknown as {
   wren: { region: string; name: string; need: [number, number]; coinsMult: number; bonus: number; gemsEvery: number; look: Record<string, string>; hello: string[] };
 }).wren;

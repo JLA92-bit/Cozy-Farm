@@ -1854,6 +1854,78 @@
    "cat": "goods",
    "sell": 510,
    "icon": "duck_egg_sponge"
+  },
+  "elderberry_cordial": {
+   "name": "Elderberry Cordial",
+   "cat": "goods",
+   "sell": 190,
+   "icon": "elderberry_cordial"
+  },
+  "hazelnut_brittle": {
+   "name": "Hazelnut Brittle",
+   "cat": "goods",
+   "sell": 150,
+   "icon": "hazelnut_brittle"
+  },
+  "herbal_salve": {
+   "name": "Herbal Salve",
+   "cat": "goods",
+   "sell": 100,
+   "icon": "herbal_salve"
+  },
+  "mushroom_tea": {
+   "name": "Mushroom Tea",
+   "cat": "goods",
+   "sell": 120,
+   "icon": "mushroom_tea"
+  },
+  "bramble_crumble": {
+   "name": "Bramble Crumble",
+   "cat": "goods",
+   "sell": 330,
+   "icon": "bramble_crumble"
+  },
+  "holly_wreath": {
+   "name": "Holly Wreath",
+   "cat": "goods",
+   "sell": 195,
+   "icon": "holly_wreath"
+  },
+  "forest_tea": {
+   "name": "Forest Tea",
+   "cat": "goods",
+   "sell": 125,
+   "icon": "forest_tea"
+  },
+  "chestnut_bread": {
+   "name": "Chestnut Bread",
+   "cat": "goods",
+   "sell": 100,
+   "icon": "chestnut_bread"
+  },
+  "pinecone_wreath": {
+   "name": "Pinecone Wreath",
+   "cat": "goods",
+   "sell": 130,
+   "icon": "pinecone_wreath"
+  },
+  "resin_varnish": {
+   "name": "Resin Varnish",
+   "cat": "goods",
+   "sell": 280,
+   "icon": "resin_varnish"
+  },
+  "maple_candy": {
+   "name": "Maple Candy",
+   "cat": "goods",
+   "sell": 415,
+   "icon": "maple_candy"
+  },
+  "woodland_feast": {
+   "name": "Woodland Feast",
+   "cat": "goods",
+   "sell": 1845,
+   "icon": "woodland_feast"
   }
  }
 }

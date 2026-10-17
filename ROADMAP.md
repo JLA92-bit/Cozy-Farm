@@ -29,7 +29,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.18 | Willowmere Manor | ~1.5 weeks | done |
 | 1.19 | The Deep Woods (woods phase 1) | ~1.5 weeks | done |
 | 1.20 | Woodland Friends (woods phase 2) and Care and Craft | ~1.5 weeks | done (local) |
-| 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | next |
+| 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | done (local) |
 | 1.22 | Server-side leaderboard checks, then Orchard Days (levels 101-120) | ~1.5 weeks + schema | |
 | 1.23 | The Ancient Grove (woods phase 4) | ~1 week | |
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | |
@@ -191,7 +191,7 @@ The Wild Woods today is one island: about 10 forage spots, 4 digs a day, the Mus
 - Hearts with each critter family bring gifts (rare forage, feathers, shed antlers for the Museum) and a **Critter Journal** page in the Collection Book. Models exist for the deer, fox and rabbits; hedgehog, squirrel and owl are small procedural models.
 - **Wren the ranger** (the botanist from 1.22, brought forward) moves into a cabin in Whispering Pines: friends only, gives "field notes" requests and teaches the critters' tastes.
 
-**Phase 3 (1.21 Woodcraft):**
+**Phase 3 (1.21 Woodcraft, built 17 Oct):** the Lodge is a farm workshop opened by the Hollow Bridge trail (not a building in the woods), with 12 recipes; maple syrup and the firefly lantern were already added in 1.20 (Sugar Mill, Pottery Kiln). Camping and woods weather as planned.
 - **The Woodcraft Lodge**, a workshop in the woods that only takes woods produce:
   - acorn bread, mushroom tea, elderflower cordial, herbal salve, pinecone wreath, birch basket, firefly lantern, maple syrup and maple candy, resin varnish;
   - lodge goods are wanted by Boat Visitors and the Manor's later wings.

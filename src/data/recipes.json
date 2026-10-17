@@ -693,6 +693,18 @@
     {"id": "gilded_vase", "building": "pottery_kiln", "level": 36, "in": {"blue_vase": 1, "gold_flake": 3}, "item": "gilded_vase", "out": 1, "sec": 3600, "xp": 51},
     {"id": "gem_mosaic", "building": "pottery_kiln", "level": 35, "in": {"glazed_tile": 2, "agate": 1, "jade": 1, "river_pearl": 1}, "item": "gem_mosaic", "out": 1, "sec": 4200, "xp": 58},
     {"id": "boot_planter", "building": "pottery_kiln", "level": 41, "in": {"old_boot": 1, "sunflower": 1}, "item": "boot_planter", "out": 1, "sec": 1200, "xp": 42},
-    {"id": "duck_egg_sponge", "building": "bakery", "level": 24, "in": {"duck_egg": 2, "wheat": 2, "sugar": 1}, "item": "duck_egg_sponge", "out": 1, "sec": 2400, "xp": 30}
+    {"id": "duck_egg_sponge", "building": "bakery", "level": 24, "in": {"duck_egg": 2, "wheat": 2, "sugar": 1}, "item": "duck_egg_sponge", "out": 1, "sec": 2400, "xp": 30},
+    {"id": "elderberry_cordial", "building": "woodcraft_lodge", "level": 22, "in": {"elderberry": 3, "sugar": 1}, "item": "elderberry_cordial", "out": 1, "sec": 1500, "xp": 23},
+    {"id": "hazelnut_brittle", "building": "woodcraft_lodge", "level": 22, "in": {"hazelnut": 3, "sugar": 1}, "item": "hazelnut_brittle", "out": 1, "sec": 1200, "xp": 22},
+    {"id": "herbal_salve", "building": "woodcraft_lodge", "level": 23, "in": {"fern_frond": 2, "moss": 2, "wild_garlic": 1}, "item": "herbal_salve", "out": 1, "sec": 1800, "xp": 22},
+    {"id": "mushroom_tea", "building": "woodcraft_lodge", "level": 24, "in": {"chanterelle": 2, "puffball": 1}, "item": "mushroom_tea", "out": 1, "sec": 1500, "xp": 24},
+    {"id": "bramble_crumble", "building": "woodcraft_lodge", "level": 25, "in": {"blackberry": 2, "raspberry": 2, "wheat": 2, "butter": 1}, "item": "bramble_crumble", "out": 1, "sec": 2400, "xp": 28},
+    {"id": "holly_wreath", "building": "woodcraft_lodge", "level": 26, "in": {"holly": 3, "fern_frond": 2, "wild_rose": 1}, "item": "holly_wreath", "out": 1, "sec": 2700, "xp": 27},
+    {"id": "forest_tea", "building": "woodcraft_lodge", "level": 28, "in": {"river_mint": 2, "wild_rose": 1, "bluebell": 1}, "item": "forest_tea", "out": 1, "sec": 1800, "xp": 27},
+    {"id": "chestnut_bread", "building": "woodcraft_lodge", "level": 36, "in": {"chestnut": 3, "wheat": 2}, "item": "chestnut_bread", "out": 1, "sec": 2100, "xp": 34},
+    {"id": "pinecone_wreath", "building": "woodcraft_lodge", "level": 36, "in": {"pinecone": 4, "holly": 2}, "item": "pinecone_wreath", "out": 1, "sec": 2700, "xp": 35},
+    {"id": "resin_varnish", "building": "woodcraft_lodge", "level": 36, "in": {"pine_resin": 3}, "item": "resin_varnish", "out": 1, "sec": 2400, "xp": 37},
+    {"id": "maple_candy", "building": "woodcraft_lodge", "level": 37, "in": {"maple_syrup": 1, "sugar": 1}, "item": "maple_candy", "out": 1, "sec": 1800, "xp": 40},
+    {"id": "woodland_feast", "building": "woodcraft_lodge", "level": 40, "in": {"woodland_pie": 1, "elderberry_cordial": 1, "bramble_crumble": 1}, "item": "woodland_feast", "out": 1, "sec": 4800, "xp": 67}
   ]
 }

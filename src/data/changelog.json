@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.21.0",
+   "date": "2026-10-17",
+   "title": "Woodcraft",
+   "icon": "axe",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "axe",
+     "text": "The Woodcraft Lodge: restore the Hollow Bridge in the Wild Woods to build it, then turn your woods finds into elderberry cordial, herbal salve, holly and pinecone wreaths, maple candy, a Woodland Feast and more"
+    },
+    {
+     "icon": "tent",
+     "text": "Go camping: pitch a tent at the campsite in the woods any evening and wake up to a basket of finds round the camp"
+    },
+    {
+     "icon": "mushroom",
+     "text": "Woods weather: rain brings mushrooms to every patch, mist makes rare finds likelier, and sunshine brings berries and flowers"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.20.1",
    "date": "2026-10-16",
    "title": "Spooky Season",

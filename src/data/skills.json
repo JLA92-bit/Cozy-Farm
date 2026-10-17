@@ -125,7 +125,7 @@
       "id": "foraging", "name": "Foraging", "icon": "mushroom", "color": "green",
       "about": "Opens with the Wild Woods. Grows as you pick wild plants and dig up finds.",
       "grows": "Foraging, digging and befriending critters in the Wild Woods",
-      "xp": { "forage_picked": 3, "digs_done": 4, "pans_done": 4, "sap_collected": 3, "fireflies_caught": 3, "critter_visits": 5, "field_notes": 8 },
+      "xp": { "forage_picked": 3, "digs_done": 4, "pans_done": 4, "sap_collected": 3, "fireflies_caught": 3, "critter_visits": 5, "field_notes": 8, "camp_mornings": 10 },
       "perLevel": "+1% chance of gold-star forage",
       "perks": {
         "5": [

@@ -703,3 +703,28 @@ Every item must now be wanted somewhere beyond the barn: a recipe or craft ingre
 **Not cooked:** the sea turtle, curious seal, dolphin, baby whale, ghost ray, golden crab, kraken and celestial koi go to the Museum's new **Aquarium** shelf (6,000 coins, 15 gems) instead. The creek's gold flakes, agate, jade and river pearls fill **Creek Treasures** (1,500 coins, 6 gems), and the Gilded Vase and Gem Mosaic Tile use them again after that.
 
 **Boats:** the Angler's Cruise now wants every edible fish and fish dish; juices joined the Orchard Cruise, jams and maple syrup the Sweet Tooth Cruise. Two new themes: the **Picnic Cruise** (savoury dishes) and the **Craft Fair Cruise** (pottery, candles, wool goods and the new crafts). Boats now ask for what the farm can make now or has caught, found or made before (its Collection Book), so rarer fish, fish dishes and woods crafts turn up on wish lists; orders keep their old rules (common all-day fish only). A boat day only picks a theme the farm can fill three wishes from, so a young farm never meets a boat it cannot serve. The economy simulator does not model fishing or the woods, so it still lists fish dishes and woods goods as never asked for. Each villager also likes three of the new goods.
+
+## 1.21 Woodcraft (`buildings.json` `woodcraft_lodge`, `woods.json` `camp` and `weather`)
+
+**The Woodcraft Lodge** is a farm workshop (level 22, 6,000 coins) that can only be built once the Hollow Bridge trail is restored in the Wild Woods (`room: trail_hollow`, like the Village Kitchen's room). Its 12 recipes take woods produce (with a little sugar, wheat or butter) and are priced at x1.7 their ingredients' barn value:
+
+| Recipe | Level | Takes | Sells |
+| --- | --- | --- | --- |
+| Elderberry Cordial | 22 | 3 elderberry, sugar | 190 |
+| Hazelnut Brittle | 22 | 3 hazelnut, sugar | 150 |
+| Herbal Salve | 23 | 2 fern, 2 moss, wild garlic | 100 |
+| Mushroom Tea | 24 | 2 chanterelle, puffball | 120 |
+| Bramble Crumble | 25 | 2 blackberry, 2 raspberry, 2 wheat, butter | 330 |
+| Holly Wreath | 26 | 3 holly, 2 fern, wild rose | 195 |
+| Forest Tea | 28 | 2 river mint, wild rose, bluebell | 125 |
+| Chestnut Bread | 36 | 3 chestnut, 2 wheat | 100 |
+| Pinecone Wreath | 36 | 4 pinecone, 2 holly | 130 |
+| Resin Varnish | 36 | 3 pine resin | 280 |
+| Maple Candy | 37 | maple syrup, sugar | 415 |
+| Woodland Feast | 40 | woodland pie, elderberry cordial, bramble crumble | 1,845 |
+
+Woods produce is limited each day (roughly 30 forage with every region open), so the Lodge is a way to get more from it rather than a coin engine. Every Lodge good is on a boat wish list (Sweet Tooth, Baker's, Craft Fair, Picnic, Orchard) and each villager likes one.
+
+**Camping:** a campsite in the glade. Pitch the tent from 5 pm to 2 am; from 5 am the next morning a camp morning gives 4 forage from the glade and the open regions, and a 20% chance of a mineral or fossil. Once a night, Foraging XP 10 (`camp_mornings`).
+
+**Woods weather** (the day's weather from `Weather.ts`): rain fills every mushroom spot and makes mushrooms x2 likelier; mist makes fossils and artifacts in digs, and jade, river pearl, topaz, amethyst and agate in pans, x1.4 likelier; sunshine makes berries and flowers x1.4 likelier. Nothing is ever found in only one weather.

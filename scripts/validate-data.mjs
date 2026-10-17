@@ -392,6 +392,9 @@ releases?.forEach((r, i) => {
     if (!rIds.has(wd.wren.region)) err(`woods wren: unknown region ${wd.wren.region}`);
     if (!(Array.isArray(wd.wren.need) && wd.wren.need[0] >= 1 && wd.wren.need[1] >= wd.wren.need[0])) err('woods wren: need is [min, max]');
   }
+  // 1.21 camping and woods weather
+  if (wd.camp && !(wd.camp.finds >= 1 && wd.camp.pitchFrom >= 12 && wd.camp.wakeFrom >= 0 && wd.camp.wakeFrom < 12)) err('woods camp: needs finds, an evening pitchFrom and a morning wakeFrom');
+  for (const id of wd.weather?.rarePan ?? []) if (!items[id]) err(`woods weather: rare pan find ${id} is not an item`);
   if (/\u2014|\u2013/.test(JSON.stringify(wd))) err('woods.json: no em or en dashes in text');
 }
 // 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat

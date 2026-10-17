@@ -7,7 +7,7 @@ import { VILLAGERS } from '../data';
 import { Character } from './Character';
 import { museum } from '../systems/Museum';
 import { expeditions } from '../systems/Expeditions';
-import { rng } from './Procedural';
+import { geo, rng } from './Procedural';
 import { costume, currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
@@ -26,19 +26,21 @@ const JETTY_ANGLE = Math.PI / 4;
 const POND = { x: -7.5, z: -6, r: 4.1 };
 const TREES = ['nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple'] as const;
 
-export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly' | 'stump' | 'critter' | 'wren'; i: number; id?: string }
+export interface WoodsHit { kind: 'forage' | 'dig' | 'museum' | 'board' | 'villager' | 'trail' | 'pan' | 'tap' | 'firefly' | 'stump' | 'critter' | 'wren' | 'camp'; i: number; id?: string }
 /** Fixed places in island space: the Museum at the top of the island and the expedition board at the landing. */
 const MUSEUM_AT = { x: -1, z: -15 };
 const BOARD_AT = { x: 10.5, z: 13.5 };
 /** 1.20 the deer's feeding stump in the glade (east side, clear of the bridges and the landing). */
 const GLADE_STUMP = { x: 15, z: -3 };
+/** 1.21 the campsite: a fire, a log to sit on and (once pitched) a tent. */
+const CAMP_AT = { x: 12.5, z: 5 };
 
 interface ForageNode { i: number; group: THREE.Group; byItem: Map<string, THREE.Mesh>; glint: THREE.Mesh; pick: THREE.Mesh; at: THREE.Vector3 }
 interface DigNode { i: number; mound: THREE.Mesh; dug: THREE.Mesh; glint: THREE.Mesh; pick: THREE.Mesh; at: THREE.Vector3 }
 
 export const MODELS = [
   'nat/tree_default', 'nat/tree_oak', 'nat/tree_a', 'nat/tree_b', 'nat/tree_fat', 'nat/tree_simple', 'nat/rock_small', 'nat/bush', 'nat/grass_large',
-  'nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'prop/lumber', 'prop/stones', 'bld/home_b', 'bld/tower', 'prop/banner_red', 'pet/deer', 'pet/fox', 'pet/bunny', 'bld/home_a',
+  'nat/flower_red', 'nat/flower_yellow', 'nat/flower_purple', 'prop/lumber', 'prop/stones', 'bld/home_b', 'bld/tower', 'prop/banner_red', 'pet/deer', 'pet/fox', 'pet/bunny', 'bld/home_a', 'nat/campfire', 'nat/log', 'nat/tent',
 ];
 
 /** Where the spots stand: spread over the island, away from the pond, the landing and each other. Same on every device. */
@@ -52,7 +54,7 @@ function layoutSpots(): { forage: THREE.Vector2[]; dig: THREE.Vector2[] } {
     if (Math.abs(Math.atan2(Math.sin(a - JETTY_ANGLE), Math.cos(a - JETTY_ANGLE))) < 0.4) continue;
     if (Math.hypot(p.x - POND.x, p.y - POND.z) < POND.r + 1.6) continue;
     if (Math.hypot(p.x - MUSEUM_AT.x - 1.5, p.y - MUSEUM_AT.z - 1.5) < 8.5 || Math.hypot(p.x - BOARD_AT.x, p.y - BOARD_AT.z) < 4) continue;
-    if (Math.hypot(p.x - GLADE_STUMP.x, p.y - GLADE_STUMP.z) < 3.4) continue;
+    if (Math.hypot(p.x - GLADE_STUMP.x, p.y - GLADE_STUMP.z) < 3.4 || Math.hypot(p.x - CAMP_AT.x, p.y - CAMP_AT.z) < 4) continue;
     if (all.some((q) => q.distanceTo(p) < 3.2)) continue;
     all.push(p);
   }
@@ -75,6 +77,7 @@ export class WoodsView {
   private treatGeos = new Map<string, THREE.BufferGeometry>();
   private wren?: { char: Character; pick: THREE.Mesh; glint: THREE.Mesh; cabin: THREE.Object3D };
   private wrenAt?: THREE.Vector3;
+  private camp?: { tent: THREE.Object3D; fire: THREE.Sprite; flames: THREE.Mesh; glint: THREE.Mesh };
   private pickers: THREE.Object3D[] = [];
   private raycaster = new THREE.Raycaster();
   private folk = new Map<string, { char: Character; pick: THREE.Mesh }>();
@@ -116,7 +119,7 @@ export class WoodsView {
     const r = rng(2468);
     const clear = (x: number, z: number, gap: number): boolean =>
       [...spots.forage, ...spots.dig].every((p) => Math.hypot(p.x - x, p.y - z) > gap) && Math.hypot(x - POND.x, z - POND.z) > POND.r + 1.4
-      && Math.hypot(x - MUSEUM_AT.x, z - MUSEUM_AT.z) > 6.5 && Math.hypot(x - BOARD_AT.x, z - BOARD_AT.z) > 3.2 && Math.hypot(x - GLADE_STUMP.x, z - GLADE_STUMP.z) > 2.6;
+      && Math.hypot(x - MUSEUM_AT.x, z - MUSEUM_AT.z) > 6.5 && Math.hypot(x - BOARD_AT.x, z - BOARD_AT.z) > 3.2 && Math.hypot(x - GLADE_STUMP.x, z - GLADE_STUMP.z) > 2.6 && Math.hypot(x - CAMP_AT.x, z - CAMP_AT.z) > 3.4;
     const wedge = (a: number): boolean => Math.abs(Math.atan2(Math.sin(a - JETTY_ANGLE), Math.cos(a - JETTY_ANGLE))) < 0.34;
     for (let i = 0; i < 70; i++) {
       const rim = i < 30;
@@ -160,6 +163,7 @@ export class WoodsView {
     this.buildSpots(spots);
     await this.buildRegions();
     for (const c of CRITTERS.families) if (c.region === 'glade') await this.buildStump(c, new THREE.Vector2(GLADE_STUMP.x, GLADE_STUMP.z), Math.PI / 4);
+    await this.buildCamp();
     this.refresh();
   }
 
@@ -468,6 +472,50 @@ export class WoodsView {
     }
   }
 
+  /** 1.21 the campsite in the glade: a campfire and a log, and a tent while it is pitched. */
+  private async buildCamp(): Promise<void> {
+    const fire = await modelObject('nat/campfire', 1.8);
+    fire.position.set(CAMP_AT.x, 0.02, CAMP_AT.z);
+    const log = await modelObject('nat/log', 1.8);
+    log.position.set(CAMP_AT.x - 1.5, 0.02, CAMP_AT.z + 1.2);
+    log.rotation.y = 0.6;
+    const tent = await modelObject('nat/tent', 2.6);
+    tent.position.set(CAMP_AT.x + 1.2, 0.02, CAMP_AT.z - 2.2);
+    tent.rotation.y = Math.PI / 4 + Math.PI;
+    tent.visible = false;
+    this.group.add(fire, log, tent);
+    // the fire's glow (made the same way as the lantern glow)
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,170,80,1)');
+    grad.addColorStop(1, 'rgba(255,90,10,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8 }));
+    glow.position.set(CAMP_AT.x, 0.8, CAMP_AT.z);
+    glow.scale.setScalar(2.6);
+    glow.visible = false;
+    this.group.add(glow);
+    const glint = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), this.glintMat);
+    glint.position.set(CAMP_AT.x, 2.6, CAMP_AT.z);
+    this.group.add(glint);
+    const pick = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 2.4, 10), new THREE.MeshBasicMaterial({ visible: false }));
+    pick.position.set(CAMP_AT.x, 1.2, CAMP_AT.z - 0.6);
+    pick.userData = { kind: 'camp', i: 0 };
+    this.group.add(pick);
+    this.pickers.push(pick);
+    // flames, lit in the evening and while someone is camping
+    const flames = new THREE.Mesh(geo()
+      .cone(0.32, 0.9, '#ff7a1a', [0, 0.1, 0], 6).cone(0.2, 0.7, '#ffb21a', [0.12, 0.1, 0.08], 6).cone(0.18, 0.6, '#ffd84a', [-0.12, 0.1, -0.06], 6)
+      .build(), new THREE.MeshBasicMaterial({ vertexColors: true }));
+    flames.position.set(CAMP_AT.x, 0.02, CAMP_AT.z);
+    flames.visible = false;
+    this.group.add(flames);
+    this.camp = { tent, fire: glow, flames, glint };
+  }
+
   /** 1.20 a feeding stump with a spot for the treat, and the family's visitor (hidden until it comes). */
   private async buildStump(c: CritterDef, p: THREE.Vector2, turn: number): Promise<void> {
     const mat = assets.vertexMaterial;
@@ -669,6 +717,13 @@ export class WoodsView {
     }
     this.refreshRegions();
     this.refreshCritters();
+    if (this.camp) {
+      const st = woods.campStatus();
+      this.camp.tent.visible = st === 'sleeping' || st === 'ready';
+      this.camp.fire.visible = st !== 'day';
+      this.camp.flames.visible = st !== 'day';
+      this.camp.glint.visible = woods.unlocked && (st === 'ready' || st === 'pitch');
+    }
   }
 
   /** World position for an effect over a spot. */
@@ -680,6 +735,7 @@ export class WoodsView {
     if (hit.kind === 'firefly') { const f = this.fireflyNodes.get(hit.i); return f ? this.world(f.mesh.position.x, f.mesh.position.y, f.mesh.position.z) : null; }
     if (hit.kind === 'pan') { const p = this.panNodes[hit.i]; return p ? this.world(p.at.x, 0.6, p.at.z) : null; }
     if (hit.kind === 'stump' || hit.kind === 'critter') { const st = this.stumps.get(hit.id ?? ''); if (!st) return null; const at = hit.kind === 'critter' ? st.critter.position : st.at; return this.world(at.x, 1, at.z); }
+    if (hit.kind === 'camp') return this.world(CAMP_AT.x, 1.2, CAMP_AT.z);
     if (hit.kind === 'wren') return this.wrenAt ? this.world(this.wrenAt.x, 1.6, this.wrenAt.z) : null;
     if (hit.kind === 'tap') { const t = this.tapNodes.get(hit.id ?? ''); return t ? this.world(t.at.x, 0.8, t.at.z) : null; }
     const n = hit.kind === 'forage' ? this.forageNodes.get(hit.i) : this.digNodes[hit.i];
@@ -721,6 +777,8 @@ export class WoodsView {
       if (s.critter.visible) s.critter.scale.set(1, 1 + Math.sin(this.t * 3) * 0.03, 1);
     }
     if (this.wren?.char.root.visible) this.wren.char.update(dt);
+    if (this.camp?.glint.visible) { this.camp.glint.position.y = 2.6 + Math.sin(this.t * 2.4) * 0.1; this.camp.glint.rotation.y = this.t * 1.5; }
+    if (this.camp?.fire.visible) { this.camp.fire.scale.setScalar(2.4 + Math.sin(this.t * 7) * 0.2); this.camp.flames.scale.set(1, 0.85 + Math.sin(this.t * 9) * 0.15, 1); this.camp.flames.rotation.y = this.t * 0.8; }
     if (this.wren?.glint.visible) { this.wren.glint.position.y = 3.0 + Math.sin(this.t * 2.4) * 0.1; this.wren.glint.rotation.y = this.t * 1.5; }
     if (this.boardDot?.visible) { this.boardDot.position.y = 3.6 + Math.sin(this.t * 2.4) * 0.1; this.boardDot.rotation.y = this.t * 1.5; }
     for (const n of this.digNodes) if (n.glint.visible) { n.glint.position.y = 1.3 + Math.sin(this.t * 2.2 + n.i) * 0.08; n.glint.rotation.y = this.t * 1.5; }

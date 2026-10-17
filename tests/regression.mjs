@@ -354,6 +354,34 @@ try {
     check('the Craft Fair boat asks for crafts the farm has made', !!crafts && crafts.want.length === 3 && crafts.want.every((k) => crafts.known.includes(k)), JSON.stringify(crafts));
   }
 
+  // 1.21 Woodcraft: the Lodge opens with the Hollow trail; camping pitches in the evening and pays a camp morning once
+  {
+    const at = (hour) => { const n = new Date(); const t = new Date(n); t.setHours(hour, 30, 0, 0); return t.getTime() - n.getTime(); };
+    const w = copy(); w.player.level = 40; w.debugTimeOffset = at(14);
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, W = window.__woods.sys, B = window.__buildings;
+      const lodgeShut = B.canBuy('woodcraft_lodge');
+      g.state.restoration = { given: {}, done: ['trail_hollow'], seen: [] };
+      const lodgeOpen = B.canBuy('woodcraft_lodge');
+      const day = W.campStatus(), pitchByDay = W.pitchTent();
+      // evening: pitch, then the next morning wake up
+      const n = new Date(); const t = new Date(n); t.setHours(20, 0, 0, 0); g.state.debugTimeOffset = t.getTime() - n.getTime();
+      const evening = W.campStatus(), pitched = W.pitchTent(), sleeping = W.campStatus();
+      g.state.debugTimeOffset += 10 * 3600000;
+      const ready = W.campStatus();
+      const before = Object.values(g.state.inventory).reduce((a, b) => a + b, 0);
+      const got = W.wakeUp();
+      const after = Object.values(g.state.inventory).reduce((a, b) => a + b, 0);
+      const again = W.wakeUp();
+      return { lodgeShut, lodgeOpen, day, pitchByDay, evening, pitched, sleeping, ready, got: got?.length ?? 0, gained: after - before, again: !!again };
+    });
+    check('the Woodcraft Lodge opens with the Hollow Bridge', !r.lodgeShut.ok && /Hollow Bridge/.test(r.lodgeShut.reason) && (r.lodgeOpen.ok || !/Wild Woods/.test(r.lodgeOpen.reason)), JSON.stringify(r));
+    check('the tent can only be pitched in the evening', r.day === 'day' && !r.pitchByDay && r.evening === 'pitch' && r.pitched && r.sleeping === 'sleeping', JSON.stringify(r));
+    check('a camp morning pays once', r.ready === 'ready' && r.got >= 4 && r.gained === r.got && !r.again, JSON.stringify(r));
+  }
+
   // 1.20.1 Spooky season: October only, cosmetic only (nothing is saved), and the Settings switch takes it away
   {
     await setStorage({ [KEY]: JSON.stringify(copy()) });

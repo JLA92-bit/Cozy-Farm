@@ -102,6 +102,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     ...(isObj(s.woods.note) && typeof s.woods.note.day === 'string' && typeof s.woods.note.item === 'string' && ITEMS[s.woods.note.item] && Number.isInteger(s.woods.note.n) && s.woods.note.n > 0
       ? { note: { day: s.woods.note.day, item: s.woods.note.item, n: s.woods.note.n, done: s.woods.note.done === true } } : {}),
     ...(Number.isFinite(s.woods.notesDone) ? { notesDone: Math.max(0, Math.floor(s.woods.notesDone as number)) } : {}),
+    // 1.21 camping: a pitched tent (a time) and the last night camped (a local day)
+    ...(isObj(s.woods.camp) ? { camp: { ...(Number.isFinite(s.woods.camp.pitchedAt) ? { pitchedAt: s.woods.camp.pitchedAt as number } : {}), ...(typeof s.woods.camp.lastNight === 'string' ? { lastNight: s.woods.camp.lastNight } : {}) } } : {}),
   } : undefined;
   out.museum = isObj(s.museum) ? {
     donated: Object.fromEntries(Object.entries(isObj(s.museum.donated) ? s.museum.donated : {}).map(([k, v]) => [k, strArr(v).filter((i) => !!ITEMS[i])])),

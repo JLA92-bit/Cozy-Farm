@@ -5,7 +5,8 @@
  * is the same on every device; only what was taken today is saved (`state.woods`). Foraging and digging grow the
  * Foraging skill. Finds count towards the Museum and the Collection Book through `woods.found`.
  */
-import { ITEMS, WOODS, WOODS_REGIONS, type FindKind, type ForageKind, type WoodsRegion } from '../data';
+import { ITEMS, WOODS, WOODS_CAMP, WOODS_REGIONS, WOODS_WEATHER, type FindKind, type ForageKind, type WoodsRegion } from '../data';
+import { weatherToday } from './Weather';
 import { roomDone } from './RestorationEffects';
 import { game, type Vec } from './Game';
 import { saves } from './Save';
@@ -105,7 +106,10 @@ class WoodsSystem {
     if (!reg?.pan || !this.regionOpen(id) || this.pansLeft(id) <= 0) return null;
     const w = this.st();
     w.panned = (w.panned ?? 0) + 1;
-    const item = pickWeighted(reg.pan.table, Math.random).id;
+    // 1.21 mist makes the rarer finds likelier
+    const misty = weatherToday() === 'mist';
+    const table = reg.pan.table.map((e) => ({ id: e.id, w: e.w * (misty && WOODS_WEATHER.rarePan.includes(e.id) ? WOODS_WEATHER.rareMult : 1) }));
+    const item = pickWeighted(table, Math.random).id;
     game.addItem(item, 1, at);
     const first = this.noteFound(item);
     game.incStat('pans_done');
@@ -150,12 +154,15 @@ class WoodsSystem {
   private spotsFor(list: { id: string; kind: ForageKind; w: number }[], count: number, chance: number, base: number, key: string): ForageSpot[] {
     const w = this.st();
     const out: ForageSpot[] = [];
+    // 1.21 woods weather: rain brings mushrooms (and fills every mushroom spot), sunshine berries and flowers
+    const sky = weatherToday();
+    const weighted = list.map((e) => ({ ...e, w: e.w * (sky === 'rain' && e.kind === 'mushroom' ? WOODS_WEATHER.mushroomWeight : sky === 'sunny' && (e.kind === 'berry' || e.kind === 'flower') ? WOODS_WEATHER.sunnyWeight : 1) }));
     for (let k = 0; k < count; k++) {
       const i = base + k;
       const r = rng(hashString(`${game.state.seed}:${key}:${w.day}:${k}`));
       const roll = r();
-      const active = manorForageFull() || roll < chance;
-      const e = pickWeighted(list, r);
+      const e = pickWeighted(weighted, r);
+      const active = manorForageFull() || roll < chance || (sky === 'rain' && e.kind === 'mushroom');
       out.push({ i, active, picked: w.picked.includes(i), item: e.id, kind: e.kind });
     }
     return out;
@@ -186,9 +193,10 @@ class WoodsSystem {
     const w = this.st();
     w.dug.push(i);
     const lucky = luckyFinds() ? WOODS.dig.luckyMult : 1;
+    const mist = weatherToday() === 'mist' ? WOODS_WEATHER.rareMult : 1;
     const t = WOODS.dig.table;
     const kinds: { id: FindKind | 'clay'; w: number }[] = [
-      { id: 'mineral', w: t.mineral }, { id: 'fossil', w: t.fossil * lucky }, { id: 'artifact', w: t.artifact * lucky }, { id: 'clay', w: t.clay },
+      { id: 'mineral', w: t.mineral }, { id: 'fossil', w: t.fossil * lucky * mist }, { id: 'artifact', w: t.artifact * lucky * mist }, { id: 'clay', w: t.clay },
     ];
     const kind = pickWeighted(kinds, Math.random).id;
     const item = kind === 'clay' ? WOODS.clayItem : pickWeighted(WOODS.finds[kind], Math.random).id;
@@ -220,7 +228,56 @@ class WoodsSystem {
   /** One line for the farm-side sign: what is on offer today. */
   describe(): string {
     const spots = this.allForage().filter((s) => s.active && !s.picked).length;
-    return `${spots} forage spots and ${this.digsLeft()} digs left today.`;
+    const sky = weatherToday();
+    const extra = sky === 'rain' ? ' Rain today: mushrooms everywhere.' : sky === 'mist' ? ' Misty today: rare finds are likelier.' : ' Sunny today: plenty of berries and flowers.';
+    return `${spots} forage spots and ${this.digsLeft()} digs left today.${extra}`;
+  }
+
+  // ------------------------------------------------------------------- 1.21 camping in the glade
+  private campHour(at = game.now()): number { return new Date(at).getHours(); }
+  /** The night a tent pitched at `at` belongs to: after midnight it is still the evening before. */
+  private nightOf(at: number): string { return localDay(this.campHour(at) < WOODS_CAMP.pitchTo ? at - 12 * HOUR : at); }
+  /** When a tent pitched at `at` can be packed up: the next `wakeFrom` o'clock. */
+  wakeAt(at: number): number {
+    const d = new Date(at);
+    const wake = new Date(d.getFullYear(), d.getMonth(), d.getDate(), WOODS_CAMP.wakeFrom);
+    return wake.getTime() > at ? wake.getTime() : wake.getTime() + 24 * HOUR;
+  }
+  /** Where the campsite is up to: 'ready' (a camp morning to collect), 'sleeping', 'pitch' (it is evening) or 'day'. */
+  campStatus(): 'ready' | 'sleeping' | 'pitch' | 'day' | 'done' {
+    const c = game.state.woods?.camp, now = game.now();
+    if (c?.pitchedAt) return now >= this.wakeAt(c.pitchedAt) ? 'ready' : 'sleeping';
+    const h = this.campHour(now);
+    const evening = h >= WOODS_CAMP.pitchFrom || h < WOODS_CAMP.pitchTo;
+    if (!evening) return 'day';
+    return c?.lastNight === this.nightOf(now) ? 'done' : 'pitch';
+  }
+  /** Pitch the tent for the night (evenings only, once a night). */
+  pitchTent(): boolean {
+    if (!this.unlocked || this.campStatus() !== 'pitch') return false;
+    const w = this.st();
+    w.camp = { ...(w.camp ?? {}), pitchedAt: game.now() };
+    game.bus.emit('woods:changed', {});
+    saves.save();
+    return true;
+  }
+  /** A camp morning: a few finds from round the camp, then the tent is packed away. */
+  wakeUp(at?: Vec): string[] | null {
+    const c = game.state.woods?.camp;
+    if (!c?.pitchedAt || this.campStatus() !== 'ready') return null;
+    const pool = [...WOODS.foraged];
+    for (const r of WOODS_REGIONS) if (this.regionOpen(r.id)) pool.push(...r.foraged);
+    const got: string[] = [];
+    for (let i = 0; i < WOODS_CAMP.finds; i++) got.push(pickWeighted(pool, Math.random).id);
+    if (Math.random() < WOODS_CAMP.digChance) got.push(pickWeighted(WOODS.finds[Math.random() < 0.6 ? 'mineral' : 'fossil'], Math.random).id);
+    for (const id of got) { game.addItem(id, 1, at); this.noteFound(id); }
+    const w = this.st();
+    w.camp = { lastNight: this.nightOf(c.pitchedAt) };
+    game.incStat('camp_mornings');
+    logEvent('camp_morning', { n: got.length });
+    game.bus.emit('woods:changed', {});
+    saves.save();
+    return got;
   }
 
   /** First time in the woods: one tip. */

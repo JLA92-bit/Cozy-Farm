@@ -795,5 +795,26 @@
    "Every critter has a favourite snack. The trick is knowing which.",
    "My notebook is nearly full. Time for a new one!"
   ]
+ },
+ "camp": {
+  "_comment": "1.21 Camping in the glade: pitch the tent from `pitchFrom` o'clock until `pitchTo` (local time, wraps past midnight), sleep, and from `wakeFrom` o'clock the next morning collect a camp morning: `finds` forage from the glade and the open regions, and a `digChance` chance of a dig find too. Once a night. Woods Foraging XP (stat camp_mornings).",
+  "pitchFrom": 17,
+  "pitchTo": 2,
+  "wakeFrom": 5,
+  "finds": 4,
+  "digChance": 0.2
+ },
+ "weather": {
+  "_comment": "1.21 Woods weather (the farm's weather of the day, Weather.ts). Nothing is ever only found in one weather. rain: every mushroom spot holds something and mushrooms are `mushroomWeight` x likelier. mist: fossils and artifacts in digs, and the rarer pan finds, are `rareMult` x likelier. sunny: berries and flowers are `sunnyWeight` x likelier.",
+  "mushroomWeight": 2,
+  "rareMult": 1.4,
+  "sunnyWeight": 1.4,
+  "rarePan": [
+   "jade",
+   "river_pearl",
+   "topaz",
+   "amethyst",
+   "agate"
+  ]
  }
 }

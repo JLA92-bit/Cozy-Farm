@@ -175,6 +175,8 @@ export interface WoodsState {
   /** 1.20 Wren's field note for `day`: bring n of item (done once given); notesDone counts every note ever given */
   note?: { day: string; item: string; n: number; done: boolean };
   notesDone?: number;
+  /** 1.21 the tent pitched at the campsite (ms), and the local day of the last camp morning */
+  camp?: { pitchedAt?: number; lastNight?: string };
 }
 
 /** 1.8.5 skills. Level comes from XP (skills.json); perks holds the chosen perk ids (one per perk level reached). */

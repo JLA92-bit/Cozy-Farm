@@ -50,7 +50,9 @@
         "blueberry_muffin",
         "wild_garlic_bread",
         "duck_egg_sponge",
-        "leek_pie"
+        "leek_pie",
+        "bramble_crumble",
+        "chestnut_bread"
       ],
       "boat": {
         "model": "boat/wc_005",
@@ -167,7 +169,8 @@
         "orange_juice",
         "blueberry_juice",
         "pineapple_juice",
-        "mint_lemonade"
+        "mint_lemonade",
+        "elderberry_cordial"
       ],
       "boat": {
         "model": "boat/wc_028",
@@ -311,7 +314,10 @@
         "gingerbread",
         "cherry_jam",
         "hedgerow_jam",
-        "maple_syrup"
+        "maple_syrup",
+        "hazelnut_brittle",
+        "maple_candy",
+        "elderberry_cordial"
       ],
       "boat": {
         "model": "boat/wc_008",
@@ -373,7 +379,10 @@
         "garden_wrap",
         "mushroom_soup",
         "woodland_pie",
-        "avocado_toast"
+        "avocado_toast",
+        "mushroom_tea",
+        "forest_tea",
+        "woodland_feast"
       ]
     },
     {
@@ -418,7 +427,11 @@
         "gilded_vase",
         "gem_mosaic",
         "boot_planter",
-        "honeycomb"
+        "honeycomb",
+        "herbal_salve",
+        "holly_wreath",
+        "pinecone_wreath",
+        "resin_varnish"
       ]
     }
   ]

@@ -199,6 +199,26 @@ function act(hit: WoodsHit): void {
   if (hit.kind === 'stump' && hit.id) { ui.open('critter', { id: hit.id }); return; }
   if (hit.kind === 'critter' && hit.id) { sayHello(hit.id); fx.hearts(at); return; }
   if (hit.kind === 'wren') { ui.open('wren'); return; }
+  // 1.21 camping
+  if (hit.kind === 'camp') {
+    const st = woods.campStatus();
+    if (st === 'ready') {
+      const got = woods.wakeUp(at);
+      if (!got) return;
+      audio.play('reward');
+      fx.sparkle(at.clone().setY(1.2), '#ffe2a0', 14);
+      const names = [...new Set(got)].map((id) => ITEMS[id].name.toLowerCase());
+      ui.feedback.toast('Good morning, camper!', `Round the camp you found ${names.slice(0, -1).join(', ')}${names.length > 1 ? ' and ' : ''}${names[names.length - 1]}.`, 'tent');
+    } else if (st === 'pitch') {
+      if (!woods.pitchTent()) return;
+      audio.play('pop');
+      fx.sparkle(at.clone().setY(1), '#ffb15c', 10);
+      ui.feedback.toast('Tent pitched', 'Sleep well under the stars. Come back from 5 in the morning for your camp finds.', 'tent');
+    } else if (st === 'sleeping') ui.feedback.toast('Shh, sleeping', 'The camp wakes up from 5 in the morning.', 'zzz');
+    else if (st === 'done') ui.feedback.toast('Back tomorrow night', "You've camped tonight already. Pitch again tomorrow evening.", 'tent');
+    else ui.feedback.toast('The campsite', 'Come back in the evening (from 5 pm) to pitch your tent for the night.', 'tent');
+    return;
+  }
   // 1.19 the Deep Woods
   if (hit.kind === 'trail') { const reg = WOODS_REGIONS.find((r) => r.id === hit.id); if (reg) ui.open('square-room', { room: reg.trail }); return; }
   if (hit.kind === 'pan' || hit.kind === 'tap') {
