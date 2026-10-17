@@ -706,6 +706,8 @@
     {"id": "resin_varnish", "building": "woodcraft_lodge", "level": 36, "in": {"pine_resin": 3}, "item": "resin_varnish", "out": 1, "sec": 2400, "xp": 37},
     {"id": "maple_candy", "building": "woodcraft_lodge", "level": 37, "in": {"maple_syrup": 1, "sugar": 1}, "item": "maple_candy", "out": 1, "sec": 1800, "xp": 40},
     {"id": "woodland_feast", "building": "woodcraft_lodge", "level": 40, "in": {"woodland_pie": 1, "elderberry_cordial": 1, "bramble_crumble": 1}, "item": "woodland_feast", "out": 1, "sec": 4800, "xp": 67},
+    {"id": "acorn_bread", "building": "woodcraft_lodge", "level": 40, "in": {"acorn": 3, "wheat": 2}, "item": "acorn_bread", "out": 1, "sec": 2100, "xp": 38},
+    {"id": "moonflower_tea", "building": "woodcraft_lodge", "level": 42, "in": {"moonflower": 2, "river_mint": 1, "sugar": 1}, "item": "moonflower_tea", "out": 1, "sec": 2400, "xp": 40},
     {"id": "rice_pudding", "building": "dairy", "level": 104, "in": {"rice": 2, "milk": 2, "sugar": 1}, "item": "rice_pudding", "out": 1, "sec": 3000, "xp": 99},
     {"id": "garlic_bread", "building": "bakery", "level": 106, "in": {"bread": 1, "garlic": 2, "butter": 1}, "item": "garlic_bread", "out": 1, "sec": 2700, "xp": 101},
     {"id": "plum_jam", "building": "jam_kitchen", "level": 109, "in": {"plum": 3, "sugar": 1}, "item": "plum_jam", "out": 1, "sec": 2700, "xp": 104},

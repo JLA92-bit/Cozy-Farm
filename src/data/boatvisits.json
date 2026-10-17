@@ -57,7 +57,8 @@
         "sweet_potato_pie",
         "peach_cobbler",
         "olive_focaccia",
-        "plum_cake"
+        "plum_cake",
+        "acorn_bread"
       ],
       "boat": {
         "model": "boat/wc_005",
@@ -406,7 +407,8 @@
         "fried_rice",
         "risotto",
         "garlic_bread",
-        "olive_focaccia"
+        "olive_focaccia",
+        "moonflower_tea"
       ]
     },
     {

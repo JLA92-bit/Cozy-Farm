@@ -11,6 +11,7 @@ import { game, type Vec } from './Game';
 import { saves } from './Save';
 import { localDay } from './Progression';
 import { woods } from './Woods';
+import { critterVisitsPerDay } from './Grove';
 import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
 import type { WoodsState } from './State';
@@ -25,7 +26,7 @@ const pickWeighted = <T extends { w: number }>(list: T[], r: () => number): T =>
 
 class CrittersSystem {
   private woodsState(): WoodsState { return (game.state.woods ??= { day: localDay(game.now()), picked: [], dug: [], found: {}, visited: false }); }
-  private rec(id: string): { visits: number; treat?: string; seen?: string } {
+  private rec(id: string): { visits: number; treat?: string; seen?: string; seenN?: number } {
     const w = this.woodsState();
     return ((w.critters ??= {})[id] ??= { visits: 0 });
   }
@@ -49,7 +50,10 @@ class CrittersSystem {
     return CRITTERS.visitsPerHeart - (this.visits(id) % CRITTERS.visitsPerHeart);
   }
   treatOn(id: string): string | undefined { return game.state.woods?.critters?.[id]?.treat; }
-  seenToday(id: string): boolean { return game.state.woods?.critters?.[id]?.seen === localDay(game.now()); }
+  /** Visits from the family today (1.23 the Elder Oak's boughs let them come twice). */
+  visitsToday(id: string): number { const r = game.state.woods?.critters?.[id]; return r?.seen === localDay(game.now()) ? r.seenN ?? 1 : 0; }
+  /** The family has made all of today's visits. */
+  seenToday(id: string): boolean { return this.visitsToday(id) >= critterVisitsPerDay(); }
 
   /** Inside the family's hours now (local time; hours may wrap past midnight). */
   inHours(c: CritterDef, at = game.now()): boolean {
@@ -89,7 +93,9 @@ class CrittersSystem {
     const r = this.rec(id);
     const before = this.hearts(id);
     delete r.treat;
-    r.seen = localDay(game.now());
+    const today = localDay(game.now());
+    r.seenN = r.seen === today ? (r.seenN ?? 1) + 1 : 1;
+    r.seen = today;
     r.visits++;
     const after = this.hearts(id);
     const heart = after > before ? after : null;

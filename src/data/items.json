@@ -441,8 +441,8 @@
   },
   "acorn": {
    "name": "Acorn",
-   "cat": "event",
-   "sell": 0,
+   "cat": "forage",
+   "sell": 16,
    "icon": "acorn"
   },
   "snowflake_token": {
@@ -2040,6 +2040,24 @@
    "cat": "goods",
    "sell": 2230,
    "icon": "plum_cake"
+  },
+  "moonflower": {
+   "name": "Moonflower",
+   "cat": "forage",
+   "sell": 34,
+   "icon": "moonflower"
+  },
+  "acorn_bread": {
+   "name": "Acorn Bread",
+   "cat": "goods",
+   "sell": 90,
+   "icon": "acorn_bread"
+  },
+  "moonflower_tea": {
+   "name": "Moonflower Tea",
+   "cat": "goods",
+   "sell": 220,
+   "icon": "moonflower_tea"
   }
  }
 }

@@ -352,6 +352,54 @@
      }
     ]
    }
+  },
+  {
+   "id": "grove",
+   "name": "The Ancient Grove",
+   "icon": "oak",
+   "trail": "trail_grove",
+   "at": [
+    -11.6,
+    43.5
+   ],
+   "r": 13,
+   "feature": "oak",
+   "forage": {
+    "spots": 7,
+    "chance": 0.8
+   },
+   "foraged": [
+    {
+     "id": "acorn",
+     "kind": "nut",
+     "w": 6
+    },
+    {
+     "id": "moonflower",
+     "kind": "flower",
+     "w": 3
+    },
+    {
+     "id": "hazelnut",
+     "kind": "nut",
+     "w": 3
+    },
+    {
+     "id": "moss",
+     "kind": "leaf",
+     "w": 3
+    },
+    {
+     "id": "chanterelle",
+     "kind": "mushroom",
+     "w": 3
+    },
+    {
+     "id": "morel",
+     "kind": "mushroom",
+     "w": 1
+    }
+   ]
   }
  ],
  "trails": [
@@ -535,6 +583,65 @@
      "icon": "coin",
      "wants": {
       "coins": 50000
+     }
+    }
+   ]
+  },
+  {
+   "id": "trail_grove",
+   "name": "The Root Path",
+   "icon": "oak",
+   "color": "green",
+   "villager": "hazel",
+   "opensAt": 40,
+   "about": "Past the three trails, an old path winds into the heart of the forest, where the oldest tree in the valley is said to sleep. Hazel remembers picnics under it as a girl. The path is overgrown and the roots have heaved the stones: it needs a little of everything the woods give.",
+   "rebuilds": "the root path to the Ancient Grove",
+   "reward": {
+    "id": "trail_grove",
+    "text": "The Ancient Grove opens: acorns, moonflowers and more, and the Elder Oak waiting to wake."
+   },
+   "letter": {
+    "title": "The Elder Oak",
+    "body": "Dear {farmer},\n\nI walked the root path this morning, slowly, with my stick. The old oak is still there. It is much smaller than I remember, and very tired.\n\nWren says it can be woken, a little at a time, with gifts from the woods. I think that would be a lovely thing to do, don't you? It will take a long while. Good things do.\n\nWith love,\nHazel"
+   },
+   "bundles": [
+    {
+     "id": "stones",
+     "name": "Lifting the Old Stones",
+     "icon": "hammer_wrench",
+     "wants": {
+      "iron_ore": 12,
+      "quartz": 6,
+      "jade": 2
+     }
+    },
+    {
+     "id": "regions",
+     "name": "Gifts from Every Trail",
+     "icon": "basket",
+     "wants": {
+      "morel": 3,
+      "river_pearl": 2,
+      "pine_resin": 10,
+      "firefly": 6
+     }
+    },
+    {
+     "id": "lodge",
+     "name": "Lodge Supplies",
+     "icon": "axe",
+     "wants": {
+      "herbal_salve": 10,
+      "pinecone_wreath": 6,
+      "forest_tea": 10
+     }
+    },
+    {
+     "id": "wages",
+     "name": "Path Wages",
+     "icon": "coin",
+     "wants": {
+      "coins": 80000
      }
     }
    ]
@@ -815,6 +922,302 @@
    "topaz",
    "amethyst",
    "agate"
+  ]
+ },
+ "grove": {
+  "_comment": "1.23 The Ancient Grove: the Elder Oak grows in stages. Each stage is a restoration room (ids grove_<stage>, bundles like the trails', minStar 2 = gold-star items only) and opens when the previous stage is finished, `growDays` days have passed since then (the oak grows) and the player has reached `opensAt`. The first stage needs the Root Path (trail_grove). Finished stages switch on `effects` (src/systems/Grove.ts): roots = forage star chances, shoot = extra pans a day, boughs = critter visits a day, canopy = a glowing canopy at night and extra digs; the crown hands out the `finale`.",
+  "effects": {
+   "forageSilver": 0.1,
+   "forageGold": 0.04,
+   "extraPans": 1,
+   "critterVisits": 2,
+   "extraDigs": 1
+  },
+  "finale": {
+   "coins": 120000,
+   "gems": 150,
+   "decor": "elder_oak_sapling",
+   "title": "The Elder Oak",
+   "body": "Dear {farmer},\n\nWe all walked up the root path together last night: Rosa with a cake, Pip with far too many lanterns, Bram, Old Tom, Juniper with her paints, and Wren, who knew every bird in the branches. The Elder Oak was glowing from root to crown.\n\nIt has not looked like that in a hundred years, and it is because of you.\n\nWren found a sapling growing at its foot and says it should live on your farm. It is waiting in your storage. Look after it.\n\nWith love from all of us,\nRosa"
+  },
+  "stages": [
+   {
+    "id": "grove_roots",
+    "name": "Waking Roots",
+    "icon": "seedling",
+    "color": "green",
+    "villager": "juniper",
+    "opensAt": 42,
+    "growDays": 0,
+    "about": "The Elder Oak is asleep, its roots dry and its leaves brown. Water and soft mulch round the roots will wake it.",
+    "rebuilds": "the roots of the Elder Oak",
+    "reward": {
+     "id": "grove_roots",
+     "text": "The Elder Oak wakes. Woods forage is likelier to carry silver and gold stars."
+    },
+    "letter": {
+     "title": "It moved!",
+     "body": "Dear {farmer},\n\nI was painting the grove at sunrise and a little green bud opened on the Elder Oak, right in front of me. I dropped my brush in the moss.\n\nEverything you pick in the woods looks brighter to me now. Maybe the old tree is saying thank you.\n\nJuniper"
+    },
+    "bundles": [
+     {
+      "id": "water",
+      "name": "Water for the Roots",
+      "icon": "water_wave",
+      "wants": {
+       "water_lily": 10,
+       "watercress": 20,
+       "maple_sap": 20
+      }
+     },
+     {
+      "id": "mulch",
+      "name": "Woodland Mulch",
+      "icon": "leaf",
+      "wants": {
+       "moss": 40,
+       "fern_frond": 30,
+       "acorn": 20
+      }
+     },
+     {
+      "id": "salve",
+      "name": "A Salve for Old Bark",
+      "icon": "axe",
+      "wants": {
+       "herbal_salve": 8,
+       "mushroom_tea": 8
+      }
+     }
+    ]
+   },
+   {
+    "id": "grove_shoot",
+    "name": "The Green Shoot",
+    "icon": "seedling",
+    "color": "green",
+    "villager": "tom",
+    "opensAt": 46,
+    "growDays": 7,
+    "about": "A green shoot climbs from the old trunk. It wants light, sweetness and the very best the farm can grow.",
+    "rebuilds": "the Elder Oak's new shoot",
+    "reward": {
+     "id": "grove_shoot",
+     "text": "One more pan a day at Crystal Creek: the oak's roots stir up the gravel."
+    },
+    "letter": {
+     "title": "Gold in the roots",
+     "body": "Dear {farmer},\n\nThe creek has been running brighter since the old oak woke. Its roots reach right down to the gravel and stir it up, I reckon. One more pan a day for you, and do not tell anyone else.\n\nOld Tom"
+    },
+    "bundles": [
+     {
+      "id": "forage",
+      "name": "Grove Gatherings",
+      "icon": "basket",
+      "wants": {
+       "acorn": 40,
+       "bluebell": 20,
+       "moonflower": 10
+      }
+     },
+     {
+      "id": "sweet",
+      "name": "Something Sweet",
+      "icon": "honey_pot",
+      "wants": {
+       "elderberry_cordial": 10,
+       "hazelnut_brittle": 10
+      }
+     },
+     {
+      "id": "gold",
+      "name": "Gold-Star Harvest",
+      "icon": "sparkles",
+      "wants": {
+       "pumpkin": 10,
+       "strawberry": 15
+      },
+      "minStar": 2
+     }
+    ]
+   },
+   {
+    "id": "grove_boughs",
+    "name": "Spreading Boughs",
+    "icon": "oak",
+    "color": "green",
+    "villager": "pip",
+    "opensAt": 50,
+    "growDays": 10,
+    "about": "New boughs spread over the grove, full of nooks for the woodland families. Bring nuts and berries to fill them.",
+    "rebuilds": "the Elder Oak's boughs",
+    "reward": {
+     "id": "grove_boughs",
+     "text": "Critter families come to their stumps twice a day."
+    },
+    "letter": {
+     "title": "So many visitors!",
+     "body": "Dear {farmer},\n\nThe squirrels are living in the Elder Oak now and they told all their friends. I saw the hedgehogs twice today. TWICE. And the owl looked at me.\n\nYou have to come and see.\n\nPip"
+    },
+    "bundles": [
+     {
+      "id": "nuts",
+      "name": "Nuts and Berries",
+      "icon": "basket",
+      "wants": {
+       "chestnut": 40,
+       "pinecone": 40,
+       "lingonberry": 20
+      }
+     },
+     {
+      "id": "lodge",
+      "name": "Lodge Treats",
+      "icon": "axe",
+      "wants": {
+       "bramble_crumble": 10,
+       "holly_wreath": 8,
+       "maple_candy": 8
+      }
+     },
+     {
+      "id": "gold",
+      "name": "Gold-Star Dairy",
+      "icon": "sparkles",
+      "wants": {
+       "milk": 20,
+       "egg": 30
+      },
+      "minStar": 2
+     },
+     {
+      "id": "wages",
+      "name": "Rope and Ladders",
+      "icon": "coin",
+      "wants": {
+       "coins": 150000
+      }
+     }
+    ]
+   },
+   {
+    "id": "grove_canopy",
+    "name": "The Glowing Canopy",
+    "icon": "sparkles",
+    "color": "green",
+    "villager": "bram",
+    "opensAt": 55,
+    "growDays": 14,
+    "about": "The canopy is full and green. Old stories say the Elder Oak glowed on summer nights. Fireflies and moonflowers might bring that back.",
+    "rebuilds": "the Elder Oak's canopy",
+    "reward": {
+     "id": "grove_canopy",
+     "text": "The canopy glows every night, and you can dig once more each day in the woods."
+    },
+    "letter": {
+     "title": "A light in the woods",
+     "body": "Dear {farmer},\n\nI could see the Elder Oak glowing from my forge last night, all the way across the water. Never seen the like.\n\nThe ground round it has gone soft, too. I left you a spare spade by the dig spots: one more dig a day.\n\nBram"
+    },
+    "bundles": [
+     {
+      "id": "light",
+      "name": "Night Lights",
+      "icon": "sparkles",
+      "wants": {
+       "firefly": 30,
+       "moonflower": 20,
+       "gold_flake": 10
+      }
+     },
+     {
+      "id": "lanterns",
+      "name": "Lanterns and Candles",
+      "icon": "candle",
+      "wants": {
+       "firefly_lantern": 6,
+       "pine_candle": 10,
+       "resin_varnish": 8
+      }
+     },
+     {
+      "id": "gold",
+      "name": "Gold-Star Picnic",
+      "icon": "sparkles",
+      "wants": {
+       "cheese": 20,
+       "bread": 30
+      },
+      "minStar": 2
+     },
+     {
+      "id": "wages",
+      "name": "Lantern Oil",
+      "icon": "coin",
+      "wants": {
+       "coins": 250000
+      }
+     }
+    ]
+   },
+   {
+    "id": "grove_crown",
+    "name": "The Elder Crown",
+    "icon": "crown",
+    "color": "green",
+    "villager": "rosa",
+    "opensAt": 60,
+    "growDays": 21,
+    "about": "One last growth: the crown of the Elder Oak, taller than any tree in the valley. Bring the forest's rarest gifts and a feast for everyone.",
+    "rebuilds": "the crown of the Elder Oak",
+    "reward": {
+     "id": "grove_crown",
+     "text": "The Elder Oak is whole: a sapling of it for your own farm, and a letter from the whole valley."
+    },
+    "letter": {
+     "title": "",
+     "body": ""
+    },
+    "bundles": [
+     {
+      "id": "rare",
+      "name": "The Forest's Rarest",
+      "icon": "sparkles",
+      "wants": {
+       "acorn": 80,
+       "golden_acorn": 3,
+       "owl_feather": 3
+      }
+     },
+     {
+      "id": "feast",
+      "name": "A Feast Under the Oak",
+      "icon": "basket",
+      "wants": {
+       "woodland_feast": 5,
+       "woodland_pie": 10,
+       "elderberry_cordial": 20
+      }
+     },
+     {
+      "id": "gold",
+      "name": "Gold-Star Bakes",
+      "icon": "sparkles",
+      "wants": {
+       "apple_pie": 10,
+       "strawberry_cake": 10
+      },
+      "minStar": 2
+     },
+     {
+      "id": "wages",
+      "name": "Party Lanterns",
+      "icon": "coin",
+      "wants": {
+       "coins": 400000
+      }
+     }
+    ]
+   }
   ]
  }
 }

@@ -14,6 +14,7 @@ import { localDay } from './Progression';
 import { rollQuality, type Quality } from './Quality';
 import { extraDigs, keenEyesChance, luckyFinds } from './SkillEffects';
 import { manorDigs, manorForageFull } from './Manor';
+import { groveDigs, grovePans } from './Grove';
 import { hints } from './Hints';
 import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
@@ -99,7 +100,7 @@ class WoodsSystem {
   }
 
   /** Pans left today at Crystal Creek. */
-  pansLeft(id = 'creek'): number { const p = this.region(id)?.pan; return p ? Math.max(0, p.perDay - (this.st().panned ?? 0)) : 0; }
+  pansLeft(id = 'creek'): number { const p = this.region(id)?.pan; return p ? Math.max(0, p.perDay + grovePans() - (this.st().panned ?? 0)) : 0; }
   /** Swirl the pan: one find from the creek's table. */
   pan(id = 'creek', at?: Vec): { item: string; first: boolean } | null {
     const reg = this.region(id);
@@ -168,7 +169,7 @@ class WoodsSystem {
     return out;
   }
 
-  digsLeft(): number { return Math.max(0, WOODS.dig.perDay + extraDigs() + manorDigs() - this.st().dug.length); }
+  digsLeft(): number { return Math.max(0, WOODS.dig.perDay + extraDigs() + manorDigs() + groveDigs() - this.st().dug.length); }
   dug(i: number): boolean { return this.st().dug.includes(i); }
 
   pick(i: number, at?: Vec): PickResult | null {

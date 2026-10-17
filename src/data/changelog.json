@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.23.0",
+   "date": "2026-10-17",
+   "title": "The Ancient Grove",
+   "icon": "oak",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "oak",
+     "text": "A fifth place in the Wild Woods: restore the Root Path from level 40 to reach the Ancient Grove, with acorns and moonflowers to forage"
+    },
+    {
+     "icon": "seedling",
+     "text": "Wake the Elder Oak: five stages over many weeks, each with gifts from the woods, the Lodge and your best gold-star goods. Every stage gives a lasting woods bonus: brighter forage, an extra pan, critters visiting twice a day, and a glowing canopy with an extra dig"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Grow the oak to its full crown for a sapling of the Elder Oak for your farm, plus acorn bread and moonflower tea at the Woodcraft Lodge"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.22.0",
    "date": "2026-10-17",
    "title": "Orchard Days",

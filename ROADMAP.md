@@ -31,7 +31,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.20 | Woodland Friends (woods phase 2) and Care and Craft | ~1.5 weeks | done (local) |
 | 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | done (local) |
 | 1.22 | Server-side leaderboard checks and Orchard Days (levels 101-120) | ~1.5 weeks + schema | done (local) |
-| 1.23 | The Ancient Grove (woods phase 4) | ~1 week | |
+| 1.23 | The Ancient Grove (woods phase 4) | ~1 week | done (local) |
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | |
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | |
@@ -203,7 +203,7 @@ The Wild Woods today is one island: about 10 forage spots, 4 digs a day, the Mus
   - mist makes rare finds a little likelier;
   - nothing is ever only available in one weather (cozy rule).
 
-**Phase 4 (1.22 The Ancient Grove):**
+**Phase 4 (1.23 The Ancient Grove, built 17 Oct):** the grove is a fourth region island (`grove`, feature `oak`) opened by the Root Path at level 40; the Elder Oak has 5 stages (restoration rooms `grove_*`, opened by level and growing days) with the planned perks ("a fifth daily pan" became one more than the creek's six). See BALANCE.md.
 - A fifth area at the heart of the forest: the **Elder Oak**, a huge tree that grows over months as you bring it offerings (woods produce, Lodge goods, gold-star items).
 - Each growth stage gives a lasting woods perk:
   - better forage quality;

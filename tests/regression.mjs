@@ -382,6 +382,52 @@ try {
     check('a camp morning pays once', r.ready === 'ready' && r.got >= 4 && r.gained === r.got && !r.again, JSON.stringify(r));
   }
 
+  // 1.23 the Ancient Grove: the Elder Oak's stages open in order after the Root Path and a growing wait; each stage's
+  // perk turns on (forage stars, a pan, twice-a-day critters, a dig) and the last hands out the sapling once
+  {
+    const at = (hour) => { const n = new Date(); const t = new Date(n); t.setHours(hour, 30, 0, 0); return t.getTime() - n.getTime(); };
+    const w = copy(); w.player.level = 65; w.debugTimeOffset = at(14);
+    w.restoration = { given: {}, done: ['trail_hollow', 'trail_creek', 'trail_pines'], seen: [] };
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, G = window.__woods.grove, W = window.__woods.sys, C = window.__woods.critters, R = window.__restoration;
+      const DAY = 86400000;
+      const noPath = G.stageLock('grove_roots');
+      g.state.restoration.done.push('trail_grove');
+      const rootsOpen = R.isOpen('grove_roots'), shootShut = G.stageLock('grove_shoot');
+      const pans0 = W.pansLeft('creek'), digs0 = W.digsLeft();
+      // fill the roots for real: every bundle through restoration.give
+      const fill = (id) => { const room = R.room(id); for (const b of room.bundles) for (const [it, n] of Object.entries(b.wants)) { if (it === 'coins') g.addCoins(n); else g.addItem(it, n, undefined, b.minStar ?? 0); R.give(id, b.id, it); } };
+      fill('grove_roots');
+      const rootsDone = R.isDone('grove_roots'), growing = G.stageLock('grove_shoot');
+      g.state.debugTimeOffset += 8 * DAY;
+      const shootOpen = R.isOpen('grove_shoot');
+      fill('grove_shoot');
+      const pans1 = W.pansLeft('creek');
+      g.state.debugTimeOffset += 11 * DAY; fill('grove_boughs');
+      // twice-a-day critters
+      g.addItem('carrot', 2); C.feed('rabbit', 'carrot'); const v1 = !!C.visit('rabbit'); C.feed('rabbit', 'carrot'); const v2 = !!C.visit('rabbit'); const v3 = !!C.visit('rabbit');
+      g.state.debugTimeOffset += 15 * DAY; fill('grove_canopy');
+      const digs1 = W.digsLeft();
+      g.state.debugTimeOffset += 22 * DAY;
+      const sap0 = g.state.storage.elder_oak_sapling ?? 0;
+      fill('grove_crown');
+      const sap1 = g.state.storage.elder_oak_sapling ?? 0;
+      return { noPath, rootsOpen, shootShut, rootsDone, growing, shootOpen, pans0, pans1, digs0, digs1, v1, v2, v3, sap0, sap1, done: G.stagesDone(), oak: !!g.state.restoration.oak, times: Object.keys(g.state.restoration.grove ?? {}).length };
+    });
+    check('the Elder Oak needs the Root Path and grows in order', /Root Path/.test(r.noPath) && r.rootsOpen && /Waking Roots/.test(r.shootShut), JSON.stringify(r));
+    check('each Elder Oak stage waits for the oak to grow', r.rootsDone && /growing/.test(r.growing) && r.shootOpen, JSON.stringify(r));
+    check('Elder Oak perks: one more pan, twice-a-day critters, one more dig', r.pans1 === r.pans0 + 1 && r.v1 && r.v2 && !r.v3 && r.digs1 === r.digs0 + 1, JSON.stringify(r));
+    check('the whole Elder Oak gives the sapling once', r.done === 5 && r.oak && r.sap1 === r.sap0 + 1 && r.times === 5, JSON.stringify(r));
+    await page.evaluate(() => dispatchEvent(new Event('pagehide')));
+    await page.reload();
+    await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const kept = (await state()).restoration;
+    check('Elder Oak progress is saved', kept.done.filter((x) => x.startsWith('grove_')).length === 5 && Object.keys(kept.grove ?? {}).length === 5 && kept.oak > 0, JSON.stringify(kept.grove));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

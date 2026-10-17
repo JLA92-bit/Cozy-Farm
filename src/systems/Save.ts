@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CRITTERS, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, CRITTERS, CROP, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -97,7 +97,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     // 1.20 Woodland Friends: visits per known family, a treat only if it is a real item, Wren's note for one day
     ...(isObj(s.woods.critters) ? { critters: Object.fromEntries(Object.entries(s.woods.critters).filter(([k, v]) => CRITTERS.families.some((c) => c.id === k) && isObj(v)).map(([k, v]) => {
       const c = v as Record<string, unknown>;
-      return [k, { visits: Number.isFinite(c.visits) ? Math.max(0, Math.floor(c.visits as number)) : 0, ...(typeof c.treat === 'string' && ITEMS[c.treat] ? { treat: c.treat } : {}), ...(typeof c.seen === 'string' ? { seen: c.seen } : {}) }];
+      return [k, { visits: Number.isFinite(c.visits) ? Math.max(0, Math.floor(c.visits as number)) : 0, ...(typeof c.treat === 'string' && ITEMS[c.treat] ? { treat: c.treat } : {}), ...(typeof c.seen === 'string' ? { seen: c.seen } : {}), ...(Number.isInteger(c.seenN) && (c.seenN as number) > 1 ? { seenN: c.seenN as number } : {}) }];
     })) } : {}),
     ...(isObj(s.woods.note) && typeof s.woods.note.day === 'string' && typeof s.woods.note.item === 'string' && ITEMS[s.woods.note.item] && Number.isInteger(s.woods.note.n) && s.woods.note.n > 0
       ? { note: { day: s.woods.note.day, item: s.woods.note.item, n: s.woods.note.n, done: s.woods.note.done === true } } : {}),
@@ -157,7 +157,8 @@ function repairRestoration(v: unknown): SaveData['restoration'] {
     }
   }
   const seeds = isObj(v.seeds) && typeof v.seeds.day === 'string' ? { day: v.seeds.day, bought: Math.floor(finite(v.seeds.bought, 0, 0)) } : undefined;
-  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined, manor: typeof v.manor === 'number' && v.manor > 0 ? v.manor : undefined };
+  return { given, done: strArr(v.done), seen: strArr(v.seen), seeds, intro: typeof v.intro === 'number' ? v.intro : undefined, festival: typeof v.festival === 'number' && v.festival > 0 ? v.festival : undefined, manor: typeof v.manor === 'number' && v.manor > 0 ? v.manor : undefined,
+    grove: isObj(v.grove) ? countMap(v.grove, (k) => k.startsWith('grove_') && !!ROOM[k]) : undefined, oak: typeof v.oak === 'number' && v.oak > 0 ? v.oak : undefined };
 }
 
 const finite = (v: unknown, def: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : def);

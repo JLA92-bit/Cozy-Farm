@@ -350,7 +350,7 @@ releases?.forEach((r, i) => {
       if (!items[e.id] || items[e.id].cat !== 'forage') err(`woods region ${r.id}: forage ${e.id} must be an item with cat "forage"`);
       if (!['leaf', 'flower', 'berry', 'mushroom', 'nut', 'root'].includes(e.kind)) err(`woods region ${r.id}: forage ${e.id} has unknown kind ${e.kind}`);
     }
-    if (!['fireflies', 'panning', 'taps'].includes(r.feature)) err(`woods region ${r.id}: unknown feature ${r.feature}`);
+    if (!['fireflies', 'panning', 'taps', 'oak'].includes(r.feature)) err(`woods region ${r.id}: unknown feature ${r.feature}`);
     if (r.feature === 'fireflies' && !items[r.fireflies?.item]) err(`woods region ${r.id}: firefly item missing`);
     if (r.feature === 'panning') for (const e of r.pan?.table ?? []) if (!items[e.id]) err(`woods region ${r.id}: pan find ${e.id} is not an item`);
     if (r.feature === 'taps') for (const e of r.taps?.items ?? []) if (!items[e.id]) err(`woods region ${r.id}: tap item ${e.id} is not an item`);
@@ -367,6 +367,32 @@ releases?.forEach((r, i) => {
         if (!(Number.isInteger(n) && n > 0)) err(`woods trail ${t.id}/${b.id}: ${it} needs a whole number above 0`);
       }
     }
+  }
+  // 1.23 the Ancient Grove: the Elder Oak's stages are restoration rooms (grove_<stage>) with real items, growing in order
+  const gv = wd.grove;
+  if (gv) {
+    const gIds = new Set();
+    let prevAt = 0;
+    for (const st of gv.stages ?? []) {
+      if (!/^grove_[a-z]+$/.test(st.id) || gIds.has(st.id) || trailIds.has(st.id)) err(`grove stage ${st.id}: id must be a new, unique grove_<name>`);
+      gIds.add(st.id);
+      if (!villagers.has(st.villager)) err(`grove stage ${st.id}: unknown villager ${st.villager}`);
+      if (icons && !icons[st.icon]) err(`grove stage ${st.id}: unknown icon ${st.icon}`);
+      if (!st.name || !st.about || !st.rebuilds || !st.reward?.text) err(`grove stage ${st.id}: needs name, about, rebuilds and a reward text`);
+      if (!(st.opensAt >= prevAt) || !(st.growDays >= 0)) err(`grove stage ${st.id}: opensAt must not go down and growDays must be 0 or more`);
+      prevAt = st.opensAt;
+      if (st !== gv.stages.at(-1) && (!st.letter?.title || !st.letter?.body)) err(`grove stage ${st.id}: needs a letter`);
+      for (const b of st.bundles ?? []) {
+        if (icons && !icons[b.icon]) err(`grove stage ${st.id}/${b.id}: unknown icon ${b.icon}`);
+        if (b.minStar !== undefined && b.minStar !== 1 && b.minStar !== 2) err(`grove stage ${st.id}/${b.id}: minStar must be 1 or 2`);
+        for (const [it, n] of Object.entries(b.wants ?? {})) {
+          if (it !== 'coins' && !items[it]) err(`grove stage ${st.id}/${b.id}: unknown item ${it}`);
+          if (!(Number.isInteger(n) && n > 0)) err(`grove stage ${st.id}/${b.id}: ${it} needs a whole number above 0`);
+        }
+      }
+    }
+    const decor = read('buildings.json').buildings.find((b) => b.id === gv.finale?.decor);
+    if (!decor) err(`grove finale: decor ${gv.finale?.decor} is not a building`);
   }
   // 1.20 Woodland Friends: each critter family lives in the glade or a region, eats real items and gives real items
   const cr = wd.critters;
@@ -407,7 +433,7 @@ releases?.forEach((r, i) => {
   for (const room of read('restoration.json').rooms) for (const b of room.bundles) Object.keys(b.wants).forEach(add);
   for (const w of read('manor.json').wings) for (const b of w.bundles) Object.keys(b.wants).forEach(add);
   const wd = read('woods.json');
-  for (const t of wd.trails ?? []) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
+  for (const t of [...(wd.trails ?? []), ...(wd.grove?.stages ?? [])]) for (const b of t.bundles) Object.keys(b.wants).forEach(add);
   for (const c of wd.critters?.families ?? []) c.treats.forEach(add);
   for (const s of read('museum.json').shelves) (s.items ?? []).forEach(add);
   for (const a of read('animals.json').animals) add(a.feed);

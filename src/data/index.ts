@@ -228,6 +228,8 @@ export const MASTERY = masteryJson;
 export interface BundleDef { id: string; name: string; icon: string; wants: Record<string, number>; minStar?: 1 | 2 }
 export interface RoomDef {
   id: string; name: string; icon: string; color: string; villager: string; opensAt: number; soon?: boolean;
+  /** 1.23 Elder Oak stages: days after the previous stage was finished before this one opens */
+  growDays?: number;
   about: string; rebuilds: string; reward: { id: string; text: string };
   letter: { title: string; body: string };
   bundles: BundleDef[];
@@ -308,7 +310,7 @@ export const WOODS = woodsJson as unknown as {
 };
 /** 1.19 The Deep Woods: an island round the glade, opened by restoring its trail. */
 export interface WoodsRegion {
-  id: string; name: string; icon: string; trail: string; at: [number, number]; r: number; feature: 'fireflies' | 'panning' | 'taps';
+  id: string; name: string; icon: string; trail: string; at: [number, number]; r: number; feature: 'fireflies' | 'panning' | 'taps' | 'oak';
   forage: { spots: number; chance: number }; foraged: { id: string; kind: ForageKind; w: number }[];
   fireflies?: { count: number; from: number; to: number; item: string };
   pan?: { spots: number; perDay: number; table: { id: string; w: number }[] };
@@ -331,6 +333,15 @@ export const WREN = (woodsJson as unknown as {
 }).wren;
 export const WOODS_TRAILS = (woodsJson as unknown as { trails: RoomDef[] }).trails;
 for (const t of WOODS_TRAILS) ROOM[t.id] = t;
+/** 1.23 The Ancient Grove: the Elder Oak's stages are restoration rooms too (ids grove_<stage>), see src/systems/Grove.ts. */
+export interface GroveDef {
+  effects: { forageSilver: number; forageGold: number; extraPans: number; critterVisits: number; extraDigs: number };
+  finale: { coins: number; gems: number; decor: string; title: string; body: string };
+  stages: RoomDef[];
+}
+export const GROVE = (woodsJson as unknown as { grove: GroveDef }).grove;
+export const GROVE_STAGES = GROVE.stages;
+for (const s of GROVE_STAGES) ROOM[s.id] = s;
 
 /** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */
 export interface MuseumShelf { id: string; name: string; icon: string; items?: string[]; kind?: 'gold'; slots?: number; reward: { coins: number; gems: number } }

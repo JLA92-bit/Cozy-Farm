@@ -743,3 +743,19 @@ New content up to `authoredMax` 120, so every level from 101 to 120 unlocks some
 | Master | new challenge "Pick {n} wild forage in the Wild Woods" (base 25) |
 
 Uses: the crops go on the Garden boat, the fruit, olive oil, plum jam and cranberry sauce on the Orchard boat, the dishes on the Baker's, Dairy, Sweet Tooth and Picnic boats, and each villager likes two of the new goods.
+
+## 1.23 The Ancient Grove (`woods.json` `grove`, `src/systems/Grove.ts`)
+
+**The Root Path** (`trail_grove`, level 40, Hazel): iron ore 12, quartz 6, jade 2; morel 3, river pearl 2, pine resin 10, firefly 6; herbal salve 10, pinecone wreath 6, forest tea 10; 80,000 coins. It opens the Ancient Grove island (7 forage spots: acorn, moonflower, hazelnut, moss, chanterelle, rare morel).
+
+**The Elder Oak** grows in 5 stages. Each opens after the one before, its level, and `growDays` since the stage before was finished, so the whole oak takes at least 52 days after the Root Path:
+
+| Stage | Level | Wait | Asks for (gold = gold-star items only) | Lasting bonus |
+| --- | --- | --- | --- | --- |
+| Waking Roots | 42 | - | water lilies, watercress, maple sap; moss, ferns, acorns; herbal salve, mushroom tea | woods forage +10% silver, +4% gold chance |
+| The Green Shoot | 46 | 7 days | acorns, bluebells, moonflowers; elderberry cordial, hazelnut brittle; gold pumpkins and strawberries | +1 pan a day at Crystal Creek |
+| Spreading Boughs | 50 | 10 days | chestnuts, pinecones, lingonberries; bramble crumble, holly wreaths, maple candy; gold milk and eggs; 150,000 coins | critter families visit twice a day (a treat each time) |
+| The Glowing Canopy | 55 | 14 days | fireflies, moonflowers, gold flakes; firefly lanterns, pine candles, resin varnish; gold cheese and bread; 250,000 coins | the canopy glows at night; +1 dig a day |
+| The Elder Crown | 60 | 21 days | 80 acorns, 3 golden acorns, 3 owl feathers; woodland feasts and pies, elderberry cordial; gold apple pies and strawberry cakes; 400,000 coins | finale: Elder Oak Sapling decor (charm 400), 120,000 coins, 150 gems |
+
+New Lodge goods: acorn bread (level 40, 3 acorns and 2 wheat, sells 90) and moonflower tea (level 42, 2 moonflowers, river mint and sugar, sells 220), x1.7 their ingredients like the other Lodge goods. Acorn bread is on the Baker's boat, moonflower tea on the Picnic boat; Pip likes acorn bread, Juniper moonflower tea.

@@ -171,7 +171,7 @@ export interface WoodsState {
   /** 1.19 when each Whispering Pines tap was last emptied (ms), by tap id `<region>:<n>`; missing = full now */
   taps?: Record<string, number>;
   /** 1.20 critter families by id: visits so far, the treat waiting on the stump and the local day of the last visit */
-  critters?: Record<string, { visits: number; treat?: string; seen?: string }>;
+  critters?: Record<string, { visits: number; treat?: string; seen?: string; /** 1.23 visits on the `seen` day (missing = 1) */ seenN?: number }>;
   /** 1.20 Wren's field note for `day`: bring n of item (done once given); notesDone counts every note ever given */
   note?: { day: string; item: string; n: number; done: boolean };
   notesDone?: number;
@@ -207,6 +207,10 @@ export interface RestorationState {
   festival?: number;
   /** 1.18 when every wing of Willowmere Manor was rebuilt (the grand opening) */
   manor?: number;
+  /** 1.23 when each stage of the Elder Oak was finished (ms, grove_<stage>): the next one grows from then */
+  grove?: Record<string, number>;
+  /** 1.23 when the Elder Oak was whole (the finale was handed out) */
+  oak?: number;
 }
 
 /** Friendship with one villager. 100 points = 1 heart, 0..1000 (10 hearts). Points never drop from not playing. */

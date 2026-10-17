@@ -4,8 +4,9 @@
  * bundle of a room is full the room is rebuilt for good and its reward turns on (see RestorationEffects.ts).
  * Rooms marked `soon` in restoration.json open in a later update.
  */
-import { MANOR, MANOR_WINGS, RESTORATION, ROOMS, ROOM, type BundleDef, type RoomDef } from '../data';
+import { GROVE, GROVE_STAGES, MANOR, MANOR_WINGS, RESTORATION, ROOMS, ROOM, type BundleDef, type RoomDef } from '../data';
 import { isWing, manorFinished, wingOpen } from './Manor';
+import { groveFinished, isStage, stageOpen } from './Grove';
 import { game } from './Game';
 import { saves } from './Save';
 import { mail } from './Mail';
@@ -31,7 +32,7 @@ class RestorationSystem {
   room(id: string): RoomDef | undefined { return ROOM[id]; }
 
   /** A room can be worked on once it is built in this version and the player has reached its level. */
-  isOpen(id: string): boolean { if (isWing(id)) return wingOpen(id); const r = ROOM[id]; return !!r && !r.soon && game.level >= r.opensAt; }
+  isOpen(id: string): boolean { if (isWing(id)) return wingOpen(id); if (isStage(id)) return stageOpen(id); const r = ROOM[id]; return !!r && !r.soon && game.level >= r.opensAt; }
   isSoon(id: string): boolean { return !!ROOM[id]?.soon; }
   isDone(id: string): boolean { return roomDone(id); }
 
@@ -70,7 +71,7 @@ class RestorationSystem {
   /** Bundles waiting for something the player has right now (the dot on the Village screen). */
   givable(): number {
     let n = 0;
-    for (const r of [...ROOMS, ...MANOR_WINGS]) {
+    for (const r of [...ROOMS, ...MANOR_WINGS, ...GROVE_STAGES]) {
       if (!this.isOpen(r.id) || this.isDone(r.id)) continue;
       for (const b of r.bundles) if (!this.bundleDone(r.id, b.id) && this.lines(r.id, b.id).some((l) => l.left > 0 && this.canGive(r.id, b.id, l.item) > 0)) n++;
     }
@@ -139,10 +140,11 @@ class RestorationSystem {
     const farmer = game.state.player.name;
     if (r.letter.title) mail.send(r.villager, r.letter.title, r.letter.body.split('{farmer}').join(farmer));
     game.bus.emit('restoration:room', { room });
-    game.bus.emit('toast', { title: `${r.name} is rebuilt!`, sub: r.reward.text, icon: r.icon });
+    game.bus.emit('toast', { title: isStage(room) ? `${r.name}: the Elder Oak grows!` : `${r.name} is rebuilt!`, sub: r.reward.text, icon: r.icon });
     game.bus.emit('sfx', { name: 'levelup' });
     logEvent('room_done', { room, level: game.level, rooms: this.roomsDone() });
     if (isWing(room)) { if (manorFinished()) this.manorFinale(); return; }
+    if (isStage(room)) { (st.grove ??= {})[room] = game.now(); if (groveFinished()) this.oakFinale(); return; }
     if (ROOMS.every((x) => st.done.includes(x.id))) this.startFestival();
   }
 
@@ -178,6 +180,20 @@ class RestorationSystem {
     logEvent('manor_done', { level: game.level });
   }
   manorOpenedAt(): number | undefined { return game.state.restoration?.manor; }
+
+  /** 1.23 The Elder Oak is whole: a sapling for the farm and Rosa's letter from the whole valley, once. */
+  private oakFinale(): void {
+    const st = this.st;
+    if (st.oak) return;
+    st.oak = game.now();
+    const f = GROVE.finale;
+    game.state.storage[f.decor] = (game.state.storage[f.decor] ?? 0) + 1;
+    game.discover(f.decor, 'building');
+    mail.send('rosa', f.title, f.body.split('{farmer}').join(game.state.player.name), { coins: f.coins, gems: f.gems });
+    game.incStat('elder_oak');
+    game.bus.emit('toast', { title: 'The Elder Oak is whole!', sub: 'A sapling of it is waiting in your storage.', icon: 'oak' });
+    logEvent('oak_done', { level: game.level });
+  }
 
   /** Rosa's rare seeds (Pantry): how many can still be bought today. */
   seedsLeftToday(): number {

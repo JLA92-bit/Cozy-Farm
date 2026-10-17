@@ -14,6 +14,8 @@ export const FORAGE_COLOR: Record<string, string> = {
   moss: '#5f9a3a', bluebell: '#6f86e8', puffball: '#f2eee2', wild_garlic: '#7fcf6a', elderberry: '#3a2a52', morel: '#b08a5a',
   watercress: '#6fd06a', river_mint: '#8fe0b0', cattail: '#8a5a34', water_lily: '#ffc2dc', wild_strawberry: '#e8424f',
   pinecone: '#8a6238', chestnut: '#9a5a2a', lingonberry: '#d8303a', pine_bolete: '#a86a3a', sloe: '#4a4a8a',
+  // 1.23 the Ancient Grove
+  acorn: '#b07a3a', moonflower: '#f4f0ff',
 };
 
 /** A wild plant (a small patch about 0.7 wide) of the given shape and colour. */
@@ -225,4 +227,54 @@ export function owlGeometry(): THREE.BufferGeometry {
     .cyl(0.03, 0.03, 0.06, '#e8a838', [0.06, 0, 0.04], 4)
     .cyl(0.03, 0.03, 0.06, '#e8a838', [-0.06, 0, 0.04], 4)
     .build();
+}
+
+/**
+ * 1.23 the Elder Oak at `stage` 0 (asleep: bare, grey-brown branches) to 5 (whole: a wide crown taller than any tree in
+ * the woods). Roots and trunk thicken and the canopy fills and greens with each stage. About 6 wide at stage 5.
+ */
+export function elderOakGeometry(stage: number): THREE.BufferGeometry {
+  const s = Math.max(0, Math.min(5, stage));
+  const b = geo();
+  const bark = s === 0 ? '#7a6a58' : '#6a4a2e', rootC = s === 0 ? '#6e604f' : '#5e4128';
+  const trunkH = 3.2 + s * 0.55, trunkR = 0.75 + s * 0.08;
+  b.cyl(trunkR * 0.78, trunkR * 1.25, trunkH, bark, [0, 0, 0], 10);
+  // roots spread round the foot
+  for (let i = 0; i < 7; i++) {
+    const a = i * 0.9 + 0.3;
+    b.cone(0.32 + s * 0.03, 1.5 + s * 0.12, rootC, [Math.cos(a) * trunkR * 0.95, -0.15, Math.sin(a) * trunkR * 0.95], 5, [Math.sin(a) * 1.25, 0, -Math.cos(a) * 1.25]);
+  }
+  // knots and moss on the bark
+  b.sphere(0.2, '#4e3720', [trunkR * 0.75, trunkH * 0.45, 0.2], 0, [0.6, 1, 0.6]);
+  b.sphere(0.32, s === 0 ? '#7f8a5a' : '#5f9a3a', [-trunkR * 0.7, 0.35, trunkR * 0.4], 0, [1.2, 0.5, 1]);
+  // boughs: more and longer with every stage
+  const boughs = 4 + s;
+  for (let i = 0; i < boughs; i++) {
+    const a = (i / boughs) * Math.PI * 2 + 0.4, len = s === 0 ? 2.4 : 1.4 + s * 0.3, y = trunkH * (0.62 + (i % 3) * 0.1);
+    const tip: [number, number, number] = [Math.cos(a) * len * 0.55, y + len * 0.42, Math.sin(a) * len * 0.55];
+    b.cyl(0.1 + s * 0.012, 0.22 + s * 0.02, len, bark, [tip[0] * 0.5, y + len * 0.21 - len / 2, tip[2] * 0.5], 6, [Math.sin(a) * 0.95, 0, -Math.cos(a) * 0.95]);
+    if (s === 0) b.cyl(0.04, 0.07, 0.8, bark, [tip[0] * 1.2, tip[1] - 0.1, tip[2] * 1.2], 4, [Math.sin(a + 0.6) * 0.6, 0, -Math.cos(a + 0.6) * 0.6]);
+  }
+  if (s === 0) {
+    // a few last brown leaves
+    for (let i = 0; i < 5; i++) { const a = i * 1.3; b.sphere(0.22, '#a5864a', [Math.cos(a) * 1.4, trunkH + 0.5, Math.sin(a) * 1.4], 0, [1, 0.6, 1]); }
+    return b.build();
+  }
+  // the canopy: clumps of leaves in rings, more, larger and greener stage by stage
+  const greens = ['#9aa84a', '#7fb04a', '#5fa83f', '#4f9a3a', '#3f8a35'];
+  const g = greens[s - 1], g2 = greens[Math.max(0, s - 2)];
+  const top = trunkH + 0.4, spread = 1.2 + s * 0.48, clump = 0.7 + s * 0.17;
+  const rings: [number, number, number][] = [[0.0, top + 0.6 + s * 0.25, 1], [spread * 0.55, top + 0.2 + s * 0.12, 5], [spread, top - 0.3, 7 + s]];
+  rings.forEach(([d, y, n], k) => {
+    if (k === 2 && s < 2) return;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + k * 0.5;
+      b.sphere(clump * (k === 0 ? 1.25 : 1), i % 2 ? g : g2, [Math.cos(a) * d, y + (i % 3) * 0.12, Math.sin(a) * d], 1, [1, 0.8, 1]);
+    }
+  });
+  if (s >= 3) for (let i = 0; i < 6 + s * 2; i++) {
+    const a = i * 2.4, d = spread * (0.3 + ((i * 7) % 10) / 14);
+    b.sphere(0.09, '#b07a3a', [Math.cos(a) * d, top - 0.6 + (i % 4) * 0.35, Math.sin(a) * d], 0);
+  }
+  return b.build();
 }

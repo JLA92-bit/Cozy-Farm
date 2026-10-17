@@ -160,6 +160,12 @@ export const ICON_VARIANTS = {
   shed_antler: { base: 'bone', hue: 30, sat: 0.6, light: 0.8, badge: 'deer' },
   silver_spoon: { base: 'spoon', sat: 0.3, light: 1.1, badge: 'sparkles' },
   owl_feather: { base: 'feather', hue: 25, sat: 0.7, light: 0.8 },
+  // 1.23 The Ancient Grove
+  oak: { base: 'deciduous-tree', hue: -10, sat: 1.1, light: 0.85 },
+  acorn: { base: 'chestnut', hue: 28, sat: 0.75, light: 0.9, flip: true },
+  moonflower: { base: 'hibiscus', hue: 190, sat: 0.25, light: 1.45 },
+  acorn_bread: { base: 'bread', hue: -12, sat: 0.8, light: 0.8, badge: 'chestnut' },
+  moonflower_tea: { base: 'teacup-without-handle', hue: 170, sat: 0.6, light: 1.1, badge: 'hibiscus' },
   // 1.22 Orchard Days: crops, fruit and dishes for levels 101-120 (peach.svg already exists)
   rice: { base: 'sheaf-of-rice' },
   garlic: { base: 'garlic' },

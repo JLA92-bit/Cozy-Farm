@@ -14,6 +14,8 @@ import { assets } from '../core/Assets';
 import { audio } from '../systems/Audio';
 import { hints } from '../systems/Hints';
 import { critters } from '../systems/Critters';
+import * as grove from '../systems/Grove';
+import { currentStage } from '../systems/Grove';
 import { sayHello } from '../ui/panels/CritterPanel';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import { isInSquare } from './Square';
@@ -54,9 +56,9 @@ export function initWoods(scene: FarmScene, interaction: Interaction): void {
   ui.extraPick = (ray) => gate.pick(ray) ?? prevPick?.(ray) ?? null;
   game.bus.on('woods:changed', () => { view?.refresh(); updateBanner(); });
   // 1.19 a trail restored: its bridge is whole and the region opens
-  game.bus.on('restoration:room', ({ room }) => { if (room.startsWith('trail_')) { view?.refresh(); updateBanner(); } });
+  game.bus.on('restoration:room', ({ room }) => { if (room.startsWith('trail_') || room.startsWith('grove_')) { view?.refresh(); updateBanner(); } });
   game.bus.on('state:changed', () => { if (inWoods) view?.refresh(); });
-  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods, critters } });
+  Object.assign(window as unknown as Record<string, unknown>, { __woods: { enter: enterWoods, leave: () => leaveWoods(), get active() { return inWoods; }, get view() { return view; }, gate, sys: woods, critters, grove } });
 }
 
 async function loadView(): Promise<WoodsView> {
@@ -220,6 +222,14 @@ function act(hit: WoodsHit): void {
     return;
   }
   // 1.19 the Deep Woods
+  // 1.23 the Elder Oak: the stage growing now (or a word from the old tree once it is whole)
+  if (hit.kind === 'oak') {
+    if (!woods.regionOpen('grove')) { ui.feedback.toast('The Ancient Grove is closed', `Restore ${ROOM.trail_grove?.name ?? 'the Root Path'} at the sign to get there.`, 'lock'); return; }
+    const st = currentStage();
+    if (st) ui.open('square-room', { room: st.id });
+    else ui.feedback.toast('The Elder Oak', 'Whole again, and glowing every night. The whole forest is grateful.', 'oak');
+    return;
+  }
   if (hit.kind === 'trail') { const reg = WOODS_REGIONS.find((r) => r.id === hit.id); if (reg) ui.open('square-room', { room: reg.trail }); return; }
   if (hit.kind === 'pan' || hit.kind === 'tap') {
     const reg = WOODS_REGIONS.find((r) => r.id === (hit.kind === 'tap' ? hit.id?.split(':')[0] : hit.id));

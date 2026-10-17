@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { geo, PAL, rng, type GeoBuilder } from '../Procedural';
 import { assets } from '../../core/Assets';
+import { elderOakGeometry } from './woods';
 
 /**
  * "Pretty farm" decor: the cosy campfire and small personal pieces (farm sign, bench, bunting, fairy lights,
@@ -299,6 +300,15 @@ export const DECOR_PROC: Record<string, () => THREE.BufferGeometry> = {
     return b.build();
   },
   /** A painted market cart heaped with fruit under a striped awning. */
+  // 1.23 a sapling of the Elder Oak (the grove's finale): the same tree, small
+  elder_oak_sapling: () => {
+    const g = elderOakGeometry(5);
+    g.scale(0.32, 0.32, 0.32);
+    const b = geo().geometry(g, null);
+    b.cyl(0.62, 0.66, 0.1, '#6a4a2e', [0, 0, 0], 12);
+    b.cyl(0.56, 0.56, 0.02, '#5f9a3a', [0, 0.1, 0], 12);
+    return b.build();
+  },
   fruit_cart: () => {
     const b = geo();
     b.block(1.1, 0.32, 0.66, '#3fa06a', [0, 0.32, 0]);
