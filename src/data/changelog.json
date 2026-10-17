@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.28.3",
+   "date": "2026-10-17",
+   "title": "Moving Again",
+   "icon": "hammer",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "pumpkin",
+     "text": "Fixed: with the Halloween look on, the spooky glow round the screen caught every touch, so you could not move around or tap your farm"
+    },
+    {
+     "icon": "info",
+     "text": "Messages that pop up at the top no longer block taps underneath them"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.2",
    "date": "2026-10-17",
    "title": "Good Neighbours",

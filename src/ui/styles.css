@@ -335,7 +335,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .chip-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 
 /* ---------- Toasts / floating ---------- */
-.toast-stack { position: absolute; top: calc(var(--safe-top) + 72px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 80; pointer-events: none; width: min(92vw, 380px); }
+.toast-stack { position: absolute; top: calc(var(--safe-top) + 72px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 80; pointer-events: none !important; width: min(92vw, 380px); }
 .toast {
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; min-height: 56px;
   background: var(--cream); border: 3px solid var(--outline); border-radius: 16px; box-shadow: 0 4px 0 var(--outline);

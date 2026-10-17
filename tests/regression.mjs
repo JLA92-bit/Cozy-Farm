@@ -726,6 +726,10 @@ try {
       return { october, shown, keys: before.includes('halloween') };
     });
     check('the Halloween look shows in October only and saves nothing', r.shown === r.october && !r.keys, JSON.stringify(r));
+    // 1.28.3: the Halloween vignette covered the whole screen and swallowed every touch (#ui-root > * turned pointer
+    // events back on), so nobody could move around: the middle of an open farm must reach the 3D view
+    const hit = await page.evaluate(() => { const el = document.elementFromPoint(innerWidth / 2, innerHeight * 0.62); return el ? `${el.tagName}.${el.className}` : ''; });
+    check('nothing invisible covers the farm (touches reach the 3D view)', !!hit && !/hw-|toast-stack/.test(hit), hit);
   }
 
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different

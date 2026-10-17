@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
+**1.28.3 (17 Oct, hotfix):** the Halloween vignette (`.hw-vignette`, full screen) swallowed every touch because `#ui-root > * { pointer-events: auto }` beats a class rule; overlays that are direct children of `#ui-root` need `pointer-events: none !important` (now on the vignette, spider, ribbon and `.toast-stack`). Regression check "nothing invisible covers the farm".
+
 **1.28.2 (local, 17 Oct):** visits fix. `publish_farm` refused farms over 1,200 pieces, so big farms stopped updating for visitors; limits now 3,000 pieces / 256 KB, `fitSnapshot` drops decor then paths to fit, refusals return null and go to `farm_share_refusals`. Workshops can be helped (`tend` on a busy workshop, `helpButton`, `Neighbours.applyHelp` shortens the queue). Visit logs `farm_visit` etc. Dashboard page Visits & help (`admin/src/views/visits.ts`, `admin_visits_overview`, `admin_player_visits`, section `1.28.2 visits and help`). ONLINE.md "Shared farms and visits". 76 regression checks.
 
 **1.28.1 (local, 17 Oct):** fixes from a code review plus QoL. Co-op: `coop_give` takes an idempotency key `p_key` (client `state.coop.pending` retries on poll), `coop_before_delete` trigger refunds givers when a host deletes their account, claims keep snapshot fields (`project` set null), claims polled every 15 min even with no friends, toast when a friend starts a project. Leaderboard: XP/level never lowered by a stale save, value/charm budgets use high-water marks (`lb_value_max`, `lb_charm_max`). Farmhands keep wage money from seeds, no round on re-task, next-round time. Wild pick spheres only when visible, farm-edge visitor hints; Halloween decor hidden on visits; Square `refreshEstate()` every 20 s. Needs `schema.sql` re-run. 74 regression checks.
@@ -248,6 +250,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: 1.28.3 hotfix: the Halloween vignette blocked all touches (no moving around); overlays now pass touches through.
 - 2026-10-17: 1.28.2 (local): big farms shared again for visitors (higher limits, trimming, refusals logged), help at busy workshops, Visits & help dashboard page.
 - 2026-10-17: 1.28.1 (local): fixes and polish from a code review (co-op retries and refunds, leaderboard stale saves, farmhand wages, wild visitor taps, Halloween on visits, square refresh) plus small QoL hints.
 - 2026-10-17: 1.28.0 (local): Together, co-op Village Projects with friends (server section, exactly-once rewards, refunds, dashboard switch; privacy and Data safety updated).
@@ -257,4 +260,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.24.0 (local): Tea and Flowers (Tea House, Florist, tea leaves and roses, bouquets every villager loves, six best-friend arcs in letters).
 - 2026-10-17: 1.23.0 (local): The Ancient Grove (Root Path, the Elder Oak in 5 stages with lasting woods perks, sapling finale, acorns and moonflowers).
 - 2026-10-17: 1.22.0 (local): Orchard Days (levels 101-120: 4 crops, 3 trees, 12 dishes, 4 decor, Farmhouse 15) and leaderboard fair play (server checks).
-- 2026-10-17: leaderboard fair play (local, server + dashboard): capped growth, XP-consistent levels, flags.
