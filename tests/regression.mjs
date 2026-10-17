@@ -655,6 +655,45 @@ try {
     check('a wild visitor that is away does not take taps', r.hitKind !== 'wild', JSON.stringify(r));
   }
 
+  // 1.28.2 visits: a crowded farm is shared without some decorations (fields and workshops always stay), and a
+  // neighbour's hand at a busy workshop finishes its job sooner
+  {
+    await setStorage({ [KEY]: JSON.stringify(copy()) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, n = window.__neighbours.n;
+      for (let cx = 0; cx < 6; cx++) for (let cz = 0; cz < 6; cz++) g.unlockChunk(`${cx},${cz}`);
+      g.state.obstacles = []; g.rebuildOccupancy();
+      if (!g.state.buildings.some((b) => b.type === 'bakery')) {
+        outer: for (let z = 2; z < 44; z++) for (let x = 2; x < 44; x++) if (g.canPlace('bakery', x, z, 0)) { const b = { uid: g.newUid(), type: 'bakery', x, z, rot: 0, level: 1 }; g.state.buildings.push(b); g.markBuilding(b, b.uid); break outer; }
+      }
+      const before = g.state.buildings.length;
+      let k = 0;
+      for (let z = 0; z < 48; z++) for (let x = 0; x < 48; x++) {
+        const t = 'path_stone';
+        if (g.canPlace(t, x, z, 0)) { const b = { uid: g.newUid(), type: t, x, z, rot: 0, level: 1 }; g.state.buildings.push(b); g.markBuilding(b, b.uid); k++; }
+        if (g.canPlace('bench', x, z, 0)) { const b = { uid: g.newUid(), type: 'bench', x, z, rot: 0, level: 1 }; g.state.buildings.push(b); g.markBuilding(b, b.uid); }
+      }
+      const { snap, dropped, bytes } = window.__visit.share();
+      const kept = new Set(snap.b.map((e) => `${e[0]}:${e[1]}:${e[2]}`));
+      const coreKept = g.state.buildings.slice(0, before).every((b) => kept.has(`${b.type}:${b.x}:${b.z}`));
+      // a busy workshop: two jobs queued, a neighbour lends a hand
+      const ws = g.state.buildings.find((b) => b.type === 'bakery') ?? null;
+      let cut = -1, second = -1;
+      if (ws) {
+        const now = g.now();
+        ws.queue = [{ recipe: 'bread', start: now - 60000, end: now + 3600000 }, { recipe: 'bread', start: now + 3600000, end: now + 7200000 }];
+        const out = n.applyHelp([{ id: 'h1', owner: '', helper: { id: 'x', name: 'Rhi' }, kind: 'tend', target: { type: ws.type, x: ws.x, z: ws.z }, note: null, at: now, claimed: true }]);
+        cut = now + 3600000 - ws.queue[0].end;
+        second = ws.queue[1].start - ws.queue[0].end;
+        return { total: g.state.buildings.length, n: snap.b.length, dropped, bytes, coreKept, ok: out[0].ok, line: n.line(out[0]), cut, second };
+      }
+      return { total: g.state.buildings.length, n: snap.b.length, dropped, bytes, coreKept, ws: false };
+    });
+    check('a crowded farm is shared within the limits, keeping fields and workshops', r.total > 3000 && r.n <= 3000 && r.bytes <= 240000 && r.dropped > 0 && r.coreKept, JSON.stringify(r));
+    check('a hand at a busy workshop finishes the queue sooner', r.ok === true && r.cut > 0 && r.second === 0 && /lent a hand/.test(r.line), JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

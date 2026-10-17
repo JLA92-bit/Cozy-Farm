@@ -8,7 +8,8 @@ import { cleanSignText, isFriendlyText, isPaint } from '../systems/Decor';
 
 /**
  * A farm's public "snapshot": just what is needed to draw it for a visiting neighbour (no coins,
- * items, quests or anything else from the save). Kept compact: a big farm is well under 30 KB of JSON.
+ * items, quests or anything else from the save). Kept compact: about 30 bytes a building, so even a crowded
+ * farm of 1,400 pieces is under 45 KB of JSON.
  *
  * Growth is stored as a stage (0 sprout .. 3 ready), not as timestamps, so the visited farm looks
  * exactly as it did when the snapshot was taken.
@@ -50,7 +51,50 @@ export interface SnapExtra {
 }
 
 /** Hard limits for snapshots read from other players (a real farm is far below these). */
-export const SNAPSHOT_LIMITS = { buildings: 1200, obstacles: 600, animals: 12, json: 200_000 };
+export const SNAPSHOT_LIMITS = { buildings: 3000, obstacles: 600, animals: 12, json: 400_000 };
+
+/**
+ * What the server stores (`publish_farm`: 256 KB as Postgres prints it, 3,000 buildings). 1.28.2: a big
+ * late-game farm used to go over the old 1,200 and was refused for good, so visitors saw an old picture.
+ */
+export const SHARE_LIMITS = { buildings: 3000, bytes: 240_000 };
+
+/** Size as Postgres prints jsonb (a space after every ':' and ','), which is what its limit counts. */
+export function shareBytes(s: FarmSnapshot): number {
+  const j = JSON.stringify(s);
+  let extra = 0;
+  for (let i = 0; i < j.length; i++) { const c = j.charCodeAt(i); if (c === 44 || c === 58) extra++; }
+  return new TextEncoder().encode(j).length + extra;
+}
+
+/**
+ * The snapshot made small enough to share: when a farm is over the limits, plain decorations are left out
+ * first (from the most recently placed), then paths, so fields, trees, animals and workshops (what
+ * visitors can help with) always stay. Returns how many were left out.
+ */
+export function fitSnapshot(s: FarmSnapshot): { snap: FarmSnapshot; dropped: number; bytes: number } {
+  let bytes = shareBytes(s);
+  if (s.b.length <= SHARE_LIMITS.buildings && bytes <= SHARE_LIMITS.bytes) return { snap: s, dropped: 0, bytes };
+  const tier = (e: SnapBuilding): number => {
+    const def = BUILDING[e[0]];
+    if (!def || def.cat !== 'decor' || def.onField || def.sign) return 0;
+    return def.path ? 1 : 2;
+  };
+  const keep = s.b.map(() => true);
+  let n = s.b.length;
+  // about 30 bytes an entry: drop enough in one go, then check
+  const over = () => n > SHARE_LIMITS.buildings || bytes > SHARE_LIMITS.bytes;
+  for (const t of [2, 1]) {
+    for (let i = s.b.length - 1; i >= 0 && over(); i--) {
+      if (!keep[i] || tier(s.b[i]) !== t) continue;
+      keep[i] = false;
+      n--;
+      bytes -= JSON.stringify(s.b[i]).length + 3;
+    }
+  }
+  const snap = { ...s, b: s.b.filter((_e, i) => keep[i]) };
+  return { snap, dropped: s.b.length - snap.b.length, bytes: shareBytes(snap) };
+}
 
 /** The public snapshot of a farm. Pure: reads `state` only, at time `now`. */
 export function farmSnapshot(state: SaveData, now: number = Date.now()): FarmSnapshot {

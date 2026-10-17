@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.28.1, committed locally after 1.28.0, 1.20.1, 1.21.0, the leaderboard fair-play commit and 1.22.0-1.27.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
+Last updated: 17 October 2026 (game version 1.28.2, committed locally after 1.28.1, 1.28.0, 1.20.1, 1.21.0, the leaderboard fair-play commit and 1.22.0-1.27.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.28.1 "Fixes and Polish"** (local; before it, 1.28.0 "Together", 1.27.0 "The Treehouse and the Wildlife Album", 1.26.0 "Estate Projects" and local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove", 1.24.0 "Tea and Flowers" and 1.25.0 "Helping Hands"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.28.2 "Good Neighbours"** (local; before it, 1.28.1 "Fixes and Polish", 1.28.0 "Together", 1.27.0 "The Treehouse and the Wildlife Album", 1.26.0 "Estate Projects" and local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove", 1.24.0 "Tea and Flowers" and 1.25.0 "Helping Hands"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.28.2 (local, 17 Oct):** visits fix. `publish_farm` refused farms over 1,200 pieces, so big farms stopped updating for visitors; limits now 3,000 pieces / 256 KB, `fitSnapshot` drops decor then paths to fit, refusals return null and go to `farm_share_refusals`. Workshops can be helped (`tend` on a busy workshop, `helpButton`, `Neighbours.applyHelp` shortens the queue). Visit logs `farm_visit` etc. Dashboard page Visits & help (`admin/src/views/visits.ts`, `admin_visits_overview`, `admin_player_visits`, section `1.28.2 visits and help`). ONLINE.md "Shared farms and visits". 76 regression checks.
 
 **1.28.1 (local, 17 Oct):** fixes from a code review plus QoL. Co-op: `coop_give` takes an idempotency key `p_key` (client `state.coop.pending` retries on poll), `coop_before_delete` trigger refunds givers when a host deletes their account, claims keep snapshot fields (`project` set null), claims polled every 15 min even with no friends, toast when a friend starts a project. Leaderboard: XP/level never lowered by a stale save, value/charm budgets use high-water marks (`lb_value_max`, `lb_charm_max`). Farmhands keep wage money from seeds, no round on re-task, next-round time. Wild pick spheres only when visible, farm-edge visitor hints; Halloween decor hidden on visits; Square `refreshEstate()` every 20 s. Needs `schema.sql` re-run. 74 regression checks.
 
@@ -217,7 +219,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers), **1.25.0** (Helping Hands), **1.26.0** (Estate Projects), **1.27.0** (Treehouse and Wildlife Album) **1.28.0** (Together, needs schema.sql run and the Data safety form updated) and **1.28.1** (fixes); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers), **1.25.0** (Helping Hands), **1.26.0** (Estate Projects), **1.27.0** (Treehouse and Wildlife Album) **1.28.0** (Together, needs schema.sql run and the Data safety form updated) **1.28.1** (fixes) and **1.28.2** (visits fix, dashboard page; needs schema.sql run); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks and 1.28 co-op are pushed (1.28: `coop_*` tables and functions; then update the Play Data safety form from `store/data-safety.md`) (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
@@ -246,6 +248,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: 1.28.2 (local): big farms shared again for visitors (higher limits, trimming, refusals logged), help at busy workshops, Visits & help dashboard page.
 - 2026-10-17: 1.28.1 (local): fixes and polish from a code review (co-op retries and refunds, leaderboard stale saves, farmhand wages, wild visitor taps, Halloween on visits, square refresh) plus small QoL hints.
 - 2026-10-17: 1.28.0 (local): Together, co-op Village Projects with friends (server section, exactly-once rewards, refunds, dashboard switch; privacy and Data safety updated).
 - 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).
@@ -255,4 +258,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.23.0 (local): The Ancient Grove (Root Path, the Elder Oak in 5 stages with lasting woods perks, sapling finale, acorns and moonflowers).
 - 2026-10-17: 1.22.0 (local): Orchard Days (levels 101-120: 4 crops, 3 trees, 12 dishes, 4 decor, Farmhouse 15) and leaderboard fair play (server checks).
 - 2026-10-17: leaderboard fair play (local, server + dashboard): capped growth, XP-consistent levels, flags.
-- 2026-10-17: 1.21.0 (local): Woodcraft (Woodcraft Lodge and 12 recipes, camping, woods weather).

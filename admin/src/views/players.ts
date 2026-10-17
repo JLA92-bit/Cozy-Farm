@@ -1,3 +1,4 @@
+import { playerVisitsCard } from './visits';
 import { rpc, type PlayerRow, type PlayerDetail } from '../api';
 import { h, num, minutes, ago, date, loading, badge, modal, confirmAction, confirmTyped, toast, fail, download, csv, slug, today, field, copyText, bytes } from '../ui';
 import { calendar } from '../charts';
@@ -205,5 +206,5 @@ function render(d: PlayerDetail, redraw: () => Promise<void>): HTMLElement[] {
 
   const farm = h('section', { class: 'card' }, h('h3', null, 'Their farm'), snapData ? farmMap(snapData) : h('p', { class: 'muted' }, 'No farm layout shared yet.'));
 
-  return [head, stats, h('div', { class: 'grid-2' }, backupCard, accountCard), h('div', { class: 'grid-2' }, farm, h('div', { class: 'stack' }, activity, gifts)), h('div', { class: 'grid-2' }, notes, social)];
+  return [head, stats, h('div', { class: 'grid-2' }, backupCard, accountCard), h('div', { class: 'grid-2' }, farm, h('div', { class: 'stack' }, activity, gifts)), h('div', { class: 'grid-2' }, notes, social), h('div', { class: 'grid-2' }, playerVisitsCard(d.id))];
 }

@@ -65,6 +65,8 @@ export interface AwayEntry {
   /** "thanks anyway" coins */
   coins: number;
   note: string | null;
+  /** the helped building's type (1.28.2: workshops read "lent a hand at") */
+  type?: string;
 }
 
 export interface VisitorReward { coins: number; xp: number }
@@ -264,7 +266,7 @@ class Neighbours {
     const out: AwayEntry[] = [];
     const now = game.now();
     for (const r of rows) {
-      const base = { name: r.helper.name, helperId: r.helper.id, kind: r.kind, note: r.note };
+      const base = { name: r.helper.name, helperId: r.helper.id, kind: r.kind, note: r.note, type: r.target?.type };
       if (r.kind === 'like') {
         game.incStat('likes_received');
         out.push({ ...base, what: '', ok: true, coins: 0 });
@@ -288,6 +290,16 @@ class Neighbours {
           if (left > 0) {
             b.tree.readyAt -= Math.min(HELP.maxCutMs, left * HELP.speedUp);
             what = (TREE[def.tree]?.name ?? def.name).toLowerCase();
+            ok = true;
+          }
+        } else if (r.kind === 'tend' && def.cat === 'production') {
+          // 1.28.2: a hand at a busy workshop: the job running now (and the queue behind it) finishes sooner
+          const q = b.queue ?? [];
+          const idx = q.findIndex((e) => e.start <= now && e.end > now);
+          if (idx >= 0) {
+            const cut = Math.min(HELP.maxCutMs, (q[idx].end - now) * HELP.speedUp);
+            for (let i = idx; i < q.length; i++) { q[i].end -= cut; if (i > idx) q[i].start -= cut; }
+            what = def.name;
             ok = true;
           }
         } else if (r.kind === 'feed' && def.animal && b.animals?.length) {
@@ -318,6 +330,7 @@ class Neighbours {
   line(e: AwayEntry): string {
     if (e.kind === 'like') return `${e.name} liked your farm`;
     if (!e.ok) return `${e.name} came by to help`;
+    if (e.kind === 'tend' && BUILDING[e.type ?? '']?.cat === 'production') return `${e.name} lent a hand at your ${e.what}`;
     return `${e.name} ${HELP_DONE[e.kind]} your ${e.what}`;
   }
 

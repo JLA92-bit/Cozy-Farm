@@ -5,7 +5,7 @@ import { COOP } from '../data';
 import type { CoopClaim, CoopProject, CoopStatus } from './types';
 import { botFarm } from './BotFarms';
 import { helpKindFor } from './FarmHelp';
-import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
+import { sanitizeSnapshot, shareBytes, SHARE_LIMITS, type FarmSnapshot } from './FarmSnapshot';
 
 /**
  * Practice backend: a tiny "server" kept in this browser's localStorage, shared by all tabs of the
@@ -252,8 +252,7 @@ export class LocalBackend implements OnlineBackend {
 
   async publishFarm(snapshot: FarmSnapshot): Promise<void> {
     await this.init();
-    const txt = JSON.stringify(snapshot);
-    if (txt.length > 65536) throw new Error('farm too big');
+    if (snapshot.b.length > SHARE_LIMITS.buildings || shareBytes(snapshot) > 262144) throw new Error('farm too big');
     let farms: Record<string, unknown> = {};
     try { farms = JSON.parse(localStorage.getItem(FARMS_KEY) ?? '{}') as Record<string, unknown> ?? {}; } catch { /* corrupt: start over */ }
     farms[this.id] = snapshot;

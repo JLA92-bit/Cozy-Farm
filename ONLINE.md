@@ -195,6 +195,15 @@ The server checks every profile update before it reaches the leaderboards (`upse
 
 After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`.
 
+## Shared farms and visits (1.28.2)
+
+Visitors see the picture of a farm the owner's game last shared, so a farm that cannot be shared looks old and help misses. Until 1.28.2 `publish_farm` refused any farm over 1,200 pieces (paths, fences and decorations count), so big late-game farms were stuck for good.
+
+- **Limits** are now 3,000 pieces and 256 KB (`publish_farm`, the `farm_snapshots` check). The game measures its picture the way Postgres does and, if it is still too big, leaves out plain decorations, then paths (`fitSnapshot` in `src/online/FarmSnapshot.ts`), never fields, trees, animal homes or workshops.
+- **Refusals are written down:** `publish_farm` returns null instead of an error and stores the reason in `farm_share_refusals` (one row per player, on delete cascade). The dashboard's Visits & help page lists players who played lately but whose picture is 2+ days old, with that reason.
+- **Game events** (only with real online play): `farm_visit` once back home (how many things needed help, helped, liked, refused reason, picture age, minutes), `farm_visit_failed`, `farm_share_trimmed` and `farm_share_failed` (once a session each).
+- Run the whole `schema.sql` again after pulling this update.
+
 ## Village Projects (1.28 co-op)
 
 Friends build something together: a player hosts one project (the Friendship Footbridge from level 20, the Community Garden from 25, Fireworks Night from 35) and their friends add goods to it. Section `1.28 co-op village projects` in `supabase/schema.sql`, game side `src/systems/Coop.ts`, numbers in `src/data/coop.json`.
@@ -249,7 +258,7 @@ After pulling this update, **run the whole `schema.sql` again** in the Supabase 
   and pet, level and charm, as of the last time it was shared (at most every 5 minutes while playing and when the
   game is put in the background). Coins, items and the rest of the save are not in it. Visits are view only.
 - **Helping neighbours:** a visitor can help each neighbour once per UTC day (water a growing field, feed an
-  animal home or tend a fruit tree) and like their farm once per UTC day with an optional guestbook note picked
+  animal home, tend a fruit tree or, from 1.28.2, lend a hand at a busy workshop, stored as `tend`) and like their farm once per UTC day with an optional guestbook note picked
   from a preset list (no free text). These are rows in `farm_help`, written only through `help_farm()` and
   `like_farm()`, which refuse your own farm, unknown players, a second help or like on the same day, unknown
   notes, more than 50 rows per farm per day and more than 200 per helper per day. Owners read their own rows

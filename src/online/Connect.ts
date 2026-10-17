@@ -6,8 +6,9 @@ import { ensureOnline, profileStats } from './Profile';
 import { setOnlineStatus } from './Status';
 import { SupabaseBackend } from './SupabaseBackend';
 import { trackWeeklyXp } from './Weekly';
-import { farmSnapshot, snapshotKey } from './FarmSnapshot';
+import { farmSnapshot, fitSnapshot, snapshotKey } from './FarmSnapshot';
 import { visiting } from '../systems/Visiting';
+import { logEvent } from './Events';
 
 /** True when this build was made with a real online server (see ONLINE.md). */
 export function onlineConfigured(): boolean {
@@ -91,6 +92,8 @@ let farmFailures = 0;
 let farmNextAt = 0;
 /** the snapshot (without its time) last published, so an unchanged farm is never sent again */
 let farmLast = '';
+let farmTrimLogged = false;
+let farmFailLogged = false;
 
 /**
  * Publish this player's farm snapshot (what neighbours see when they visit) if it changed. At most
@@ -100,8 +103,8 @@ export async function publishFarm(force = false): Promise<void> {
   if (farmBusy || held || visiting.active || !game.state?.player.created) return;
   const now = Date.now();
   if (now < farmNextAt && !(force && farmFailures === 0)) return;
-  let snap;
-  try { snap = farmSnapshot(game.state, game.now()); } catch (e) { console.warn('[online] farm snapshot failed', e); return; }
+  let snap, dropped = 0, bytes = 0;
+  try { ({ snap, dropped, bytes } = fitSnapshot(farmSnapshot(game.state, game.now()))); } catch (e) { console.warn('[online] farm snapshot failed', e); return; }
   farmBusy = true;
   try {
     await ensureOnline();
@@ -112,10 +115,14 @@ export async function publishFarm(force = false): Promise<void> {
     farmLast = key;
     farmFailures = 0;
     farmNextAt = Date.now() + FARM_MS;
+    // once a session: the farm was too big to share whole, so some decorations were left out (dashboard)
+    if (dropped && !farmTrimLogged) { farmTrimLogged = true; logEvent('farm_share_trimmed', { dropped, kept: snap.b.length, bytes }); }
   } catch (e) {
     farmFailures++;
     farmNextAt = Date.now() + Math.min(FARM_MAX_BACKOFF_MS, 60000 * 2 ** (farmFailures - 1));
     if (farmFailures === 1) console.warn('[online] could not share the farm yet, will retry', e);
+    // the third failure in a row is worth a look on the dashboard (once a session; not a passing blip)
+    if (farmFailures === 3 && !farmFailLogged) { farmFailLogged = true; logEvent('farm_share_failed', { reason: (e as Error)?.message ?? '', buildings: snap.b.length, bytes }); }
   } finally {
     farmBusy = false;
   }

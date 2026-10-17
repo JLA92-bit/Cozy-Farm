@@ -16,7 +16,15 @@ export function helpKindFor(e: SnapBuilding): FarmHelpKind | null {
   if (def.id === 'plot') return ex?.p && ex.p[1] < 3 ? 'water' : null;
   if (def.tree) return ex?.t ? null : 'tend';
   if (def.animal) return ex?.a && ex.a[2] > 0 ? 'feed' : null;
+  // 1.28.2: a busy workshop can be helped too ("tend", so older servers and games understand it)
+  if (def.cat === 'production') return ex?.r ? 'tend' : null;
   return null;
+}
+
+/** The button for helping this building: workshops get their own words. */
+export function helpButton(e: SnapBuilding, kind: FarmHelpKind): { label: string; icon: string } {
+  if (kind === 'tend' && BUILDING[e[0]]?.cat === 'production') return { label: 'Lend a hand', icon: 'hammer' };
+  return { label: HELP_ACTION[kind], icon: HELP_ICON[kind] };
 }
 
 /** Button words for each kind of help. */

@@ -9,7 +9,7 @@ import type {
 import { cleanHelp } from './FarmHelp';
 import { cleanFill, cleanRequest } from './AskHelp';
 import { setOnlineStatus } from './Status';
-import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
+import { sanitizeSnapshot, shareBytes, SHARE_LIMITS, type FarmSnapshot } from './FarmSnapshot';
 import { weekKey } from './Weekly';
 
 /**
@@ -498,9 +498,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   // ------------------------------------------------------------------ live updates
   async publishFarm(snapshot: FarmSnapshot): Promise<void> {
-    // the server also checks the size (64 KB) and shape; this just avoids sending what it would refuse
-    if (JSON.stringify(snapshot).length > 65536) throw new Error('farm too big');
-    await this.rpc<string>('publish_farm', { p_data: snapshot });
+    // the server also checks the size and shape (and writes down why it refused, for the dashboard)
+    if (snapshot.b.length > SHARE_LIMITS.buildings || shareBytes(snapshot) > 262144) throw new Error('farm too big');
+    const at = await this.rpc<string | null>('publish_farm', { p_data: snapshot });
+    if (!at) throw new Error('farm refused');
   }
 
   async getFarm(playerId: string): Promise<FarmSnapshot | null> {

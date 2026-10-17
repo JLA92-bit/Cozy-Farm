@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import type { DragKind, Pointer } from '../core/Input';
 import { ANIMAL, BUILDING, CROP, LAND, TREE } from '../data';
-import { FrozenGame, sanitizeSnapshot, snapshotState, type FarmSnapshot } from '../online/FarmSnapshot';
-import { HELP_ACTION, HELP_ICON, helpKindFor } from '../online/FarmHelp';
+import { farmSnapshot, fitSnapshot, FrozenGame, sanitizeSnapshot, snapshotState, type FarmSnapshot } from '../online/FarmSnapshot';
+import { helpButton, helpKindFor } from '../online/FarmHelp';
+import { logEvent } from '../online/Events';
 import { HELP_NOTES, type FarmHelpKind } from '../online/types';
 import { neighbours } from '../systems/Neighbours';
 import { audio, haptics } from '../systems/Audio';
@@ -60,6 +61,8 @@ interface Active {
   helpPill: HTMLElement;
   picker: HTMLElement | null;
   bubble: { el: HTMLElement; at: THREE.Vector3; until: number } | null;
+  /** 1.28.2: what happened on this visit, sent to the dashboard once back home ('farm_visit') */
+  log: { start: number; helpable: number; helped: boolean; liked: boolean; refused: string; taps: number };
 }
 
 let ctx: { scene: FarmScene; interaction: Interaction } | null = null;
@@ -85,7 +88,7 @@ export function initVisit(scene: FarmScene, interaction: Interaction): void {
   });
   // development only: lets the headless tests pretend the server is unreachable
   if (import.meta.env.DEV) Object.assign(window as unknown as Record<string, unknown>, { __online: () => online });
-  Object.assign(window as unknown as Record<string, unknown>, { __visit: { visit: visitFarm, home: () => goHome(), get active() { return !!cur; }, get busy() { return busy; }, get view() { return cur?.view ?? null; }, get snapshot() { return cur?.snap ?? null; } } });
+  Object.assign(window as unknown as Record<string, unknown>, { __visit: { visit: visitFarm, home: () => goHome(), get active() { return !!cur; }, get busy() { return busy; }, get view() { return cur?.view ?? null; }, get snapshot() { return cur?.snap ?? null; }, share: () => fitSnapshot(farmSnapshot(game.state, game.now())) } });
 }
 
 export function isVisiting(): boolean { return !!cur; }
@@ -157,6 +160,7 @@ export async function visitFarm(who: { id: string; name: string }): Promise<void
   if (!snap) {
     await hideWipe(wipe);
     busy = false;
+    logEvent('farm_visit_failed', { reason: offline ? 'offline' : serverError ? 'server' : 'not shared', error: serverError });
     if (offline) ui.feedback.toast("Couldn't reach the village", 'Check your connection and try again in a moment.', 'cloud', 'warn');
     else if (serverError) ui.feedback.toast("Couldn't open this farm right now", `The village server said: ${serverError}`, 'cloud', 'warn');
     else ui.feedback.toast("This farm hasn't been shared yet", `${name} needs to play a little first. Try again later!`, 'farmer');
@@ -200,6 +204,7 @@ async function enter(scene: FarmScene, snap: FarmSnapshot, ownerId: string): Pro
     owner: { id: ownerId, name: snap.name, level: snap.level },
     help: { helped: '?', liked: '?', likes: 0, busy: false },
     likeBtn, helpPill, picker: null,
+    log: { start: Date.now(), helpable: snap.b.filter((e) => !!helpKindFor(e)).length, helped: false, liked: false, refused: '', taps: 0 },
   };
   cur = a;
   renderHelp(a);
@@ -291,6 +296,7 @@ function leave(scene: FarmScene, interaction: Interaction): void {
   scene.visit = null;
   scene.handler = interaction;
   if (a) {
+    pendingVisitLog = { ...a.log, ageH: Math.round(Math.max(0, a.log.start - a.snap.at) / 360000) / 10, mins: Math.round((Date.now() - a.log.start) / 6000) / 10, n: a.snap.b.length, level: a.snap.level };
     a.view.dispose();
     a.char?.dispose();
     scene.scene.remove(a.group);
@@ -308,7 +314,10 @@ function leave(scene: FarmScene, interaction: Interaction): void {
   visiting.active = false;
   // rewards for helping on this visit go into the player's own farm (and are saved) now, at home
   neighbours.applyPending();
+  // events are not sent while visiting: this one goes now ("farm_visit", for the dashboard's Visits page)
+  if (pendingVisitLog) { const { start: _s, ...d } = pendingVisitLog; logEvent('farm_visit', d); pendingVisitLog = null; }
 }
+let pendingVisitLog: (Active['log'] & Record<string, number | boolean | string>) | null = null;
 
 // ------------------------------------------------------------------------------------ UI
 
@@ -409,8 +418,9 @@ function inspect(p: Pointer): void {
     const kind = e && e[0] === b.type ? helpKindFor(e) : null;
     let sub = d.sub;
     let action: HTMLElement | null = null;
+    a.log.taps++;
     if (kind && a.help.helped === true) sub = `${sub ? `${sub}. ` : ''}You helped here today - thank you!`;
-    else if (kind) action = button([icon(HELP_ICON[kind]), HELP_ACTION[kind]], () => void doHelp(a, b.uid, kind), 'small blue visit-help-btn');
+    else if (kind && e) { const hb = helpButton(e, kind); action = button([icon(hb.icon), hb.label], () => void doHelp(a, b.uid, kind), 'small blue visit-help-btn'); }
     showBubble(a, a.view.anchor(b.uid), d.title, sub, action);
     return;
   }
@@ -449,7 +459,9 @@ function renderHelp(a: Active): void {
   a.likeBtn.classList.toggle('liked', a.help.liked === true);
   a.likeBtn.setAttribute('aria-label', a.help.liked === true ? `You liked this farm today (${a.help.likes} likes)` : `Like this farm (${a.help.likes} likes)`);
   const left = a.help.helped === true ? 0 : 1;
-  a.helpPill.replaceChildren(icon(left ? 'hug' : 'check'), a.help.helped === '?' ? 'Tap a field, tree or animal home to help' : left ? '1 help left today' : 'You helped today - thank you!');
+  const none = left && !a.log.helpable;
+  a.helpPill.replaceChildren(icon(left ? 'hug' : 'check'), none ? 'All done here: nothing needs a hand right now'
+    : a.help.helped === '?' ? 'Tap a field, tree, animal home or busy workshop to help' : left ? '1 help left today' : 'You helped today - thank you!');
   a.helpPill.classList.toggle('done', !left);
 }
 
@@ -465,15 +477,17 @@ async function doHelp(a: Active, uid: number, kind: FarmHelpKind): Promise<void>
     const r = await neighbours.help(a.owner, kind, { type: e[0], x: e[1], z: e[2] });
     if (cur !== a) return;
     a.help.helped = true;
+    a.log.helped = true;
     renderHelp(a);
     burst(a, at, kind === 'water' ? 'droplet' : kind === 'feed' ? 'heart' : 'leaf', kind === 'water' ? 14 : 10);
     audio.play('sparkle');
     haptics.play('success');
-    const done = { water: 'Watered!', feed: 'Fed and happy!', tend: 'Tended with care!' }[kind];
+    const done = BUILDING[e[0]]?.cat === 'production' ? 'Thanks for the hand!' : { water: 'Watered!', feed: 'Fed and happy!', tend: 'Tended with care!' }[kind];
     showBubble(a, at, done, r.coins ? `${a.owner.name} will see it next time they play. +${r.coins} coins and +${r.xp} XP wait for you at home.` : `${a.owner.name} will see it next time they play.`);
   } catch (err) {
     if (cur !== a) return;
     const msg = (err as Error).message;
+    a.log.refused = /already helped/.test(msg) ? 'already' : /lots of help/.test(msg) ? 'busy' : /reach the village/.test(msg) ? 'offline' : 'other';
     if (/already helped/.test(msg)) { a.help.helped = true; renderHelp(a); }
     audio.play('error');
     showBubble(a, at, 'Not this time', msg);
@@ -497,6 +511,7 @@ function openLikes(a: Active): void {
       await neighbours.like(a.owner, note);
       if (cur !== a) return;
       a.help.liked = true;
+      a.log.liked = true;
       a.help.likes++;
       renderHelp(a);
       closeLikes(a);

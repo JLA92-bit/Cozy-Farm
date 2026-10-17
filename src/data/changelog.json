@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.28.2",
+   "date": "2026-10-17",
+   "title": "Good Neighbours",
+   "icon": "hug",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "house",
+     "text": "Big farms are shared with neighbours again: farms with lots of paths, fences and decorations could stop updating, so visitors saw an old farm and could not help with what was really there"
+    },
+    {
+     "icon": "hammer",
+     "text": "Lend a hand at a busy workshop when you visit: it finishes your neighbour's goods sooner"
+    },
+    {
+     "icon": "hug",
+     "text": "When everything on a farm is already done, the visit says so instead of leaving you looking for something to help with"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.1",
    "date": "2026-10-17",
    "title": "Fixes and Polish",

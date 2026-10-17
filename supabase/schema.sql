@@ -609,9 +609,29 @@ $$;
 
 create table if not exists public.farm_snapshots (
   user_id    uuid primary key references auth.users (id) on delete cascade,
-  data       jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 65536),
+  data       jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 262144),
   updated_at timestamptz not null default now()
 );
+
+-- 1.28.2: big late-game farms (well over 1,200 paths, fences and decorations) were refused for good, so
+-- visitors saw an old picture of the farm and their help missed. The limits are now 256 KB and 3,000
+-- buildings (the game also leaves out decorations to fit), and a refusal is written down for the dashboard
+-- instead of only failing on the player's phone.
+alter table public.farm_snapshots drop constraint if exists farm_snapshots_data_check;
+alter table public.farm_snapshots add constraint farm_snapshots_data_check
+  check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 262144);
+
+-- The last time each player's farm could not be shared, and why (one row per player, for the dashboard).
+create table if not exists public.farm_share_refusals (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  at         timestamptz not null default now(),
+  reason     text not null check (char_length(reason) <= 40),
+  bytes      integer not null default 0,
+  buildings  integer not null default 0,
+  times      integer not null default 1
+);
+alter table public.farm_share_refusals enable row level security;
+revoke all on public.farm_share_refusals from anon, authenticated, public;
 
 alter table public.farm_snapshots enable row level security;
 revoke all on public.farm_snapshots from anon, authenticated, public;
@@ -630,7 +650,9 @@ create policy "players update only their own farm snapshot" on public.farm_snaps
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Store the caller's farm snapshot (replacing the previous one). The game publishes at most every few
--- minutes; more than one publish per 10 seconds is refused with 'too soon'. Returns the new updated_at.
+-- minutes; more than one publish per 10 seconds is refused with 'too soon'. Returns the new updated_at, or
+-- null when the farm is too big or the wrong shape: then nothing is stored, the reason is written to
+-- farm_share_refusals for the dashboard (a raised error would undo that) and the game tries a smaller one.
 create or replace function public.publish_farm(p_data jsonb)
 returns timestamptz
 language plpgsql
@@ -641,20 +663,29 @@ declare
   uid uuid := auth.uid();
   v_cur timestamptz;
   v_at timestamptz := now();
+  v_bytes integer;
+  v_n integer := 0;
+  v_why text;
 begin
   if uid is null then raise exception 'not signed in'; end if;
   if p_data is null or jsonb_typeof(p_data) <> 'object' then raise exception 'bad farm'; end if;
-  if octet_length(p_data::text) > 65536 then raise exception 'farm too big'; end if;
-  if coalesce(p_data ->> 'v', '') <> '1'
+  v_bytes := octet_length(p_data::text);
+  if jsonb_typeof(p_data -> 'b') = 'array' then v_n := jsonb_array_length(p_data -> 'b'); end if;
+  if v_bytes > 262144 then v_why := 'too big (size)';
+  elsif coalesce(p_data ->> 'v', '') <> '1'
      or jsonb_typeof(p_data -> 'b') is distinct from 'array'
      or jsonb_typeof(p_data -> 'land') is distinct from 'array'
-     or jsonb_typeof(coalesce(p_data -> 'obs', '[]'::jsonb)) <> 'array' then
-    raise exception 'bad farm';
+     or jsonb_typeof(coalesce(p_data -> 'obs', '[]'::jsonb)) <> 'array' then v_why := 'bad shape';
+  elsif v_n > 3000 then v_why := 'too big (buildings)';
+  elsif jsonb_array_length(coalesce(p_data -> 'obs', '[]'::jsonb)) > 600 then v_why := 'too big (wild plants)';
+  elsif jsonb_array_length(p_data -> 'land') > 36 then v_why := 'too big (land)';
   end if;
-  if jsonb_array_length(p_data -> 'b') > 1200
-     or jsonb_array_length(coalesce(p_data -> 'obs', '[]'::jsonb)) > 600
-     or jsonb_array_length(p_data -> 'land') > 36 then
-    raise exception 'farm too big';
+  if v_why is not null then
+    insert into public.farm_share_refusals as r (user_id, at, reason, bytes, buildings)
+    values (uid, v_at, v_why, v_bytes, v_n)
+    on conflict (user_id) do update set at = excluded.at, reason = excluded.reason, bytes = excluded.bytes,
+      buildings = excluded.buildings, times = least(r.times + 1, 1000000);
+    return null;
   end if;
 
   select f.updated_at into v_cur from public.farm_snapshots f where f.user_id = uid for update;
@@ -3700,3 +3731,166 @@ grant execute on function public.coop_list(uuid[]) to authenticated;
 grant execute on function public.coop_give(uuid, text, integer, uuid) to authenticated;
 grant execute on function public.coop_cancel(uuid) to authenticated;
 grant execute on function public.coop_claim() to authenticated;
+
+-- ===== 1.28.2 visits and help (dashboard) =====
+-- The dashboard's "Visits and help" page and the Visits card on a player's page (ADMIN.md). Read only, admins
+-- only (admin_guard). Uses farm_snapshots, farm_share_refusals (written by publish_farm when a farm cannot be
+-- shared), farm_help, the co-op tables and the game events 'farm_visit' (one per visit: how many things on the
+-- farm needed help, whether the visitor helped or liked, how old the farm picture was), 'farm_visit_failed',
+-- 'farm_share_trimmed' and 'farm_share_failed'.
+
+create index if not exists farm_help_created_idx on public.farm_help (created_at);
+
+create or replace function public.admin_visits_overview(p_days integer default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_days integer := least(greatest(coalesce(p_days, 30), 1), 180);
+  v_from timestamptz := now() - make_interval(days => v_days);
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'generatedAt', now(),
+    'days', v_days,
+    'sharing', (select jsonb_build_object(
+        'farms', count(*),
+        'shared24h', count(*) filter (where f.updated_at > now() - interval '1 day'),
+        'shared7d', count(*) filter (where f.updated_at > now() - interval '7 days'),
+        'avgBytes', coalesce(round(avg(octet_length(f.data::text))), 0),
+        'maxBuildings', coalesce(max(jsonb_array_length(f.data -> 'b')), 0),
+        'over1200', count(*) filter (where jsonb_array_length(f.data -> 'b') > 1200),
+        'refused', (select count(*) from public.farm_share_refusals r
+                     where r.at > coalesce((select f2.updated_at from public.farm_snapshots f2 where f2.user_id = r.user_id), '-infinity'::timestamptz)))
+      from public.farm_snapshots f),
+    -- played in the last 3 days but their farm picture is 2+ days old (or missing): visitors see an old farm
+    'stale', (select coalesce(jsonb_agg(x order by x ->> 'played' desc), '[]'::jsonb) from (
+        select jsonb_build_object('id', p.id, 'name', p.name, 'level', p.level, 'played', p.updated_at, 'shared', f.updated_at,
+                 'reason', r.reason, 'refusedAt', r.at, 'bytes', r.bytes, 'buildings', r.buildings, 'times', r.times) as x
+          from public.profiles p
+          left join public.farm_snapshots f on f.user_id = p.id
+          left join public.farm_share_refusals r on r.user_id = p.id
+         where p.updated_at > now() - interval '3 days'
+           and (f.updated_at is null or f.updated_at < p.updated_at - interval '2 days')
+         order by p.updated_at desc limit 40) y),
+    'biggest', (select coalesce(jsonb_agg(x order by (x ->> 'buildings')::integer desc), '[]'::jsonb) from (
+        select jsonb_build_object('id', f.user_id, 'name', p.name, 'level', p.level, 'buildings', jsonb_array_length(f.data -> 'b'),
+                 'bytes', octet_length(f.data::text), 'shared', f.updated_at) as x
+          from public.farm_snapshots f join public.profiles p on p.id = f.user_id
+         order by jsonb_array_length(f.data -> 'b') desc limit 12) y),
+    'help', (select jsonb_build_object(
+        'helps', count(*) filter (where h.kind <> 'like'),
+        'water', count(*) filter (where h.kind = 'water'),
+        'feed', count(*) filter (where h.kind = 'feed'),
+        'tend', count(*) filter (where h.kind = 'tend'),
+        'likes', count(*) filter (where h.kind = 'like'),
+        'helpers', count(distinct h.helper_id) filter (where h.kind <> 'like'),
+        'farms', count(distinct h.owner_id) filter (where h.kind <> 'like'),
+        'claimed', count(*) filter (where h.kind <> 'like' and h.claimed_at is not null),
+        'waiting', count(*) filter (where h.kind <> 'like' and h.claimed_at is null and h.created_at < now() - interval '3 days'),
+        'notes', (select coalesce(jsonb_object_agg(n.note, n.c), '{}'::jsonb) from (
+                    select h2.note, count(*) as c from public.farm_help h2
+                     where h2.kind = 'like' and h2.note is not null and h2.created_at > v_from group by h2.note) n),
+        'busyDays', (select count(*) from (select 1 from public.farm_help h3 where h3.created_at > v_from
+                       group by h3.owner_id, h3.day having count(*) >= 50) b))
+      from public.farm_help h where h.created_at > v_from),
+    'helpDays', (select coalesce(jsonb_agg(jsonb_build_object('day', d.day, 'water', d.water, 'feed', d.feed, 'tend', d.tend,
+                   'likes', d.likes, 'helpers', d.helpers) order by d.day), '[]'::jsonb) from (
+        select h.day, count(*) filter (where h.kind = 'water') as water, count(*) filter (where h.kind = 'feed') as feed,
+               count(*) filter (where h.kind = 'tend') as tend, count(*) filter (where h.kind = 'like') as likes,
+               count(distinct h.helper_id) filter (where h.kind <> 'like') as helpers
+          from public.farm_help h where h.created_at > v_from group by h.day) d),
+    'topHelpers', (select coalesce(jsonb_agg(jsonb_build_object('id', t.helper_id, 'name', p.name, 'level', p.level, 'helps', t.n) order by t.n desc), '[]'::jsonb) from (
+        select h.helper_id, count(*) as n from public.farm_help h where h.kind <> 'like' and h.created_at > v_from
+         group by h.helper_id order by count(*) desc limit 10) t join public.profiles p on p.id = t.helper_id),
+    'topFarms', (select coalesce(jsonb_agg(jsonb_build_object('id', t.owner_id, 'name', p.name, 'level', p.level, 'helps', t.n, 'likes', t.l) order by t.n + t.l desc), '[]'::jsonb) from (
+        select h.owner_id, count(*) filter (where h.kind <> 'like') as n, count(*) filter (where h.kind = 'like') as l
+          from public.farm_help h where h.created_at > v_from
+         group by h.owner_id order by count(*) desc limit 10) t join public.profiles p on p.id = t.owner_id),
+    -- from the game's own 'farm_visit' events (1.28.2 and later)
+    'visits', (select jsonb_build_object(
+        'visits', count(*),
+        'visitors', count(distinct e.user_id),
+        'nothing', count(*) filter (where (e.detail ->> 'helpable') = '0'),
+        'helped', count(*) filter (where (e.detail ->> 'helped') = 'true'),
+        'liked', count(*) filter (where (e.detail ->> 'liked') = 'true'),
+        'refusedAlready', count(*) filter (where e.detail ->> 'refused' = 'already'),
+        'refusedBusy', count(*) filter (where e.detail ->> 'refused' = 'busy'),
+        'refusedOffline', count(*) filter (where e.detail ->> 'refused' = 'offline'),
+        'refusedOther', count(*) filter (where e.detail ->> 'refused' = 'other'),
+        'oldPictures', count(*) filter (where (e.detail ->> 'ageH') ~ '^[0-9.]+$' and (e.detail ->> 'ageH')::numeric >= 24),
+        'avgMins', coalesce(round(avg((e.detail ->> 'mins')::numeric) filter (where (e.detail ->> 'mins') ~ '^[0-9.]+$'), 1), 0))
+      from public.player_events e where e.kind = 'farm_visit' and e.at > v_from),
+    'visitDays', (select coalesce(jsonb_agg(jsonb_build_object('day', d.day, 'visits', d.visits, 'helped', d.helped, 'nothing', d.nothing) order by d.day), '[]'::jsonb) from (
+        select (e.at at time zone 'utc')::date as day, count(*) as visits,
+               count(*) filter (where (e.detail ->> 'helped') = 'true') as helped,
+               count(*) filter (where (e.detail ->> 'helpable') = '0') as nothing
+          from public.player_events e where e.kind = 'farm_visit' and e.at > v_from group by 1) d),
+    'problems', (select coalesce(jsonb_agg(jsonb_build_object('kind', x.kind, 'reason', x.reason, 'events', x.n, 'players', x.p) order by x.n desc), '[]'::jsonb) from (
+        select e.kind, coalesce(nullif(e.detail ->> 'reason', ''), '-') as reason, count(*) as n, count(distinct e.user_id) as p
+          from public.player_events e
+         where e.kind in ('farm_visit_failed', 'farm_share_failed', 'farm_share_trimmed') and e.at > v_from
+         group by 1, 2) x),
+    'coop', (select jsonb_build_object(
+        'open', (select count(*) from public.coop_projects c where c.status = 'open'),
+        'started', count(*),
+        'done', count(*) filter (where c.status = 'done'),
+        'expired', count(*) filter (where c.status = 'expired'),
+        'cancelled', count(*) filter (where c.status = 'cancelled'),
+        'hosts', count(distinct c.host),
+        'gifts', (select count(*) from public.coop_gifts g where g.at > v_from),
+        'givers', (select count(distinct g.giver) from public.coop_gifts g where g.at > v_from),
+        'unclaimed', (select count(*) from public.coop_claims k where k.claimed_at is null),
+        'kinds', (select coalesce(jsonb_object_agg(k.kind, k.n), '{}'::jsonb) from (
+                    select c2.kind, count(*) as n from public.coop_projects c2 where c2.created_at > v_from group by c2.kind) k))
+      from public.coop_projects c where c.created_at > v_from)
+  );
+end;
+$$;
+
+-- One player's visits and help, for the Visits card on their page.
+create or replace function public.admin_player_visits(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'farm', (select jsonb_build_object('shared', f.updated_at, 'bytes', octet_length(f.data::text),
+               'buildings', jsonb_array_length(f.data -> 'b'), 'pictureAt', f.data -> 'at')
+             from public.farm_snapshots f where f.user_id = p_id),
+    'refusal', (select to_jsonb(r) - 'user_id' from public.farm_share_refusals r where r.user_id = p_id),
+    'given30', (select jsonb_build_object('helps', count(*) filter (where h.kind <> 'like'), 'likes', count(*) filter (where h.kind = 'like'))
+                  from public.farm_help h where h.helper_id = p_id and h.created_at > now() - interval '30 days'),
+    'got30', (select jsonb_build_object('helps', count(*) filter (where h.kind <> 'like'), 'likes', count(*) filter (where h.kind = 'like'),
+                'unclaimed', count(*) filter (where h.kind <> 'like' and h.claimed_at is null))
+                from public.farm_help h where h.owner_id = p_id and h.created_at > now() - interval '30 days'),
+    'recent', (select coalesce(jsonb_agg(x order by x ->> 'at' desc), '[]'::jsonb) from (
+        select jsonb_build_object('at', h.created_at, 'kind', h.kind, 'what', h.target ->> 'type', 'note', h.note,
+                 'dir', case when h.helper_id = p_id then 'gave' else 'got' end,
+                 'other', case when h.helper_id = p_id then (select p.name from public.profiles p where p.id = h.owner_id) else h.helper_name end,
+                 'claimed', h.claimed_at is not null) as x
+          from public.farm_help h where h.helper_id = p_id or h.owner_id = p_id
+         order by h.created_at desc limit 25) y),
+    'visits', (select coalesce(jsonb_agg(jsonb_build_object('at', e.at, 'kind', e.kind, 'detail', e.detail) order by e.at desc), '[]'::jsonb) from (
+        select * from public.player_events e
+         where e.user_id = p_id and e.kind in ('farm_visit', 'farm_visit_failed', 'farm_share_failed', 'farm_share_trimmed')
+         order by e.at desc limit 20) e),
+    'coop', (select coalesce(jsonb_agg(jsonb_build_object('kind', c.kind, 'status', c.status, 'created', c.created_at, 'closed', c.closed_at,
+               'gifts', (select count(*) from public.coop_gifts g where g.project = c.id)) order by c.created_at desc), '[]'::jsonb)
+             from (select * from public.coop_projects c where c.host = p_id order by c.created_at desc limit 10) c),
+    'coopGiven', (select count(*) from public.coop_gifts g where g.giver = p_id)
+  );
+end;
+$$;
+
+revoke all on function public.admin_visits_overview(integer) from public, anon;
+revoke all on function public.admin_player_visits(uuid) from public, anon;
+grant execute on function public.admin_visits_overview(integer) to authenticated;
+grant execute on function public.admin_player_visits(uuid) to authenticated;
