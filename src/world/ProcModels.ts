@@ -314,6 +314,47 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cone(0.12, 0.1, '#5f9a3a', [-0.1, 0.18, 0], 5, [0, 0, 1.2]);
     return b.build();
   },
+  // 1.22 Orchard Days: rice, garlic, sweet potato and cranberries in the field, peaches, plums and olives on the trees
+  rice: () => {
+    const b = geo();
+    for (const [x, z, lean] of [[-0.1, 0, 0.25], [0.08, -0.05, -0.2], [0.02, 0.1, 0.1], [-0.02, -0.12, -0.05]] as [number, number, number][]) {
+      b.cyl(0.012, 0.016, 0.42, '#9fc25a', [x, 0, z], 5, [lean * 0.5, 0, lean]);
+      for (let i = 0; i < 5; i++) b.sphere(0.03, '#f2dd9a', [x + lean * 0.35 + i * 0.012, 0.36 + i * 0.03, z], 0, [0.8, 1.4, 0.8]);
+    }
+    return b.build();
+  },
+  garlic: () => {
+    const b = geo();
+    for (const [x, z, s] of [[-0.11, 0.02, 1], [0.1, -0.03, 0.9], [0.0, 0.12, 0.8]] as [number, number, number][]) {
+      b.sphere(0.12 * s, '#f6efe0', [x, 0.11 * s, z], 1, [1, 0.95, 1]);
+      for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2; b.sphere(0.06 * s, '#ece0cc', [x + Math.cos(a) * 0.06 * s, 0.11 * s, z + Math.sin(a) * 0.06 * s], 0, [0.8, 1.3, 0.8]); }
+      b.cone(0.03 * s, 0.14 * s, '#d8c9a8', [x, 0.2 * s, z], 5);
+    }
+    return b.build();
+  },
+  sweet_potato: () => {
+    const b = geo();
+    for (const [x, z, s, r] of [[-0.12, 0.02, 1, 0.5], [0.1, -0.05, 0.85, -0.4], [0.02, 0.13, 0.75, 1.2]] as [number, number, number, number][]) {
+      b.sphere(0.11 * s, '#c8573a', [x, 0.1 * s, z], 1, [1.7, 0.85, 0.95]);
+      b.sphere(0.02, '#9a3e28', [x + 0.05 * Math.cos(r), 0.16 * s, z + 0.03], 0);
+    }
+    return b.build();
+  },
+  cranberry: () => {
+    const b = geo();
+    for (const p of [[0, 0.18, 0], [0.11, 0.22, 0.05], [-0.1, 0.2, 0.07], [0.03, 0.28, -0.08], [-0.07, 0.15, -0.09], [0.12, 0.13, -0.06], [-0.02, 0.32, 0.06]] as V3[]) b.sphere(0.07, '#c4213a', p, 1);
+    for (const p of [[0.11, 0.29, 0.05], [-0.1, 0.27, 0.07]] as V3[]) b.sphere(0.02, '#e8586a', p, 1);
+    b.cone(0.1, 0.08, '#5f8f3a', [0, 0.02, 0], 5);
+    return b.build();
+  },
+  peach: () => geo().sphere(0.13, '#ffb07a', [0, 0.13, 0], 1).sphere(0.07, '#ff8a6a', [0.05, 0.16, 0.06], 1).cone(0.04, 0.08, '#5f9a3a', [0.02, 0.24, 0], 4, [0, 0, 0.8]).build(),
+  plum: () => geo().sphere(0.11, '#6a3a8a', [0, 0.12, 0], 1, [1, 1.12, 1]).sphere(0.03, '#9a6ac0', [0.04, 0.17, 0.07], 0).cyl(0.008, 0.008, 0.06, '#5a4a2a', [0, 0.24, 0], 4).build(),
+  olive: () => {
+    const b = geo();
+    for (const p of [[0, 0.1, 0], [0.08, 0.06, 0.04], [-0.07, 0.07, 0.05]] as V3[]) b.sphere(0.055, '#5a6a2a', p, 1, [1, 1.35, 1]);
+    b.cone(0.05, 0.12, '#8aa05a', [0.02, 0.14, -0.04], 4, [0, 0, 1.1]);
+    return b.build();
+  },
   potato: () => {
     const b = geo();
     for (const [x, z, s, c] of [[-0.12, 0.02, 1, '#c99a5a'], [0.1, -0.04, 0.85, '#b9884a'], [0.02, 0.13, 0.7, '#d4a86a']] as [number, number, number, string][]) {

@@ -705,6 +705,18 @@
     {"id": "pinecone_wreath", "building": "woodcraft_lodge", "level": 36, "in": {"pinecone": 4, "holly": 2}, "item": "pinecone_wreath", "out": 1, "sec": 2700, "xp": 35},
     {"id": "resin_varnish", "building": "woodcraft_lodge", "level": 36, "in": {"pine_resin": 3}, "item": "resin_varnish", "out": 1, "sec": 2400, "xp": 37},
     {"id": "maple_candy", "building": "woodcraft_lodge", "level": 37, "in": {"maple_syrup": 1, "sugar": 1}, "item": "maple_candy", "out": 1, "sec": 1800, "xp": 40},
-    {"id": "woodland_feast", "building": "woodcraft_lodge", "level": 40, "in": {"woodland_pie": 1, "elderberry_cordial": 1, "bramble_crumble": 1}, "item": "woodland_feast", "out": 1, "sec": 4800, "xp": 67}
+    {"id": "woodland_feast", "building": "woodcraft_lodge", "level": 40, "in": {"woodland_pie": 1, "elderberry_cordial": 1, "bramble_crumble": 1}, "item": "woodland_feast", "out": 1, "sec": 4800, "xp": 67},
+    {"id": "rice_pudding", "building": "dairy", "level": 104, "in": {"rice": 2, "milk": 2, "sugar": 1}, "item": "rice_pudding", "out": 1, "sec": 3000, "xp": 99},
+    {"id": "garlic_bread", "building": "bakery", "level": 106, "in": {"bread": 1, "garlic": 2, "butter": 1}, "item": "garlic_bread", "out": 1, "sec": 2700, "xp": 101},
+    {"id": "plum_jam", "building": "jam_kitchen", "level": 109, "in": {"plum": 3, "sugar": 1}, "item": "plum_jam", "out": 1, "sec": 2700, "xp": 104},
+    {"id": "sweet_potato_pie", "building": "bakery", "level": 111, "in": {"sweet_potato": 2, "egg": 2, "butter": 1, "sugar": 1}, "item": "sweet_potato_pie", "out": 1, "sec": 4200, "xp": 105},
+    {"id": "peach_cobbler", "building": "bakery", "level": 113, "in": {"peach": 3, "wheat": 2, "butter": 1}, "item": "peach_cobbler", "out": 1, "sec": 3900, "xp": 107},
+    {"id": "olive_oil", "building": "juice_press", "level": 115, "in": {"olive": 4}, "item": "olive_oil", "out": 1, "sec": 3000, "xp": 109},
+    {"id": "cranberry_sauce", "building": "jam_kitchen", "level": 117, "in": {"cranberry": 3, "sugar": 1}, "item": "cranberry_sauce", "out": 1, "sec": 3000, "xp": 111},
+    {"id": "risotto", "building": "village_kitchen", "level": 117, "in": {"rice": 2, "mushroom": 2, "garlic": 1, "butter": 1}, "item": "risotto", "out": 1, "sec": 4200, "xp": 111},
+    {"id": "fried_rice", "building": "village_kitchen", "level": 119, "in": {"rice": 2, "egg": 1, "pea": 2, "garlic": 1}, "item": "fried_rice", "out": 1, "sec": 3600, "xp": 113},
+    {"id": "olive_focaccia", "building": "bakery", "level": 119, "in": {"wheat": 4, "olive_oil": 1, "olive": 2}, "item": "olive_focaccia", "out": 1, "sec": 4500, "xp": 113},
+    {"id": "peach_sorbet", "building": "dairy", "level": 120, "in": {"peach": 2, "sugar": 1, "cream": 1}, "item": "peach_sorbet", "out": 1, "sec": 3300, "xp": 114},
+    {"id": "plum_cake", "building": "bakery", "level": 120, "in": {"plum": 3, "wheat": 3, "egg": 2, "sugar": 1}, "item": "plum_cake", "out": 1, "sec": 5400, "xp": 114}
   ]
 }

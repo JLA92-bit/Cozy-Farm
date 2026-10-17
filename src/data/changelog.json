@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.22.0",
+   "date": "2026-10-17",
+   "title": "Orchard Days",
+   "icon": "peach",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "peach",
+     "text": "New for levels 101-120: peach, plum and olive trees, and rice, garlic, sweet potatoes and cranberries for your fields"
+    },
+    {
+     "icon": "peach_cobbler",
+     "text": "12 new dishes: peach cobbler, plum cake, risotto, fried rice, olive focaccia, olive oil, cranberry sauce, peach sorbet and more, wanted by boats and villagers"
+    },
+    {
+     "icon": "house",
+     "text": "Farmhouse level 15 raises your limits again, four orchard decorations, a new Master challenge in the Wild Woods, and fairer leaderboards"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.21.0",
    "date": "2026-10-17",
    "title": "Woodcraft",

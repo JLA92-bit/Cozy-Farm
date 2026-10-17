@@ -16,14 +16,15 @@
       { "level": 11, "playerLevel": 70, "cost": 600000, "sec": 72000 },
       { "level": 12, "playerLevel": 80, "cost": 900000, "sec": 86400 },
       { "level": 13, "playerLevel": 90, "cost": 1400000, "sec": 100800 },
-      { "level": 14, "playerLevel": 100, "cost": 2200000, "sec": 115200 }
+      { "level": 14, "playerLevel": 100, "cost": 2200000, "sec": 115200 },
+      { "level": 15, "playerLevel": 110, "cost": 3200000, "sec": 129600 }
     ],
     "caps": {
-      "plot": [14, 20, 28, 36, 44, 52, 60, 70, 80, 90, 100, 110, 120, 130],
-      "tree": [4, 6, 9, 12, 16, 20, 24, 30, 34, 40, 44, 48, 52, 56],
-      "animal": [1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5, 6],
-      "production": [1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6],
-      "decor": [25, 40, 60, 85, 115, 150, 200, 260, 320, 400, 480, 560, 640, 720]
+      "plot": [14, 20, 28, 36, 44, 52, 60, 70, 80, 90, 100, 110, 120, 130, 140],
+      "tree": [4, 6, 9, 12, 16, 20, 24, 30, 34, 40, 44, 48, 52, 56, 60],
+      "animal": [1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5, 6, 6],
+      "production": [1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6],
+      "decor": [25, 40, 60, 85, 115, 150, 200, 260, 320, 400, 480, 560, 640, 720, 800]
     }
   },
   "upgrades": {
@@ -50,6 +51,9 @@
     { "id": "lemon_tree", "name": "Lemon Tree", "cat": "farm", "size": [2, 2], "level": 24, "cost": 800, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "lemon_tree", "icon": "lemon" },
     { "id": "banana_tree", "name": "Banana Palm", "cat": "farm", "size": [2, 2], "level": 27, "cost": 1000, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "banana_tree", "icon": "banana" },
     { "id": "coconut_tree", "name": "Coconut Palm", "cat": "farm", "size": [2, 2], "level": 30, "cost": 1300, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "coconut_tree", "icon": "coconut" },
+    { "id": "peach_tree", "name": "Peach Tree", "cat": "farm", "size": [2, 2], "level": 103, "cost": 30000, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "peach_tree", "icon": "peach" },
+    { "id": "plum_tree", "name": "Plum Tree", "cat": "farm", "size": [2, 2], "level": 108, "cost": 38000, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "plum_tree", "icon": "plum" },
+    { "id": "olive_tree", "name": "Olive Tree", "cat": "farm", "size": [2, 2], "level": 114, "cost": 46000, "model": "tree", "fit": 0.8, "charm": 1, "cap": "tree", "tree": "olive_tree", "icon": "olive" },
     { "id": "coop", "name": "Chicken Coop", "cat": "animal", "size": [3, 3], "level": 2, "cost": 100, "buildSec": 15, "model": "proc:coop", "fit": 1.0, "charm": 1, "cap": "animal", "animal": "chicken", "upgradeMult": 1, "icon": "chicken", "desc": "Home for up to 3 chickens." },
     { "id": "cow_pasture", "name": "Cow Pasture", "cat": "animal", "size": [4, 4], "level": 6, "cost": 500, "buildSec": 120, "model": "proc:pen_cow", "fit": 1.0, "charm": 2, "cap": "animal", "animal": "cow", "upgradeMult": 1.6, "icon": "cow", "desc": "Cows give milk." },
     { "id": "sheep_pen", "name": "Sheep Pen", "cat": "animal", "size": [4, 4], "level": 9, "cost": 800, "buildSec": 300, "model": "proc:pen_sheep", "fit": 1.0, "charm": 2, "cap": "animal", "animal": "sheep", "upgradeMult": 2.2, "icon": "sheep", "desc": "Sheep give wool." },
@@ -327,6 +331,10 @@
     { "id": "diorama_tower", "name": "Mini Tower", "cat": "decor", "size": [2, 2], "level": 100, "cost": 45000, "model": "dio/tower", "fit": 0.95, "charm": 150, "cap": "decor", "group": "themed", "desc": "A tiny diorama." },
     { "id": "diorama_cabin", "name": "Mini Cabin", "cat": "decor", "size": [2, 2], "level": 100, "cost": 45000, "model": "dio/cabin", "fit": 0.95, "charm": 150, "cap": "decor", "group": "themed", "desc": "A tiny diorama." },
     { "id": "centurion_banner", "name": "Centurion Banner", "cat": "decor", "size": [1, 1], "level": 100, "cost": 150000, "model": "cas/banner", "fit": 0.7, "charm": 300, "cap": "decor", "group": "statues", "desc": "For reaching level 100." },
+    { "id": "fruit_crates", "name": "Fruit Crate Stack", "cat": "decor", "size": [1, 1], "level": 102, "cost": 52000, "model": "proc:fruit_crates", "fit": 0.9, "charm": 160, "cap": "decor", "group": "themed", "desc": "Orchard Market set." },
+    { "id": "orchard_ladder", "name": "Orchard Ladder", "cat": "decor", "size": [1, 1], "level": 107, "cost": 56000, "model": "proc:orchard_ladder", "fit": 0.9, "charm": 170, "cap": "decor", "group": "themed", "desc": "Orchard Market set." },
+    { "id": "olive_jars", "name": "Olive Oil Jars", "cat": "decor", "size": [1, 1], "level": 112, "cost": 62000, "model": "proc:olive_jars", "fit": 0.9, "charm": 180, "cap": "decor", "group": "themed", "desc": "Mediterranean Courtyard set." },
+    { "id": "fruit_cart", "name": "Market Fruit Cart", "cat": "decor", "size": [2, 1], "level": 118, "cost": 70000, "model": "proc:fruit_cart", "fit": 0.95, "charm": 200, "cap": "decor", "group": "themed", "desc": "Orchard Market set." },
     { "id": "boutique_sloop", "name": "Model Sloop", "cat": "decor", "size": [2, 2], "level": 1, "cost": 0, "model": "pir/ship_small", "fit": 0.95, "charm": 130, "cap": "none", "group": "boutique", "desc": "A little wooden sloop for the lawn." },
     { "id": "boutique_galleon", "name": "Model Galleon", "cat": "decor", "size": [2, 2], "level": 1, "cost": 0, "model": "boat/wc_003", "fit": 0.95, "charm": 190, "cap": "none", "group": "boutique", "desc": "A grand old galleon, in miniature." },
     { "id": "boutique_galleon_grey", "name": "Grey Galleon", "cat": "decor", "size": [2, 2], "level": 1, "cost": 0, "model": "boat/wc_007", "fit": 0.95, "charm": 190, "cap": "none", "group": "boutique", "desc": "A grand grey galleon, in miniature." },

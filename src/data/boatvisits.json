@@ -52,7 +52,12 @@
         "duck_egg_sponge",
         "leek_pie",
         "bramble_crumble",
-        "chestnut_bread"
+        "chestnut_bread",
+        "garlic_bread",
+        "sweet_potato_pie",
+        "peach_cobbler",
+        "olive_focaccia",
+        "plum_cake"
       ],
       "boat": {
         "model": "boat/wc_005",
@@ -170,7 +175,13 @@
         "blueberry_juice",
         "pineapple_juice",
         "mint_lemonade",
-        "elderberry_cordial"
+        "elderberry_cordial",
+        "peach",
+        "plum",
+        "olive",
+        "olive_oil",
+        "plum_jam",
+        "cranberry_sauce"
       ],
       "boat": {
         "model": "boat/wc_028",
@@ -210,7 +221,9 @@
         "milkshake",
         "sundae",
         "honey_butter",
-        "duck_egg"
+        "duck_egg",
+        "rice_pudding",
+        "peach_sorbet"
       ],
       "boat": {
         "model": "boat/wc_006",
@@ -262,7 +275,11 @@
         "avocado",
         "celery",
         "lettuce",
-        "golden_pumpkin"
+        "golden_pumpkin",
+        "rice",
+        "garlic",
+        "sweet_potato",
+        "cranberry"
       ],
       "boat": {
         "model": "boat/wc_023",
@@ -317,7 +334,10 @@
         "maple_syrup",
         "hazelnut_brittle",
         "maple_candy",
-        "elderberry_cordial"
+        "elderberry_cordial",
+        "peach_sorbet",
+        "plum_cake",
+        "rice_pudding"
       ],
       "boat": {
         "model": "boat/wc_008",
@@ -382,7 +402,11 @@
         "avocado_toast",
         "mushroom_tea",
         "forest_tea",
-        "woodland_feast"
+        "woodland_feast",
+        "fried_rice",
+        "risotto",
+        "garlic_bread",
+        "olive_focaccia"
       ]
     },
     {

@@ -262,6 +262,55 @@ export const DECOR_PROC: Record<string, () => THREE.BufferGeometry> = {
     return b.build();
   },
 
+  // ------------------------------------------------------------------ 1.22 Orchard Days
+  /** Wooden crates stacked high with peaches, plums and apples. */
+  fruit_crates: () => {
+    const b = geo();
+    const crate = (x: number, y: number, z: number, fruit: string) => {
+      b.block(0.38, 0.22, 0.3, '#c98a4b', [x, y, z]);
+      for (let i = 0; i < 2; i++) b.box(0.385, 0.03, 0.305, '#a8703a', [x, y + 0.06 + i * 0.1, z]);
+      for (let i = 0; i < 6; i++) b.sphere(0.065, fruit, [x - 0.12 + (i % 3) * 0.12, y + 0.23, z - 0.06 + Math.floor(i / 3) * 0.12], 1);
+    };
+    crate(-0.2, 0, -0.12, '#ffb07a'); crate(0.2, 0, -0.1, '#6a3a8a'); crate(0, 0, 0.22, '#d9473a'); crate(0, 0.22, 0.22, '#ffb07a');
+    return b.build();
+  },
+  /** A tall three-legged orchard ladder with a basket hung on a rung. */
+  orchard_ladder: () => {
+    const b = geo();
+    b.box(0.05, 1.5, 0.05, '#a8703a', [-0.18, 0.72, 0], [0.12, 0, 0.1]);
+    b.box(0.05, 1.5, 0.05, '#a8703a', [0.18, 0.72, 0], [0.12, 0, -0.1]);
+    for (let i = 0; i < 6; i++) b.box(0.36 - i * 0.02, 0.04, 0.04, '#c98a4b', [0, 0.18 + i * 0.22, -0.02 - i * 0.02]);
+    b.box(0.05, 1.45, 0.05, '#8a5a2a', [0, 0.7, 0.42], [-0.32, 0, 0]);
+    b.cyl(0.13, 0.1, 0.16, '#c98a4b', [0.25, 0.55, 0.04], 10);
+    for (let i = 0; i < 4; i++) b.sphere(0.055, '#ffb07a', [0.2 + (i % 2) * 0.09, 0.73, 0.0 + Math.floor(i / 2) * 0.08], 1);
+    return b.build();
+  },
+  /** Three glazed olive-oil jars on a tiled step, with an olive sprig. */
+  olive_jars: () => {
+    const b = geo();
+    b.block(0.86, 0.06, 0.6, '#e6c79a', [0, 0, 0]);
+    for (const [x, z, h, c] of [[-0.24, -0.05, 0.62, '#4f7fa8'], [0.08, -0.1, 0.78, '#d9a24a'], [0.3, 0.12, 0.5, '#7a9a4a']] as [number, number, number, string][]) {
+      b.sphere(h * 0.32, c, [x, 0.06 + h * 0.36, z], 1, [1, 1.25, 1]);
+      b.cyl(h * 0.12, h * 0.16, h * 0.18, c, [x, 0.06 + h * 0.66, z], 10);
+      b.cyl(h * 0.15, h * 0.15, 0.03, '#f2e6c8', [x, 0.06 + h * 0.84, z], 10);
+    }
+    b.cone(0.06, 0.24, '#7a9a4a', [-0.1, 0.06, 0.22], 4, [0, 0, 1.2]);
+    for (let i = 0; i < 3; i++) b.sphere(0.03, '#5a6a2a', [-0.17 + i * 0.05, 0.1, 0.22], 0, [1, 1.3, 1]);
+    return b.build();
+  },
+  /** A painted market cart heaped with fruit under a striped awning. */
+  fruit_cart: () => {
+    const b = geo();
+    b.block(1.1, 0.32, 0.66, '#3fa06a', [0, 0.32, 0]);
+    b.box(1.12, 0.04, 0.68, '#f2e6c8', [0, 0.66, 0]);
+    for (const [x, z] of [[-0.45, -0.36], [0.45, -0.36]] as [number, number][]) b.cyl(0.2, 0.2, 0.06, '#8a5a2a', [x, 0.2, z], 12, [Math.PI / 2, 0, 0]);
+    const cols = ['#ffb07a', '#6a3a8a', '#d9473a', '#ffd23a', '#7fd05a'];
+    for (let i = 0; i < 18; i++) b.sphere(0.075, cols[i % 5], [-0.42 + (i % 6) * 0.17, 0.72 + Math.floor(i / 6) * 0.06, -0.18 + Math.floor(i / 6) * 0.18], 1);
+    for (const x of [-0.5, 0.5]) b.cyl(0.025, 0.025, 0.9, '#f2e6c8', [x, 0.64, 0.28], 6);
+    for (let i = 0; i < 6; i++) b.box(0.19, 0.04, 0.5, i % 2 ? '#ffffff' : '#e8533a', [-0.475 + i * 0.19, 1.56, 0.1], [0.3, 0, 0]);
+    return b.build();
+  },
+
   // ------------------------------------------------------------------ mailbox
   mailbox: () => {
     const b = geo();

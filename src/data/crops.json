@@ -550,6 +550,79 @@
     "model": "crop/leafs_b",
     "produce": "food/pumpkin_gold"
    }
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "level": 101,
+   "seedCost": 100,
+   "growSec": 97200,
+   "yield": 2,
+   "xp": 106,
+   "stages": [
+    "crop/wheat_a",
+    "crop/wheat_a",
+    "crop/wheat_b"
+   ],
+   "ready": {
+    "model": "crop/wheat_b",
+    "tint": "#cfe08a",
+    "produce": "proc/rice"
+   }
+  },
+  {
+   "id": "garlic",
+   "name": "Garlic",
+   "level": 105,
+   "seedCost": 105,
+   "growSec": 100800,
+   "yield": 2,
+   "xp": 110,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/garlic"
+   }
+  },
+  {
+   "id": "sweet_potato",
+   "name": "Sweet Potato",
+   "level": 110,
+   "seedCost": 112,
+   "growSec": 104400,
+   "yield": 2,
+   "xp": 116,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/sweet_potato"
+   }
+  },
+  {
+   "id": "cranberry",
+   "name": "Cranberry",
+   "level": 116,
+   "seedCost": 120,
+   "growSec": 108000,
+   "yield": 2,
+   "xp": 122,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/cranberry"
+   }
   }
  ],
  "trees": [
@@ -649,6 +722,42 @@
    "xp": 27,
    "model": "nat/tree_palm",
    "fruit": "food/coconut"
+  },
+  {
+   "id": "peach_tree",
+   "name": "Peach Tree",
+   "item": "peach",
+   "level": 103,
+   "cost": 30000,
+   "growSec": 21600,
+   "yield": 3,
+   "xp": 80,
+   "model": "nat/tree_detailed",
+   "fruit": "proc/peach"
+  },
+  {
+   "id": "plum_tree",
+   "name": "Plum Tree",
+   "item": "plum",
+   "level": 108,
+   "cost": 38000,
+   "growSec": 25200,
+   "yield": 3,
+   "xp": 90,
+   "model": "nat/tree_fat",
+   "fruit": "proc/plum"
+  },
+  {
+   "id": "olive_tree",
+   "name": "Olive Tree",
+   "item": "olive",
+   "level": 114,
+   "cost": 46000,
+   "growSec": 28800,
+   "yield": 3,
+   "xp": 100,
+   "model": "nat/tree_oak",
+   "fruit": "proc/olive"
   }
  ]
 }

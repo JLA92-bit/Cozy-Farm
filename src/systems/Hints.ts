@@ -131,6 +131,10 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   golden_pumpkin: { title: 'Golden Pumpkins!', sub: 'Rare and shiny. Look for the golden jack-o-lantern in the shop.' },
   mushroom: { title: 'Mushrooms!', sub: 'Cook mushroom soup and garden wraps at the Village Kitchen.' },
   giant_pumpkin: { title: 'Giant Pumpkins!', sub: 'Bake a pumpkin spice cake at the Bakery.' },
+  rice: { title: 'Rice!', sub: 'Stir rice pudding at the Dairy, or cook risotto and fried rice at the Village Kitchen.' },
+  garlic: { title: 'Garlic!', sub: 'Bake garlic bread at the Bakery. Bram likes it.' },
+  sweet_potato: { title: 'Sweet Potatoes!', sub: 'Bake a sweet potato pie at the Bakery.' },
+  cranberry: { title: 'Cranberries!', sub: 'Simmer cranberry sauce at the Jam Kitchen.' },
 };
 
 let wired = false;

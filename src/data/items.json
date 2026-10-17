@@ -1926,6 +1926,120 @@
    "cat": "goods",
    "sell": 1845,
    "icon": "woodland_feast"
+  },
+  "rice": {
+   "name": "Rice",
+   "cat": "crop",
+   "sell": 740,
+   "icon": "rice"
+  },
+  "garlic": {
+   "name": "Garlic",
+   "cat": "crop",
+   "sell": 780,
+   "icon": "garlic"
+  },
+  "sweet_potato": {
+   "name": "Sweet Potato",
+   "cat": "crop",
+   "sell": 830,
+   "icon": "sweet_potato"
+  },
+  "cranberry": {
+   "name": "Cranberry",
+   "cat": "crop",
+   "sell": 880,
+   "icon": "cranberry"
+  },
+  "peach": {
+   "name": "Peach",
+   "cat": "fruit",
+   "sell": 300,
+   "icon": "peach"
+  },
+  "plum": {
+   "name": "Plum",
+   "cat": "fruit",
+   "sell": 340,
+   "icon": "plum"
+  },
+  "olive": {
+   "name": "Olive",
+   "cat": "fruit",
+   "sell": 380,
+   "icon": "olive"
+  },
+  "rice_pudding": {
+   "name": "Rice Pudding",
+   "cat": "goods",
+   "sell": 3210,
+   "icon": "rice_pudding"
+  },
+  "garlic_bread": {
+   "name": "Garlic Bread",
+   "cat": "goods",
+   "sell": 3420,
+   "icon": "garlic_bread"
+  },
+  "plum_jam": {
+   "name": "Plum Jam",
+   "cat": "goods",
+   "sell": 2130,
+   "icon": "plum_jam"
+  },
+  "sweet_potato_pie": {
+   "name": "Sweet Potato Pie",
+   "cat": "goods",
+   "sell": 3730,
+   "icon": "sweet_potato_pie"
+  },
+  "peach_cobbler": {
+   "name": "Peach Cobbler",
+   "cat": "goods",
+   "sell": 2050,
+   "icon": "peach_cobbler"
+  },
+  "olive_oil": {
+   "name": "Olive Oil",
+   "cat": "goods",
+   "sell": 3040,
+   "icon": "olive_oil"
+  },
+  "cranberry_sauce": {
+   "name": "Cranberry Sauce",
+   "cat": "goods",
+   "sell": 5370,
+   "icon": "cranberry_sauce"
+  },
+  "risotto": {
+   "name": "Mushroom Risotto",
+   "cat": "goods",
+   "sell": 6120,
+   "icon": "risotto"
+  },
+  "fried_rice": {
+   "name": "Fried Rice",
+   "cat": "goods",
+   "sell": 5130,
+   "icon": "fried_rice"
+  },
+  "olive_focaccia": {
+   "name": "Olive Focaccia",
+   "cat": "goods",
+   "sell": 7620,
+   "icon": "olive_focaccia"
+  },
+  "peach_sorbet": {
+   "name": "Peach Sorbet",
+   "cat": "goods",
+   "sell": 1410,
+   "icon": "peach_sorbet"
+  },
+  "plum_cake": {
+   "name": "Plum Cake",
+   "cat": "goods",
+   "sell": 2230,
+   "icon": "plum_cake"
   }
  }
 }

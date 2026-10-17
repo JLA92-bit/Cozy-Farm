@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.21.0, committed locally after 1.20.1; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
+Last updated: 17 October 2026 (game version 1.22.0, committed locally after 1.20.1, 1.21.0 and the leaderboard fair-play commit; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.21.0 "Woodcraft"** (local, with 1.20.1 "Spooky Season" in its own commit before it; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.22.0 "Orchard Days"** (local; before it, local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft" and leaderboard fair play; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.22.0 (local, 17 Oct):** Orchard Days, levels 101-120 (`authoredMax` 120): crops rice, garlic, sweet potato, cranberry; peach, plum and olive trees (procedural fruit in `ProcModels.ts`); 12 dishes; 4 decor (`proc:fruit_crates`, `orchard_ladder`, `olive_jars`, `fruit_cart` in `models/Decor.ts`); Farmhouse 15; Master challenge `forage`. Leaderboard fair play (its own commit before it): `upsert_profile` token buckets and `level_for_xp` in `schema.sql`, flags on the dashboard (ONLINE.md); needs `schema.sql` run in Supabase.
 
 **1.21.0 (local, 17 Oct):** Woodcraft, woods phase 3. The Woodcraft Lodge (`woodcraft_lodge`, a farm workshop with `room: trail_hollow`; `Buildings.canBuy` and `ShopPanel` say "Restore the Hollow Bridge in the Wild Woods" for `trail_` rooms), 12 recipes and items with icons. Camping (`woods.json` `camp`, `Woods.campStatus/pitchTent/wakeUp`, state `woods.camp`, campsite `CAMP_AT` in `WoodsView.buildCamp`, tap kind `camp`). Woods weather (`woods.json` `weather`: rain fills mushroom spots, mist rarer digs and pans, sun berries and flowers; in `Woods.spotsFor`, `dig`, `pan`, and the banner text). Debug: `__buildings`.
 
@@ -201,9 +203,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.20.1** (Spooky season look, its own commit) **and 1.21.0** (Woodcraft, the next commit; push it only when Josh says so). Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
 - [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks are pushed (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
-- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.21 Woodcraft, then server-side leaderboard checks and Orchard Days).
+- [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.23 The Ancient Grove).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
@@ -230,6 +232,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: 1.22.0 (local): Orchard Days (levels 101-120: 4 crops, 3 trees, 12 dishes, 4 decor, Farmhouse 15) and leaderboard fair play (server checks).
 - 2026-10-17: leaderboard fair play (local, server + dashboard): capped growth, XP-consistent levels, flags.
 - 2026-10-17: 1.21.0 (local): Woodcraft (Woodcraft Lodge and 12 recipes, camping, woods weather).
 - 2026-10-16: 1.20.1 (local): Spooky season, a cosmetic Halloween look for October (pumpkins, ghosts, bats, dusky light, villager costumes; Settings switch).
@@ -239,4 +242,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.17.0 (pushed): flat XP past 60, late-game XP from Master/boats/festivals, trophy charm cap, Hazel's letter, simulator to 120.
 - 2026-10-16: 1.16.0 (pushed): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
 - 2026-10-15: 1.15.1 (pushed): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
-- 2026-10-15: 1.15.0 (pushed): upkeep (animal sickness, building wear).

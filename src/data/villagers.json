@@ -56,7 +56,9 @@
         "wild_garlic_bread",
         "duck_egg_sponge",
         "maple_syrup",
-        "bramble_crumble"
+        "bramble_crumble",
+        "peach_cobbler",
+        "rice_pudding"
       ],
       "dislikes": [
         "onion",
@@ -263,7 +265,9 @@
         "grilled_tuna",
         "winter_chowder",
         "pickled_herring",
-        "forest_tea"
+        "forest_tea",
+        "fried_rice",
+        "risotto"
       ],
       "dislikes": [
         "wool",
@@ -471,7 +475,9 @@
         "woodland_vase",
         "firefly_lantern",
         "gem_mosaic",
-        "holly_wreath"
+        "holly_wreath",
+        "peach",
+        "plum_jam"
       ],
       "dislikes": [
         "sardine",
@@ -679,7 +685,9 @@
         "boot_planter",
         "rush_basket",
         "crab_cakes",
-        "maple_candy"
+        "maple_candy",
+        "sweet_potato_pie",
+        "cranberry_sauce"
       ],
       "dislikes": [
         "beet",
@@ -906,7 +914,9 @@
         "mint_lemonade",
         "gilded_vase",
         "hedgerow_jam",
-        "herbal_salve"
+        "herbal_salve",
+        "olive_oil",
+        "plum_cake"
       ],
       "dislikes": [
         "wheat"
@@ -1113,7 +1123,9 @@
         "pine_candle",
         "halibut_supper",
         "woodland_pie",
-        "resin_varnish"
+        "resin_varnish",
+        "garlic_bread",
+        "olive_focaccia"
       ],
       "dislikes": [
         "petal",

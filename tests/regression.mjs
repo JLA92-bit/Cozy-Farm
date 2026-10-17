@@ -382,6 +382,23 @@ try {
     check('a camp morning pays once', r.ready === 'ready' && r.got >= 4 && r.gained === r.got && !r.again, JSON.stringify(r));
   }
 
+  // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
+  {
+    const w = copy(); w.player.level = 120;
+    const fh = w.buildings.find((b) => b.type === 'farmhouse'); if (fh) fh.level = 15;
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const g = window.__game, B = window.__buildings;
+      const trees = ['peach_tree', 'plum_tree', 'olive_tree'].map((id) => B.canBuy(id).ok || !/level/i.test(B.canBuy(id).reason ?? ''));
+      g.state.player.level = 102;
+      const peachEarly = B.canBuy('peach_tree');
+      return { trees, peachEarly, plots: g.capFor({ id: 'field', cap: 'plot' }), decor: g.capFor({ id: 'x', cap: 'decor' }), fh: g.farmhouseLevel };
+    });
+    check('Orchard Days trees open at their levels', r.trees.every(Boolean) && !r.peachEarly.ok, JSON.stringify(r));
+    check('Farmhouse level 15 raises the caps', r.fh === 15 && r.plots === 140 && r.decor === 800, JSON.stringify(r));
+  }
+
   // 1.20.1 Spooky season: October only, cosmetic only (nothing is saved), and the Settings switch takes it away
   {
     await setStorage({ [KEY]: JSON.stringify(copy()) });

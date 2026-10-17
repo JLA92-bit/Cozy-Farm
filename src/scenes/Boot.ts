@@ -119,7 +119,7 @@ function coreModels(save: SaveData): string[] {
     ids.add(c.ready.model);
     if (c.ready.produce && !c.ready.produce.startsWith('proc/')) ids.add(c.ready.produce);
   }
-  for (const t of TREES) { ids.add(t.model); ids.add(t.fruit); }
+  for (const t of TREES) { ids.add(t.model); if (!t.fruit.startsWith('proc/')) ids.add(t.fruit); }
   ids.add('nat/cloud_big'); ids.add('nat/cloud_small');
   ids.add('bld/stage_a'); ids.add('bld/stage_b');
   return [...ids].filter((id) => assets.has(id));

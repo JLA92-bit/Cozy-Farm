@@ -12,7 +12,8 @@
     { "id": "fish", "stat": "fish_caught", "text": "Catch {n} fish", "icon": "fish", "base": 20 },
     { "id": "trucks", "stat": "truck_crates", "text": "Fill {n} truck crates", "icon": "truck", "base": 6 },
     { "id": "plant", "stat": "plants_planted", "text": "Plant {n} seeds", "icon": "seedling", "base": 200 },
-    { "id": "quests", "stat": "quests_completed", "text": "Finish {n} quests", "icon": "memo", "base": 6 }
+    { "id": "quests", "stat": "quests_completed", "text": "Finish {n} quests", "icon": "memo", "base": 6 },
+    { "id": "forage", "stat": "forage_picked", "text": "Pick {n} wild forage in the Wild Woods", "icon": "mushroom", "base": 25 }
   ],
   "reward": { "coinsBase": 600, "coinsPerLevel": 40, "gems": 3 },
   "allBonus": { "gems": 10, "crate": "epic" },

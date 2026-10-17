@@ -804,10 +804,11 @@ export class FarmView {
     view.plantKey = key;
     if (!ready || !view.visual) return;
     const t = TREE[view.def.tree!];
-    const pool = this.cropPool(t.fruit);
-    const sm = assets.getStatic(t.fruit);
-    if (!pool || !sm) { view.plantKey = ''; return; }
-    const s = 0.3 / Math.max(sm.size.x, sm.size.y, sm.size.z);
+    const proc = t.fruit.startsWith('proc/');
+    const pool = this.itemPool(t.fruit);
+    const sm = proc ? null : assets.getStatic(t.fruit);
+    if (!pool || (!proc && !sm)) { view.plantKey = ''; return; }
+    const s = sm ? 0.3 / Math.max(sm.size.x, sm.size.y, sm.size.z) : 1.0;
     const r = rng(view.b.uid);
     const rotQ = tmpQ2.setFromAxisAngle(UP, -view.b.rot * Math.PI / 2);
     for (const spot of this.fruitSpots(view.visual)) {

@@ -728,3 +728,18 @@ Woods produce is limited each day (roughly 30 forage with every region open), so
 **Camping:** a campsite in the glade. Pitch the tent from 5 pm to 2 am; from 5 am the next morning a camp morning gives 4 forage from the glade and the open regions, and a 20% chance of a mineral or fossil. Once a night, Foraging XP 10 (`camp_mornings`).
 
 **Woods weather** (the day's weather from `Weather.ts`): rain fills every mushroom spot and makes mushrooms x2 likelier; mist makes fossils and artifacts in digs, and jade, river pearl, topaz, amethyst and agate in pans, x1.4 likelier; sunshine makes berries and flowers x1.4 likelier. Nothing is ever found in only one weather.
+
+## 1.22 Orchard Days (levels 101-120)
+
+New content up to `authoredMax` 120, so every level from 101 to 120 unlocks something.
+
+| Kind | Content |
+| --- | --- |
+| Crops | rice (101, sells 740), garlic (105, 780), sweet potato (110, 830), cranberry (116, 880); 27-30 h each |
+| Trees | peach (103, 30,000 coins, 300 a fruit), plum (108, 38,000, 340), olive (114, 46,000, 380); 6-8 h, 3 fruit |
+| Dishes | 12, priced at x2.0 their ingredients' barn value: rice pudding (Dairy, 104, 3,210), garlic bread (Bakery, 106, 3,420), plum jam (Jam Kitchen, 109, 2,130), sweet potato pie (Bakery, 111, 3,730), peach cobbler (Bakery, 113, 2,050), olive oil (Juice Press, 115, 3,040), cranberry sauce (Jam Kitchen, 117, 5,370), mushroom risotto (Village Kitchen, 117, 6,120), fried rice (Village Kitchen, 119, 5,130), olive focaccia (Bakery, 119, 7,620), peach sorbet (Dairy, 120, 1,410), plum cake (Bakery, 120, 2,230) |
+| Decor | Fruit Crate Stack (102), Orchard Ladder (107), Olive Oil Jars (112), Market Fruit Cart (118); 52,000-70,000 coins, charm 160-200 |
+| Farmhouse | level 15 at player level 110: 3,200,000 coins, 36 h; fields 140, trees 60, decor 800 |
+| Master | new challenge "Pick {n} wild forage in the Wild Woods" (base 25) |
+
+Uses: the crops go on the Garden boat, the fruit, olive oil, plum jam and cranberry sauce on the Orchard boat, the dishes on the Baker's, Dairy, Sweet Tooth and Picnic boats, and each villager likes two of the new goods.
