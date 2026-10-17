@@ -150,6 +150,21 @@ as $$
 $$;
 
 -- Create or update the caller's public profile. The friend code is made once, on first publish.
+-- 1.22 The highest level a total of XP can reach: XP at the start of levels 1 to 60 (levels.json), then the same
+-- 62,810 XP for every level after (endless.xpPerLevel 0). validate-data checks this table matches levels.json.
+create or replace function public.level_for_xp(p_xp bigint)
+returns integer
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_xp >= x.cum[array_length(x.cum, 1)] then least(999, array_length(x.cum, 1) + ((p_xp - x.cum[array_length(x.cum, 1)]) / 62810)::integer)
+    else (select max(i) from generate_subscripts(x.cum, 1) i where x.cum[i] <= p_xp)
+  end
+  from (select array[0,15,42,93,178,303,476,702,987,1377,1892,2557,3392,4422,5677,7182,8967,11057,13492,16297,19507,23157,27282,31922,37107,42882,49282,56352,64127,72652,81967,92122,103157,115117,128052,142007,157032,173177,190487,209017,228817,249937,272437,296367,321777,348727,377272,407467,439372,473047,508747,546587,586697,629217,674287,722057,772697,826377,883277,943587]::bigint[] as cum) x;
+$$;
+
 create or replace function public.upsert_profile(
   p_name text,
   p_farm_name text,
@@ -169,6 +184,21 @@ declare
   uid uuid := auth.uid();
   v_look jsonb;
   r public.profiles;
+  v_prev public.profiles;
+  v_week date := (date_trunc('week', now() at time zone 'utc'))::date;
+  v_h double precision;
+  v_level integer := least(greatest(coalesce(p_level, 1), 1), 999);
+  v_xp bigint := least(greatest(coalesce(p_total_xp, 0), 0), 1000000000000);
+  v_value bigint := least(greatest(coalesce(p_farm_value, 0), 0), 1000000000000);
+  v_charm integer := least(greatest(coalesce(p_charm, 0), 0), 10000000);
+  v_weekly integer := least(greatest(coalesce(p_weekly_xp, 0), 0), 1000000000);
+  v_cap numeric;
+  v_gain numeric;
+  v_bx numeric;
+  v_bv numeric;
+  v_bc numeric;
+  v_why text := '';
+  v_far boolean := false;
 begin
   if uid is null then raise exception 'not signed in'; end if;
   -- keep only the known look fields, as short strings
@@ -179,22 +209,57 @@ begin
     'top',    left(coalesce(p_look ->> 'top', ''), 32),
     'bottom', left(coalesce(p_look ->> 'bottom', ''), 32),
     'hat',    left(coalesce(p_look ->> 'hat', ''), 32));
+  -- 1.22 plausibility. XP, farm value and charm can only grow out of an allowance that refills with time (a token
+  -- bucket, so calling often gains nothing), set far above real play (late levels are about 63,000 XP and 2.4 days
+  -- each). The level can be no higher than the XP behind it allows, and this week's XP no more than was gained. A
+  -- too-fast value is capped (the save itself is never refused) and the reason noted for the dashboard; asking for
+  -- over three times the allowance also takes the player off the public leaderboards until a developer looks.
+  select * into v_prev from public.profiles x where x.id = uid;
+  if found then
+    v_h := greatest(extract(epoch from (now() - v_prev.updated_at)) / 3600.0, 0);
+    v_bx := least(120000, coalesce(v_prev.lb_xp_budget, 120000) + v_h * 40000);
+    v_bv := least(3000000, coalesce(v_prev.lb_value_budget, 3000000) + v_h * 1000000);
+    v_bc := least(1000, coalesce(v_prev.lb_charm_budget, 1000) + v_h * 400);
+    v_gain := v_xp - v_prev.total_xp;
+    if v_gain > v_bx then v_why := v_why || 'xp '; v_far := v_far or v_gain > 3 * v_bx; v_xp := v_prev.total_xp + floor(v_bx); end if;
+    v_bx := v_bx - greatest(v_xp - v_prev.total_xp, 0);
+    v_gain := v_value - v_prev.farm_value;
+    if v_gain > v_bv then v_why := v_why || 'farm_value '; v_far := v_far or v_gain > 3 * v_bv; v_value := v_prev.farm_value + floor(v_bv); end if;
+    v_bv := v_bv - greatest(v_value - v_prev.farm_value, 0);
+    v_gain := v_charm - v_prev.charm;
+    if v_gain > v_bc then v_why := v_why || 'charm '; v_far := v_far or v_gain > 3 * v_bc; v_charm := v_prev.charm + floor(v_bc); end if;
+    v_bc := v_bc - greatest(v_charm - v_prev.charm, 0);
+    v_cap := (case when v_prev.week_start = v_week then v_prev.weekly_xp else 0 end) + greatest(v_xp - v_prev.total_xp, 0) + 1000;
+  else
+    -- a new profile: what a long-time player could bring back on a fresh account, no more. A new account already
+    -- past level 60 waits off the public boards until a developer looks (Leaderboards page of the dashboard).
+    v_far := v_xp > 1006397;
+    if v_far then v_why := v_why || 'past level 60 '; end if;
+    if v_xp > 3000000 then v_why := v_why || 'xp '; v_xp := 3000000; end if;
+    if v_value > 30000000 then v_why := v_why || 'farm_value '; v_value := 30000000; end if;
+    if v_charm > 20000 then v_why := v_why || 'charm '; v_charm := 20000; end if;
+    v_bx := 0; v_bv := 0; v_bc := 0;
+    v_cap := least(v_xp, 6720000);
+  end if;
+  if v_weekly > v_cap then v_why := v_why || 'weekly_xp '; v_weekly := v_cap; end if;
+  if v_level > public.level_for_xp(v_xp) then v_why := v_why || 'level '; v_level := greatest(1, public.level_for_xp(v_xp)); end if;
   for attempt in 1..5 loop
     begin
-      insert into public.profiles as p (id, code, name, farm_name, level, total_xp, farm_value, charm, weekly_xp, week_start, look, updated_at)
+      insert into public.profiles as p (id, code, name, farm_name, level, total_xp, farm_value, charm, weekly_xp, week_start, look, updated_at,
+                                        lb_xp_budget, lb_value_budget, lb_charm_budget, lb_flag, lb_flagged_at, lb_hidden)
       values (
         uid,
         public.gen_friend_code(),
         public.clean_text(p_name, 24, 'Farmer'),
         nullif(public.clean_text(p_farm_name, 32, ''), ''),
-        least(greatest(coalesce(p_level, 1), 1), 999),
-        least(greatest(coalesce(p_total_xp, 0), 0), 1000000000000),
-        least(greatest(coalesce(p_farm_value, 0), 0), 1000000000000),
-        least(greatest(coalesce(p_charm, 0), 0), 10000000),
-        least(greatest(coalesce(p_weekly_xp, 0), 0), 1000000000),
-        (date_trunc('week', now() at time zone 'utc'))::date,
+        v_level, v_xp, v_value, v_charm, v_weekly,
+        v_week,
         v_look,
-        now())
+        now(),
+        floor(v_bx), floor(v_bv), floor(v_bc),
+        case when v_why <> '' then left('new profile: ' || trim(v_why), 120) end,
+        case when v_why <> '' then now() end,
+        v_far)
       on conflict (id) do update set
         name       = excluded.name,
         farm_name  = excluded.farm_name,
@@ -205,6 +270,12 @@ begin
         weekly_xp  = excluded.weekly_xp,
         week_start = excluded.week_start,
         look       = excluded.look,
+        lb_flag    = case when v_why <> '' then left(trim(v_why) || ' too fast', 120) else p.lb_flag end,
+        lb_flagged_at = case when v_why <> '' then now() else p.lb_flagged_at end,
+        lb_hidden  = p.lb_hidden or v_far,
+        lb_xp_budget = floor(v_bx),
+        lb_value_budget = floor(v_bv),
+        lb_charm_budget = floor(v_bc),
         updated_at = now()
       returning p.* into r;
       return r;
@@ -1494,6 +1565,12 @@ create index if not exists farm_backups_user_idx on public.farm_backups (user_id
 create index if not exists farm_backups_taken_idx on public.farm_backups (taken_at);
 
 alter table public.profiles add column if not exists lb_hidden boolean not null default false;
+-- 1.22 leaderboard plausibility checks (upsert_profile): why the last too-fast jump was capped, and when
+alter table public.profiles add column if not exists lb_flag text check (lb_flag is null or char_length(lb_flag) <= 120);
+alter table public.profiles add column if not exists lb_flagged_at timestamptz;
+alter table public.profiles add column if not exists lb_xp_budget bigint;
+alter table public.profiles add column if not exists lb_value_budget bigint;
+alter table public.profiles add column if not exists lb_charm_budget integer;
 
 alter table public.admin_users  enable row level security;
 alter table public.admin_log    enable row level security;
@@ -2312,7 +2389,8 @@ as $$
 begin
   perform public.admin_guard();
   return (select coalesce(jsonb_agg(jsonb_build_object('id', p.id, 'name', p.name, 'code', p.code, 'level', p.level, 'total_xp', p.total_xp,
-            'farm_value', p.farm_value, 'charm', p.charm, 'weekly_xp', p.weekly_xp, 'lb_hidden', p.lb_hidden)), '[]'::jsonb)
+            'farm_value', p.farm_value, 'charm', p.charm, 'weekly_xp', p.weekly_xp, 'lb_hidden', p.lb_hidden,
+            'lb_flag', p.lb_flag, 'lb_flagged_at', p.lb_flagged_at)), '[]'::jsonb)
             from (select * from public.profiles x
                    where p_kind <> 'weekly' or x.week_start = (date_trunc('week', now() at time zone 'utc'))::date
                    order by case when p_kind = 'level' then x.level end desc nulls last,

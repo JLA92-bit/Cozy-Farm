@@ -419,6 +419,16 @@ releases?.forEach((r, i) => {
   for (const k of ['rare_seed', 'quality_fertiliser', 'fertiliser']) add(k);
   for (const [k, it] of Object.entries(items)) if (it.cat !== 'event' && !uses.has(k)) err(`item ${k}: has no use (add it to a recipe, bundle, Museum shelf, boat wish list, treat or villager favourite)`);
 }
+// 1.22 the server's leaderboard check knows the XP table: supabase/schema.sql level_for_xp must match levels.json
+{
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  const lv = read('levels.json'), cum = [0];
+  for (const x of lv.levels.slice(0, -1)) cum.push(cum[cum.length - 1] + x.xpToNext);
+  const m = sql.match(/level_for_xp[\s\S]*?array\[([0-9,]+)\]::bigint\[\]/);
+  const step = sql.match(/\(\(p_xp - x\.cum\[array_length\(x\.cum, 1\)\]\) \/ (\d+)\)/);
+  if (!m || m[1] !== cum.join(',')) err('supabase/schema.sql level_for_xp: the XP table does not match levels.json (regenerate it)');
+  if (!step || Number(step[1]) !== lv.levels[lv.levels.length - 1].xpToNext || lv.endless.xpPerLevel !== 0) err('supabase/schema.sql level_for_xp: the XP per level past the table does not match levels.json (it assumes endless.xpPerLevel 0)');
+}
 // 1.9 schedules: known villagers and places
 {
   const sc = read('schedules.json'), vIds = read('villagers.json').villagers.map((v) => v.id);

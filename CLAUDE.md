@@ -22,6 +22,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
+**Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
 **1.21.0 (local, 17 Oct):** Woodcraft, woods phase 3. The Woodcraft Lodge (`woodcraft_lodge`, a farm workshop with `room: trail_hollow`; `Buildings.canBuy` and `ShopPanel` say "Restore the Hollow Bridge in the Wild Woods" for `trail_` rooms), 12 recipes and items with icons. Camping (`woods.json` `camp`, `Woods.campStatus/pitchTent/wakeUp`, state `woods.camp`, campsite `CAMP_AT` in `WoodsView.buildCamp`, tap kind `camp`). Woods weather (`woods.json` `weather`: rain fills mushroom spots, mist rarer digs and pans, sun berries and flowers; in `Woods.spotsFor`, `dig`, `pan`, and the banner text). Debug: `__buildings`.
 
 **1.20.1 (local, 16 Oct, its own commit so it can ship alone):** Spooky season, a cosmetic-only Halloween look through October (local date): FarmLook `halloween` (dusky lilac sky, orange specks, orange and purple leaves, `mood` gives an all-day golden-dusk light in `Environment`), `src/world/Halloween.ts` (`HalloweenDecor`: a ring of jack-o'-lanterns, autumn pines and lantern posts with bunting just outside the farm grid, glowing after dark; following the camera target: friendly ghosts, bats, floating jack-o'-lanterns, ground mist and a witch flyby every 30-40 s; `costume()` puts villagers in witch and pumpkin hats), `src/ui/halloween.css` (html class `halloween`: orange and purple panels and HUD buttons, cobwebs, a dangling spider, a vignette, the "Happy Halloween" countdown ribbon, a moonlit loading screen set in `main.ts`), `src/scenes/HalloweenApply.ts` (builds it when needed, checks the date every minute, so it ends by itself on 1 November), Settings row "Halloween look" (October only, `settings.halloween`). Nothing is saved to the game state. Debug: `__halloween`.
@@ -200,7 +202,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 ## 8. Open to-dos
 
 - [ ] **Review and push 1.20.1** (Spooky season look, its own commit) **and 1.21.0** (Woodcraft, the next commit; push it only when Josh says so). Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
-- [ ] Make sure the latest `supabase/schema.sql` has been run in Supabase (1.15.0 added the `upkeep` game setting).
+- [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks are pushed (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; next: 1.21 Woodcraft, then server-side leaderboard checks and Orchard Days).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -228,6 +230,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-17: leaderboard fair play (local, server + dashboard): capped growth, XP-consistent levels, flags.
 - 2026-10-17: 1.21.0 (local): Woodcraft (Woodcraft Lodge and 12 recipes, camping, woods weather).
 - 2026-10-16: 1.20.1 (local): Spooky season, a cosmetic Halloween look for October (pumpkins, ghosts, bats, dusky light, villager costumes; Settings switch).
 - 2026-10-16: 1.20.0 (pushed, run 54): Woodland Friends (critter stumps, Critter Journal, Wren), Care and Craft (vet/carpenter levels, check-ups, fresh paint, care round), every item has a use (27 recipes, Aquarium and Creek Treasures, Picnic and Craft Fair boats, validator rule), the decor-vanishing fix; ROADMAP re-sequenced.
@@ -237,4 +240,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-16: 1.16.0 (pushed): decor batching (`BatchPool.ts`), lazy model loading at boot, `test:perf`; regression checks run in CI; `send-push` requires its secret.
 - 2026-10-15: 1.15.1 (pushed): audit fixes (safe saves, upkeep grace day, Master fixes, recipe prices) and `npm run test:regression`.
 - 2026-10-15: 1.15.0 (pushed): upkeep (animal sickness, building wear).
-- 2026-10-14: 1.14.0 (pushed): Grand Estate (assets, levels 81-100, Master Board, boats).

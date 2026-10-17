@@ -1,7 +1,7 @@
 import { rpc } from '../api';
 import { h, num, loading, badge, toast, fail } from '../ui';
 
-interface Row { id: string; name: string; code: string; level: number; total_xp: number; farm_value: number; charm: number; weekly_xp: number; lb_hidden: boolean }
+interface Row { id: string; name: string; code: string; level: number; total_xp: number; farm_value: number; charm: number; weekly_xp: number; lb_hidden: boolean; lb_flag?: string | null; lb_flagged_at?: string | null }
 const KINDS: [string, string, (r: Row) => string][] = [
   ['level', 'Level', (r) => `Level ${r.level} - ${num(r.total_xp)} XP`], ['weekly', 'This week', (r) => `${num(r.weekly_xp)} XP`],
   ['farmValue', 'Farm value', (r) => num(r.farm_value)], ['charm', 'Charm', (r) => `${num(r.charm)} charm`]];
@@ -15,9 +15,10 @@ export async function leaderboardsView(host: HTMLElement): Promise<void> {
     const rows = await rpc<Row[]>('admin_leaderboard', { p_kind: kind, p_limit: 100 });
     const show = KINDS.find(([k]) => k === kind)![2];
     let rank = 0;
-    list.replaceChildren(h('section', { class: 'card' }, h('p', { class: 'muted small' }, 'Hidden players are left out of the leaderboards players see (they still play normally, and keep their friends). Ranks below skip them.'),
+    list.replaceChildren(h('section', { class: 'card' }, h('p', { class: 'muted small' }, 'Hidden players are left out of the leaderboards players see (they still play normally, and keep their friends). Ranks below skip them. Since 1.22 the server caps numbers that grow faster than real play and notes why (Flagged); a big jump, or a new account already past level 60, is hidden until you press Show.'),
       h('table', { class: 'table compact' }, h('tbody', null, rows.map((r) => h('tr', { class: r.lb_hidden ? 'dim' : '' },
-        h('td', { class: 'r muted' }, r.lb_hidden ? '-' : String(++rank)), h('td', null, h('a', { href: `#/player/${r.id}` }, r.name), h('span', { class: 'muted small' }, ` ${r.code}`), r.lb_hidden ? badge('Hidden') : null),
+        h('td', { class: 'r muted' }, r.lb_hidden ? '-' : String(++rank)), h('td', null, h('a', { href: `#/player/${r.id}` }, r.name), h('span', { class: 'muted small' }, ` ${r.code}`), r.lb_hidden ? badge('Hidden') : null,
+          r.lb_flag ? h('div', { class: 'muted small', title: r.lb_flagged_at ? new Date(r.lb_flagged_at).toLocaleString() : '' }, `Flagged: ${r.lb_flag}`) : null),
         h('td', { class: 'r' }, show(r)),
         h('td', { class: 'r' }, h('button', { class: 'btn small', onclick: async () => {
           try { await rpc('admin_set_hidden', { p_id: r.id, p_hidden: !r.lb_hidden }); toast(r.lb_hidden ? `${r.name} is back on the leaderboards` : `${r.name} hidden from the leaderboards`); void load(); } catch (e) { fail(e); }

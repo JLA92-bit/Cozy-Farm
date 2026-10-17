@@ -30,7 +30,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.19 | The Deep Woods (woods phase 1) | ~1.5 weeks | done |
 | 1.20 | Woodland Friends (woods phase 2) and Care and Craft | ~1.5 weeks | done (local) |
 | 1.21 | Woodcraft (woods phase 3: the Lodge, camping, woods weather) | ~1 week | done (local) |
-| 1.22 | Server-side leaderboard checks, then Orchard Days (levels 101-120) | ~1.5 weeks + schema | |
+| 1.22 | Server-side leaderboard checks (done, local), then Orchard Days (levels 101-120) | ~1.5 weeks + schema | in progress |
 | 1.23 | The Ancient Grove (woods phase 4) | ~1 week | |
 | 1.24 | The Tea House and the Florist (new workshops, villager arcs) | ~1 week | |
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | |

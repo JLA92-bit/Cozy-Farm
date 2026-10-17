@@ -184,6 +184,16 @@ Player gift codes are limited to 500 coins and no gems. For more, make a reward 
 Each player can claim a code once. Codes last 30 days and work for `max_claims` players (default 1). See them
 with `select code, coins, gems, claims, max_claims, note from reward_codes order by created_at desc;`.
 
+## Leaderboard fair play (1.22)
+
+The server checks every profile update before it reaches the leaderboards (`upsert_profile` in `supabase/schema.sql`). Nothing a player does is refused: numbers that grow faster than real play are capped, and the reason is noted.
+
+- **XP, farm value and charm** grow out of an allowance that refills with time: 40,000 XP an hour (up to 120,000 saved), 1,000,000 farm value an hour (up to 3,000,000) and 400 charm an hour (up to 1,000). Real farms stay far below this; late levels are about 63,000 XP and 2.4 days each.
+- **Level** can be no higher than the player's total XP allows (`level_for_xp`, which `validate-data` checks against `levels.json`), and this week's XP no more than was gained.
+- **Flagged** players show the reason on the dashboard's Leaderboards page. Asking for more than three times the allowance, or a brand new account already past level 60, also hides the player from the public boards until you press **Show** there.
+
+After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`.
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in
