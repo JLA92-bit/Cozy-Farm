@@ -711,25 +711,13 @@ try {
     check('Farmhouse level 15 raises the caps', r.fh === 15 && r.plots === 140 && r.decor === 800, JSON.stringify(r));
   }
 
-  // 1.20.1 Spooky season: October only, cosmetic only (nothing is saved), and the Settings switch takes it away
+  // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back
+  // (#ui-root > *), so a full-screen one swallows every touch (1.28.3: the removed Halloween vignette did this)
   {
     await setStorage({ [KEY]: JSON.stringify(copy()) });
     await boot();
-    const r = await page.evaluate(async () => {
-      const october = new Date().getMonth() === 9;
-      for (let i = 0; i < 40 && october && !window.__halloween.decor; i++) await new Promise((res) => setTimeout(res, 250));
-      const d = window.__halloween.decor;
-      const shown = !!d && d.group.visible;
-      const before = Object.keys(window.__game.state).sort().join(',');
-      const s = JSON.parse(localStorage.getItem('cozy-acres-settings') ?? '{}');
-      localStorage.setItem('cozy-acres-settings', JSON.stringify({ ...s, halloween: false }));
-      return { october, shown, keys: before.includes('halloween') };
-    });
-    check('the Halloween look shows in October only and saves nothing', r.shown === r.october && !r.keys, JSON.stringify(r));
-    // 1.28.3: the Halloween vignette covered the whole screen and swallowed every touch (#ui-root > * turned pointer
-    // events back on), so nobody could move around: the middle of an open farm must reach the 3D view
     const hit = await page.evaluate(() => { const el = document.elementFromPoint(innerWidth / 2, innerHeight * 0.62); return el ? `${el.tagName}.${el.className}` : ''; });
-    check('nothing invisible covers the farm (touches reach the 3D view)', !!hit && !/hw-|toast-stack/.test(hit), hit);
+    check('nothing invisible covers the farm (touches reach the 3D view)', !!hit && !/toast-stack|layer/.test(hit), hit);
   }
 
   // 10. 1.16: a level 1 farm does not load late-game models at boot, but one placed later still appears; different

@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.28.4",
+   "date": "2026-10-17",
+   "title": "Back to Normal",
+   "icon": "leaf",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "leaf",
+     "text": "The Halloween look has been taken away: the farm, the villagers and the screens are back to their usual cosy selves"
+    },
+    {
+     "icon": "info",
+     "text": "Your own Farm look choice in Settings (spring, summer, autumn, winter or auto) works just as before"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.3",
    "date": "2026-10-17",
    "title": "Moving Again",

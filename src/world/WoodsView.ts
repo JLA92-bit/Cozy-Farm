@@ -8,7 +8,7 @@ import { Character } from './Character';
 import { museum } from '../systems/Museum';
 import { expeditions } from '../systems/Expeditions';
 import { geo, rng } from './Procedural';
-import { costume, currentLook } from './FarmLook';
+import { currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
 import { FURNISH_GEO, TREEHOUSE_Y, treehouseGeometry, elderOakGeometry, FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
@@ -859,7 +859,7 @@ export class WoodsView {
       for (const v of VILLAGERS) {
         let f = this.folk.get(v.id);
         if (here.has(v.id) && !f) {
-          const char = await Character.create(costume(v.look, v.id), v.scale);
+          const char = await Character.create(v.look, v.scale);
           char.play('idle');
           char.root.userData.speechHeight = 2.1;
           const k = VILLAGERS.indexOf(v);

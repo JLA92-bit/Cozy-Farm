@@ -4,17 +4,6 @@ import { registerSW } from 'virtual:pwa-register';
 import { boot } from './scenes/Boot';
 import { watchInstallPrompt } from './ui/Install';
 import { saves, hasBackup, restoreBackup, NewerSaveError } from './systems/Save';
-import './ui/halloween.css';
-import { halloweenOn } from './world/FarmLook';
-
-// 1.20.1 Spooky season: dress the loading screen (and later the whole UI) for October
-if (halloweenOn()) {
-  document.documentElement.classList.add('halloween');
-  const runner = document.querySelector<HTMLImageElement>('.boot-runner');
-  if (runner) runner.src = runner.src.replace('seedling.svg', 'ghost.svg');
-  const tip = document.querySelector('.boot-tip');
-  if (tip) tip.textContent = 'Brewing something spooky...';
-}
 
 /** Fetch the newest version of the game (service worker), then reload. */
 async function updateAndReload(): Promise<void> {
