@@ -1,6 +1,28 @@
 {
  "releases": [
   {
+   "version": "1.28.0",
+   "date": "2026-10-17",
+   "title": "Together",
+   "icon": "hug",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "hug",
+     "text": "Village Projects: host a project with your friends (the Friendship Footbridge, a Community Garden or Fireworks Night) and build it together. Open Village, then Village Projects"
+    },
+    {
+     "icon": "trophy",
+     "text": "Everyone who helps gets the project's decoration for their farm and a Friendship Plaque with all your names"
+    },
+    {
+     "icon": "basket",
+     "text": "Nothing is ever lost: if a project runs out of time, everyone gets back exactly what they gave"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.27.0",
    "date": "2026-10-17",
    "title": "The Treehouse and the Wildlife Album",

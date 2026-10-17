@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { coop } from '../../systems/Coop';
 import { currentStageOf, estateStarted } from '../../systems/Estate';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear, fmt } from '../dom';
@@ -98,6 +99,14 @@ export function openVillage(arg?: { villager?: string }): void {
           h('div', { class: 'v-intro-text' }, !manorStarted() ? 'The old manor behind the square. Rebuild every room of the square to begin.'
             : wing ? `${done} of ${MANOR_WINGS.length} wings rebuilt. Now: ${wing.name}` : 'Every wing rebuilt. Willowmere is open!')),
         button([icon('crown'), 'Open'], () => ui.open('manor'), 'purple small', { 'aria-label': 'Open Willowmere Manor' })));
+    }
+    // 1.28: Village Projects with friends
+    if (coop.available && ui.has('coop')) {
+      const mine = coop.mine(), fr = coop.friends().filter((x) => x.status === 'open').length;
+      p.body.append(h('div', { class: 'v-square' }, icon('hug', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Village Projects'),
+          h('div', { class: 'v-intro-text' }, mine ? `Hosting: ${coop.def(mine.kind)?.name ?? 'a project'}${fr ? `. ${fr} from friends` : ''}` : fr ? `${fr} ${fr === 1 ? 'project' : 'projects'} from friends to help with` : 'Build something together with your friends')),
+        button([icon('hug'), 'Open'], () => ui.open('coop'), 'pink small', { 'aria-label': 'Open Village Projects' })));
     }
     // 1.26: the Estate Projects (the Clock Tower and the Lighthouse), from level 70
     if (game.level >= ESTATE[0].opensAt && ui.has('estate')) {

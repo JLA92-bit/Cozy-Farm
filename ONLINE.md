@@ -194,6 +194,20 @@ The server checks every profile update before it reaches the leaderboards (`upse
 
 After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`.
 
+## Village Projects (1.28 co-op)
+
+Friends build something together: a player hosts one project (the Friendship Footbridge from level 20, the Community Garden from 25, Fireworks Night from 35) and their friends add goods to it. Section `1.28 co-op village projects` in `supabase/schema.sql`, game side `src/systems/Coop.ts`, numbers in `src/data/coop.json`.
+
+- **Who can see it:** the host's friends list from their device (at most 30) is stored with the project, like Ask a friend. Only the host and those friends can see a project or give to it, and they see each other's farmer names and how much each gave.
+- **Exactly once:** a giver's game takes the items before `coop_give` and puts back what the server did not use. When every need is met, every giver gets a claim; `coop_claim` hands each one out once (the decoration and a plaque with everyone's names).
+- **Nothing is lost:** a project that runs out of time (30 days) or that the host cancels (only while nobody else has given) refunds every giver exactly what they gave, through the same claims.
+- **Limits:** one open project per host, 2 starts a week, at most 50 of an item per gift and never more than still needed, 40 gifts per player a day.
+- **The catalog lives on the server too** (`coop_catalog()`, the level and needs per project), so a changed game cannot ask for less. `validate-data` fails if it does not match `coop.json`: change both together.
+- **Switch it off** without a release: the dashboard's 1.9 page, Game settings, Village Projects: Off (`game_config` key `coop` = false). The game hides it and the server refuses new projects and gifts; open ones still refund when they run out of time.
+- Deleting an account deletes its projects, gifts and claims (on delete cascade). The tables are not readable by players; everything goes through the functions. Tested on a local Postgres 16 with a stub `auth` schema.
+
+After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`. Update the Play Console Data safety form from `store/data-safety.md` (Village Projects are under "Other actions", already declared, and visible to friends).
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in

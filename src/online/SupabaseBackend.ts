@@ -1,4 +1,6 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
+import { cleanClaim, cleanCoop } from './Coop';
+import type { CoopClaim, CoopProject } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -671,6 +673,36 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (!valid.length) return [];
     const rows = await this.rpc<HelpFillRow[]>('claim_help_fills', { p_ids: valid });
     return (rows ?? []).map((r) => this.mapFill(r)).filter((f): f is HelpFill => !!f);
+  }
+
+  // ------------------------------------------------------------------ 1.28 co-op village projects
+  private coop(r: unknown): CoopProject {
+    const p = cleanCoop(r as Record<string, unknown>);
+    if (!p) throw new Error('not found');
+    return p;
+  }
+  async coopStart(kind: string, friends: string[]): Promise<CoopProject> {
+    return this.coop(await this.rpc<unknown>('coop_start', { p_kind: kind, p_friends: this.friendIds(friends) }));
+  }
+  async coopSetFriends(friends: string[]): Promise<void> {
+    await this.rpc<number>('coop_set_friends', { p_friends: this.friendIds(friends) });
+  }
+  async coopList(friends: string[]): Promise<CoopProject[]> {
+    const rows = await this.rpc<unknown[]>('coop_list', { p_ids: this.friendIds(friends) });
+    return (Array.isArray(rows) ? rows : []).map((r) => cleanCoop(r as Record<string, unknown>)).filter((p): p is CoopProject => !!p);
+  }
+  async coopGive(id: string, item: string, qty: number): Promise<{ used: number; project: CoopProject }> {
+    if (!UUID.test(id)) throw new Error('not found');
+    const r = await this.rpc<{ used?: unknown; project?: unknown }>('coop_give', { p_id: id, p_item: item, p_qty: int(qty, 50) });
+    return { used: int(Number(r.used), 50), project: this.coop(r.project) };
+  }
+  async coopCancel(id: string): Promise<CoopProject> {
+    if (!UUID.test(id)) throw new Error('not found');
+    return this.coop(await this.rpc<unknown>('coop_cancel', { p_id: id }));
+  }
+  async coopClaim(): Promise<CoopClaim[]> {
+    const rows = await this.rpc<unknown[]>('coop_claim', {});
+    return (Array.isArray(rows) ? rows : []).map((r) => cleanClaim(r as Record<string, unknown>)).filter((c): c is CoopClaim => !!c);
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void {

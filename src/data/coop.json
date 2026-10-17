@@ -1,0 +1,20 @@
+{
+ "_comment": "1.28 Together: co-op Village Projects (src/systems/Coop.ts, server section '1.28 co-op village projects' in supabase/schema.sql). A player hosts one project at a time and their friends (at most 30, from their device) add goods to it. When every need is met, everyone who gave gets the project's decoration and a plaque with all their names; if it runs out of time (`days`) or the host cancels it, everyone gets back exactly what they gave. The server keeps its own copy of `projects` (level and needs) in coop_catalog(): validate-data checks they match. `maxGive` is the most one gift can carry, `givesPerDay` the gifts a player can make in a day. A game_config switch `coop` (true/false) turns it off without a release.",
+ "level": 20,
+ "days": 30,
+ "maxGive": 50,
+ "givesPerDay": 40,
+ "startsPerWeek": 2,
+ "plaque": "coop_plaque",
+ "projects": [
+  { "id": "footbridge", "name": "The Friendship Footbridge", "icon": "hammer_wrench", "level": 20, "decor": "coop_footbridge",
+    "about": "A little wooden bridge with your names carved on the rail. Every farm that helps build it gets one of its own.",
+    "needs": { "wheat": 400, "bread": 80, "yarn": 30, "cheese": 30, "iron_ore": 20 } },
+  { "id": "garden", "name": "The Community Garden", "icon": "seedling", "level": 25, "decor": "coop_garden",
+    "about": "Raised beds and a bench in the sun, planted together. Every helper gets a garden corner for their farm.",
+    "needs": { "strawberry": 150, "carrot": 250, "apple": 100, "honey": 30, "fertiliser": 20 } },
+  { "id": "fireworks", "name": "Fireworks Night", "icon": "sparkles", "level": 35, "decor": "coop_fireworks",
+    "about": "One big night of lanterns and fireworks over the water. Everyone who helps gets a fireworks stand that lights up after dark.",
+    "needs": { "sugar": 120, "beeswax_candle": 40, "berry_juice": 50, "cookie": 60, "copper_ore": 20 } }
+ ]
+}

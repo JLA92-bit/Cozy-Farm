@@ -3249,11 +3249,12 @@ as $$
 declare
   v_admin text := public.admin_guard();
 begin
-  if p_key not in ('market_day', 'weather', 'upkeep') then raise exception 'unknown setting'; end if;
+  if p_key not in ('market_day', 'weather', 'upkeep', 'coop') then raise exception 'unknown setting'; end if;
   if p_value is null or jsonb_typeof(p_value) = 'null' then
     delete from public.game_config where key = p_key;
   else
     if p_key = 'market_day' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::integer between 0 and 6) then raise exception 'market_day must be 0-6'; end if;
+    if p_key = 'coop' and jsonb_typeof(p_value) <> 'boolean' then raise exception 'coop must be true or false'; end if;
     if p_key = 'upkeep' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::numeric between 0 and 2) then raise exception 'upkeep must be 0-2'; end if;
     if p_key = 'weather' and not (jsonb_typeof(p_value) = 'object' and (p_value ->> 'date') ~ '^\d{4}-\d{2}-\d{2}$' and (p_value ->> 'kind') in ('sunny', 'rain', 'mist')) then raise exception 'weather needs a date and a kind'; end if;
     insert into public.game_config (key, value, updated_at) values (p_key, p_value, now())
@@ -3317,3 +3318,334 @@ grant execute on function public.get_game_config() to anon, authenticated;
 -- the admin_* functions check admin_guard() themselves; signed-in callers may try them
 grant execute on function public.admin_set_game_config(text, jsonb) to authenticated;
 grant execute on function public.admin_v19_overview(integer) to authenticated;
+
+-- ===== 1.28 co-op village projects =====
+-- "Together" (1.28, src/systems/Coop.ts, src/data/coop.json). A player hosts one project at a time (a footbridge,
+-- a community garden, a fireworks night) and their friends add goods to it. Same trust model as Ask a friend:
+-- the giver's game takes the items out of its barn before coop_give() and puts back whatever the server did not
+-- use. When every need is met, every giver gets a claim row; coop_claim() hands each one out exactly once and the
+-- giver's game then adds the project's decoration and a plaque with everyone's names. If the project runs out of
+-- time (30 days) or the host cancels it (only while nobody else has given), every giver gets a claim with exactly
+-- what they gave (refund), so nothing is ever lost.
+--
+-- Friends live on each device (like Ask a friend): coop_start() stores the host's friend list with the project
+-- (audience, at most 30) and coop_set_friends() updates it. Only the host and the audience can see a project
+-- (coop_list) or give to it (coop_give). Names shown to the others are profile names only.
+-- Rules: one open project per host, 2 starts a week, at most 50 of an item per gift and only what is still
+-- needed, 40 gifts per player a day. The catalog (level and needs per project) is the server's own copy:
+-- validate-data checks coop_catalog() against src/data/coop.json. game_config 'coop' = false switches it off.
+-- Clients cannot read the tables; everything goes through the functions. Deleting an account removes its
+-- projects, gifts and claims (on delete cascade through profiles).
+
+create table if not exists public.coop_projects (
+  id          uuid primary key default gen_random_uuid(),
+  host        uuid not null references public.profiles (id) on delete cascade,
+  host_name   text not null check (char_length(host_name) between 1 and 24),
+  kind        text not null check (kind ~ '^[a-z_]{1,30}$'),
+  needs       jsonb not null,
+  given       jsonb not null default '{}'::jsonb,
+  audience    uuid[] not null default '{}' check (cardinality(audience) <= 30),
+  status      text not null default 'open' check (status in ('open', 'done', 'expired', 'cancelled')),
+  created_at  timestamptz not null default now(),
+  expires_at  timestamptz not null default now() + interval '30 days',
+  closed_at   timestamptz
+);
+
+create table if not exists public.coop_gifts (
+  id          uuid primary key default gen_random_uuid(),
+  project     uuid not null references public.coop_projects (id) on delete cascade,
+  giver       uuid not null references public.profiles (id) on delete cascade,
+  giver_name  text not null check (char_length(giver_name) between 1 and 24),
+  item        text not null check (item ~ '^[a-z0-9_]{1,40}$'),
+  qty         integer not null check (qty between 1 and 50),
+  at          timestamptz not null default now()
+);
+
+-- one per giver when a project closes: done (the reward) or a refund of exactly what they gave
+create table if not exists public.coop_claims (
+  project     uuid not null references public.coop_projects (id) on delete cascade,
+  member      uuid not null references public.profiles (id) on delete cascade,
+  done        boolean not null,
+  refund      jsonb,
+  created_at  timestamptz not null default now(),
+  claimed_at  timestamptz,
+  primary key (project, member)
+);
+
+create index if not exists coop_projects_host_idx    on public.coop_projects (host, created_at desc);
+create index if not exists coop_projects_open_idx    on public.coop_projects (expires_at) where status = 'open';
+create index if not exists coop_gifts_project_idx    on public.coop_gifts (project);
+create index if not exists coop_gifts_giver_idx      on public.coop_gifts (giver, at desc);
+create index if not exists coop_claims_unclaimed_idx on public.coop_claims (member) where claimed_at is null;
+
+alter table public.coop_projects enable row level security;
+alter table public.coop_gifts    enable row level security;
+alter table public.coop_claims   enable row level security;
+revoke all on public.coop_projects, public.coop_gifts, public.coop_claims from anon, authenticated, public;
+
+-- The server's copy of the projects (level to host, needs). Keep in step with src/data/coop.json (validate-data checks it).
+create or replace function public.coop_catalog()
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select '{"footbridge":{"level":20,"needs":{"wheat":400,"bread":80,"yarn":30,"cheese":30,"iron_ore":20}},"garden":{"level":25,"needs":{"strawberry":150,"carrot":250,"apple":100,"honey":30,"fertiliser":20}},"fireworks":{"level":35,"needs":{"sugar":120,"beeswax_candle":40,"berry_juice":50,"cookie":60,"copper_ore":20}}}'::jsonb;
+$$;
+
+-- Switched on unless game_config 'coop' is false.
+create or replace function public.coop_enabled()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select (c.value #>> '{}')::boolean from public.game_config c where c.key = 'coop' and jsonb_typeof(c.value) = 'boolean'), true);
+$$;
+
+-- Internal: refund every giver of a project that closes without finishing (exactly what each gave).
+create or replace function public.coop_refund(p_id uuid)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  insert into public.coop_claims (project, member, done, refund)
+  select g.project, g.giver, false, jsonb_object_agg(g.item, g.n)
+    from (select x.project, x.giver, x.item, sum(x.qty)::integer as n from public.coop_gifts x where x.project = p_id group by 1, 2, 3) g
+   group by g.project, g.giver
+  on conflict (project, member) do nothing;
+$$;
+
+-- Internal, cheap and bounded: expire projects past their time (refunding their givers) and forget old closed
+-- projects once every claim is collected (or after 120 days).
+create or replace function public.coop_cleanup()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  for v_id in
+    update public.coop_projects p set status = 'expired', closed_at = now()
+     where p.id in (select x.id from public.coop_projects x where x.status = 'open' and x.expires_at < now() limit 200)
+    returning p.id
+  loop
+    perform public.coop_refund(v_id);
+  end loop;
+  delete from public.coop_projects p
+   where p.id in (select x.id from public.coop_projects x
+                   where x.status <> 'open' and x.closed_at < now() - interval '60 days'
+                     and (x.closed_at < now() - interval '120 days'
+                          or not exists (select 1 from public.coop_claims c where c.project = x.id and c.claimed_at is null))
+                   limit 200);
+end;
+$$;
+
+-- Internal: a project as the caller sees it (givers by name only, the caller's own line marked).
+create or replace function public.coop_view(p public.coop_projects, p_uid uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'id', p.id, 'host', jsonb_build_object('id', p.host, 'name', p.host_name), 'kind', p.kind,
+    'needs', p.needs, 'given', p.given, 'status', p.status,
+    'created_at', p.created_at, 'expires_at', p.expires_at, 'closed_at', p.closed_at,
+    'givers', coalesce((select jsonb_agg(jsonb_build_object('name', g.name, 'qty', g.n, 'me', g.me) order by g.n desc)
+                          from (select max(x.giver_name) as name, sum(x.qty)::integer as n, bool_or(x.giver = p_uid) as me
+                                  from public.coop_gifts x where x.project = p.id group by x.giver order by 2 desc limit 30) g), '[]'::jsonb));
+$$;
+
+-- Host a project of p_kind with your friends p_friends (ids from your device, at most 30). Returns the project.
+create or replace function public.coop_start(p_kind text, p_friends uuid[] default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_name text;
+  v_level integer;
+  v_cat jsonb;
+  r public.coop_projects;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if not public.coop_enabled() then raise exception 'switched off'; end if;
+  select public.clean_text(p.name, 24, 'Farmer'), p.level into v_name, v_level from public.profiles p where p.id = uid for update; -- serialises this host
+  if not found then raise exception 'no profile'; end if;
+  if p_kind is null or p_kind !~ '^[a-z_]{1,30}$' then raise exception 'bad kind'; end if;
+  v_cat := public.coop_catalog() -> p_kind;
+  if v_cat is null then raise exception 'bad kind'; end if;
+  if coalesce(v_level, 1) < (v_cat ->> 'level')::integer then raise exception 'level'; end if;
+  if p_friends is not null and cardinality(p_friends) > 30 then raise exception 'too many friends'; end if;
+  perform public.coop_cleanup();
+  if exists (select 1 from public.coop_projects x where x.host = uid and x.status = 'open') then raise exception 'already hosting'; end if;
+  if (select count(*) from public.coop_projects x where x.host = uid and x.created_at > now() - interval '7 days') >= 2 then raise exception 'too many'; end if;
+  insert into public.coop_projects (host, host_name, kind, needs, audience)
+  values (uid, v_name, p_kind, v_cat -> 'needs', public.help_audience(uid, p_friends))
+  returning * into r;
+  return public.coop_view(r, uid);
+end;
+$$;
+
+-- The host's friend list changed: update who can see and give to their open project. Returns how many were updated.
+create or replace function public.coop_set_friends(p_friends uuid[])
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  n integer;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_friends is not null and cardinality(p_friends) > 30 then raise exception 'too many friends'; end if;
+  update public.coop_projects p set audience = public.help_audience(uid, p_friends) where p.host = uid and p.status = 'open';
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+-- Projects the caller can see: their own, and those of these friends (ids, at most 30) whose audience includes
+-- them; open ones and those closed in the last 7 days, newest first.
+create or replace function public.coop_list(p_ids uuid[] default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_ids is not null and cardinality(p_ids) > 30 then raise exception 'too many friends'; end if;
+  perform public.coop_cleanup();
+  return coalesce((select jsonb_agg(public.coop_view(p, uid) order by p.created_at desc)
+    from public.coop_projects p
+   where p.id in (select x.id from public.coop_projects x
+                   where (x.host = uid or (x.host = any (coalesce(p_ids, '{}'::uuid[])) and uid = any (x.audience)))
+                     and (x.status = 'open' or x.closed_at > now() - interval '7 days')
+                   order by x.created_at desc limit 20)), '[]'::jsonb);
+end;
+$$;
+
+-- Give up to p_qty (1-50) of p_item to a project you host or were invited to. Never more than is still needed:
+-- returns {used, project}. When every need is met the project is done and every giver gets a claim.
+create or replace function public.coop_give(p_id uuid, p_item text, p_qty integer)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_name text;
+  v_need integer;
+  v_used integer;
+  r public.coop_projects;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if not public.coop_enabled() then raise exception 'switched off'; end if;
+  if p_item is null or p_item !~ '^[a-z0-9_]{1,40}$' then raise exception 'bad item'; end if;
+  if p_qty is null or p_qty < 1 or p_qty > 50 then raise exception 'bad qty'; end if;
+  select public.clean_text(p.name, 24, 'Farmer') into v_name from public.profiles p where p.id = uid for update; -- serialises this giver
+  if not found then raise exception 'no profile'; end if;
+  select x.* into r from public.coop_projects x where x.id = p_id for update;
+  if not found or not (r.host = uid or uid = any (r.audience)) then raise exception 'not found'; end if;
+  if r.status <> 'open' or r.expires_at <= now() then raise exception 'closed'; end if;
+  v_need := coalesce((r.needs ->> p_item)::integer, 0) - coalesce((r.given ->> p_item)::integer, 0);
+  if v_need <= 0 then raise exception 'not needed'; end if;
+  if (select count(*) from public.coop_gifts x where x.giver = uid and x.at > now() - interval '1 day') >= 40 then raise exception 'too many today'; end if;
+  v_used := least(p_qty, v_need);
+  insert into public.coop_gifts (project, giver, giver_name, item, qty) values (r.id, uid, v_name, p_item, v_used);
+  update public.coop_projects x set given = x.given || jsonb_build_object(p_item, coalesce((x.given ->> p_item)::integer, 0) + v_used)
+   where x.id = r.id returning * into r;
+  -- every need met: done, and a reward claim for everyone who gave
+  if not exists (select 1 from jsonb_each_text(r.needs) n where coalesce((r.given ->> n.key)::integer, 0) < n.value::integer) then
+    update public.coop_projects x set status = 'done', closed_at = now() where x.id = r.id returning * into r;
+    insert into public.coop_claims (project, member, done)
+    select distinct r.id, g.giver, true from public.coop_gifts g where g.project = r.id
+    on conflict (project, member) do nothing;
+  end if;
+  return jsonb_build_object('used', v_used, 'project', public.coop_view(r, uid));
+end;
+$$;
+
+-- Cancel your own open project, only while nobody else has given to it. Your own goods come back as a claim.
+create or replace function public.coop_cancel(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.coop_projects;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  select x.* into r from public.coop_projects x where x.id = p_id and x.host = uid for update;
+  if not found then raise exception 'not found'; end if;
+  if r.status <> 'open' then raise exception 'closed'; end if;
+  if exists (select 1 from public.coop_gifts g where g.project = r.id and g.giver <> uid) then raise exception 'others joined'; end if;
+  update public.coop_projects x set status = 'cancelled', closed_at = now() where x.id = r.id returning * into r;
+  perform public.coop_refund(r.id);
+  return public.coop_view(r, uid);
+end;
+$$;
+
+-- Hand the caller's waiting claims over, each exactly once: finished projects (the caller's game adds the
+-- decoration and a plaque with the givers' names) and refunds (it adds back exactly the items listed).
+create or replace function public.coop_claim()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_out jsonb := '[]'::jsonb;
+  c record;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.coop_cleanup();
+  for c in
+    update public.coop_claims x set claimed_at = now()
+      from public.coop_projects p
+     where x.member = uid and x.claimed_at is null and p.id = x.project
+    returning x.project, x.done, x.refund, p.kind, p.host_name, p.closed_at
+  loop
+    v_out := v_out || jsonb_build_array(jsonb_build_object(
+      'project', c.project, 'kind', c.kind, 'host', c.host_name, 'done', c.done, 'refund', c.refund, 'closed_at', c.closed_at,
+      'names', case when c.done then coalesce((select jsonb_agg(g.name order by g.n desc) from (
+                 select max(x.giver_name) as name, sum(x.qty) as n from public.coop_gifts x where x.project = c.project group by x.giver limit 30) g), '[]'::jsonb) else '[]'::jsonb end));
+  end loop;
+  return v_out;
+end;
+$$;
+
+revoke all on function public.coop_catalog() from public;
+revoke all on function public.coop_enabled() from public, anon, authenticated;
+revoke all on function public.coop_refund(uuid) from public, anon, authenticated;
+revoke all on function public.coop_cleanup() from public, anon, authenticated;
+revoke all on function public.coop_view(public.coop_projects, uuid) from public, anon, authenticated;
+revoke all on function public.coop_start(text, uuid[]) from public, anon;
+revoke all on function public.coop_set_friends(uuid[]) from public, anon;
+revoke all on function public.coop_list(uuid[]) from public, anon;
+revoke all on function public.coop_give(uuid, text, integer) from public, anon;
+revoke all on function public.coop_cancel(uuid) from public, anon;
+revoke all on function public.coop_claim() from public, anon;
+grant execute on function public.coop_catalog() to authenticated;
+grant execute on function public.coop_start(text, uuid[]) to authenticated;
+grant execute on function public.coop_set_friends(uuid[]) to authenticated;
+grant execute on function public.coop_list(uuid[]) to authenticated;
+grant execute on function public.coop_give(uuid, text, integer) to authenticated;
+grant execute on function public.coop_cancel(uuid) to authenticated;
+grant execute on function public.coop_claim() to authenticated;

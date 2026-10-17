@@ -13,6 +13,7 @@ import { RANK_PROC, markerGeometry } from './models/ranks';
 import { BEEHIVE_PROC } from './models/beehive';
 import { JUICEPRESS_PROC } from './models/juicepress';
 import { TEAHOUSE_PROC } from './models/teahouse';
+import { COOP_PROC } from './models/coop';
 import { KILN_PROC } from './models/kiln';
 import { FISHSTALL_PROC } from './models/fishstall';
 
@@ -447,6 +448,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...BEEHIVE_PROC,
   ...JUICEPRESS_PROC,
   ...TEAHOUSE_PROC,
+  ...COOP_PROC,
   ...KILN_PROC,
   ...FISHSTALL_PROC,
 };

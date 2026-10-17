@@ -4,7 +4,7 @@ import { h, num, ago, loading, toast, fail, field } from '../ui';
 /** admin_v19_overview, get_game_config and admin_set_game_config (supabase/schema.sql, "1.9 a year in the valley"). */
 interface V19 {
   generatedAt: string; days: number;
-  config: { upkeep?: number; market_day?: number; weather?: { date: string; kind: string } };
+  config: { upkeep?: number; market_day?: number; weather?: { date: string; kind: string }; coop?: boolean };
   festivals: { festival: string; plays: number; players: number; collected: number; threeStar: number }[];
   woods: { visitors: number; foragers: number; forages: number; diggers: number; digs: number; expeditions: number; expeditionsDone: number };
   museum: { givers: number; pieces: number; curators: number; shelves: { shelf: string; players: number }[] };
@@ -31,6 +31,7 @@ export async function year19View(host: HTMLElement): Promise<void> {
       h('button', { class: d === days ? 'active' : '', onclick: () => { days = d; void draw(); } }, `${d} days`)));
     const marketSel = h('select', null, h('option', { value: '' }, 'Default (Saturday)'), DAYS.map((d, i) => h('option', { value: String(i), selected: o.config.market_day === i }, d)));
     const upSel = h('select', null, [['', 'Normal (1x)'], ['0', 'Off (nothing gets sick or wears)'], ['0.5', 'Gentle (0.5x)'], ['1.5', 'Harder (1.5x)'], ['2', 'Double (2x)']].map(([v, t]) => h('option', { value: v, selected: v === '' ? o.config.upkeep === undefined : Number(v) === o.config.upkeep }, t)));
+    const coopSel = h('select', null, h('option', { value: '', selected: o.config.coop !== false }, 'On (default)'), h('option', { value: 'off', selected: o.config.coop === false }, 'Off (resting)'));
     const wDate = h('input', { type: 'date', value: o.config.weather?.date ?? '' });
     const wKind = h('select', null, ['sunny', 'rain', 'mist'].map((k) => h('option', { value: k, selected: o.config.weather?.kind === k }, k)));
     stats.replaceChildren(
@@ -44,6 +45,8 @@ export async function year19View(host: HTMLElement): Promise<void> {
             h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => void set('market_day', marketSel.value === '' ? null : Number(marketSel.value)) }, 'Save market day'))),
           h('div', null, field('Upkeep strength', upSel, 'How often animals fall sick and how fast buildings wear. Off pauses it for everyone.'),
             h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => void set('upkeep', upSel.value === '' ? null : Number(upSel.value)) }, 'Save upkeep'))),
+          h('div', null, field('Village Projects (1.28 co-op)', coopSel, 'Off hides co-op projects in the game and the server refuses new projects and gifts. Open projects stay; when they run out of time, everyone gets their goods back.'),
+            h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => void set('coop', coopSel.value === 'off' ? false : null) }, 'Save Village Projects'))),
           h('div', null, field('Weather for one day', h('div', { class: 'row' }, wDate, wKind), 'Forces the weather on that date for every player. Clear it to go back to normal.'),
             h('div', { class: 'row' },
               h('button', { class: 'btn', onclick: () => { if (!wDate.value) { fail(new Error('Pick a date first')); return; } void set('weather', { date: wDate.value, kind: wKind.value }); } }, 'Save weather'),

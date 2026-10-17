@@ -409,14 +409,14 @@ class HelpSystem {
 }
 
 /** Remove n of an item for sending, normal ones first. Returns how many of each quality left the barn. */
-function take(item: string, n: number): [number, number, number] {
+export function take(item: string, n: number): [number, number, number] {
   const before = game.qualityCounts(item);
   game.addItem(item, -n);
   const after = game.qualityCounts(item);
   return [before[0] - after[0], before[1] - after[1], before[2] - after[2]];
 }
 /** Put back n of what take() removed, the best quality first (the server used the plainest ones). */
-function giveBack(item: string, taken: [number, number, number], n: number): void {
+export function giveBack(item: string, taken: [number, number, number], n: number): void {
   let left = n;
   for (const q of [2, 1, 0] as const) {
     const k = Math.min(left, taken[q]);

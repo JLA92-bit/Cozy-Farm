@@ -1,5 +1,8 @@
 import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest } from './types';
 import { ASK, HELP_REASONS, cleanFill, cleanRequest } from './AskHelp';
+import { cleanClaim, cleanCoop } from './Coop';
+import { COOP } from '../data';
+import type { CoopClaim, CoopProject, CoopStatus } from './types';
 import { botFarm } from './BotFarms';
 import { helpKindFor } from './FarmHelp';
 import { sanitizeSnapshot, type FarmSnapshot } from './FarmSnapshot';
@@ -22,6 +25,12 @@ export const HELP_LIMITS = { perOwnerPerDay: 50, keep: 400 };
 interface HelpDb { rows: FarmHelp[]; seq: number; botDay: string }
 /** Ask a friend (practice mode): requests with who may see them, fills, and when demo neighbours last asked. */
 const ASK_KEY = 'cozy-acres-online-askhelp';
+/** 1.28 practice co-op projects (same rules as the server's coop_* functions) */
+const COOP_KEY = 'cozy-acres-online-coop';
+interface CoopRow { id: string; host: { id: string; name: string }; kind: string; needs: Record<string, number>; given: Record<string, number>; audience: string[]; status: CoopStatus; createdAt: number; expiresAt: number; closedAt: number; botAt: number }
+interface CoopGiftRow { project: string; giver: string; name: string; item: string; qty: number; at: number }
+interface CoopClaimRow { project: string; member: string; done: boolean; refund: Record<string, number> | null; claimed: boolean }
+interface CoopDb { projects: CoopRow[]; gifts: CoopGiftRow[]; claims: CoopClaimRow[]; seq: number }
 interface AskReq extends HelpRequest { audience: string[]; closedAt: number; hazel: boolean; bots: { bot: string; at: number; qty: number }[] }
 interface AskFill extends HelpFill { requester: string; claimed: boolean }
 interface AskDb { reqs: AskReq[]; fills: AskFill[]; seq: number; botAsked: Record<string, string> }
@@ -524,6 +533,156 @@ export class LocalBackend implements OnlineBackend {
     return this.writeAsk((db) => {
       const out: HelpFill[] = [];
       for (const f of db.fills) if (want.has(f.id) && f.requester === this.id && !f.claimed) { f.claimed = true; out.push(this.pubFill(f)); }
+      return out;
+    });
+  }
+
+  // ------------------------------------------------------------------ 1.28 co-op village projects (practice)
+  private readCoop(): CoopDb {
+    try {
+      const raw = JSON.parse(localStorage.getItem(COOP_KEY) ?? 'null') as CoopDb | null;
+      if (raw && Array.isArray(raw.projects) && Array.isArray(raw.gifts) && Array.isArray(raw.claims)) return { ...raw, seq: Number(raw.seq) || 1 };
+    } catch { /* corrupt: start over */ }
+    return { projects: [], gifts: [], claims: [], seq: 1 };
+  }
+  private writeCoop<T>(fn: (db: CoopDb) => T): T {
+    const db = this.readCoop();
+    const now = this.now();
+    // the server's housekeeping: expire (refunding every giver), forget closed projects after 60 days
+    for (const p of db.projects) if (p.status === 'open' && p.expiresAt <= now) { p.status = 'expired'; p.closedAt = now; this.coopRefund(db, p); }
+    db.projects = db.projects.filter((p) => p.status === 'open' || p.closedAt > now - 60 * 864e5);
+    const keep = new Set(db.projects.map((p) => p.id));
+    db.gifts = db.gifts.filter((g) => keep.has(g.project));
+    db.claims = db.claims.filter((c) => keep.has(c.project));
+    const r = fn(db);
+    try { localStorage.setItem(COOP_KEY, JSON.stringify(db)); } catch { /* full or blocked */ }
+    return r;
+  }
+  private coopRefund(db: CoopDb, p: CoopRow): void {
+    const by = new Map<string, Record<string, number>>();
+    for (const g of db.gifts) if (g.project === p.id) { const m = by.get(g.giver) ?? {}; m[g.item] = (m[g.item] ?? 0) + g.qty; by.set(g.giver, m); }
+    for (const [member, refund] of by) if (!db.claims.some((c) => c.project === p.id && c.member === member)) db.claims.push({ project: p.id, member, done: false, refund, claimed: false });
+  }
+  private coopPub(db: CoopDb, p: CoopRow): CoopProject {
+    const by = new Map<string, { name: string; qty: number; me: boolean }>();
+    for (const g of db.gifts) if (g.project === p.id) { const e = by.get(g.giver) ?? { name: g.name, qty: 0, me: g.giver === this.id }; e.qty += g.qty; by.set(g.giver, e); }
+    return cleanCoop({ ...p, givers: [...by.values()].sort((a, b) => b.qty - a.qty).slice(0, 30) } as unknown as Record<string, unknown>)!;
+  }
+  private coopGiveRow(db: CoopDb, p: CoopRow, giver: { id: string; name: string }, item: string, qty: number): number {
+    const now = this.now();
+    if (!(p.host.id === giver.id || p.audience.includes(giver.id))) throw new Error('not found');
+    if (p.status !== 'open' || p.expiresAt <= now) throw new Error('closed');
+    const need = (p.needs[item] ?? 0) - (p.given[item] ?? 0);
+    if (need <= 0) throw new Error('not needed');
+    if (db.gifts.filter((g) => g.giver === giver.id && g.at > now - 864e5).length >= COOP.givesPerDay) throw new Error('too many today');
+    const used = Math.min(qty, need);
+    db.gifts.push({ project: p.id, giver: giver.id, name: giver.name, item, qty: used, at: now });
+    p.given[item] = (p.given[item] ?? 0) + used;
+    if (Object.entries(p.needs).every(([k, n]) => (p.given[k] ?? 0) >= n)) {
+      p.status = 'done';
+      p.closedAt = now;
+      for (const id of new Set(db.gifts.filter((g) => g.project === p.id).map((g) => g.giver))) db.claims.push({ project: p.id, member: id, done: true, refund: null, claimed: false });
+    }
+    return used;
+  }
+  /** Practice: demo neighbours give to projects they are in now and then (never past 60% of a need, so the player's share matters), and one hosts a project of their own. */
+  private coopBots(friends: string[]): void {
+    const bots = this.read().profiles.filter((p) => p.bot && friends.includes(p.id));
+    if (!bots.length) return;
+    const now = this.now();
+    this.writeCoop((db) => {
+      const me = this.me();
+      if (me && !db.projects.some((p) => p.host.id.startsWith('bot_') && (p.status === 'open' || p.closedAt > now - 7 * 864e5))) {
+        const host = bots[0], def = COOP.projects[0];
+        db.projects.push({ id: `cp${db.seq++}`, host: { id: host.id, name: host.name }, kind: def.id, needs: { ...def.needs }, given: {}, audience: [me.id, ...bots.slice(1).map((b) => b.id)], status: 'open', createdAt: now, expiresAt: now + COOP.days * 864e5, closedAt: 0, botAt: now });
+      }
+      for (const p of db.projects) {
+        if (p.status !== 'open') continue;
+        const inIt = bots.filter((b) => p.host.id === b.id || p.audience.includes(b.id));
+        if (!inIt.length) continue;
+        const steps = Math.min(6, Math.floor((now - p.botAt) / 90e3));
+        for (let s = 0; s < steps; s++) {
+          const room = Object.keys(p.needs).filter((k) => (p.given[k] ?? 0) < Math.floor(p.needs[k] * 0.6));
+          if (!room.length) break;
+          const k = room[Math.floor(Math.random() * room.length)], b = inIt[Math.floor(Math.random() * inIt.length)];
+          const qty = Math.min(COOP.maxGive, Math.floor(p.needs[k] * 0.6) - (p.given[k] ?? 0), Math.max(1, Math.round(p.needs[k] * 0.15)));
+          try { this.coopGiveRow(db, p, { id: b.id, name: b.name }, k, qty); } catch { /* daily limit and the like */ }
+        }
+        if (steps) p.botAt = now;
+      }
+    });
+  }
+
+  async coopStart(kind: string, friends: string[]): Promise<CoopProject> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    const def = COOP.projects.find((p) => p.id === kind);
+    if (!def) throw new Error('bad kind');
+    if (me.level < def.level) throw new Error('level');
+    const audience = this.friendList(friends);
+    return this.writeCoop((db) => {
+      const now = this.now();
+      if (db.projects.some((p) => p.host.id === me.id && p.status === 'open')) throw new Error('already hosting');
+      if (db.projects.filter((p) => p.host.id === me.id && p.createdAt > now - 7 * 864e5).length >= COOP.startsPerWeek) throw new Error('too many');
+      const p: CoopRow = { id: `cp${db.seq++}`, host: { id: me.id, name: me.name }, kind, needs: { ...def.needs }, given: {}, audience, status: 'open', createdAt: now, expiresAt: now + COOP.days * 864e5, closedAt: 0, botAt: now };
+      db.projects.push(p);
+      return this.coopPub(db, p);
+    });
+  }
+  async coopSetFriends(friends: string[]): Promise<void> {
+    await this.init();
+    const audience = this.friendList(friends);
+    this.writeCoop((db) => { for (const p of db.projects) if (p.host.id === this.id && p.status === 'open') p.audience = audience; });
+  }
+  async coopList(friends: string[]): Promise<CoopProject[]> {
+    await this.init();
+    const ids = this.friendList(friends);
+    this.coopBots(ids);
+    const now = this.now();
+    return this.writeCoop((db) => db.projects
+      .filter((p) => (p.host.id === this.id || (ids.includes(p.host.id) && p.audience.includes(this.id))) && (p.status === 'open' || p.closedAt > now - 7 * 864e5))
+      .sort((a, b) => b.createdAt - a.createdAt).slice(0, 20).map((p) => this.coopPub(db, p)));
+  }
+  async coopGive(id: string, item: string, qty: number): Promise<{ used: number; project: CoopProject }> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (!/^[a-z0-9_]{1,40}$/.test(item)) throw new Error('bad item');
+    if (!Number.isInteger(qty) || qty < 1 || qty > COOP.maxGive) throw new Error('bad qty');
+    return this.writeCoop((db) => {
+      const p = db.projects.find((x) => x.id === id);
+      if (!p) throw new Error('not found');
+      const used = this.coopGiveRow(db, p, { id: me.id, name: me.name }, item, qty);
+      return { used, project: this.coopPub(db, p) };
+    });
+  }
+  async coopCancel(id: string): Promise<CoopProject> {
+    await this.init();
+    return this.writeCoop((db) => {
+      const p = db.projects.find((x) => x.id === id && x.host.id === this.id);
+      if (!p) throw new Error('not found');
+      if (p.status !== 'open') throw new Error('closed');
+      if (db.gifts.some((g) => g.project === p.id && g.giver !== this.id)) throw new Error('others joined');
+      p.status = 'cancelled';
+      p.closedAt = this.now();
+      this.coopRefund(db, p);
+      return this.coopPub(db, p);
+    });
+  }
+  async coopClaim(): Promise<CoopClaim[]> {
+    await this.init();
+    return this.writeCoop((db) => {
+      const out: CoopClaim[] = [];
+      for (const c of db.claims) {
+        if (c.member !== this.id || c.claimed) continue;
+        const p = db.projects.find((x) => x.id === c.project);
+        if (!p) continue;
+        c.claimed = true;
+        const names = c.done ? this.coopPub(db, p).givers.map((g) => g.name) : [];
+        const cl = cleanClaim({ project: p.id, kind: p.kind, host: p.host.name, done: c.done, refund: c.refund, names, closedAt: p.closedAt });
+        if (cl) out.push(cl);
+      }
       return out;
     });
   }

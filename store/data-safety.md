@@ -26,6 +26,10 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
 - **Ask a friend** (from 1.8): requests a player posts (item, quantity, reason, farmer name), what friends send to fill
   them, and whether the player wants to be told when a friend asks (tables `help_requests`, `help_fills`,
   `help_watch`; push kind `help`). Requests are visible to the player's friends.
+- **Village Projects** (from 1.28, co-op): projects a player hosts (project kind, farmer name, the friends invited),
+  what each player gives (item, quantity, farmer name) and the rewards or refunds waiting for them (tables
+  `coop_projects`, `coop_gifts`, `coop_claims`). Everyone in a project sees the host's and givers' farmer names and how
+  much each gave. Deleted with the account.
 - **Game events** (from 1.8): first-party event log for the developer dashboard (`player_events`, written only by
   `log_event()`): welcome steps, gifts to villagers and their taste, hearts gained, daily villager visits, Ask a
   friend and mailbox counters. A short kind plus a small detail object, max 200 a day per player, kept 180 days.
@@ -76,7 +80,7 @@ defines as emails, SMS and other in-app messages; if a reviewer asks, the notes 
 | Data type | Collected | Required or optional | Purposes | What it is in the app |
 | --- | --- | --- | --- | --- |
 | **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, guestbook notes (preset list), feedback messages (optional, Settings > Send feedback) and, for Google sign-in, the cloud save (a copy of the whole farm). |
-| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes, and from 1.8 Ask a friend requests and what was sent for them. |
+| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes, from 1.8 Ask a friend requests and what was sent for them, and from 1.28 Village Projects hosted and goods given to them. |
 | **App interactions** | Yes | Required | Analytics | From 1.7: the days a player plays, sessions and approximate minutes played, game version and platform. From 1.8: game events (welcome steps, gifts to villagers, hearts, daily visits, Ask a friend use), max 200 a day, kept 180 days. Kept with the account, never shared, deleted with it. |
 | In-app search history, Installed apps | No | | | The game does not record searches or other apps. |
 

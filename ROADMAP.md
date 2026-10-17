@@ -36,7 +36,7 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | done (local) |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | done (local) |
 | 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | done (local) |
-| 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | |
+| 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | done (local) |
 | 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | needs the Play launch |
 | 2.x | Neighbourhoods, second plot, iOS | later | |
 
@@ -145,7 +145,9 @@ Built in 1.24 (see BALANCE.md): tea leaves, roses, the Tea House (8 recipes) and
 - **A new villager:** **Wren**, a travelling botanist who moves into the square once the Botanic Glasshouse is built. Friends only.
 - **Files:** `buildings.json`, `recipes.json`, `items.json`, `crops.json`, `villagers.json` (`stories`), `Mail.ts`, `Village.ts`.
 
-### 1.23 Together (co-op Village Projects)
+### 1.28 Together (co-op Village Projects)
+
+Built in 1.28 (see BALANCE.md, ONLINE.md "Village Projects"): three projects (footbridge, community garden, fireworks night), friends-only, exactly-once claims, refunds on expiry or cancel, a `game_config` switch, local Postgres tests. The plaque is one decoration; the names are listed in the Village Projects screen.
 
 - Friends add goods to a shared build, such as a footbridge between two farms, a community garden or a fireworks night. Every contributor gets a plaque with their name on it, and a decor reward when it's finished.
 - Server tables follow the Ask a friend pattern: exactly-once claims, friends only, deleted with the account. Append a marked section to `schema.sql`. Update the Play Data safety answers.

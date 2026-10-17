@@ -60,3 +60,16 @@
   border: 3px solid var(--outline); border-radius: 12px; background: #fff; color: var(--ink); user-select: text; -webkit-user-select: text;
 }
 .icon.code-gift { width: 64px; height: 64px; }
+/* 1.28 Village Projects */
+.cp-card { text-align: left; margin-bottom: 8px; align-items: stretch; }
+.cp-card > .progress, .cp-card > .cp-row, .cp-card > .cp-needs { width: 100%; align-self: stretch; box-sizing: border-box; }
+.cp-card > .btn { align-self: flex-start; }
+.cp-card .title, .cp-card .sub { text-align: left; }
+.cp-card.locked { opacity: .7; }
+.cp-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.cp-icon { width: 30px; height: 30px; flex: none; }
+.cp-name { font-weight: 700; }
+.cp-needs { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.cp-need { display: inline-flex; gap: 3px; align-items: center; font-weight: 700; }
+.cp-mini { width: 22px; height: 22px; }
+.cp-givers { margin-top: 6px; }

@@ -568,6 +568,56 @@ try {
     check('the album and the treehouse are saved', !!kept.wildlife?.photos?.[r.id] && kept.wildlife.sets.length === 1 && kept.restoration.done.includes('treehouse_roof'), JSON.stringify(kept.wildlife));
   }
 
+  // 1.28 Together (practice mode): host a project with a demo neighbour, they join in over time, the player finishes
+  // it and gets the decoration and a plaque with both names exactly once; a cancelled project refunds exactly
+  {
+    const w = copy(); w.player.level = 40; w.player.coins = 50000;
+    w.inventory = { ...w.inventory, wheat: 500, bread: 100, yarn: 40, cheese: 40, iron_ore: 30, carrot: 300 };
+    w.social = { ...(w.social ?? {}), friends: [] };
+    await setStorage({ [KEY]: JSON.stringify(w), 'cozy-acres-online-coop': '' });
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, C = window.__coop, O = window.__online, S = window.__social;
+      const bot = (await O.leaderboard('level', 50)).find((b) => b.bot);
+      S.addProfile(bot);
+      await C.poll();
+      const botHosts = C.friends().length;
+      const p = await C.host('footbridge');
+      const wheat0 = g.count('wheat');
+      const used = await C.give(p, 'wheat', 60);
+      const wheatTaken = wheat0 - g.count('wheat');
+      // the demo neighbour has had a while to join in
+      const db = JSON.parse(localStorage.getItem('cozy-acres-online-coop'));
+      for (const x of db.projects) x.botAt -= 15 * 60e3;
+      localStorage.setItem('cozy-acres-online-coop', JSON.stringify(db));
+      await C.poll();
+      const mine = C.mine();
+      const botGave = mine.givers.some((x) => !x.me);
+      // finish it
+      for (let k = 0; k < 40 && C.mine(); k++) {
+        const cur = C.mine();
+        const item = Object.keys(cur.needs).find((i) => (cur.needs[i] - (cur.given[i] ?? 0)) > 0);
+        if (!item) break;
+        await C.give(cur, item, 50);
+      }
+      await C.poll();
+      const decor = g.state.storage.coop_footbridge ?? 0, plaque = g.state.storage.coop_plaque ?? 0;
+      const names = g.state.coop?.plaques?.[0]?.names ?? [];
+      await C.poll();
+      const again = (g.state.storage.coop_footbridge ?? 0) - decor;
+      // a second project, cancelled: what was given comes back exactly
+      const p2 = await C.host('garden');
+      const carrots0 = g.count('carrot');
+      await C.give(p2, 'carrot', 40);
+      await C.cancel(p2);
+      const refunded = g.count('carrot') - carrots0;
+      return { botHosts, used, wheatTaken, botGave, decor, plaque, names, again, refunded, done: !C.mine() };
+    });
+    check('a co-op project can be hosted with a friend, who joins in', r.botHosts === 1 && r.used === 50 && r.wheatTaken === 50 && r.botGave, JSON.stringify(r));
+    check('a finished co-op project gives its decoration and a plaque with every name, once', r.decor === 1 && r.plaque === 1 && r.names.length === 2 && r.again === 0 && r.done, JSON.stringify(r));
+    check('a cancelled co-op project gives back exactly what was given', r.refunded === 0, JSON.stringify(r));
+  }
+
   // 1.22 Orchard Days: the new trees open at their levels, Farmhouse 15 raises the caps
   {
     const w = copy(); w.player.level = 120;

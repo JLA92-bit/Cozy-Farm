@@ -111,6 +111,24 @@ export interface HelpRequest {
 /** Items a friend sent to a request. The asker's game adds them once claimHelpFills hands them over. */
 export interface HelpFill { id: string; request: string; item: string; helper: PlayerRef; qty: number; auto: boolean; at: number }
 
+/** 1.28 Together: a co-op Village Project. Needs and what was given so far, by item; givers by name only. */
+export type CoopStatus = 'open' | 'done' | 'expired' | 'cancelled';
+export interface CoopProject {
+  id: string;
+  host: PlayerRef;
+  kind: string;
+  needs: Record<string, number>;
+  given: Record<string, number>;
+  status: CoopStatus;
+  createdAt: number;
+  expiresAt: number;
+  closedAt: number;
+  /** who gave, most first (at most 30); `me` marks the caller's own line */
+  givers: { name: string; qty: number; me: boolean }[];
+}
+/** A closed project's claim for the caller: the reward (done) or exactly what they gave back (refund). */
+export interface CoopClaim { project: string; kind: string; host: string; done: boolean; refund: Record<string, number> | null; names: string[]; closedAt: number }
+
 export type LeaderboardKind = 'level' | 'farmValue' | 'charm' | 'weeklyXp';
 
 export type OnlineEvent =
@@ -233,6 +251,22 @@ export interface OnlineBackend {
   myHelpFills(): Promise<HelpFill[]>;
   /** Mark fills arrived, each exactly once; returns only those claimed by this call (add exactly these). */
   claimHelpFills(ids: string[]): Promise<HelpFill[]>;
+
+  /**
+   * 1.28 Together: co-op Village Projects. Host one of `kind` with these friends (ids, at most 30). Rejects with
+   * Error('level' | 'already hosting' | 'too many' | 'switched off' | 'bad kind').
+   */
+  coopStart(kind: string, friends: string[]): Promise<CoopProject>;
+  /** The host's friends changed: update who sees their open project. */
+  coopSetFriends(friends: string[]): Promise<void>;
+  /** The caller's own projects and these friends' projects they were invited to (open, or closed this week). */
+  coopList(friends: string[]): Promise<CoopProject[]>;
+  /** Give up to qty (1-50) of an item; never more than still needed. Rejects 'closed' | 'not needed' | 'not found' | 'too many today' | 'switched off'. */
+  coopGive(id: string, item: string, qty: number): Promise<{ used: number; project: CoopProject }>;
+  /** Cancel the caller's own open project while nobody else has given. Rejects 'others joined' | 'closed' | 'not found'. */
+  coopCancel(id: string): Promise<CoopProject>;
+  /** Hand over the caller's waiting claims, each exactly once. */
+  coopClaim(): Promise<CoopClaim[]>;
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }

@@ -5,7 +5,7 @@
  */
 import { online } from './Online';
 
-export interface GameConfig { marketDay: number | null; weather: { date: string; kind: string } | null; upkeep: number }
+export interface GameConfig { marketDay: number | null; weather: { date: string; kind: string } | null; upkeep: number; /** 1.28 co-op Village Projects on (default) or off */ coop: boolean }
 const KEY = 'cozy-config-1.9';
 const KINDS = ['sunny', 'rain', 'mist'];
 
@@ -14,13 +14,14 @@ function clean(raw: Record<string, unknown>): GameConfig {
   const w = raw.weather as { date?: unknown; kind?: unknown } | undefined;
   const up = raw.upkeep;
   return {
+    coop: raw.coop !== false,
     upkeep: typeof up === 'number' && Number.isFinite(up) ? Math.max(0, Math.min(2, up)) : 1,
     marketDay: typeof md === 'number' && Number.isInteger(md) && md >= 0 && md <= 6 ? md : null,
     weather: w && typeof w.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(w.date) && typeof w.kind === 'string' && KINDS.includes(w.kind) ? { date: w.date, kind: w.kind } : null,
   };
 }
 
-export const gameConfig: GameConfig = { marketDay: null, weather: null, upkeep: 1 };
+export const gameConfig: GameConfig = { marketDay: null, weather: null, upkeep: 1, coop: true };
 
 try { const saved = localStorage.getItem(KEY); if (saved) Object.assign(gameConfig, clean(JSON.parse(saved))); } catch { /* defaults */ }
 

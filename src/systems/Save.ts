@@ -4,7 +4,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -120,6 +120,8 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.petfind = isObj(s.petfind) && typeof s.petfind.day === 'string' ? { day: s.petfind.day } : undefined;
   out.farmhands = repairFarmhands(s.farmhands);
   out.wildlife = repairWildlife(s.wildlife);
+  out.coop = isObj(s.coop) && Array.isArray(s.coop.plaques) ? { plaques: (s.coop.plaques as unknown[]).filter((p): p is Record<string, unknown> => isObj(p) && typeof p.project === 'string' && COOP.projects.some((d) => d.id === p.kind)).slice(-50)
+    .map((p) => ({ project: p.project as string, kind: p.kind as string, host: typeof p.host === 'string' ? p.host.slice(0, 24) : '', names: strArr(p.names).slice(0, 30).map((n) => n.slice(0, 24)), at: finite(p.at, 0, 0) })) } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}) } : undefined;
   return sanitize(out, base);
 }

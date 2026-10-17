@@ -818,3 +818,13 @@ Every item asked for exists by the project's level (`validate-data` checks it): 
 The whole album: Juniper's letter with 20,000 coins and 50 gems.
 
 **The Treehouse** (Whispering Pines): The Platform (level 45), The Cabin (50), The Roof (55), in order, paid in woods produce and Lodge goods (no coins). Then six furnishings, one small bundle each: log chairs, mushroom lamp, hanging lanterns, moss rug, bookshelf, telescope. The finished treehouse adds 2 finds to every camp morning; the telescope lists today's visitors in the album; all six furnishings bring Juniper's letter (30 gems).
+
+## 1.28 Together (`coop.json`, server section "1.28 co-op village projects")
+
+| Project | Level | Needs | Reward for every giver |
+| --- | --- | --- | --- |
+| The Friendship Footbridge | 20 | wheat 400, bread 80, yarn 30, cheese 30, iron ore 20 | Friendship Footbridge (charm 250) + Friendship Plaque (charm 120) |
+| The Community Garden | 25 | strawberry 150, carrot 250, apple 100, honey 30, fertiliser 20 | Community Garden Corner (charm 250) + plaque |
+| Fireworks Night | 35 | sugar 120, beeswax candle 40, berry juice 50, cookie 60, copper ore 20 | Fireworks Stand (charm 250) + plaque |
+
+Sized for a host and two or three friends to finish in a few days. One open project per host, 2 starts a week, 50 of an item per gift, 40 gifts a day, 30 days to finish (then everyone is refunded). The decorations are trophies (`cap: none`), so a player who helps with many projects is not short of decor room.

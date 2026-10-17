@@ -160,6 +160,8 @@ export interface SaveData {
   /** 1.8.5 Village Restoration: bundle progress per room (optional; src/systems/Restoration.ts). */
   restoration?: RestorationState;
   /** 1.8.6 mastery plaques: ids of the finished challenges (src/systems/Mastery.ts) */
+  /** 1.28 Together: plaques from finished co-op projects (who helped), newest last */
+  coop?: { plaques: { project: string; kind: string; host: string; names: string[]; at: number }[] };
   /** 1.27 Wildlife Album: species photographed (first photo time, photos taken), sets rewarded, and today's photos */
   wildlife?: { photos: Record<string, { first: number; n: number }>; sets: string[]; complete?: number; today?: { day: string; shot: string[] } };
   /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */

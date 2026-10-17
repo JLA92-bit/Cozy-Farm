@@ -9,6 +9,7 @@ import masteryJson from './mastery.json';
 import farmhandsJson from './farmhands.json';
 import estateJson from './estate.json';
 import wildlifeJson from './wildlife.json';
+import coopJson from './coop.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
 import masterJson from './master.json';
@@ -364,6 +365,9 @@ export interface EstateProject {
   stages: RoomDef[];
 }
 export const ESTATE = (estateJson as unknown as { projects: EstateProject[] }).projects;
+/** 1.28 Together: co-op Village Projects (coop.json, src/systems/Coop.ts). */
+export interface CoopDef { id: string; name: string; icon: string; level: number; decor: string; about: string; needs: Record<string, number> }
+export const COOP = coopJson as unknown as { level: number; days: number; maxGive: number; givesPerDay: number; startsPerWeek: number; plaque: string; projects: CoopDef[] };
 /** 1.27 Wildlife Album (wildlife.json, src/systems/Wildlife.ts). */
 export interface WildSpecies {
   id: string; name: string; set: string; model: string; size: number; place: string; from: number; to: number;

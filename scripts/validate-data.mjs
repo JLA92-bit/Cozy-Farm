@@ -538,6 +538,37 @@ releases?.forEach((r, i) => {
   for (const k of ['rare_seed', 'quality_fertiliser', 'fertiliser']) add(k);
   for (const [k, it] of Object.entries(items)) if (it.cat !== 'event' && !uses.has(k)) err(`item ${k}: has no use (add it to a recipe, bundle, Museum shelf, boat wish list, treat or villager favourite)`);
 }
+// 1.28 Together: co-op projects need real items that exist by the project's level, real decorations, and the server's
+// own copy of the catalog (coop_catalog in supabase/schema.sql) must match coop.json exactly
+{
+  const c = read('coop.json'), items = read('items.json').items;
+  const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));
+  const lvl = {};
+  for (const x of read('crops.json').crops) lvl[x.id] = x.level;
+  for (const t of read('crops.json').trees ?? []) lvl[t.item] = t.level;
+  for (const a of read('animals.json').animals) lvl[a.product] = a.level;
+  for (const r of read('recipes.json').recipes) lvl[r.item] = Math.min(lvl[r.item] ?? 999, Math.max(r.level, bl[r.building] ?? 1));
+  if (!(c.plaque in bl)) err(`coop: plaque ${c.plaque} is not a building`);
+  if (c.maxGive !== 50 || c.givesPerDay !== 40 || c.days !== 30 || c.startsPerWeek !== 2) err('coop: maxGive 50, givesPerDay 40, days 30 and startsPerWeek 2 must match supabase/schema.sql');
+  const ids = new Set();
+  for (const p of c.projects) {
+    if (!/^[a-z_]{1,30}$/.test(p.id) || ids.has(p.id)) err(`coop project ${p.id}: id must be unique lowercase letters`);
+    ids.add(p.id);
+    if (!(p.decor in bl)) err(`coop project ${p.id}: decor ${p.decor} is not a building`);
+    if (icons && !icons[p.icon]) err(`coop project ${p.id}: unknown icon ${p.icon}`);
+    if (!(p.level >= c.level)) err(`coop project ${p.id}: level must be at least ${c.level}`);
+    for (const [k, n] of Object.entries(p.needs)) {
+      if (!items[k]) err(`coop project ${p.id}: unknown item ${k}`);
+      if (!(Number.isInteger(n) && n > 0)) err(`coop project ${p.id}: ${k} needs a whole number above 0`);
+      if (lvl[k] !== undefined && lvl[k] > p.level) err(`coop project ${p.id}: ${k} unlocks at level ${lvl[k]}, after the project (${p.level})`);
+    }
+  }
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  const m = sql.match(/function public\.coop_catalog\(\)[\s\S]*?select '(\{[^']*\})'::jsonb/);
+  const want = Object.fromEntries(c.projects.map((p) => [p.id, { level: p.level, needs: p.needs }]));
+  if (!m || JSON.stringify(JSON.parse(m[1])) !== JSON.stringify(want)) err('supabase/schema.sql coop_catalog: does not match src/data/coop.json (regenerate it)');
+}
+
 // 1.22 the server's leaderboard check knows the XP table: supabase/schema.sql level_for_xp must match levels.json
 {
   const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
