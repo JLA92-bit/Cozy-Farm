@@ -195,6 +195,10 @@ The server checks every profile update before it reaches the leaderboards (`upse
 
 After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`.
 
+## Account locks (1.28.5)
+
+An admin can lock a player from the dashboard (ADMIN.md "Locking a player"). Server section `account locks` in `supabase/schema.sql`: table `account_locks` (history; on delete cascade), `assert_not_locked()` at the top of every player function that reaches other players or shared state (gifts, market, farm help and likes, Ask a friend, Village Projects, `publish_farm`, reward codes), `my_lock()` for the game, admin functions to lock, unlock and list, and `expire_account_locks()` (pg_cron every 10 minutes and on dashboard reads) to put players back on the leaderboards. The game (`src/online/Lock.ts`) shows a full-screen notice with the reason and a countdown, keeps the last known lock on the device and lifts it when the time is up.
+
 ## Shared farms and visits (1.28.2)
 
 Visitors see the picture of a farm the owner's game last shared, so a farm that cannot be shared looks old and help misses. Until 1.28.2 `publish_farm` refused any farm over 1,200 pieces (paths, fences and decorations count), so big late-game farms were stuck for good.

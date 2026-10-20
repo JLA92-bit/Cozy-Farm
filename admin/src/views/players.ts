@@ -2,7 +2,7 @@ import { rpc, type PlayerRow } from '../api';
 import { h, num, minutes, ago, loading, badge, fail, download, csv, today } from '../ui';
 
 const PLATFORM: Record<string, string> = { android: 'Play app', pwa: 'Web app', web: 'Browser', ios: 'iOS' };
-const FILTERS: [string, string][] = [['all', 'Everyone'], ['online', 'Playing right now'], ['today', 'Played today'], ['active7', 'Played this week'], ['new7', 'New this week'], ['regulars', 'Regulars (30+ days)'], ['drifting', 'Drifting away (gone 1-4 weeks)'], ['inactive14', 'Away 2+ weeks'], ['level60', 'Level 60 and up'], ['google', 'Backed up with Google'], ['nobackup', 'No cloud backup'], ['push', 'Notifications on'], ['feedback', 'New feedback'], ['gifts', 'Gift waiting'], ['notes', 'Has notes'], ['flagged', 'Leaderboard flag'], ['hidden', 'Hidden from leaderboards']];
+const FILTERS: [string, string][] = [['all', 'Everyone'], ['online', 'Playing right now'], ['today', 'Played today'], ['active7', 'Played this week'], ['new7', 'New this week'], ['regulars', 'Regulars (30+ days)'], ['drifting', 'Drifting away (gone 1-4 weeks)'], ['inactive14', 'Away 2+ weeks'], ['level60', 'Level 60 and up'], ['google', 'Backed up with Google'], ['nobackup', 'No cloud backup'], ['push', 'Notifications on'], ['feedback', 'New feedback'], ['gifts', 'Gift waiting'], ['notes', 'Has notes'], ['locked', 'Locked accounts'], ['flagged', 'Leaderboard flag'], ['hidden', 'Hidden from leaderboards']];
 const SORTS: [string, string][] = [['last', 'Last seen'], ['level', 'Level'], ['xp', 'Total XP'], ['value', 'Farm value'], ['charm', 'Charm'], ['week', 'XP this week'], ['min7', 'Play time this week'], ['minutes', 'Play time'], ['days', 'Days played'], ['sessions', 'Sessions'], ['created', 'Newest'], ['name', 'Name']];
 
 let state = { q: '', filter: 'all', sort: 'last', page: 0 };
@@ -28,7 +28,7 @@ export async function playersView(host: HTMLElement): Promise<void> {
           h('td', { class: 'r' }, minutes(p.minutes)),
           h('td', null, p.platform ? PLATFORM[p.platform] ?? p.platform : '-', p.version ? h('span', { class: 'muted small' }, ` ${p.version}`) : null),
           h('td', null, p.cloud_at ? badge('Cloud save', 'good') : p.snap_at ? badge('Layout only', 'warn') : badge('None', 'bad'), p.email ? h('div', { class: 'muted small' }, 'Google') : null),
-          h('td', null, p.lb_flag ? badge('Flag', 'bad') : null, p.lb_hidden ? badge('Hidden') : null, p.feedback_new ? badge('Feedback', 'warn') : null, p.gifts_pending ? badge('Gift waiting', 'info') : null, p.notes ? badge(`${p.notes} notes`) : null, p.push ? badge('Notifications') : null)))))) : h('p', { class: 'muted' }, 'No players match.'),
+          h('td', null, p.locked ? badge(p.locked_until ? `Locked until ${new Date(p.locked_until).toLocaleDateString()}` : 'Locked', 'bad') : null, p.lb_flag ? badge('Flag', 'bad') : null, p.lb_hidden ? badge('Hidden') : null, p.feedback_new ? badge('Feedback', 'warn') : null, p.gifts_pending ? badge('Gift waiting', 'info') : null, p.notes ? badge(`${p.notes} notes`) : null, p.push ? badge('Notifications') : null)))))) : h('p', { class: 'muted' }, 'No players match.'),
       h('div', { class: 'row pager' },
         h('button', { class: 'btn small', disabled: state.page === 0, onclick: () => { state.page--; void load(); } }, 'Previous'),
         h('span', { class: 'muted small' }, `Page ${state.page + 1} of ${Math.max(1, Math.ceil(r.total / PAGE))}`),

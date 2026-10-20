@@ -323,6 +323,7 @@ declare
   r public.gifts;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   select p.name into v_name from public.profiles p where p.id = uid for update; -- also serialises this sender's sends
   if not found then raise exception 'no profile'; end if;
   if p_to is null or p_to = uid then raise exception 'cannot gift yourself'; end if;
@@ -390,6 +391,7 @@ declare
   r public.listings;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   select p.name into v_name from public.profiles p where p.id = uid for update; -- serialises this seller's listings
   if not found then raise exception 'no profile'; end if;
   if p_item is null or p_item !~ '^[a-z0-9_]{1,40}$' then raise exception 'bad item'; end if;
@@ -419,6 +421,7 @@ declare
   r public.listings;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   select p.name into v_name from public.profiles p where p.id = uid;
   if not found then raise exception 'no profile'; end if;
   update public.listings l set status = 'sold', buyer_id = uid, buyer_name = v_name, sold_at = now()
@@ -668,6 +671,7 @@ declare
   v_why text;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if p_data is null or jsonb_typeof(p_data) <> 'object' then raise exception 'bad farm'; end if;
   v_bytes := octet_length(p_data::text);
   if jsonb_typeof(p_data -> 'b') = 'array' then v_n := jsonb_array_length(p_data -> 'b'); end if;
@@ -847,6 +851,7 @@ declare
   v_z numeric;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if p_kind is null or p_kind not in ('water', 'feed', 'tend') then raise exception 'bad kind'; end if;
   if p_target is null or jsonb_typeof(p_target) <> 'object'
      or jsonb_typeof(p_target -> 'x') is distinct from 'number'
@@ -877,6 +882,7 @@ declare
   v_note text := nullif(p_note, '');
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if v_note is not null and v_note not in ('lovely', 'flowers', 'thanks', 'market', 'animals', 'cozy') then
     raise exception 'bad note';
   end if;
@@ -1492,6 +1498,7 @@ declare
   r public.reward_codes;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if (select count(*) from public.farm_transfer_tries t where t.user_id = uid and t.at > now() - interval '1 hour') >= 10 then
     raise exception 'too many tries';
   end if;
@@ -1921,6 +1928,7 @@ begin
   with base as (
     select p.id, p.name, p.farm_name, p.code, p.level, p.total_xp, p.farm_value, p.charm, p.created_at, p.updated_at, p.lb_hidden,
            p.weekly_xp, p.lb_flag,
+           (public.active_lock(p.id)).id is not null as locked, (public.active_lock(p.id)).until_at as locked_until,
            (select count(*) from public.feedback fb where fb.user_id = p.id and fb.status = 'new') as feedback_new,
            (select lower(i.identity_data ->> 'email') from auth.identities i where i.user_id = p.id and i.provider = 'google' limit 1) as email,
            c.updated_at as cloud_at, c.device as cloud_device,
@@ -1960,6 +1968,7 @@ begin
              when 'drifting' then b.days >= 5 and b.last_day <= today - 7 and b.last_day > today - 30
              when 'level60' then b.level >= 60
              when 'notes' then b.notes > 0
+             when 'locked' then b.locked
              else true end
   )
   select jsonb_build_object(
@@ -2736,6 +2745,7 @@ declare
   r public.help_requests;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   select public.clean_text(p.name, 24, 'Farmer') into v_name from public.profiles p where p.id = uid for update; -- serialises this player's asks
   if not found then raise exception 'no profile'; end if;
   if p_item is null or p_item !~ '^[a-z0-9_]{1,40}$' then raise exception 'bad item'; end if;
@@ -2868,6 +2878,7 @@ declare
   f public.help_fills;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if p_qty is null or p_qty < 1 or p_qty > 10 then raise exception 'bad qty'; end if;
   select public.clean_text(p.name, 24, 'Farmer') into v_name from public.profiles p where p.id = uid for update; -- serialises this helper
   if not found then raise exception 'no profile'; end if;
@@ -3569,6 +3580,7 @@ declare
   r public.coop_projects;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if not public.coop_enabled() then raise exception 'switched off'; end if;
   select public.clean_text(p.name, 24, 'Farmer'), p.level into v_name, v_level from public.profiles p where p.id = uid for update; -- serialises this host
   if not found then raise exception 'no profile'; end if;
@@ -3647,6 +3659,7 @@ declare
   r public.coop_projects;
 begin
   if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
   if not public.coop_enabled() then raise exception 'switched off'; end if;
   if p_item is null or p_item !~ '^[a-z0-9_]{1,40}$' then raise exception 'bad item'; end if;
   if p_qty is null or p_qty < 1 or p_qty > 50 then raise exception 'bad qty'; end if;
@@ -4080,3 +4093,205 @@ grant execute on function public.admin_player_save(uuid) to authenticated;
 grant execute on function public.admin_letter_to(uuid, text, text) to authenticated;
 grant execute on function public.admin_push_to(uuid, text, text) to authenticated;
 grant execute on function public.admin_clear_lb_flag(uuid) to authenticated;
+
+-- ===== account locks =====
+-- Suspending a player (ADMIN.md "Locking a player"): from the dashboard's player page an admin locks an account until
+-- a time (or with no end), with a reason the player sees. While locked the game shows a full-screen notice with the
+-- reason and a countdown (my_lock), and the server refuses the player's online actions: gifts, market, help and
+-- likes, Ask a friend, Village Projects, sharing their farm and reward codes (assert_not_locked in each). Locking
+-- also hides them from the leaderboards; unlocking puts them back unless they were hidden before. Every lock is
+-- kept as history; deleting the account deletes its locks (on delete cascade).
+
+create table if not exists public.account_locks (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  locked_at   timestamptz not null default now(),
+  -- null = no end date
+  until_at    timestamptz,
+  reason      text not null check (char_length(reason) between 1 and 500),
+  locked_by   text,
+  -- the lock hid the player from the leaderboards (unlocking shows them again)
+  hid         boolean not null default false,
+  lifted_at   timestamptz,
+  lifted_by   text
+);
+create index if not exists account_locks_user_idx on public.account_locks (user_id, locked_at desc);
+create index if not exists account_locks_open_idx on public.account_locks (user_id) where lifted_at is null;
+alter table public.account_locks enable row level security;
+revoke all on public.account_locks from anon, authenticated, public;
+
+-- The lock in force for a player right now, if any.
+create or replace function public.active_lock(p_uid uuid)
+returns public.account_locks
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select l.* from public.account_locks l
+   where l.user_id = p_uid and l.lifted_at is null and (l.until_at is null or l.until_at > now())
+   order by l.locked_at desc limit 1;
+$$;
+
+-- Called at the start of the player functions that reach other players or the server's shared state.
+create or replace function public.assert_not_locked(p_uid uuid)
+returns void
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_uid is not null and (public.active_lock(p_uid)).id is not null then raise exception 'account locked'; end if;
+end;
+$$;
+
+-- For the game: the caller's lock (until, reason) or null. The game shows its lock screen from this.
+create or replace function public.my_lock()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  l public.account_locks;
+begin
+  if auth.uid() is null then return null; end if;
+  l := public.active_lock(auth.uid());
+  if l.id is null then return null; end if;
+  return jsonb_build_object('until', l.until_at, 'reason', l.reason, 'since', l.locked_at, 'now', now());
+end;
+$$;
+
+-- Lock a player until p_until (null = no end date) with a reason they will see. Replaces a lock already in force.
+create or replace function public.admin_lock_player(p_id uuid, p_until timestamptz, p_reason text)
+returns bigint
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_hidden boolean;
+  v_hid boolean := false;
+  v_id bigint;
+begin
+  if coalesce(btrim(p_reason), '') = '' then raise exception 'write a reason'; end if;
+  if p_until is not null and p_until <= now() then raise exception 'the end time is in the past'; end if;
+  if not exists (select 1 from auth.users u where u.id = p_id) then raise exception 'not found'; end if;
+  -- a lock already in force is replaced; it keeps track of whether the player was hidden before any lock
+  select coalesce(bool_or(l.hid), false) into v_hid from public.account_locks l where l.user_id = p_id and l.lifted_at is null;
+  update public.account_locks l set lifted_at = now(), lifted_by = v_admin where l.user_id = p_id and l.lifted_at is null;
+  select p.lb_hidden into v_hidden from public.profiles p where p.id = p_id;
+  if coalesce(v_hidden, false) = false then
+    update public.profiles p set lb_hidden = true where p.id = p_id;
+    v_hid := true;
+  end if;
+  insert into public.account_locks (user_id, until_at, reason, locked_by, hid)
+  values (p_id, p_until, left(btrim(p_reason), 500), v_admin, v_hid)
+  returning id into v_id;
+  perform public.admin_note_log(v_admin, 'lock player', p_id, jsonb_build_object('until', p_until, 'reason', left(btrim(p_reason), 500)));
+  return v_id;
+end;
+$$;
+
+-- Lift a player's lock now (and put them back on the leaderboards if the lock hid them).
+create or replace function public.admin_unlock_player(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  v_hid boolean;
+begin
+  select coalesce(bool_or(l.hid), false) into v_hid from public.account_locks l where l.user_id = p_id and l.lifted_at is null;
+  update public.account_locks l set lifted_at = now(), lifted_by = v_admin where l.user_id = p_id and l.lifted_at is null;
+  if v_hid then update public.profiles p set lb_hidden = false where p.id = p_id; end if;
+  perform public.admin_note_log(v_admin, 'unlock player', p_id, null);
+end;
+$$;
+
+-- Locks that ran out on their own put the player back on the leaderboards too (run by the jobs below and by the
+-- dashboard; cheap). Marks them lifted by 'expired'.
+create or replace function public.expire_account_locks()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_users uuid[];
+  n integer;
+begin
+  with done as (
+    update public.account_locks l set lifted_at = l.until_at, lifted_by = 'expired'
+     where l.lifted_at is null and l.until_at is not null and l.until_at <= now()
+    returning l.user_id, l.hid)
+  select array_agg(d.user_id) filter (where d.hid), count(*) into v_users, n from done d;
+  -- a separate statement, so it sees the locks just lifted (another lock still in force keeps them hidden)
+  if v_users is not null then
+    update public.profiles p set lb_hidden = false
+     where p.id = any (v_users)
+       and not exists (select 1 from public.account_locks x where x.user_id = p.id and x.lifted_at is null);
+  end if;
+  return n;
+end;
+$$;
+
+-- Every lock a player has had, newest first (the dashboard's player page).
+create or replace function public.admin_player_locks(p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  perform public.expire_account_locks();
+  return (select coalesce(jsonb_agg(jsonb_build_object('id', l.id, 'lockedAt', l.locked_at, 'until', l.until_at, 'reason', l.reason,
+            'by', l.locked_by, 'liftedAt', l.lifted_at, 'liftedBy', l.lifted_by,
+            'active', l.lifted_at is null and (l.until_at is null or l.until_at > now())) order by l.locked_at desc), '[]'::jsonb)
+            from public.account_locks l where l.user_id = p_id);
+end;
+$$;
+
+-- Everyone locked right now (the dashboard's Players list filter and badge).
+create or replace function public.admin_locked_players()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  perform public.expire_account_locks();
+  return (select coalesce(jsonb_object_agg(l.user_id, jsonb_build_object('until', l.until_at, 'reason', l.reason)), '{}'::jsonb)
+            from public.account_locks l where l.lifted_at is null and (l.until_at is null or l.until_at > now()));
+end;
+$$;
+
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'cozy-expire-locks';
+    perform cron.schedule('cozy-expire-locks', '*/10 * * * *', 'select public.expire_account_locks()');
+  end if;
+end;
+$$;
+
+revoke all on function public.active_lock(uuid) from public, anon, authenticated;
+revoke all on function public.assert_not_locked(uuid) from public, anon, authenticated;
+revoke all on function public.expire_account_locks() from public, anon, authenticated;
+revoke all on function public.my_lock() from public, anon;
+revoke all on function public.admin_lock_player(uuid, timestamptz, text) from public, anon;
+revoke all on function public.admin_unlock_player(uuid) from public, anon;
+revoke all on function public.admin_player_locks(uuid) from public, anon;
+revoke all on function public.admin_locked_players() from public, anon;
+grant execute on function public.my_lock() to authenticated;
+grant execute on function public.admin_lock_player(uuid, timestamptz, text) to authenticated;
+grant execute on function public.admin_unlock_player(uuid) to authenticated;
+grant execute on function public.admin_player_locks(uuid) to authenticated;
+grant execute on function public.admin_locked_players() to authenticated;

@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.28.5",
+   "date": "2026-10-20",
+   "title": "A Friendly Village",
+   "icon": "heart",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "heart",
+     "text": "New tools behind the scenes to keep the village kind and friendly for everyone"
+    },
+    {
+     "icon": "info",
+     "text": "Small fixes to how some screens are drawn"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.4",
    "date": "2026-10-17",
    "title": "Back to Normal",

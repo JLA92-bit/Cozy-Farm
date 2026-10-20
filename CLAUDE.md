@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
+**1.28.5 (20 Oct): account locks.** Dashboard player page Lock account / Change lock / Unlock now (duration or date or no end, a reason the player sees; preview in the dialog), lock history on the Support tab, Players filter `locked`. Server section `account locks` (`account_locks` table, `active_lock`, `assert_not_locked` called at the top of send_gift, list_item, buy_listing, help_farm, like_farm, ask_help, fill_help, coop_start, coop_give, publish_farm, claim_reward_code; `my_lock`, `admin_lock_player/unlock_player/player_locks/locked_players`, `expire_account_locks` (pg_cron every 10 min); a lock hides from leaderboards, unlock/expiry restores). Game: `src/online/Lock.ts` (full-screen `.lock-screen` notice with reason and countdown, kept in localStorage `cozy-acres-lock`, server clock skew, rechecks every 5 min and on the `cozy-account-locked` event from SupabaseBackend). Also fixed: a stray `.tray-item .tray-item .tray-item` at the end of `styles.css` swallowed any rule appended after it. Needs `schema.sql` re-run. 79 regression checks.
+
 **Admin player deep dive (17 Oct, dashboard and server only, no game version):** the player page is tabbed (`admin/src/views/player.ts`, game names and icons from `admin/src/gamedata.ts`, which imports `src/data/*.json`; icons load from `../play/assets/icons/`), new SQL section `admin player deep dive` (`admin_player_deep`, `admin_player_save` (logs "view save"), `admin_letter_to`, `admin_push_to`, `admin_clear_lb_flag`) and `admin_players` has more filters, sorts and columns. Needs `schema.sql` re-run. ADMIN.md "Player page".
 
 **1.28.4 (17 Oct):** the Halloween look removed altogether (see 1.20.1 below). Regression check "nothing invisible covers the farm" kept.
@@ -254,6 +256,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).
 - 2026-10-17: admin player deep dive: tabbed player page (farm, barn, progress, stats, activity, social, support, raw), letters and notifications to one player, richer player list.
 - 2026-10-17: 1.28.4: the Halloween look removed altogether (owner: a failed trial).
 - 2026-10-17: 1.28.3 hotfix: the Halloween vignette blocked all touches (no moving around); overlays now pass touches through.
@@ -263,4 +266,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).
 - 2026-10-17: 1.26.0 (local): Estate Projects (the Clock Tower with a real-time clock and chime; the Lighthouse with a night beam and a third boat day).
 - 2026-10-17: 1.25.0 (local): Helping Hands (three farmhands for replanting, feeding and workshops; mastery lines).
-- 2026-10-17: 1.24.0 (local): Tea and Flowers (Tea House, Florist, tea leaves and roses, bouquets every villager loves, six best-friend arcs in letters).

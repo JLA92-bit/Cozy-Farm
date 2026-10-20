@@ -211,6 +211,8 @@ export interface OnlineBackend {
   logEvent(kind: string, detail: Record<string, unknown>): Promise<void>;
   /** 1.9 settings the developer can change from the dashboard (market day, a day's weather); {} when offline */
   gameConfig(): Promise<Record<string, unknown>>;
+  /** The caller's account lock (Lock.ts): null when not locked. Throws when the server cannot be reached. */
+  myLock(): Promise<AccountLock | null>;
   /** Settings > Send feedback. Rejects with 'too many' (10 a day) or when offline. */
   submitFeedback(category: 'bug' | 'idea' | 'praise' | 'other', message: string, info: { version: string; platform: Platform; device: string; level: number }): Promise<void>;
 
@@ -355,3 +357,6 @@ export interface PushBackend {
   /** Ask the server to send a test notification to this player's devices in the next few minutes. */
   sendTestPush(): Promise<void>;
 }
+
+/** An account lock set from the dashboard (supabase/schema.sql "account locks"). `until` null = no end date. */
+export interface AccountLock { until: string | null; reason: string; since: string; now: string }

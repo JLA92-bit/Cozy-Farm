@@ -68,6 +68,7 @@ import { festivals } from '../systems/Festivals';
 import { loadGameConfig } from '../online/GameConfig';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
+import { watchAccountLock } from '../online/Lock';
 import { startActivity } from '../online/Activity';
 import { startCloud } from '../online/CloudSave';
 import { startNotifications } from '../notify/Push';
@@ -227,6 +228,7 @@ export async function boot(): Promise<void> {
   for (const fn of afterBoot) fn();
   startCloud();
   startOnlineSync();
+  watchAccountLock();
   startActivity();
   startNotifications();
   ranks.start();

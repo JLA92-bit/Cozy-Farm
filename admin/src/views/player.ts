@@ -77,10 +77,11 @@ export async function playerView(host: HTMLElement, id: string): Promise<void> {
   let tab: Tab = 'overview';
   try { const t = localStorage.getItem(TAB_KEY); if (TABS.some(([k]) => k === t)) tab = t as Tab; } catch { /* blocked */ }
   const draw = () => loading(host, async () => {
-    const [d, deep] = await Promise.all([rpc<PlayerDetail>('admin_player', { p_id: id }), rpc<Deep>('admin_player_deep', { p_id: id }).catch(() => null)]);
+    const [d, deep, locks] = await Promise.all([rpc<PlayerDetail>('admin_player', { p_id: id }), rpc<Deep>('admin_player_deep', { p_id: id }).catch(() => null),
+      rpc<Lock[]>('admin_player_locks', { p_id: id }).catch(() => [] as Lock[])]);
     // the save is only fetched for Google players (and logged); everyone else has the farm layout only
     const save = d.cloud ? await rpc<Save | null>('admin_player_save', { p_id: id }).catch(() => null) : null;
-    const ctx: Ctx = { d, deep, save, redraw: draw };
+    const ctx: Ctx = { d, deep, save, locks, redraw: draw };
     const body = h('div');
     const tabBar = h('div', { class: 'ptabs', role: 'tablist' });
     const show = (t: Tab) => {
@@ -95,7 +96,83 @@ export async function playerView(host: HTMLElement, id: string): Promise<void> {
   await draw();
 }
 
-interface Ctx { d: PlayerDetail; deep: Deep | null; save: Save | null; redraw: () => Promise<void> }
+interface Ctx { d: PlayerDetail; deep: Deep | null; save: Save | null; locks: Lock[]; redraw: () => Promise<void> }
+/** admin_player_locks: every lock this player has had (supabase/schema.sql "account locks"). */
+interface Lock { id: number; lockedAt: string; until: string | null; reason: string; by: string | null; liftedAt: string | null; liftedBy: string | null; active: boolean }
+
+const activeLock = (c: Ctx): Lock | undefined => c.locks.find((l) => l.active && (!l.until || new Date(l.until).getTime() > Date.now()));
+
+/** "2 days 03:14:22" until `iso`, updated every second while the element is on the page. */
+function liveCountdown(iso: string | null): HTMLElement {
+  const el = h('span', { class: 'mono-small' });
+  if (!iso) { el.textContent = 'no end date'; return el; }
+  const end = new Date(iso).getTime();
+  const two = (n: number) => String(n).padStart(2, '0');
+  const draw = () => {
+    const s = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    const d = Math.floor(s / 86400);
+    el.textContent = `${d ? `${d} day${d === 1 ? '' : 's'} ` : ''}${two(Math.floor((s % 86400) / 3600))}:${two(Math.floor((s % 3600) / 60))}:${two(s % 60)} left`;
+  };
+  draw();
+  // stops once the element has been on the page and is gone again (the page was redrawn or left)
+  const t = window.setInterval(() => {
+    if (el.isConnected) el.dataset.shown = '1';
+    else if (el.dataset.shown) { window.clearInterval(t); return; }
+    draw();
+  }, 1000);
+  return el;
+}
+
+/** What the locked player reads on their lock screen (src/online/Lock.ts), for the preview. */
+function lockSentence(until: Date | null): string {
+  return until ? `You have been locked out of Cozy Acres until ${until.toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' })}.` : 'You have been locked out of Cozy Acres.';
+}
+
+async function lockDialog(c: Ctx): Promise<void> {
+  const name = nameOfPlayer(c), cur = activeLock(c);
+  const DURATIONS: [string, string, number | null][] = [['1h', '1 hour', 3600e3], ['6h', '6 hours', 6 * 3600e3], ['1d', '1 day', 86400e3], ['3d', '3 days', 3 * 86400e3],
+    ['7d', '1 week', 7 * 86400e3], ['14d', '2 weeks', 14 * 86400e3], ['30d', '30 days', 30 * 86400e3], ['custom', 'Pick a date and time', null], ['forever', 'No end date (until I unlock it)', null]];
+  const sel = h('select', { class: 'input' }, DURATIONS.map(([v, t]) => h('option', { value: v, selected: v === '1d' }, t))) as HTMLSelectElement;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const local = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const custom = h('input', { class: 'input', type: 'datetime-local', min: local(new Date(Date.now() + 60000)), value: local(new Date(Date.now() + 86400e3)) }) as HTMLInputElement;
+  const reason = h('textarea', { class: 'input', rows: 4, maxLength: 500, placeholder: 'e.g. Unkind gift notes to other players. Please be kind to everyone in the village.' }) as HTMLTextAreaElement;
+  if (cur) reason.value = cur.reason;
+  const customRow = h('div', null, field('Locked until', custom, 'In your own time zone.'));
+  const preview = h('div', { class: 'lock-preview' });
+  const until = (): Date | null | undefined => {
+    const v = sel.value;
+    if (v === 'forever') return null;
+    if (v === 'custom') { const t = new Date(custom.value); return Number.isFinite(t.getTime()) ? t : undefined; }
+    const ms = DURATIONS.find(([k]) => k === v)?.[2];
+    return ms ? new Date(Date.now() + ms) : undefined;
+  };
+  const draw = () => {
+    customRow.style.display = sel.value === 'custom' ? '' : 'none';
+    const u = until();
+    preview.replaceChildren(h('div', { class: 'lock-preview-title' }, 'Your account is locked'), h('p', null, u === undefined ? 'Pick a time in the future.' : lockSentence(u)),
+      h('div', { class: 'muted small' }, 'Reason'), h('p', { class: 'lock-preview-reason' }, reason.value.trim() || '(your reason appears here)'),
+      h('div', { class: 'muted small' }, 'Time remaining'), h('p', { class: 'lock-preview-count' }, u ? '(a live countdown)' : u === null ? 'No end date' : '-'));
+  };
+  for (const x of [sel, custom, reason]) x.addEventListener('input', draw);
+  sel.addEventListener('change', draw);
+  draw();
+  const r = await modal(cur ? `Change ${name}'s lock` : `Lock ${name}'s account`, [
+    h('p', { class: 'small' }, `While locked, ${name} sees the notice below over the game and cannot play. The server also refuses their gifts, market, help and likes, Ask a friend, Village Projects, farm sharing and reward codes, and they are hidden from the leaderboards. Their farm is kept as it is.`),
+    field('How long', sel), customRow,
+    field('Reason (they will see this)', reason, 'Up to 500 characters. Keep it calm and clear.'),
+    h('div', { class: 'muted small' }, 'What they will see:'), preview,
+  ], [{ label: 'Cancel', value: 'no' }, { label: cur ? 'Update lock' : 'Lock account', value: 'yes', kind: 'danger' }], true);
+  if (r !== 'yes') return;
+  const u = until();
+  if (u === undefined || (u && u.getTime() <= Date.now())) { toast('Pick a time in the future', 'info'); return; }
+  if (!reason.value.trim()) { toast('Write the reason they will see', 'info'); return; }
+  try {
+    await rpc('admin_lock_player', { p_id: c.d.id, p_until: u ? u.toISOString() : null, p_reason: reason.value.trim() });
+    toast(u ? `${name} is locked until ${u.toLocaleString()}` : `${name} is locked with no end date`);
+    await c.redraw();
+  } catch (e) { fail(e); }
+}
 
 function tabContent(t: Tab, c: Ctx): HTMLElement[] {
   try {
@@ -155,7 +232,9 @@ function header(c: Ctx): HTMLElement {
   const dd = daysFrom(c);
   const lastDay = c.d.days[0];
   const version = lastDay?.version ?? s?.lastSeenVersion ?? null;
+  const lock = activeLock(c);
   const badges = [
+    lock ? h('span', null, badge(lock.until ? `Locked until ${date(lock.until, true)}` : 'Locked, no end date', 'bad'), ' ', liveCountdown(lock.until)) : null,
     playingNow(c) ? badge('Playing now', 'good') : null,
     c.d.auth?.email ? badge('Google', 'info') : badge('Anonymous'),
     c.d.cloud ? badge('Cloud save', 'good') : badge('No cloud save', 'warn'),
@@ -240,6 +319,9 @@ function toolbar(c: Ctx): HTMLElement {
       btn('Download save', async () => { try { download(`cozy-acres-${slug(name)}-cloud-save-${today()}.json`, JSON.stringify(await rpc('admin_cloud_save', { p_id: d.id }), null, 1)); } catch (e) { fail(e); } }, '', !d.cloud),
       btn('Farm code', () => makeCode(c, 'cloud'), '', !d.cloud, 'A code they type in Settings > Load a farm'),
       btn('Rebuild from layout', () => makeCode(c, 'layout'), '', !d.snapshot)),
+    h('div', { class: 'tb-group' }, h('span', { class: 'tb-label' }, 'Lock'),
+      activeLock(c) ? btn('Change lock', () => lockDialog(c), 'danger') : btn('Lock account', () => lockDialog(c), 'danger'),
+      activeLock(c) ? btn('Unlock now', async () => { if (await confirmAction(`Unlock ${name}?`, 'They can play again the next time they open the game (or within 5 minutes if it is open).', 'Unlock', 'primary')) await act(() => rpc('admin_unlock_player', { p_id: d.id }), `${name} is unlocked`); }) : null),
     h('div', { class: 'tb-group' }, h('span', { class: 'tb-label' }, 'Leaderboards'),
       p ? btn(p.lb_hidden ? 'Show' : 'Hide', () => act(() => rpc('admin_set_hidden', { p_id: d.id, p_hidden: !p.lb_hidden }), p.lb_hidden ? 'Back on the leaderboards' : 'Hidden from the leaderboards')) : null,
       btn('Clear flag', () => act(() => rpc('admin_clear_lb_flag', { p_id: d.id }), 'Flag cleared'), '', !lbFlag, lbFlag ?? 'No flag')),
@@ -314,6 +396,8 @@ function overviewTab(c: Ctx): HTMLElement[] {
   const p = d.profile, dd = daysFrom(c);
   const lvl = s?.player?.level ?? p?.level ?? 1, xp = s?.player?.xp ?? 0, need = xpToNext(lvl);
   const warnings: HTMLElement[] = [];
+  const lk = activeLock(c);
+  if (lk) warnings.push(h('li', null, badge('Locked', 'bad'), ` ${lk.until ? `until ${date(lk.until, true)} (` : '(no end date, '}`, liveCountdown(lk.until), `): "${lk.reason}"`));
   const lbFlag = (p as unknown as { lb_flag?: string; lb_flagged_at?: string } | null);
   if (lbFlag?.lb_flag) warnings.push(h('li', null, badge('Leaderboard', 'bad'), ` ${lbFlag.lb_flag} (${ago(lbFlag.lb_flagged_at)})`));
   if (deep?.refusal && (!d.snapshot || deep.refusal.at > d.snapshot.updated_at)) warnings.push(h('li', null, badge('Farm not shared', 'bad'), ` ${deep.refusal.reason}: visitors see an old farm (${ago(deep.refusal.at)}).`));
@@ -698,6 +782,12 @@ function supportTab(c: Ctx): HTMLElement[] {
         : h('p', { class: 'muted small' }, 'Keep track of what you did for this player.')),
       card(`Their feedback (${d.feedback.length})`, d.feedback.length ? h('ul', { class: 'notes' }, d.feedback.map((f) => h('li', null, h('div', { class: 'muted small' }, `${date(f.created_at, true)} - ${f.category} - ${f.status}${f.version ? ` - ${f.version}` : ''}${f.device ? ` - ${f.device}` : ''}`), f.message,
         f.admin_note ? h('div', { class: 'muted small' }, `Your note: ${f.admin_note}`) : null))) : h('p', { class: 'muted small' }, 'No feedback from them.'))),
+    card(`Account locks (${c.locks.length})`, c.locks.length ? h('table', { class: 'table compact' },
+      h('thead', null, h('tr', null, h('th', null, 'Locked'), h('th', null, 'Until'), h('th', null, 'Reason'), h('th', null, 'Status'))),
+      h('tbody', null, c.locks.map((l) => h('tr', null, h('td', { class: 'small' }, date(l.lockedAt, true), h('div', { class: 'muted small' }, l.by ?? '')),
+        h('td', { class: 'small' }, l.until ? date(l.until, true) : 'No end date'), h('td', null, l.reason),
+        h('td', null, l.active ? h('span', null, badge('In force', 'bad'), ' ', liveCountdown(l.until)) : l.liftedBy === 'expired' ? badge('Ran out', 'good') : badge(`Lifted ${l.liftedAt ? ago(l.liftedAt) : ''}${l.liftedBy ? ` by ${l.liftedBy}` : ''}`, 'good'))))))
+      : h('p', { class: 'muted small' }, 'Never locked.')),
     card('What admins did for this player', deep?.adminLog.length ? h('table', { class: 'table compact' }, h('tbody', null, deep.adminLog.map((l) => h('tr', null,
       h('td', { class: 'small' }, date(l.at, true)), h('td', null, l.action), h('td', { class: 'small muted' }, l.admin), h('td', { class: 'small' }, l.detail ? Object.entries(l.detail).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(', ') : '')))))
       : h('p', { class: 'muted small' }, 'Nothing logged yet.')),

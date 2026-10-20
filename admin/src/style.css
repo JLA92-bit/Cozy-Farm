@@ -263,3 +263,9 @@ pre.json { font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; backg
   .phead-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
   .ptoolbar { position: static; }
 }
+/* account lock preview (player page "Lock account") */
+.lock-preview { border: 3px solid #7a4a1f; background: #fff6df; color: #3b2a1a; border-radius: 16px; padding: 12px 14px; text-align: center; margin-top: 6px; }
+.lock-preview-title { font-family: var(--display); font-size: 22px; color: #3b2a1a; }
+.lock-preview-reason { background: #fff; border: 1px solid #f7e6bd; border-radius: 10px; padding: 8px 10px; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lock-preview-count { font-family: var(--display); font-size: 22px; color: #b1302d; }
+.lock-preview .muted { color: #6b4f35; }

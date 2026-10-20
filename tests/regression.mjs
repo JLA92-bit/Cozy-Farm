@@ -711,6 +711,26 @@ try {
     check('Farmhouse level 15 raises the caps', r.fh === 15 && r.plots === 140 && r.decor === 800, JSON.stringify(r));
   }
 
+  // account locks: a locked player sees the notice with the reason and a countdown over everything, cannot reach the
+  // farm, and the notice lifts by itself when the time runs out (here in practice mode, from the lock kept on the device)
+  {
+    const lock = (ms) => JSON.stringify({ until: new Date(Date.now() + ms).toISOString(), reason: 'Unkind gift notes. Please be kind.', since: new Date().toISOString(), now: new Date().toISOString() });
+    await setStorage({ [KEY]: JSON.stringify(copy()), 'cozy-acres-lock': lock(26 * 3600e3) });
+    await boot();
+    const r = await page.evaluate(() => {
+      const el = document.querySelector('.lock-screen');
+      const hit = document.elementFromPoint(innerWidth / 2, innerHeight * 0.9);
+      return { shown: !!el, reason: el?.textContent?.includes('Unkind gift notes') ?? false, until: /locked out of Cozy Acres until/.test(el?.textContent ?? ''),
+        count: el?.querySelector('.lock-count')?.textContent ?? '', blocks: !!hit?.closest('.lock-screen') };
+    });
+    check('a locked account shows the reason, the end time and a countdown, and blocks the farm', r.shown && r.reason && r.until && /^1 day \d\d:\d\d:\d\d$/.test(r.count) && r.blocks, JSON.stringify(r));
+    await setStorage({ [KEY]: JSON.stringify(copy()), 'cozy-acres-lock': lock(6000) });
+    await boot();
+    await page.waitForTimeout(6000);
+    const gone = await page.evaluate(() => ({ el: !!document.querySelector('.lock-screen'), kept: localStorage.getItem('cozy-acres-lock') }));
+    check('the lock notice lifts by itself when the time runs out', !gone.el && gone.kept === null, JSON.stringify(gone));
+  }
+
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back
   // (#ui-root > *), so a full-screen one swallows every touch (1.28.3: the removed Halloween vignette did this)
   {

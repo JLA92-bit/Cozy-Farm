@@ -246,6 +246,7 @@ export class LocalBackend implements OnlineBackend {
   async claimAdminLetter(): Promise<AdminLetter> { throw new Error('not found'); }
   async logEvent(): Promise<void> { /* practice mode: no statistics */ }
   async gameConfig(): Promise<Record<string, unknown>> { return {}; }
+  async myLock(): Promise<null> { return null; }
   async submitFeedback(): Promise<void> {
     throw new Error('Feedback needs online play.');
   }

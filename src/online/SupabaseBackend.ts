@@ -1,6 +1,6 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import { cleanClaim, cleanCoop } from './Coop';
-import type { CoopClaim, CoopProject } from './types';
+import type { AccountLock, CoopClaim, CoopProject } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -329,6 +329,8 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (r.error) {
       // status 0 = the request never reached the server (offline, timeout, blocked)
       if (!r.status || r.status >= 500) throw this.fail(new OfflineError(r.error.message));
+      // the account was locked from the dashboard: show the lock notice now (online/Lock.ts)
+      if (/account locked/.test(r.error.message)) window.dispatchEvent(new Event('cozy-account-locked'));
       throw new Error(r.error.message);
     }
     this.ok();
@@ -548,6 +550,16 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       await this.init();
       this.check(await this.db().rpc('log_event', { p_kind: kind, p_detail: detail }) as Result<unknown>);
     } catch { /* statistics only: never bother the player */ }
+  }
+
+  async myLock(): Promise<AccountLock | null> {
+    await this.init();
+    const r = await this.db().rpc('my_lock') as Result<unknown>;
+    this.check(r);
+    const d = r.data as Record<string, unknown> | null;
+    if (!d || typeof d !== 'object' || typeof d.reason !== 'string') return null;
+    const str = (v: unknown) => (typeof v === 'string' ? v : null);
+    return { until: str(d.until), reason: d.reason.slice(0, 500), since: str(d.since) ?? new Date().toISOString(), now: str(d.now) ?? new Date().toISOString() };
   }
 
   async gameConfig(): Promise<Record<string, unknown>> {

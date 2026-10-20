@@ -62,7 +62,7 @@ export interface PlayerRow {
   created_at: string; updated_at: string; lb_hidden: boolean; email: string | null; cloud_at: string | null; cloud_device: string | null;
   snap_at: string | null; days: number; minutes: number; last_day: string | null; platform: string | null; version: string | null;
   push: boolean; gifts_pending: number; notes: number;
-  weekly_xp?: number; lb_flag?: string | null; feedback_new?: number; sessions?: number; min7?: number;
+  weekly_xp?: number; lb_flag?: string | null; feedback_new?: number; sessions?: number; min7?: number; locked?: boolean; locked_until?: string | null;
 }
 
 export interface AdminGift { id: string; user_id: string; coins: number; gems: number; items: Record<string, number>; land: number; message: string | null; created_at: string; created_by: string | null; claimed_at: string | null; name?: string }
