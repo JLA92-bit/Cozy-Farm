@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 17 October 2026 (game version 1.28.2, committed locally after 1.28.1, 1.28.0, 1.20.1, 1.21.0, the leaderboard fair-play commit and 1.22.0-1.27.0; 1.20.0 and earlier are pushed and live). Owner: Josh Makes Games.
+Last updated: 21 October 2026 (game version 1.28.5, pushed and live; everything up to it is on `main`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.28.2 "Good Neighbours"** (local; before it, 1.28.1 "Fixes and Polish", 1.28.0 "Together", 1.27.0 "The Treehouse and the Wildlife Album", 1.26.0 "Estate Projects" and local commits for 1.20.1 "Spooky Season", 1.21.0 "Woodcraft", leaderboard fair play, 1.22.0 "Orchard Days", 1.23.0 "The Ancient Grove", 1.24.0 "Tea and Flowers" and 1.25.0 "Helping Hands"; 1.20.0 is pushed and live, deploy run 54) (`package.json` and the newest entry in `src/data/changelog.json` must match) |
+| Current game version | **1.28.5 "A Friendly Village"** (live, commit 96a21fc). 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
@@ -227,8 +227,8 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [ ] **Review and push 1.20.1** (Spooky season look, its own commit), **1.21.0** (Woodcraft), leaderboard fair play and **1.22.0** (Orchard Days), **1.23.0** (The Ancient Grove), **1.24.0** (Tea and Flowers), **1.25.0** (Helping Hands), **1.26.0** (Estate Projects), **1.27.0** (Treehouse and Wildlife Album) **1.28.0** (Together, needs schema.sql run and the Data safety form updated) **1.28.1** (fixes) and **1.28.2** (visits fix, dashboard page; needs schema.sql run); push only when Josh says so. Nothing is pushed until Josh says "yes push". 1.20.0 is live (deploy run 54). Test the critters, Wren and the care screens on a real phone. Still to do: test decor batching on a real phone on Low, Medium and High (rule 9); redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
-- [ ] **Run the latest `supabase/schema.sql` in Supabase** once the 1.22 leaderboard checks and 1.28 co-op are pushed (1.28: `coop_*` tables and functions; then update the Play Data safety form from `store/data-safety.md`) (new `level_for_xp`, `upsert_profile` caps, `profiles.lb_flag`/`lb_flagged_at`/`lb_*_budget`; see ONLINE.md "Leaderboard fair play"). Tested on a local Postgres 16 with a stub `auth` schema.
+- [x] 1.20.1 to 1.28.5 pushed and live (17-21 Oct), and the owner ran the latest `schema.sql` (account locks work). Still to do: test on a real phone on Low, Medium and High (rule 9), nothing since about 1.18 has been; redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [ ] After every server change, run the whole latest `supabase/schema.sql` in Supabase, then `notify pgrst, 'reload schema';` ("Could not find the function ... in the schema cache" means it has not run through). Tested first on a local Postgres 16 with a stub `auth` schema (HANDOVER-2026-10-21.md section 5).
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -256,6 +256,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-21: handover written (`HANDOVER-2026-10-21.md`); 1.28.5 live and schema.sql run by the owner.
 - 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).
 - 2026-10-17: admin player deep dive: tabbed player page (farm, barn, progress, stats, activity, social, support, raw), letters and notifications to one player, richer player list.
 - 2026-10-17: 1.28.4: the Halloween look removed altogether (owner: a failed trial).
@@ -265,4 +266,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.28.0 (local): Together, co-op Village Projects with friends (server section, exactly-once rewards, refunds, dashboard switch; privacy and Data safety updated).
 - 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).
 - 2026-10-17: 1.26.0 (local): Estate Projects (the Clock Tower with a real-time clock and chime; the Lighthouse with a night beam and a third boat day).
-- 2026-10-17: 1.25.0 (local): Helping Hands (three farmhands for replanting, feeding and workshops; mastery lines).
