@@ -194,7 +194,11 @@ export function openUnlockTree(): void {
       h('div', { class: 'progress', style: 'margin-top:4px' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, game.level < MAX_LEVEL ? `${fmt(game.state.player.xp)}/${fmt(need)}` : 'MAX')),
       h('div', { class: 'sub', style: 'margin-top:2px' }, 'Earn XP by harvesting, delivering orders and finishing quests.'))), list);
   p.open();
-  if (current) setTimeout(() => current!.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+  // scroll the panel body only: scrollIntoView also scrolls the overlay and pushed the header off short screens
+  if (current) setTimeout(() => {
+    const b = p.body, r = current!.getBoundingClientRect(), br = b.getBoundingClientRect();
+    b.scrollTo({ top: b.scrollTop + r.top - br.top - (b.clientHeight - r.height) / 2, behavior: 'smooth' });
+  }, 350);
 }
 
 // ======================================================================== achievements

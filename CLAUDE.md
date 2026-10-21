@@ -128,6 +128,7 @@ npm run typecheck
 npm run validate-data   # run after ANY edit to src/data/*.json (CI runs it too)
 npm run simulate-economy
 npm run test:regression # builds, then checks saves, upkeep, the Master board and decor batching in headless Chromium (tests/regression.mjs); runs in CI and blocks the deploy
+node tools/phone-sweep.mjs <dir>  # after vite build: every panel at 4 phone sizes, reports overflow and tiny buttons
 npm run test:perf       # builds, then fills a farm with 720 decor and fails above 520 draw calls (tools/stress-decor.mjs)
 ```
 
@@ -159,7 +160,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
 | Tester opt-in link | `https://play.google.com/apps/testing/app.joshmakesgames.cozyacres` |
 
-**Where it's up to:** internal testing works. App content, store listing and graphics are done. The closed test release (bundle 4) was sent for review on 6-7 October. Next: once approved, invite testers, keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
+**Where it's up to:** internal testing works. App content, store listing and graphics are done. The closed test (bundle 4) is running; on 21 Oct it had 2 days of the 14 left (5 active players test on real phones). Next: keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
 
 **GitHub settings (Settings > Secrets and variables > Actions):**
 - Secrets: `ANDROID_KEYSTORE_BASE64`, `BUBBLEWRAP_KEYSTORE_PASSWORD`, `BUBBLEWRAP_KEY_PASSWORD`
@@ -227,7 +228,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 ## 8. Open to-dos
 
-- [x] 1.20.1 to 1.28.5 pushed and live (17-21 Oct), and the owner ran the latest `schema.sql` (account locks work). Still to do: test on a real phone on Low, Medium and High (rule 9), nothing since about 1.18 has been; redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
+- [x] 1.20.1 to 1.28.5 pushed and live (17-21 Oct), and the owner ran the latest `schema.sql` (account locks work). `send-push` redeployed with `PUSH_CRON_SECRET` (owner, 21 Oct). Still to do: the real-phone pass on Low, Medium and High (rule 9) with `store/phone-checklist.md`.
 - [x] Supabase is up to date with the latest `schema.sql` (owner, 21 Oct). Rule for later: after every server change, run the whole latest `supabase/schema.sql` in Supabase, then `notify pgrst, 'reload schema';` ("Could not find the function ... in the schema cache" means it has not run through). Tested first on a local Postgres 16 with a stub `auth` schema (HANDOVER-2026-10-21.md section 5).
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
@@ -256,6 +257,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-21: real-phone checklist (`store/phone-checklist.md`), `tools/phone-sweep.mjs`; fixes: the lock notice scrolls by touch, Unlock Path no longer pushes its header off short screens.
 - 2026-10-21: handover written (`HANDOVER-2026-10-21.md`); 1.28.5 live and schema.sql run by the owner.
 - 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).
 - 2026-10-17: admin player deep dive: tabbed player page (farm, barn, progress, stats, activity, social, support, raw), letters and notifications to one player, richer player list.
@@ -265,4 +267,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.28.1 (local): fixes and polish from a code review (co-op retries and refunds, leaderboard stale saves, farmhand wages, wild visitor taps, Halloween on visits, square refresh) plus small QoL hints.
 - 2026-10-17: 1.28.0 (local): Together, co-op Village Projects with friends (server section, exactly-once rewards, refunds, dashboard switch; privacy and Data safety updated).
 - 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).
-- 2026-10-17: 1.26.0 (local): Estate Projects (the Clock Tower with a real-time clock and chime; the Lighthouse with a night beam and a third boat day).

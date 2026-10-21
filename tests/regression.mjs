@@ -724,6 +724,20 @@ try {
         count: el?.querySelector('.lock-count')?.textContent ?? '', blocks: !!hit?.closest('.lock-screen') };
     });
     check('a locked account shows the reason, the end time and a countdown, and blocks the farm', r.shown && r.reason && r.until && /^1 day \d\d:\d\d:\d\d$/.test(r.count) && r.blocks, JSON.stringify(r));
+    // a long reason on a short landscape screen can be read by swiping
+    await page.setViewportSize({ width: 640, height: 360 });
+    await page.evaluate((v) => { localStorage.setItem('cozy-acres-lock', v); }, JSON.stringify({ ...JSON.parse(lock(26 * 3600e3)), reason: 'Please be kind to other farmers. '.repeat(15) }));
+    await boot();
+    const cdp = await ctx.newCDPSession(page);
+    const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: 320, y }] });
+    await touch('touchStart', 300);
+    for (let y = 290; y >= 60; y -= 10) await touch('touchMove', y);
+    await touch('touchEnd');
+    await page.waitForTimeout(800);
+    const sw = await page.evaluate(() => { const e = document.querySelector('.lock-screen'); return { more: e.scrollHeight > e.clientHeight, top: e.scrollTop }; });
+    check('a long lock reason can be scrolled by touch on a short screen', sw.more && sw.top > 0, JSON.stringify(sw));
+    await cdp.detach();
+    await page.setViewportSize({ width: 844, height: 390 });
     await setStorage({ [KEY]: JSON.stringify(copy()), 'cozy-acres-lock': lock(6000) });
     await boot();
     await page.waitForTimeout(6000);
