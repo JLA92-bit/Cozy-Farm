@@ -4273,12 +4273,15 @@ begin
 end;
 $$;
 
+-- Every 10 minutes (needs pg_cron; scheduling the same name again updates the job). Never stops this file: without
+-- pg_cron, or if scheduling is refused, expired locks are still lifted whenever the dashboard looks at locks.
 do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
-    perform cron.unschedule(jobid) from cron.job where jobname = 'cozy-expire-locks';
     perform cron.schedule('cozy-expire-locks', '*/10 * * * *', 'select public.expire_account_locks()');
   end if;
+exception when others then
+  raise notice 'Account locks: the expiry schedule was not created (%). Locks still end on time.', sqlerrm;
 end;
 $$;
 
