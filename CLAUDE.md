@@ -228,7 +228,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 ## 8. Open to-dos
 
 - [x] 1.20.1 to 1.28.5 pushed and live (17-21 Oct), and the owner ran the latest `schema.sql` (account locks work). Still to do: test on a real phone on Low, Medium and High (rule 9), nothing since about 1.18 has been; redeploy `send-push` (`supabase functions deploy send-push --no-verify-jwt`), it now requires `PUSH_CRON_SECRET`.
-- [ ] After every server change, run the whole latest `supabase/schema.sql` in Supabase, then `notify pgrst, 'reload schema';` ("Could not find the function ... in the schema cache" means it has not run through). Tested first on a local Postgres 16 with a stub `auth` schema (HANDOVER-2026-10-21.md section 5).
+- [x] Supabase is up to date with the latest `schema.sql` (owner, 21 Oct). Rule for later: after every server change, run the whole latest `supabase/schema.sql` in Supabase, then `notify pgrst, 'reload schema';` ("Could not find the function ... in the schema cache" means it has not run through). Tested first on a local Postgres 16 with a stub `auth` schema (HANDOVER-2026-10-21.md section 5).
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
