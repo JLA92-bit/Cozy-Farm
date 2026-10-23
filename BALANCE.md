@@ -828,3 +828,21 @@ The whole album: Juniper's letter with 20,000 coins and 50 gems.
 | Fireworks Night | 35 | sugar 120, beeswax candle 40, berry juice 50, cookie 60, copper ore 20 | Fireworks Stand (charm 250) + plaque |
 
 Sized for a host and two or three friends to finish in a few days. One open project per host, 2 starts a week, 50 of an item per gift, 40 gifts a day, 30 days to finish (then everyone is refunded). The decorations are trophies (`cap: none`), so a player who helps with many projects is not short of decor room.
+
+## 1.29 Home Sweet Home (`home.json`, `furniture.json`, `src/systems/Home.ts`)
+
+Inside the Farmhouse, from level 30. Looks only: the home gives no XP, charm or score, so its prices are set for
+spending, not for return.
+
+- **Furniture:** 229 catalogue pieces from 40 to 4,500 coins (median 700). Buying one of everything once costs about
+  200k coins, roughly 3-5 days of income at level 40+ (50-70k a day). Six pieces a day are 25% off; nothing is ever
+  taken off sale. A stored piece sells back for half.
+- **Rooms:** one more per Farmhouse level (1, 2, 3, 5, 7, 9, 11, 13, 15), nine in all. Enlarging a room: Roomy
+  (5.5 m) 15,000, Grand (7 m) 40,000; all nine Grand is 495,000 coins.
+- **Handmade (10 pieces):** made at the Carpenter's Workshop from gathered things (pinecones, moss, cotton fabric,
+  yarn, shells, clay pots, beeswax candles, owl feathers, resin varnish, golden acorns) plus 100-600 coins. This gives
+  those items another use.
+- **Villagers' sets (18 pieces):** each villager sends three pieces at 3, 6 and 9 hearts (one letter per villager at
+  a time). Once received, a gift piece can be bought again at its catalogue price.
+- **Limits:** 120 pieces a room; saved looks share 600 pieces across the home. A fully furnished home with every look
+  saved adds about 170 KB to the save, inside the 512 KB cloud save limit.

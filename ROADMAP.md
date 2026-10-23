@@ -36,7 +36,8 @@ Re-sequenced on 20 Oct 2026: Willowmere Manor and the Deep Woods (owner's reques
 | 1.25 | Helping Hands (farmhands and masteries) | ~1 week | done (local) |
 | 1.26 | Estate Projects, trimmed to 2-3 (the Clock Tower, the Lighthouse), as follow-ons to the Manor | ~1 week | done (local) |
 | 1.27 | The Treehouse (woods phase 5) and Wildlife Album | ~1.5 weeks | done (local) |
-| 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | done (local) |
+| 1.28 | Together (co-op Village Projects) | ~1.5 weeks + schema | done |
+| 1.29 | Home Sweet Home (inside the Farmhouse, `PLAN-1.29.md`) | ~2.5 weeks | done (local) |
 | 2.0 | The Market Stall (purchases), after Play production | ~2 weeks + Play setup | needs the Play launch |
 | 2.x | Neighbourhoods, second plot, iOS | later | |
 

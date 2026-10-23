@@ -745,6 +745,93 @@ try {
     check('the lock notice lifts by itself when the time runs out', !gone.el && gone.kept === null, JSON.stringify(gone));
   }
 
+  // 1.29 Home Sweet Home: an old farm opens the home with the starter pieces; placing, standing on a table, a wall
+  // piece, turning, wall and floor looks and colours survive a reload; storing a table stores what is on it; a saved
+  // look comes back; enlarging keeps every piece; gifts arrive once with one letter per villager; crafting needs the
+  // Carpenter and the items; the home never gives XP or charm
+  {
+    const w = copy(); w.player.level = 35; w.player.coins = 200000;
+    const fh = w.buildings.find((b) => b.type === 'farmhouse'); if (fh) fh.level = 6;
+    delete w.home;
+    await setStorage({ [KEY]: JSON.stringify(w) });
+    await boot();
+    const r = await page.evaluate(async () => {
+      const H = window.__home, sys = H.sys, g = window.__game;
+      const xp0 = g.state.player.xp, lvl0 = g.state.player.level;
+      await H.enter();
+      for (let i = 0; i < 40 && !H.active; i++) await new Promise((res) => setTimeout(res, 100));
+      const id = H.view.roomId;
+      const starter = Object.values(sys.state.storage).reduce((a, b) => a + b, 0);
+      const table = await H.placeFromStorage('kf_table');
+      sys.move(id, table.u, { x: -0.5, z: 0.25, r: 1 });
+      sys.give('kf_lamproundtable', 1);
+      const lamp = await H.placeFromStorage('kf_lamproundtable');
+      const top = H.view.worldBox(sys.item(id, table.u)).max.y;
+      const s = H.view.surfaceAt(-0.5, 0.25, new Set([lamp.u]));
+      sys.move(id, lamp.u, { x: -0.5, z: 0.25, y: s?.y, on: s?.uid });
+      sys.give('proc_window', 1);
+      const win = await H.placeFromStorage('proc_window');
+      const wall = H.view.frontWalls().findIndex((f) => !f);
+      sys.move(id, win.u, { x: 0.4, z: 0, y: 0.6, w: wall });
+      sys.setWall(id, 'all', ['damask', '#2f4a3e', '#3d5e4f']);
+      sys.setFloor(id, ['hex', '#f7f7f2', '#b8c7c5']);
+      sys.setColours(id, table.u, { wood: '#a8322b' });
+      // the table turns and the lamp on it goes round with it
+      sys.move(id, table.u, { x: -0.5, z: 0.25, r: 2 });
+      const onTop = Math.abs(sys.item(id, lamp.u).y - top) < 0.01 && sys.item(id, lamp.u).on === table.u;
+      sys.saveLook(id, 0, 'Test look');
+      return { starter, onTop, lampOn: s?.uid === table.u, xpSame: g.state.player.xp === xp0 && g.state.player.level === lvl0 };
+    });
+    // going out saves the farm; a fresh boot reads it back
+    await page.evaluate(() => window.__home.leave());
+    await page.waitForTimeout(1500);
+    await boot();
+    const after = await page.evaluate(async () => {
+      const H = window.__home, sys = H.sys, g = window.__game;
+      const room = sys.room('living');
+      const table = room.items.find((i) => i.f === 'kf_table'), lamp = room.items.find((i) => i.f === 'kf_lamproundtable'), win = room.items.find((i) => i.f === 'proc_window');
+      const res = {
+        table: !!table && table.r === 2 && table.c?.wood === '#a8322b', lampOnTable: lamp?.on === table?.u && lamp?.y > 0.2, window: win?.w !== undefined && win?.y === 0.6,
+        walls: room.walls.every((w) => w[0] === 'damask' && w[1] === '#2f4a3e'), floor: room.floor[0] === 'hex',
+      };
+      // storing the table stores the lamp on it
+      const n = sys.store('living', table.u);
+      res.storedBoth = n === 2 && !room.items.some((i) => i.f === 'kf_lamproundtable') && sys.stored('kf_lamproundtable') >= 1;
+      // the saved look puts both back
+      const missing = sys.applyLook('living', 0);
+      const back = sys.room('living').items;
+      res.lookBack = missing === 0 && back.some((i) => i.f === 'kf_table') && back.find((i) => i.f === 'kf_lamproundtable')?.on === back.find((i) => i.f === 'kf_table')?.u;
+      // enlarging keeps every piece
+      const before = sys.room('living').items.length;
+      res.enlarged = sys.enlarge('living') && sys.room('living').items.length === before && sys.size('living').w === 5.5;
+      // gifts: Bram's set arrives once, with one letter
+      const homeLetters = () => g.state.mail.letters.filter((l) => l.from === 'bram' && l.title === 'Something for your home').length;
+      window.__village.village.addPoints('bram', 1000, 'test');
+      await new Promise((res) => setTimeout(res, 50));
+      sys.sendGifts();
+      const bramGifts = sys.state.gifts.filter((x) => x.startsWith('gift_bram')).length;
+      res.gifts = bramGifts === 3 && homeLetters() === 1 && sys.stored('gift_bram_stove') === 1;
+      sys.sendGifts();
+      res.giftsOnce = sys.stored('gift_bram_stove') === 1 && homeLetters() === 1;
+      // crafting needs the Carpenter's Workshop and the things it takes
+      g.addItem('pinecone', 10); g.addItem('moss', 6);
+      const noShop = !sys.craft('craft_wreath');
+      g.state.buildings.push({ uid: 99001, type: 'carpenter', x: 40, z: 40, rot: 0, level: 1 });
+      const made = sys.craft('craft_wreath');
+      res.craft = noShop && made && sys.stored('craft_wreath') === 1 && !g.state.inventory.pinecone;
+      return res;
+    });
+    check('an old farm opens the home with the starter pieces', r.starter >= 8, JSON.stringify(r));
+    check('decorating the home never gives XP', r.xpSame, JSON.stringify(r));
+    check('a lamp stands on a table and turns with it', r.lampOn && r.onTop, JSON.stringify(r));
+    check('pieces, a wall piece, colours, walls and floor survive a reload', after.table && after.lampOnTable && after.window && after.walls && after.floor, JSON.stringify(after));
+    check('storing a table also stores what stands on it', after.storedBoth, JSON.stringify(after));
+    check('a saved look puts the room back, lamp on its table', after.lookBack, JSON.stringify(after));
+    check('enlarging a room keeps every piece', after.enlarged, JSON.stringify(after));
+    check("a villager's furniture set arrives once, with one letter", after.gifts && after.giftsOnce, JSON.stringify(after));
+    check("handmade pieces need the Carpenter's Workshop and the things they take", after.craft, JSON.stringify(after));
+  }
+
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back
   // (#ui-root > *), so a full-screen one swallows every touch (1.28.3: the removed Halloween vignette did this)
   {

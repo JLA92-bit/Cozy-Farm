@@ -206,6 +206,14 @@ export class HomeView {
     this.placed.clear();
     this.pictures.clear();
     this.wallItems.clear();
+    // keep every floor piece inside the walls (after moving everything, or anything else that pushed one out)
+    for (const it of this.room?.items ?? []) {
+      const def = PIECE[it.f];
+      if (!def || it.w !== undefined || it.on !== undefined || !pieceGeoNow(it.f)) continue;
+      const c = this.clampFloor(it.f, it.r, it.x, it.z);
+      // riders move with it (no undo step: this only tidies up)
+      if (Math.abs(c.x - it.x) > 0.0005 || Math.abs(c.z - it.z) > 0.0005) home.move(this.roomId, it.u, { x: c.x, z: c.z, y: it.y }, false);
+    }
     for (const it of this.room?.items ?? []) this.addItem(it);
     this.applyCutaway();
     this.updateLights();

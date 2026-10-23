@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 21 October 2026 (game version 1.28.5, pushed and live; everything up to it is on `main`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
+Last updated: 23 October 2026 (game version 1.29.0 committed locally; 1.28.5 and everything before it pushed and live). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.28.5 "A Friendly Village"** (live, commit 96a21fc). 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.29.0 "Home Sweet Home"** (local). Live: 1.28.5 "A Friendly Village" (commit 96a21fc); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.29.0 (local, 23 Oct): Home Sweet Home, inside the Farmhouse (level 30, `PLAN-1.29.md`).** Data: `home.json` (9 rooms by Farmhouse level, sizes 4/5.5/7 m, 16 wall and 12 floor patterns, palette, starter pieces, `maxItems` 120 a room, `lookItems` 600 across saved looks) and `furniture.json` (257 pieces: kinds floor/surface/wall/rug/ceiling, `top` surfaces, `lamp`, `picture`, `craft` items, `gift` villager + `hearts`, `colours`). State `home` (rooms, storage, known, uid, gifts; `repairHome` in Save.ts). `systems/Home.ts` (place/move with riders/store/duplicate, undo/redo, styles, colours, looks, enlarge, catalogue picks, craft at the Carpenter, `sendGifts`). 3D in `world/home/`: `HomeView` (room at `HOME_ORIGIN` z -1400, cutaway walls by camera azimuth, furniture in a `BatchSet`, 3 fixed point lights + night fill, picking), `HomeStyle` (canvas patterns), `FurnitureGeo` (per-part vertex colours; Kenney Furniture Kit parts are named materials), `ProcFurniture` (pieces built in code), `Pictures`. `scenes/Home.ts` (enter/leave, drag, `controls`; ui `home`; door bubble on the Farmhouse), `ui/home/` (HomeUI bars and sheets, Catalogue). Models `kf/*` (Kenney Furniture Kit), `kk/*`, `kr/*` (KayKit), loaded only inside. Env `indoors` hides rain, birds and butterflies. Debug: `__home`. Perf: `node tools/stress-home.mjs` (Grand room, 120 pieces).
 
 **1.28.5 (20 Oct): account locks.** Dashboard player page Lock account / Change lock / Unlock now (duration or date or no end, a reason the player sees; preview in the dialog), lock history on the Support tab, Players filter `locked`. Server section `account locks` (`account_locks` table, `active_lock`, `assert_not_locked` called at the top of send_gift, list_item, buy_listing, help_farm, like_farm, ask_help, fill_help, coop_start, coop_give, publish_farm, claim_reward_code; `my_lock`, `admin_lock_player/unlock_player/player_locks/locked_players`, `expire_account_locks` (pg_cron every 10 min); a lock hides from leaderboards, unlock/expiry restores). Game: `src/online/Lock.ts` (full-screen `.lock-screen` notice with reason and countdown, kept in localStorage `cozy-acres-lock`, server clock skew, rechecks every 5 min and on the `cozy-account-locked` event from SupabaseBackend). Also fixed: a stray `.tray-item .tray-item .tray-item` at the end of `styles.css` swallowed any rule appended after it. Needs `schema.sql` re-run. 79 regression checks.
 
@@ -129,6 +131,7 @@ npm run validate-data   # run after ANY edit to src/data/*.json (CI runs it too)
 npm run simulate-economy
 npm run test:regression # builds, then checks saves, upkeep, the Master board and decor batching in headless Chromium (tests/regression.mjs); runs in CI and blocks the deploy
 node tools/phone-sweep.mjs <dir>  # after vite build: every panel at 4 phone sizes, reports overflow and tiny buttons
+node tools/stress-home.mjs [url] --budget N  # after vite build + preview: a Grand room with 120 pieces, draw calls
 npm run test:perf       # builds, then fills a farm with 720 decor and fails above 520 draw calls (tools/stress-decor.mjs)
 ```
 
@@ -230,6 +233,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 
 - [x] 1.20.1 to 1.28.5 pushed and live (17-21 Oct), and the owner ran the latest `schema.sql` (account locks work). `send-push` redeployed with `PUSH_CRON_SECRET` (owner, 21 Oct). Still to do: the real-phone pass on Low, Medium and High (rule 9) with `store/phone-checklist.md`.
 - [x] Supabase is up to date with the latest `schema.sql` (owner, 21 Oct). Rule for later: after every server change, run the whole latest `supabase/schema.sql` in Supabase, then `notify pgrst, 'reload schema';` ("Could not find the function ... in the schema cache" means it has not run through). Tested first on a local Postgres 16 with a stub `auth` schema (HANDOVER-2026-10-21.md section 5).
+- [ ] **Review and push 1.29.0** (Home Sweet Home, game only, no server change); test inside the Farmhouse on a real phone (`store/phone-checklist.md`). Later: friends visiting the home (server), characters inside.
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
@@ -257,6 +261,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-23: 1.29.0 (local): Home Sweet Home, inside the Farmhouse (9 rooms, 257 pieces, paint and paper, per-part colours, pictures, looks, handmade and villager pieces).
 - 2026-10-21: real-phone checklist (`store/phone-checklist.md`), `tools/phone-sweep.mjs`; fixes: the lock notice scrolls by touch, Unlock Path no longer pushes its header off short screens.
 - 2026-10-21: handover written (`HANDOVER-2026-10-21.md`); 1.28.5 live and schema.sql run by the owner.
 - 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).
@@ -266,4 +271,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-17: 1.28.2 (local): big farms shared again for visitors (higher limits, trimming, refusals logged), help at busy workshops, Visits & help dashboard page.
 - 2026-10-17: 1.28.1 (local): fixes and polish from a code review (co-op retries and refunds, leaderboard stale saves, farmhand wages, wild visitor taps, Halloween on visits, square refresh) plus small QoL hints.
 - 2026-10-17: 1.28.0 (local): Together, co-op Village Projects with friends (server section, exactly-once rewards, refunds, dashboard switch; privacy and Data safety updated).
-- 2026-10-17: 1.27.0 (local): the Wildlife Album (17 species to photograph, 4 sets) and the Treehouse in Whispering Pines (3 stages, 6 furnishings).

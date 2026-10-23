@@ -14,6 +14,8 @@ import { localDay } from './Progression';
 import type { HomeItem, HomeLook, HomeRoom, HomeState, WallStyle } from './State';
 
 const UNDO_MAX = 30;
+/** positions are kept to the millimetre: small saves */
+const mm = (v: number): number => Math.round(v * 1000) / 1000;
 const HEX = /^#[0-9a-f]{6}$/;
 
 export const homeUnlocked = (): boolean => game.level >= HOME.level;
@@ -121,8 +123,8 @@ class Home {
     const st = this.state;
     st.storage[piece] -= 1;
     if (st.storage[piece] <= 0) delete st.storage[piece];
-    const it: HomeItem = { u: st.uid++, f: piece, x: at.x, z: at.z, r: ((at.r ?? 0) % 4 + 4) % 4 };
-    if (at.y) it.y = at.y;
+    const it: HomeItem = { u: st.uid++, f: piece, x: mm(at.x), z: mm(at.z), r: ((at.r ?? 0) % 4 + 4) % 4 };
+    if (at.y) it.y = mm(at.y);
     if (at.w !== undefined) it.w = at.w;
     if (at.on !== undefined) it.on = at.on;
     if (colours && Object.keys(colours).length) it.c = { ...colours };
@@ -156,13 +158,13 @@ class Home {
       // riders turn with their base, round its centre
       let ox = rider.x - it.x, oz = rider.z - it.z;
       for (let k = 0; k < turn; k++) [ox, oz] = [oz, -ox];
-      rider.x = it.x + dx + ox; rider.z = it.z + dz + oz;
-      rider.y = Math.max(0, (rider.y ?? 0) + dy) || undefined;
+      rider.x = mm(it.x + dx + ox); rider.z = mm(it.z + dz + oz);
+      rider.y = mm(Math.max(0, (rider.y ?? 0) + dy)) || undefined;
       rider.r = (rider.r + turn) % 4;
       if (to.w !== undefined && rider.w !== undefined) rider.w = to.w;
     }
-    it.x = to.x; it.z = to.z;
-    it.y = to.y || undefined;
+    it.x = mm(to.x); it.z = mm(to.z);
+    it.y = to.y ? mm(to.y) : undefined;
     if (to.r !== undefined) it.r = ((to.r % 4) + 4) % 4;
     if (to.w !== undefined) it.w = to.w;
     if (to.on === null) delete it.on; else if (to.on !== undefined) it.on = to.on;
@@ -214,7 +216,7 @@ class Home {
     const r = this.state.rooms[roomId];
     if (!r?.items.length) return;
     this.remember(roomId);
-    for (const i of r.items) if (i.w === undefined) { i.x += dx; i.z += dz; }
+    for (const i of r.items) if (i.w === undefined) { i.x = mm(i.x + dx); i.z = mm(i.z + dz); }
     this.changed(roomId);
   }
 
@@ -298,15 +300,25 @@ class Home {
 
   // ------------------------------------------------------------------------------------------- saved looks
 
-  saveLook(roomId: string, slot: number, name: string): void {
+  /** Pieces kept in saved looks across the whole home (they share a budget, home.json lookItems). */
+  lookItems(except?: { room: string; slot: number }): number {
+    let n = 0;
+    for (const [id, r] of Object.entries(this.state.rooms)) r.looks?.forEach((l, i) => { if (l && !(except && except.room === id && except.slot === i)) n += l.items.length; });
+    return n;
+  }
+
+  /** Keep the room as a look. False when the looks would hold more pieces than the budget allows. */
+  saveLook(roomId: string, slot: number, name: string): boolean {
     const r = this.room(roomId);
-    if (!r || slot < 0 || slot > 2) return;
+    if (!r || slot < 0 || slot > 2) return false;
+    if (this.lookItems({ room: roomId, slot }) + r.items.length > HOME.lookItems) return false;
     r.looks ??= [null, null, null];
     r.looks[slot] = {
       name: name.trim().slice(0, 24) || `Look ${slot + 1}`, walls: structuredClone(r.walls), floor: [...r.floor] as WallStyle, trim: r.trim, ceiling: r.ceiling,
       ...(r.beams ? { beams: true } : {}), ...(r.wainscot ? { wainscot: { ...r.wainscot } } : {}), items: structuredClone(r.items),
     };
     this.changed(roomId);
+    return true;
   }
 
   deleteLook(roomId: string, slot: number): void {

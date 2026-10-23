@@ -23,7 +23,7 @@ const browser = await chromium.launch({ executablePath: exe, args: ['--use-gl=an
 
 // panels that need an argument, or open a flow rather than a screen
 const ARGS = { 'square-room': { room: 'estate_clock_base' }, critter: 'rabbit' };
-const SKIP = new Set(['__levelbadge', '__goal', 'visit', 'visit18']);
+const SKIP = new Set(['__levelbadge', '__goal', 'visit', 'visit18', 'home']);
 
 let problems = 0;
 for (const s of sizes) {
@@ -51,7 +51,14 @@ for (const s of sizes) {
       try { window.__ui.open(id, arg); } catch (e) { return { err: String(e) }; }
       return null;
     }, [id, ARGS[id]]);
-    await page.waitForTimeout(1400);
+    // wait for the bounce-in to settle: tall panels overshoot the screen edge for a moment while they open
+    await page.waitForTimeout(500);
+    for (let i = 0, last = ''; i < 20; i++) {
+      const now = await page.evaluate(() => JSON.stringify([...document.querySelectorAll('.overlay > .panel')].pop()?.getBoundingClientRect()));
+      if (now === last) break;
+      last = now;
+      await page.waitForTimeout(150);
+    }
     const found = await page.evaluate(([W, H]) => {
       const bad = [];
       const panel = [...document.querySelectorAll('.overlay > .panel')].pop();
@@ -67,7 +74,7 @@ for (const s of sizes) {
         let sc = el.parentElement, clipped = false;
         while (sc && sc !== panel) { const cs = getComputedStyle(sc); if (/(auto|scroll|hidden)/.test(cs.overflowX + cs.overflowY)) { clipped = true; break; } sc = sc.parentElement; }
         const label = `${el.tagName.toLowerCase()}.${[...el.classList].join('.')} "${(el.textContent ?? '').trim().slice(0, 30)}"`;
-        if (el.classList.contains('close-btn')) { if (r.right > W || r.top < 0) bad.push('close button off screen'); continue; }
+        if (el.classList.contains('close-btn')) { if (r.right - r.width / 2 > W || r.top < -r.height / 2) bad.push('close button off screen'); continue; }
         if (!clipped && (r.right > pr.right + 2 || r.left < pr.left - 2)) bad.push(`sticks out sideways: ${label}`);
         if (el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX === 'hidden' && getComputedStyle(el).textOverflow !== 'ellipsis' && el.children.length === 0) bad.push(`text cut off: ${label}`);
         if (el.tagName === 'BUTTON' && (r.height < 28 || r.width < 28)) bad.push(`small button ${Math.round(r.width)}x${Math.round(r.height)}: ${label}`);

@@ -436,7 +436,10 @@ export class HomeUI {
         h('div', { class: 'hm-row' }, h('span', { class: 'hm-slot outlined' }, String(slot + 1)), name),
         h('div', { class: 'sub' }, look ? `${look.items.length} pieces` : 'Empty'),
         h('div', { class: 'hm-row hm-buttons' },
-          button(look ? 'Save over it' : 'Save the room as it is', () => { home.saveLook(id, slot, name.value); audio.play('reward', { volume: 0.5 }); ui.feedback.toast('Look saved', name.value || `Look ${slot + 1}`, 'floppy'); }, 'small green'),
+          button(look ? 'Save over it' : 'Save the room as it is', () => {
+            if (!home.saveLook(id, slot, name.value)) { ui.feedback.toast('Too many saved pieces', `Saved looks hold up to ${HOME.lookItems} pieces across the whole home. Delete a look you no longer need.`, 'floppy', 'warn'); audio.play('error'); return; }
+            audio.play('reward', { volume: 0.5 }); ui.feedback.toast('Look saved', name.value || `Look ${slot + 1}`, 'floppy');
+          }, 'small green'),
           ...(look ? [
             button('Use this look', () => {
               const missing = home.applyLook(id, slot);

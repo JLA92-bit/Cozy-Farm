@@ -1,6 +1,48 @@
 {
  "releases": [
   {
+   "version": "1.29.0",
+   "date": "2026-10-23",
+   "title": "Home Sweet Home",
+   "icon": "door",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "door",
+     "text": "Step inside your Farmhouse from level 30: tap the door above it or Go inside on the Farmhouse screen"
+    },
+    {
+     "icon": "couch",
+     "text": "Over 250 pieces of furniture to arrange however you like: sofas, beds, kitchens, bathrooms, lamps, rugs, plants, windows, curtains, a fireplace and more"
+    },
+    {
+     "icon": "paintbrush",
+     "text": "Paper and paint every wall on its own, give the lower walls their own look, and pick any floor, all in any colours you like"
+    },
+    {
+     "icon": "paint",
+     "text": "Recolour every part of a piece (a sofa's fabric and its legs), copy a style to another piece, and switch lamps on for cosy nights"
+    },
+    {
+     "icon": "framed",
+     "text": "Hang your Wildlife Album photos, your best catches and your finds in frames and on plaques"
+    },
+    {
+     "icon": "house",
+     "text": "A new room opens with each Farmhouse level, nine in all, and each can be made roomier or grand"
+    },
+    {
+     "icon": "floppy",
+     "text": "Keep three looks for every room and swap between them any time, with undo for every change"
+    },
+    {
+     "icon": "hammer",
+     "text": "Make handmade pieces at the Carpenter's Workshop from things you gather, and receive a set from each villager as your friendship grows"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.28.5",
    "date": "2026-10-20",
    "title": "A Friendly Village",
