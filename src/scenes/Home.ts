@@ -415,7 +415,7 @@ export async function enterGuestHome(owner: { id: string; name: string; look: Ch
   if (!data || !scene.visit) {
     await hideWipe(wipe);
     busy = false;
-    ui.feedback.toast(`${possessive(owner.name)} door is shut`, 'They have not shared their home yet. Homes open at level 30.', 'door');
+    ui.feedback.toast(`${possessive(owner.name)} door is shut`, `They have not shared their home yet. Homes open at level ${HOME.level}.`, 'door');
     return;
   }
   try {

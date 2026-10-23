@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.30.1",
+   "date": "2026-10-23",
+   "title": "Come On In Sooner",
+   "icon": "door",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "door",
+     "text": "Your home now opens at level 15 instead of 30, so you can start furnishing much sooner"
+    }
+   ]
+  },
+  {
    "version": "1.30.0",
    "date": "2026-10-23",
    "title": "Come On In",

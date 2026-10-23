@@ -1,6 +1,6 @@
 # Plan: 1.29 "Home Sweet Home" - inside the Farmhouse
 
-**Built (23 Oct 2026), as planned with these owner decisions and changes:** opens at player level 30; friends
+**Built (23 Oct 2026), as planned with these owner decisions and changes:** opens at player level 30 (lowered to 15 in 1.30.1); friends
 visiting the home and characters inside are left for later; rooms are 4, 5.5 and 7 metres square (Cosy, Roomy,
 Grand), 120 pieces a room, saved looks share 600 pieces (cloud save size); 257 pieces (229 in the catalogue, 10
 handmade, 18 from villagers at 3, 6 and 9 hearts); the "ceiling" colour is the cornice along the top of the walls.

@@ -831,7 +831,7 @@ Sized for a host and two or three friends to finish in a few days. One open proj
 
 ## 1.29 Home Sweet Home (`home.json`, `furniture.json`, `src/systems/Home.ts`)
 
-Inside the Farmhouse, from level 30. Looks only: the home gives no XP, charm or score, so its prices are set for
+Inside the Farmhouse, from level 15 (level 30 until 1.30.1). Looks only: the home gives no XP, charm or score, so its prices are set for
 spending, not for return.
 
 - **Furniture:** 229 catalogue pieces from 40 to 4,500 coins (median 700). Buying one of everything once costs about

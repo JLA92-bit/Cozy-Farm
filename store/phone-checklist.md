@@ -35,7 +35,7 @@ on their usual setting, but please say which phone and setting you're on.
 - [ ] Clock Tower (level 70+): the hands show the real time; it chimes on the hour (sound on).
 - [ ] Lighthouse (level 80+): the beam turns at night.
 
-## Inside the Farmhouse (1.29, level 30+)
+## Inside the Farmhouse (1.29, level 15+ since 1.30.1)
 - [ ] The door above the Farmhouse (or Go inside on the Farmhouse screen) takes you in; Back to the farm brings you out.
 - [ ] Tap a piece, then drag it: it follows your finger smoothly; small things climb onto tables and shelves.
 - [ ] Turn, Colours, Copy and Paste, Another, Put away and Done all work; Undo and Redo too.

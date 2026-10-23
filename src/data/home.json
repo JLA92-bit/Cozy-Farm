@@ -1,6 +1,6 @@
 {
  "_comment": "1.29 Home Sweet Home: inside the Farmhouse. level: player level the home opens at. rooms: opened by Farmhouse level (fh), each with the look it starts with (the player can change all of it). sizes: room width and depth (metres, a sofa is about 1) and the coins to enlarge to that size. wallHeight: metres. palette: the colours offered for walls, floors and furniture (any custom colour is allowed too). wallPatterns/floorPatterns: ids drawn in src/world/home/HomeStyle.ts. starter: pieces put in home storage the first time. maxItems: pieces per room. lookItems: pieces kept in saved looks across the whole home (keeps the save small enough for cloud saves). discount: share off for the daily picks in the catalogue (everything else is always on sale at full price).",
- "level": 30,
+ "level": 15,
  "wallHeight": 1.6,
  "maxItems": 120,
  "lookItems": 600,
