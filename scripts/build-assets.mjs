@@ -71,6 +71,7 @@ const pir = (id, name) => [id, path.join(KG, 'pirate-kit', `${name}.glb`), 'kenn
 const sub = (id, name) => [id, path.join(KG, 'city-kit-suburban', `${name}.glb`), 'kenney-suburban', 'Kenney City Kit Suburban'];
 const com = (id, name) => [id, path.join(KG, 'city-kit-commercial', `${name}.glb`), 'kenney-commercial', 'Kenney City Kit Commercial'];
 const cas = (id, name) => [id, path.join(KG, 'castle-kit', `${name}.glb`), 'kenney-castle', 'Kenney Castle Kit'];
+const kfk = (id, name) => [id, path.join(KG, 'furniture-kit', `${name}.glb`), null, 'Kenney Furniture Kit'];
 const ftk = (id, name) => [id, path.join(FTK, `${name}.glb`), null, 'Kenney Fantasy Town Kit'];
 
 const MODELS = [
@@ -270,6 +271,44 @@ const MODELS = [
   com('prop/parasol_a', 'detail-parasol-a'), com('prop/parasol_b', 'detail-parasol-b'), com('prop/awning', 'detail-awning-wide'),
   ...['mill', 'sheep', 'market', 'village', 'farm', 'dock', 'house', 'mine', 'tower', 'cabin'].map((n) => hexd(`dio/${n}`, `building_${n}`)),
   cas('cas/banner', 'flag-banner-long'), cas('cas/flag_wide', 'flag-wide'),
+  // 1.29 Home Sweet Home: furniture for inside the Farmhouse (ADD_ONLY='kf/*,kk/*,kr/*' adds just these).
+  // Kenney Furniture Kit keeps one flat material per part (wood, carpet, metal...), so each part can be recoloured.
+  ...['bathroomcabinet', 'bathroomcabinetdrawer', 'bathroommirror', 'bathroomsink', 'bathroomsinksquare', 'bathtub', 'bear',
+    'bedbunk', 'beddouble', 'bedsingle', 'bench', 'benchcushion', 'benchcushionlow', 'bookcaseclosed', 'bookcasecloseddoors',
+    'bookcaseclosedwide', 'bookcaseopen', 'bookcaseopenlow', 'books', 'cabinetbed', 'cabinetbeddrawer', 'cabinetbeddrawertable',
+    'cabinettelevision', 'cabinettelevisiondoors', 'cardboardboxclosed', 'cardboardboxopen', 'ceilingfan', 'chair', 'chaircushion',
+    'chairdesk', 'chairmoderncushion', 'chairmodernframecushion', 'chairrounded', 'coatrack', 'coatrackstanding', 'desk', 'deskcorner',
+    'doorway', 'doorwayfront', 'doorwayopen', 'hoodlarge', 'kitchenbar', 'kitchenbarend', 'kitchenblender', 'kitchencabinet',
+    'kitchencabinetcornerinner', 'kitchencabinetcornerround', 'kitchencabinetdrawer', 'kitchencabinetupper', 'kitchencabinetuppercorner',
+    'kitchencabinetupperdouble', 'kitchencabinetupperlow', 'kitchencoffeemachine', 'kitchenfridge', 'kitchenfridgebuiltin',
+    'kitchenfridgelarge', 'kitchenfridgesmall', 'kitchensink', 'kitchenstove', 'kitchenstoveelectric', 'lamproundfloor', 'lamproundtable',
+    'lampsquareceiling', 'lampsquarefloor', 'lampsquaretable', 'lampwall', 'loungechair', 'loungechairrelax', 'loungedesignchair',
+    'loungedesignsofa', 'loungedesignsofacorner', 'loungesofa', 'loungesofacorner', 'loungesofalong', 'loungesofaottoman', 'paneling',
+    'pillow', 'pillowblue', 'pillowbluelong', 'pillowlong', 'plantsmall1', 'plantsmall2', 'plantsmall3', 'pottedplant', 'radio',
+    'rugdoormat', 'rugrectangle', 'ruground', 'rugrounded', 'rugsquare', 'shower', 'showerround', 'sidetable', 'sidetabledrawers',
+    'stairs', 'stairscorner', 'stairsopen', 'stoolbar', 'stoolbarsquare', 'table', 'tablecloth', 'tablecoffee', 'tablecoffeeglass',
+    'tablecoffeeglasssquare', 'tablecoffeesquare', 'tablecross', 'tablecrosscloth', 'tableglass', 'tableround', 'televisionvintage',
+    'toaster', 'toilet', 'toiletsquare', 'trashcan', 'washer']
+    .map((n) => kfk(`kf/${n}`, n)),
+  // KayKit Furniture Bits (one palette atlas, tinted as a whole)
+  ...['armchair', 'armchair_pillows', 'bed_double_A', 'bed_double_B', 'bed_single_A', 'bed_single_B', 'book_set', 'book_single',
+    'cabinet_medium', 'cabinet_medium_decorated', 'cabinet_small', 'cabinet_small_decorated', 'cactus_medium_A', 'cactus_medium_B',
+    'cactus_small_A', 'cactus_small_B', 'chair_A', 'chair_A_wood', 'chair_B', 'chair_B_wood', 'chair_C', 'chair_stool', 'chair_stool_wood',
+    'couch', 'couch_pillows', 'lamp_standing', 'lamp_table', 'pictureframe_large_A', 'pictureframe_large_B', 'pictureframe_medium',
+    'pictureframe_small_A', 'pictureframe_small_B', 'pictureframe_small_C', 'pictureframe_standing_A', 'pictureframe_standing_B',
+    'pillow_A', 'pillow_B', 'rug_oval_A', 'rug_oval_B', 'rug_rectangle_A', 'rug_rectangle_B', 'rug_rectangle_stripes_A',
+    'rug_rectangle_stripes_B', 'shelf_A_big', 'shelf_A_small', 'shelf_B_large', 'shelf_B_large_decorated', 'shelf_B_small',
+    'shelf_B_small_decorated', 'table_low', 'table_medium', 'table_medium_long', 'table_small']
+    .map((n) => kkf(`kk/${n.toLowerCase()}`, n)),
+  // KayKit Restaurant Bits: the kitchen
+  ...['kitchencabinet', 'kitchencabinet_corner', 'kitchencabinet_half', 'kitchencounter_innercorner_backsplash', 'kitchencounter_outercorner_backsplash',
+    'kitchencounter_sink_backsplash', 'kitchencounter_straight_A_backsplash', 'kitchencounter_straight_B_backsplash', 'kitchencounter_straight_decorated',
+    'kitchentable_A', 'kitchentable_A_large', 'kitchentable_A_large_decorated', 'kitchentable_B', 'kitchentable_B_large', 'kitchentable_sink',
+    'stove_multi', 'stove_multi_decorated', 'stove_single', 'oven', 'extractorhood', 'fridge_A', 'fridge_A_decorated', 'fridge_B', 'towelrail',
+    'shelf_papertowel_decorated', 'table_round_A', 'table_round_A_decorated', 'table_round_A_small', 'table_round_B', 'chair_A', 'chair_B',
+    'cuttingboard', 'pot_A_stew', 'pot_B', 'pan_A', 'stew_pot', 'bowl', 'plate', 'jar_A_large', 'jar_B_medium', 'jar_C_small', 'jar_D_large',
+    'food_stew', 'food_dinner', 'menu', 'dishrack_plates']
+    .map((n) => kkr(`kr/${n.toLowerCase()}`, n)),
 ];
 
 // animations kept per model category (others are stripped to save bytes)
