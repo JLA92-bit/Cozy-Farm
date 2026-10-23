@@ -243,6 +243,16 @@ class Home {
     return !it.off;
   }
 
+  /** 1.30 a patterned rug's pattern and its two colours (the border stays in the colours as "border"). */
+  setRugPattern(roomId: string, uid: number, pat: string, a: string, b: string, remember = true): void {
+    const it = this.item(roomId, uid);
+    if (!it || !PIECE[it.f]?.patterned || !validPattern(pat) || !HEX.test(a) || !HEX.test(b)) return;
+    if (remember) this.remember(roomId);
+    it.pat = pat;
+    it.c = { ...(it.c ?? {}), a, b };
+    this.changed(roomId);
+  }
+
   setShow(roomId: string, uid: number, show: string | null): void {
     const it = this.item(roomId, uid);
     if (!it) return;
@@ -527,6 +537,7 @@ export function repairHome(v: unknown): HomeState | undefined {
       if (isObj(x.c)) { const c = Object.fromEntries(Object.entries(x.c).filter(([, h]) => typeof h === 'string' && HEX.test(h))); if (Object.keys(c).length) it.c = c as Record<string, string>; }
       if (x.off === true) it.off = true;
       if (typeof x.show === 'string' && x.show.length <= 40) it.show = x.show;
+      if (typeof x.pat === 'string' && validPattern(x.pat)) it.pat = x.pat;
       out.push(it);
     }
     // a piece standing on one that is gone drops to the floor
@@ -562,6 +573,12 @@ export function repairHome(v: unknown): HomeState | undefined {
   if (Array.isArray(v.gifts)) out.gifts = [...new Set(v.gifts.filter((k): k is string => typeof k === 'string' && !!PIECE[k]?.gift))];
   if (typeof v.last === 'string' && HOME_ROOM[v.last]) out.last = v.last;
   return out;
+}
+
+/** A rug pattern id: "floor:<id>" or "wall:<id>" from home.json. */
+export function validPattern(p: string): boolean {
+  const [kind, id] = p.split(':');
+  return (kind === 'floor' && HOME.floorPatterns.some((x) => x.id === id)) || (kind === 'wall' && HOME.wallPatterns.some((x) => x.id === id));
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);

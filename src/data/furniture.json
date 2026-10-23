@@ -2089,6 +2089,91 @@
    "icon": "blossom"
   },
   {
+   "id": "proc_rugp_rect",
+   "name": "Patterned Rug",
+   "model": "proc:rugp_rect",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 900,
+   "icon": "card_box",
+   "patterned": [
+    1.6,
+    1.1,
+    "rect"
+   ],
+   "colours": {
+    "border": "#7a4f2a"
+   }
+  },
+  {
+   "id": "proc_rugp_square",
+   "name": "Square Patterned Rug",
+   "model": "proc:rugp_square",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 800,
+   "icon": "card_box",
+   "patterned": [
+    1.3,
+    1.3,
+    "rect"
+   ],
+   "colours": {
+    "border": "#7a4f2a"
+   }
+  },
+  {
+   "id": "proc_rugp_runner",
+   "name": "Hall Runner",
+   "model": "proc:rugp_runner",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 700,
+   "icon": "card_box",
+   "patterned": [
+    2.2,
+    0.6,
+    "rect"
+   ],
+   "colours": {
+    "border": "#7a4f2a"
+   }
+  },
+  {
+   "id": "proc_rugp_round",
+   "name": "Round Patterned Rug",
+   "model": "proc:rugp_round",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 850,
+   "icon": "card_box",
+   "patterned": [
+    1.3,
+    1.3,
+    "round"
+   ],
+   "colours": {
+    "border": "#7a4f2a"
+   }
+  },
+  {
+   "id": "proc_rugp_oval",
+   "name": "Oval Patterned Rug",
+   "model": "proc:rugp_oval",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 900,
+   "icon": "card_box",
+   "patterned": [
+    1.7,
+    1.1,
+    "round"
+   ],
+   "colours": {
+    "border": "#7a4f2a"
+   }
+  },
+  {
    "id": "craft_wreath",
    "name": "Pinecone Wreath",
    "model": "proc:wreath",

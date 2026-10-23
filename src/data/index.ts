@@ -387,6 +387,8 @@ export interface PieceDef {
   icon?: string;
   /** frames and plaques: a picture [width, height, centre height, tilt] on the front, showing a photo or a find */
   picture?: [number, number, number, number?];
+  /** 1.30 patterned rugs: [width, depth, shape] of the patterned top (the player picks the pattern and colours) */
+  patterned?: [number, number, 'rect' | 'round'];
   /** how it is got besides the catalogue: craft (Carpenter, needs items), gift (a villager's set) */
   craft?: Record<string, number>; gift?: string;
   /** a gift piece arrives at this many hearts with the villager */

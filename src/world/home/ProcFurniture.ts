@@ -167,7 +167,18 @@ const BUILDERS: Record<string, () => ProcPart[]> = {
     }
     return parts;
   },
+  // 1.30 patterned rugs: a border and an underlay; the pattern itself is drawn on top by the room view
+  rugp_rect: () => rugBase(1.6, 1.1, false),
+  rugp_square: () => rugBase(1.3, 1.3, false),
+  rugp_runner: () => rugBase(2.2, 0.6, false),
+  rugp_round: () => rugBase(1.3, 1.3, true),
+  rugp_oval: () => rugBase(1.7, 1.1, true),
 };
+
+function rugBase(w: number, d: number, round: boolean): ProcPart[] {
+  if (round) return [{ part: 'border', colour: '#7a4f2a', geo: new THREE.CylinderGeometry(0.5, 0.5, 0.012, 40).scale(w, 1, d).translate(0, 0.006, 0) }];
+  return [{ part: 'border', colour: '#7a4f2a', geo: box(w, 0.012, d, 0, 0, -d / 2) }];
+}
 
 export const hasProc = (name: string): boolean => !!BUILDERS[name];
 export function buildProc(name: string): ProcPart[] { return (BUILDERS[name] ?? BUILDERS.vase)(); }

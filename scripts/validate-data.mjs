@@ -637,6 +637,7 @@ releases?.forEach((r, i) => {
     if (p.model.startsWith('proc:') && !p.icon) err(`furniture ${p.id}: a piece built in code needs an icon`);
     if (p.icon && icons && !icons[p.icon]) err(`furniture ${p.id}: unknown icon ${p.icon}`);
     if (p.craft && p.gift) err(`furniture ${p.id}: crafted or a gift, not both`);
+    if (p.patterned && (p.kind !== 'rug' || !(p.patterned[0] > 0.3 && p.patterned[1] > 0.3) || !['rect', 'round'].includes(p.patterned[2]))) err(`furniture ${p.id}: a patterned rug needs kind rug, a size and a shape`);
   }
   for (const k of Object.keys(hm.starter)) if (!ids.has(k)) err(`home starter: unknown piece ${k}`);
 }

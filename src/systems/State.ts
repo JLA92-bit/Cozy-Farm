@@ -362,6 +362,8 @@ export interface HomeItem {
   off?: boolean;
   /** what a display piece shows: an item id or a wildlife photo (wild:<species>) */
   show?: string;
+  /** 1.30 a patterned rug's pattern: "floor:<id>" or "wall:<id>" (its two colours are c.a and c.b) */
+  pat?: string;
 }
 export interface HomeLook { name: string; walls: [WallStyle, WallStyle, WallStyle, WallStyle]; floor: WallStyle; trim: string; ceiling: string; beams?: boolean; wainscot?: HomeRoom['wainscot']; curtains?: string; items: HomeItem[] }
 export interface HomeRoom {

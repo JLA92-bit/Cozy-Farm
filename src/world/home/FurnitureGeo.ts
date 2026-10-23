@@ -20,7 +20,7 @@ export const PART_NAMES: Record<string, string> = {
   case: 'Case', face: 'Face', hands: 'Hands', mount: 'Mount', board: 'Board', trim: 'Trim', books1: 'Books', books2: 'More books', books3: 'Other books',
   holder: 'Holder', wax: 'Candles', vase: 'Vase', stems: 'Stems', flowers: 'Flowers',
   greenery: 'Greenery', cones: 'Pinecones', bow: 'Bow', rag1: 'Rag 1', rag2: 'Rag 2', rag3: 'Rag 3', rag4: 'Rag 4', clay: 'Clay', plants: 'Plants',
-  shells: 'Shells', strings: 'Strings', feathers: 'Feathers',
+  shells: 'Shells', strings: 'Strings', feathers: 'Feathers', border: 'Border',
 };
 
 export interface PieceGeo {

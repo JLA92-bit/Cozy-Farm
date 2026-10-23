@@ -230,6 +230,7 @@ export class HomeView {
     const handle = pool.add(m);
     this.placed.set(it.u, { pool, handle, geom: g, matrix: m });
     if (def.kind === 'wall' && it.w !== undefined) this.wallItems.set(it.u, it.w);
+    if (def.patterned) this.addRugTop(it, def.patterned, m);
     if (def.picture) {
       const [pw, ph, py, tilt = 0] = def.picture;
       const key = it.show ?? '';
@@ -244,6 +245,31 @@ export class HomeView {
     }
   }
 
+  /** 1.30 the patterned top of a rug: its own small mesh, the pattern tiled every half metre. */
+  private rugMats = new Map<string, THREE.MeshLambertMaterial>();
+  private addRugTop(it: HomeItem, [w, d, shape]: [number, number, 'rect' | 'round'], m: THREE.Matrix4): void {
+    const [kind, id] = (it.pat ?? 'floor:checker').split(':') as ['floor' | 'wall', string];
+    const a = it.c?.a ?? '#f3e3c3', b = it.c?.b ?? '#c0473b';
+    const iw = w - 0.12, id2 = d - 0.12;
+    const key = `${kind}|${id}|${a}|${b}|${iw}x${id2}`;
+    let mat = this.rugMats.get(key);
+    if (!mat) {
+      const tex = patternTexture(kind, id, a, b).clone();
+      tex.needsUpdate = true;
+      tex.repeat.set(iw / 0.5, id2 / 0.5);
+      mat = new THREE.MeshLambertMaterial({ map: tex });
+      this.rugMats.set(key, mat);
+    }
+    const g = shape === 'round' ? new THREE.CircleGeometry(0.5, 40).scale(iw, id2, 1) : new THREE.PlaneGeometry(iw, id2);
+    g.rotateX(-Math.PI / 2);
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.receiveShadow = true;
+    mesh.matrixAutoUpdate = false;
+    mesh.matrix.multiplyMatrices(m, new THREE.Matrix4().makeTranslation(0, 0.0135, 0));
+    this.itemsGroup.add(mesh);
+    this.pictures.set(it.u, mesh);
+  }
+
   removeItem(uid: number): void {
     const p = this.placed.get(uid);
     if (!p) return;
@@ -251,7 +277,7 @@ export class HomeView {
     this.placed.delete(uid);
     this.wallItems.delete(uid);
     const pic = this.pictures.get(uid);
-    if (pic) { this.itemsGroup.remove(pic); this.pictures.delete(uid); }
+    if (pic) { this.itemsGroup.remove(pic); if (pic.geometry !== this.picGeo) pic.geometry.dispose(); this.pictures.delete(uid); }
   }
 
   /** Redraw one piece (moved, recoloured, switched on or off) and what stands on it. */

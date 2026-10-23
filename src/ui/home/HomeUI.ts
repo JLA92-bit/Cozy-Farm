@@ -37,7 +37,7 @@ export interface HomeControls {
   readonly azimuth: number;
 }
 
-type SheetKind = 'storage' | 'paint' | 'colours' | 'rooms' | 'looks' | 'picture';
+type SheetKind = 'storage' | 'paint' | 'colours' | 'rooms' | 'looks' | 'picture' | 'rug';
 
 export const CATS: { id: string; name: string; icon: string }[] = [
   { id: 'all', name: 'All', icon: 'house' }, { id: 'living', name: 'Living', icon: 'couch' }, { id: 'bedroom', name: 'Bedroom', icon: 'bed' },
@@ -103,8 +103,10 @@ export class HomeUI {
 
   onSelect(): void {
     this.part = null;
+    this.rugKindPicked = false;
     this.renderPiece();
-    if ((this.sheetKind === 'colours' || this.sheetKind === 'picture') && !this.c.item()) this.closeSheet();
+    if ((this.sheetKind === 'colours' || this.sheetKind === 'picture' || this.sheetKind === 'rug') && !this.c.item()) this.closeSheet();
+    else if (this.sheetKind === 'rug') { if (PIECE[this.c.item()!.f].patterned) this.renderSheet(); else this.closeSheet(); }
     else if (this.sheetKind === 'colours') this.renderSheet();
     else if (this.sheetKind === 'picture') { if (PIECE[this.c.item()!.f].picture) this.renderSheet(); else this.closeSheet(); }
     else if (this.c.selected !== null && this.sheetKind && this.sheetKind !== 'storage') this.closeSheet();
@@ -155,6 +157,7 @@ export class HomeUI {
         act(def.kind === 'wall' ? 'Next wall' : 'Turn', 'rotate', () => this.c.rotate(1)),
         act('Colours', 'paint', () => this.toggleSheet('colours'), this.sheetKind === 'colours' ? 'on' : ''),
         ...(def.picture ? [act('Picture', 'framed', () => this.toggleSheet('picture'), this.sheetKind === 'picture' ? 'on' : '')] : []),
+        ...(def.patterned ? [act('Pattern', 'paintbrush', () => this.toggleSheet('rug'), this.sheetKind === 'rug' ? 'on' : '')] : []),
         act('Copy', 'crayon', () => { clipboard = { piece: it.f, colours: { ...(it.c ?? {}) } }; ui.feedback.toast('Style copied', 'Pick another piece and tap Paste.', 'crayon'); this.renderPiece(); }),
         ...(clipboard ? [act('Paste', 'magic_wand', () => this.paste())] : []),
         act('Another', 'plus', () => this.c.duplicate()),
@@ -220,6 +223,7 @@ export class HomeUI {
       case 'rooms': this.sheetTitle.textContent = 'Rooms'; this.rooms(); break;
       case 'looks': this.sheetTitle.textContent = 'Saved looks'; this.looks(); break;
       case 'picture': this.sheetTitle.textContent = 'What it shows'; this.picture(); break;
+      case 'rug': this.sheetTitle.textContent = 'Rug pattern'; this.rugPattern(); break;
     }
     this.sheetBody.scrollTop = keep;
   }
@@ -354,6 +358,23 @@ export class HomeUI {
           ui.feedback.toast(same.length ? 'Matched' : 'Only this one', same.length ? `${same.length} more ${same.length === 1 ? 'piece' : 'pieces'} in these colours.` : 'There are no others of this piece in the room.', 'paint');
         }, 'small blue')));
   }
+
+  // ---------------------------------------------------------------------------------- patterned rugs
+
+  private rugKind: 'floor' | 'wall' = 'floor';
+  /** 1.30 any floor or wall pattern on a rug, in two colours (the border colour is under Colours). */
+  private rugPattern(): void {
+    const it = this.c.item();
+    if (!it) return;
+    const [kind, id] = (it.pat ?? 'floor:checker').split(':') as ['floor' | 'wall', string];
+    if (this.rugKind !== kind && !this.rugKindPicked) this.rugKind = kind;
+    this.sheetBody.append(this.chips([{ id: 'floor', name: 'Floor patterns', icon: 'card_box' }, { id: 'wall', name: 'Wallpaper patterns', icon: 'bricks' }] as const, this.rugKind, (k) => { this.rugKind = k; this.rugKindPicked = true; this.renderSheet(); }));
+    const cur: WallStyle = [this.rugKind === kind ? id : (this.rugKind === 'floor' ? HOME.floorPatterns : HOME.wallPatterns)[0].id, it.c?.a ?? '#f3e3c3', it.c?.b ?? '#c0473b'];
+    const roomId = this.c.roomId;
+    this.styleEditor(this.rugKind, cur, (s) => home.setRugPattern(roomId, it.u, `${this.rugKind}:${s[0]}`, s[1], s[2]));
+    this.sheetBody.append(h('div', { class: 'hm-hint' }, 'The border colour is under Colours.'));
+  }
+  private rugKindPicked = false;
 
   // ---------------------------------------------------------------------------------- pictures
 
