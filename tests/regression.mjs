@@ -830,6 +830,25 @@ try {
       H.view.rebuild();
       const names = []; H.view.group.traverse((o) => { if (o.isBatchedMesh) names.push(o.name); });
       res.tint = !!plain && names.some((n) => n.endsWith('-tinted')) && names.some((n) => /kaykit-furniture$/.test(n));
+      // shelves: a bookcase has shelves inside, pointing at a wall shelf finds it, and books ride with it to another wall
+      sys.clearRoom('living');
+      for (const p of ['kf_bookcaseopen', 'kk_shelf_a_big', 'kf_books']) sys.give(p, 1);
+      await H.placeFromStorage('kf_bookcaseopen');
+      const shelf = await H.placeFromStorage('kk_shelf_a_big');
+      const standing = [0, 1, 2, 3].filter((i) => !H.view.frontWalls()[i]);
+      sys.move('living', shelf.u, { x: 0, z: 0, y: 0.8, w: standing[0] });
+      H.view.rebuild();
+      const book = await H.placeFromStorage('kf_books');
+      const sb = H.view.worldBox(sys.item('living', shelf.u));
+      const aim = sb.getCenter(sb.min.clone()).setY(sb.max.y).add(H.view.centre);
+      const hit = H.view.surfaceHit(window.__scene.ray(window.__scene.project(aim)), new Set([book.u]));
+      if (hit) sys.move('living', book.u, { x: hit.x, z: hit.z, y: hit.y, on: hit.uid });
+      H.select(shelf.u);
+      H.controls.rotate(1);
+      H.select(null);
+      const nb = H.view.worldBox(sys.item('living', shelf.u)), bk = sys.item('living', book.u);
+      res.shelves = (H.view.levelsOf('kf_bookcaseopen')?.length ?? 0) >= 3 && hit?.uid === shelf.u
+        && bk.on === shelf.u && bk.x >= nb.min.x - 0.01 && bk.x <= nb.max.x + 0.01 && bk.z >= nb.min.z - 0.01 && bk.z <= nb.max.z + 0.01 && Math.abs(bk.y - nb.max.y) < 0.03;
       return res;
     });
     check('an old farm opens the home with the starter pieces', r.starter >= 8, JSON.stringify(r));
@@ -842,6 +861,7 @@ try {
     check("a villager's furniture set arrives once, with one letter", after.gifts && after.giftsOnce, JSON.stringify(after));
     check("handmade pieces need the Carpenter's Workshop and the things they take", after.craft, JSON.stringify(after));
     check('a one-finish piece in a picked colour shows that colour (not darkened by its texture)', after.tint, JSON.stringify(after));
+    check('books go on wall shelves and inside bookcases, and ride with a shelf to another wall', after.shelves, JSON.stringify(after));
   }
 
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back

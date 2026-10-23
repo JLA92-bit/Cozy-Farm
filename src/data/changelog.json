@@ -1,6 +1,24 @@
 {
  "releases": [
   {
+   "version": "1.29.2",
+   "date": "2026-10-23",
+   "title": "Books on Shelves",
+   "icon": "books",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "books",
+     "text": "Books, plants and other small things now go on wall shelves and on the shelves inside bookcases: drag them to the shelf you want"
+    },
+    {
+     "icon": "rotate",
+     "text": "Whatever stands on a wall shelf now moves with it when you move or turn the shelf"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.29.1",
    "date": "2026-10-23",
    "title": "True Colours",

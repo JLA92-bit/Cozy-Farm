@@ -147,14 +147,15 @@ class Home {
    * Move a piece (and whatever stands on it, which keeps its place on top). `remember` false while dragging, so a
    * whole drag is one undo step (the drag start remembers).
    */
-  move(roomId: string, uid: number, to: { x: number; z: number; y?: number; r?: number; w?: number; on?: number | null }, remember = true): boolean {
+  move(roomId: string, uid: number, to: { x: number; z: number; y?: number; r?: number; w?: number; on?: number | null }, remember = true, carry = true): boolean {
     const r = this.state.rooms[roomId];
     const it = r?.items.find((i) => i.u === uid);
     if (!r || !it) return false;
     if (remember) this.remember(roomId);
     const dx = to.x - it.x, dz = to.z - it.z, dy = (to.y ?? 0) - (it.y ?? 0);
     const turn = to.r === undefined ? 0 : ((to.r - it.r) % 4 + 4) % 4;
-    for (const rider of this.riders(roomId, uid)) {
+    // the room view carries riders itself when it knows the shapes (wall shelves): carry = false
+    for (const rider of carry ? this.riders(roomId, uid) : []) {
       // riders turn with their base, round its centre
       let ox = rider.x - it.x, oz = rider.z - it.z;
       for (let k = 0; k < turn; k++) [ox, oz] = [oz, -ox];
@@ -216,7 +217,9 @@ class Home {
     const r = this.state.rooms[roomId];
     if (!r?.items.length) return;
     this.remember(roomId);
-    for (const i of r.items) if (i.w === undefined) { i.x = mm(i.x + dx); i.z = mm(i.z + dz); }
+    // pieces on the walls stay put, and so does whatever stands on their shelves
+    const onWall = (i: HomeItem): boolean => { const b = i.on === undefined ? undefined : r.items.find((x) => x.u === i.on); return !!b && (b.w !== undefined || onWall(b)); };
+    for (const i of r.items) if (i.w === undefined && !onWall(i)) { i.x = mm(i.x + dx); i.z = mm(i.z + dz); }
     this.changed(roomId);
   }
 

@@ -77,7 +77,7 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
       h('div', { class: 'visit-bubble home-door', role: 'button', 'aria-label': 'Go inside your Farmhouse', onclick: (e: MouseEvent) => { e.stopPropagation(); void enterHome(); } }, icon('door')),
     'door');
   });
-  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, select, placeFromStorage, get selected() { return selected; } } });
+  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, select, placeFromStorage, controls, get selected() { return selected; } } });
 }
 
 function queueRebuild(): void {
@@ -239,11 +239,11 @@ export const controls = {
       let w = it.w ?? 0;
       for (let k = 0; k < 4; k++) { w = (w + (dir > 0 ? 1 : 3)) % 4; if (!front[w]) break; }
       const c = view.clampWall(it.f, w, 0, it.y ?? def.wallY ?? 0.8);
-      home.move(controls.roomId, it.u, { x: c.x, z: 0, y: c.y, w });
+      moveCarrying(controls.roomId, it.u, { x: c.x, z: 0, y: c.y, w }, true);
     } else {
       const r = (it.r + (dir > 0 ? 1 : 3)) % 4;
       const c = it.on !== undefined ? { x: it.x, z: it.z } : view.clampFloor(it.f, r, it.x, it.z);
-      home.move(controls.roomId, it.u, { x: c.x, z: c.z, y: it.y, r });
+      moveCarrying(controls.roomId, it.u, { x: c.x, z: c.z, y: it.y, r }, true);
     }
     audio.play('tap', { volume: 0.6 });
   },
@@ -333,6 +333,27 @@ async function placeFromStorage(piece: string): Promise<HomeItem | null> {
 
 const snapTo = (v: number) => Math.round(v / snap) * snap;
 
+/**
+ * Move a piece and carry everything standing on it (books on a shelf, a lamp on a table) exactly as it sits,
+ * including when a shelf moves along a wall or onto another wall.
+ */
+function moveCarrying(roomId: string, uid: number, to: Parameters<typeof home.move>[2], remember: boolean): void {
+  const base = home.item(roomId, uid);
+  const riders = home.riders(roomId, uid);
+  if (!view || !base || !riders.length) { home.move(roomId, uid, to, remember); return; }
+  const inv = view.matrixFor(base).clone().invert();
+  const yaw0 = view.yawOf(base, PIECE[base.f]);
+  const keep = riders.map((r) => ({ r, p: new THREE.Vector3(r.x, r.y ?? 0, r.z).applyMatrix4(inv) }));
+  home.move(roomId, uid, to, remember, false);
+  const moved = home.item(roomId, uid)!;
+  const m = view.matrixFor(moved);
+  const turn = ((Math.round((view.yawOf(moved, PIECE[moved.f]) - yaw0) / (Math.PI / 2)) % 4) + 4) % 4;
+  for (const { r, p } of keep) {
+    const w = p.clone().applyMatrix4(m);
+    home.move(roomId, r.u, { x: w.x, z: w.z, y: w.y, r: (r.r + turn) % 4 }, false, false);
+  }
+}
+
 // ------------------------------------------------------------------------------------ taps and drags
 
 const homeHandler: WorldHandler = {
@@ -382,7 +403,7 @@ const homeHandler: WorldHandler = {
       if (!wp) return;
       const x = snapTo(wp.x - (wp.w === it.w ? grab.x : 0)), y = snapTo(wp.y - (wp.w === it.w ? grab.y : 0));
       const c = view.clampWall(it.f, wp.w, x, y);
-      home.move(roomId, it.u, { x: c.x, z: 0, y: c.y, w: wp.w }, false);
+      moveCarrying(roomId, it.u, { x: c.x, z: 0, y: c.y, w: wp.w }, false);
     } else {
       const fp = view.floorPoint(ray, it.on !== undefined ? it.y ?? 0 : 0);
       if (!fp) return;
@@ -390,19 +411,22 @@ const homeHandler: WorldHandler = {
       let y = 0;
       let on: number | null = null;
       if (def.kind === 'surface') {
-        // small things climb onto tables, shelves and counters under them
+        // small things go on the table top or shelf the finger points at (inside bookcases and on wall shelves too)
         const skip = new Set([it.u, ...home.riders(roomId, it.u).map((r) => r.u)]);
-        const flat = view.floorPoint(ray, 0)!;
-        let s = view.surfaceAt(flat.x - grab.x, flat.z - grab.z, skip);
+        const s = view.surfaceHit(ray, skip);
         if (s) {
-          const top = view.floorPoint(ray, s.y)!;
-          const s2 = view.surfaceAt(top.x - grab.x, top.z - grab.z, skip);
-          if (s2) { s = s2; x = snapTo(top.x - grab.x); z = snapTo(top.z - grab.z); }
+          const fine = (v: number) => Math.round(v / 0.025) * 0.025;
+          const c = view.clampOnto(it.f, it.r, fine(s.x), fine(s.z), s.box);
+          moveCarrying(roomId, it.u, { x: c.x, z: c.z, y: s.y, on: s.uid }, false);
+          view.refreshItem(it.u);
+          view.select(it.u);
+          return;
         }
-        if (s) { y = s.y; on = s.uid; } else { x = snapTo(flat.x - grab.x); z = snapTo(flat.z - grab.z); }
+        const flat = view.floorPoint(ray, 0)!;
+        x = snapTo(flat.x - grab.x); z = snapTo(flat.z - grab.z);
       }
       const c = view.clampFloor(it.f, it.r, x, z);
-      home.move(roomId, it.u, { x: c.x, z: c.z, y, on }, false);
+      moveCarrying(roomId, it.u, { x: c.x, z: c.z, y, on }, false);
     }
     view.refreshItem(it.u);
     view.select(it.u);

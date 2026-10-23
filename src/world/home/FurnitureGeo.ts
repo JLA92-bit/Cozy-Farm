@@ -36,6 +36,8 @@ export interface PieceGeo {
   size: THREE.Vector3;
   scale: number;
   atlas: boolean;
+  /** heights (above the base) of the flat places small things can stand: shelves inside, and the top */
+  levels: number[];
 }
 
 const geos = new Map<string, PieceGeo>();
@@ -132,7 +134,7 @@ function finish(def: PieceDef, chunks: THREE.BufferGeometry[], index: number[], 
   // crafted and gift pieces start in their own colours
   if (def.colours) parts.forEach((p, i) => { if (def.colours![p]) defaults[i] = def.colours![p]; });
   // pictures (frames, plaques) are drawn on a plane in front: keep where it goes, in the piece's own space
-  const geo: PieceGeo = { base: merged, material: atlas ? assets.materials.get(assets.info(def.model).atlas!)! : assets.vertexMaterial, parts, defaults, partIndex, size, scale, atlas };
+  const geo: PieceGeo = { base: merged, material: atlas ? assets.materials.get(assets.info(def.model).atlas!)! : assets.vertexMaterial, parts, defaults, partIndex, size, scale, atlas, levels: def.top ? shelfLevels(merged, size) : [] };
   paint(geo, merged, {});
   geos.set(def.id, geo);
   return geo;
@@ -149,6 +151,32 @@ function paint(geo: PieceGeo, g: THREE.BufferGeometry, colours: Record<string, s
   });
   for (let i = 0; i < n; i++) cols[geo.partIndex[i]].toArray(arr, i * 3);
   g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+}
+
+/**
+ * The flat places on a piece: heights where upward-facing faces cover a good share of its footprint (a table top,
+ * each shelf of a bookcase, a wall shelf). Worked out from the model, so every piece gets its real shelves.
+ */
+function shelfLevels(g: THREE.BufferGeometry, size: THREE.Vector3): number[] {
+  const pos = g.attributes.position as THREE.BufferAttribute;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
+  const area = new Map<number, number>();
+  for (let i = 0; i + 2 < pos.count; i += 3) {
+    a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
+    n.subVectors(b, a).cross(c.clone().sub(a));
+    const len = n.length();
+    if (len < 1e-9 || n.y < 0.95 * len) continue;
+    const y = Math.round(((a.y + b.y + c.y) / 3) * 100) / 100;
+    if (y < 0.04) continue;
+    area.set(y, (area.get(y) ?? 0) + len / 2);
+  }
+  const foot = Math.max(1e-4, size.x * size.z);
+  const out = [...area].filter(([, s]) => s >= foot * 0.2).map(([y]) => y).sort((x, y) => x - y);
+  // neighbouring heights (a shelf's lip and its board) count as one
+  const merged: number[] = [];
+  for (const y of out) if (!merged.length || y - merged[merged.length - 1] > 0.04) merged.push(y); else merged[merged.length - 1] = y;
+  if (!merged.length || size.y - merged[merged.length - 1] > 0.04) merged.push(Math.round(size.y * 100) / 100);
+  return merged;
 }
 
 const tinted = new Map<THREE.Material, THREE.Material>();

@@ -353,6 +353,46 @@ export class HomeView {
     return best;
   }
 
+  /**
+   * Where a ray first meets a flat place a small thing can stand on: the top of a table, or any shelf inside a
+   * bookcase or on a wall. Nearest to the camera wins, so you put things where you are pointing.
+   */
+  surfaceHit(ray: THREE.Ray, skip: Set<number>): { uid: number; x: number; z: number; y: number; box: THREE.Box3 } | null {
+    const local = ray.clone();
+    local.origin.sub(HOME_ORIGIN);
+    const front = this.frontWalls();
+    let best: { uid: number; x: number; z: number; y: number; box: THREE.Box3 } | null = null, bestT = Infinity;
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hit = new THREE.Vector3();
+    for (const it of this.room?.items ?? []) {
+      const def = PIECE[it.f];
+      if (!def?.top || skip.has(it.u) || (it.w !== undefined && front[it.w])) continue;
+      const geo = pieceGeoNow(it.f);
+      const box = this.worldBox(it);
+      if (!geo || !box) continue;
+      for (const lv of geo.levels) {
+        const y = box.min.y + lv;
+        plane.constant = -y;
+        if (!local.intersectPlane(plane, hit)) continue;
+        if (hit.x < box.min.x + 0.01 || hit.x > box.max.x - 0.01 || hit.z < box.min.z + 0.01 || hit.z > box.max.z - 0.01) continue;
+        const t = hit.distanceTo(local.origin);
+        if (t < bestT) { bestT = t; best = { uid: it.u, x: hit.x, z: hit.z, y, box }; }
+      }
+    }
+    return best;
+  }
+
+  /** The flat places of a piece (heights above its base), once its model is loaded. */
+  levelsOf(piece: string): number[] | undefined { return pieceGeoNow(piece)?.levels; }
+
+  /** Keep a small piece on the surface it stands on (inside that piece's outline). */
+  clampOnto(piece: string, r: number, x: number, z: number, box: THREE.Box3): { x: number; z: number } {
+    const { hx, hz } = this.footprint(piece, r);
+    const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
+    const fx = Math.max(0, (box.max.x - box.min.x) / 2 - hx), fz = Math.max(0, (box.max.z - box.min.z) / 2 - hz);
+    return { x: THREE.MathUtils.clamp(x, cx - fx, cx + fx), z: THREE.MathUtils.clamp(z, cz - fz, cz + fz) };
+  }
+
   /** A piece's box in room coordinates. */
   worldBox(it: HomeItem): THREE.Box3 | null {
     const geo = pieceGeoNow(it.f);
