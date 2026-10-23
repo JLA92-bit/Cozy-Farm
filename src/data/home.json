@@ -1,0 +1,73 @@
+{
+ "_comment": "1.29 Home Sweet Home: inside the Farmhouse. level: player level the home opens at. rooms: opened by Farmhouse level (fh), each with the look it starts with (the player can change all of it). sizes: room width and depth (metres, a sofa is about 1) and the coins to enlarge to that size. wallHeight: metres. palette: the colours offered for walls, floors and furniture (any custom colour is allowed too). wallPatterns/floorPatterns: ids drawn in src/world/home/HomeStyle.ts. starter: pieces put in home storage the first time. maxItems: pieces per room. discount: share off for the daily picks in the catalogue (everything else is always on sale at full price).",
+ "level": 30,
+ "wallHeight": 1.6,
+ "maxItems": 150,
+ "sizes": [
+  { "id": "cosy", "name": "Cosy", "w": 4, "d": 4, "coins": 0 },
+  { "id": "roomy", "name": "Roomy", "w": 5.5, "d": 5.5, "coins": 15000 },
+  { "id": "grand", "name": "Grand", "w": 7, "d": 7, "coins": 40000 }
+ ],
+ "rooms": [
+  { "id": "living", "name": "Living Room", "fh": 1, "icon": "house",
+    "look": { "wall": ["plaster", "#f3e3c3", "#e2c99a"], "floor": ["planks", "#b9824f", "#9a6a3d"], "trim": "#8a5a33", "ceiling": "#fbf3e2" } },
+  { "id": "kitchen", "name": "Kitchen", "fh": 2, "icon": "cooking",
+    "look": { "wall": ["tiles", "#f7f1e3", "#cfe3e8"], "floor": ["checker", "#f2ead8", "#7a5a44"], "trim": "#6f8f6a", "ceiling": "#fbf3e2" } },
+  { "id": "bedroom", "name": "Bedroom", "fh": 3, "icon": "bed",
+    "look": { "wall": ["floral", "#f6e6ea", "#d98fa0"], "floor": ["wideboards", "#c99a6b", "#a97b4f"], "trim": "#f7f1e3", "ceiling": "#fbf3e2" } },
+  { "id": "bathroom", "name": "Bathroom", "fh": 5, "icon": "bathtub",
+    "look": { "wall": ["beadboard", "#e3f0ee", "#c2dcd8"], "floor": ["hex", "#f7f7f2", "#b8c7c5"], "trim": "#f7f1e3", "ceiling": "#ffffff" } },
+  { "id": "study", "name": "Study", "fh": 7, "icon": "books",
+    "look": { "wall": ["damask", "#2f4a3e", "#3d5e4f"], "floor": ["herringbone", "#a06b3b", "#7f522c"], "trim": "#5a3a22", "ceiling": "#f3e9d6" } },
+  { "id": "attic", "name": "Attic", "fh": 9, "icon": "ladder",
+    "look": { "wall": ["logs", "#c08a55", "#9a6a3d"], "floor": ["planks", "#caa074", "#a98257"], "trim": "#7a4f2a", "ceiling": "#e7d3b3", "beams": true } },
+  { "id": "cellar", "name": "Cellar", "fh": 11, "icon": "candle",
+    "look": { "wall": ["stone", "#b9b2a6", "#8f877b"], "floor": ["flagstone", "#a39b8e", "#7e766a"], "trim": "#5d554b", "ceiling": "#cfc6b7", "beams": true } },
+  { "id": "sunroom", "name": "Sunroom", "fh": 13, "icon": "sunflower",
+    "look": { "wall": ["pinstripe", "#fdf6e3", "#f3d98a"], "floor": ["terracotta", "#d98a5f", "#b86b44"], "trim": "#ffffff", "ceiling": "#ffffff" } },
+  { "id": "landing", "name": "Upstairs Landing", "fh": 15, "icon": "door",
+    "look": { "wall": ["stripes", "#e6eef7", "#c9d8ea"], "floor": ["carpet", "#8a5a6a", "#7a4a5a"], "trim": "#ffffff", "ceiling": "#fbf3e2" } }
+ ],
+ "wallPatterns": [
+  { "id": "plaster", "name": "Plaster" },
+  { "id": "stripes", "name": "Stripes" },
+  { "id": "pinstripe", "name": "Pinstripe" },
+  { "id": "gingham", "name": "Gingham" },
+  { "id": "polka", "name": "Polka Dots" },
+  { "id": "floral", "name": "Little Flowers" },
+  { "id": "damask", "name": "Damask" },
+  { "id": "diamonds", "name": "Diamonds" },
+  { "id": "panelling", "name": "Wood Panelling" },
+  { "id": "beadboard", "name": "Beadboard" },
+  { "id": "logs", "name": "Log Cabin" },
+  { "id": "brick", "name": "Brick" },
+  { "id": "stone", "name": "Stone" },
+  { "id": "tiles", "name": "Square Tiles" },
+  { "id": "subway", "name": "Metro Tiles" },
+  { "id": "chalk", "name": "Chalkboard" }
+ ],
+ "floorPatterns": [
+  { "id": "planks", "name": "Planks" },
+  { "id": "wideboards", "name": "Wide Boards" },
+  { "id": "herringbone", "name": "Herringbone" },
+  { "id": "parquet", "name": "Parquet" },
+  { "id": "checker", "name": "Checker Tiles" },
+  { "id": "hex", "name": "Hexagon Tiles" },
+  { "id": "terracotta", "name": "Terracotta" },
+  { "id": "flagstone", "name": "Flagstones" },
+  { "id": "carpet", "name": "Carpet" },
+  { "id": "painted", "name": "Painted Boards" },
+  { "id": "straw", "name": "Rush Matting" },
+  { "id": "mosaic", "name": "Mosaic" }
+ ],
+ "palette": [
+  "#ffffff", "#f7f1e3", "#f3e3c3", "#e7d3b3", "#cfc6b7", "#b9b2a6", "#8f877b", "#5d554b", "#3b3b45", "#22232a",
+  "#fde2e4", "#f6c1c7", "#e88a99", "#d9473a", "#a8322b", "#6e2420", "#ffe8c7", "#ffc98a", "#f5a04a", "#d9772b",
+  "#fff3b0", "#ffe066", "#f2c12e", "#c99a2e", "#e6f2d0", "#bfe0a0", "#8cc46a", "#5f9a43", "#3d6b33", "#26442a",
+  "#d8f0ee", "#a8dcd6", "#6cb9b0", "#3b8c86", "#dbe8f7", "#a9c8ec", "#6a9bd6", "#3b6aa8", "#27406b", "#e7defa",
+  "#c6b3ef", "#9277d1", "#5e4596", "#caa074", "#b9824f", "#9a6a3d", "#7a4f2a", "#5a3a22"
+ ],
+ "starter": { "kf_bedsingle": 1, "kf_table": 1, "kf_chair": 2, "kk_rug_oval_a": 1, "kf_lamproundtable": 1, "kf_pottedplant": 1, "kf_bookcaseopenlow": 1 },
+ "discount": 0.25,
+ "picks": 6
+}

@@ -82,6 +82,8 @@ export class Environment {
 
   /** The haze never starts closer than this (0 = normal). Set while looking at the village square. */
   fogFloor = 0;
+  /** 1.29 inside the Farmhouse: no rain, pollen, birds or butterflies in the room */
+  indoors = false;
 
   setShadowMapSize(n: number): void {
     this.sun.shadow.mapSize.set(n, n);
@@ -223,7 +225,7 @@ export class Environment {
         this.birds.setMatrixAt(i, this.dummy.matrix);
       }
       this.birds.instanceMatrix.needsUpdate = true;
-      this.birds.visible = night < 0.6;
+      this.birds.visible = !this.indoors && night < 0.6;
     }
     if (this.butterflies) {
       for (let i = 0; i < this.bflyData.length; i++) {
@@ -236,7 +238,7 @@ export class Environment {
         this.butterflies.setMatrixAt(i, this.dummy.matrix);
       }
       this.butterflies.instanceMatrix.needsUpdate = true;
-      this.butterflies.visible = night < 0.5;
+      this.butterflies.visible = !this.indoors && night < 0.5;
     }
   }
 
@@ -250,7 +252,7 @@ export class Environment {
   private updateRain(dt: number, focus: THREE.Vector3): void {
     const rain = this.rain, d = this.rainData;
     if (!rain || !d) return;
-    rain.visible = this.rainK > 0.02;
+    rain.visible = !this.indoors && this.rainK > 0.02;
     if (!rain.visible) return;
     (rain.material as THREE.LineBasicMaterial).opacity = 0.75 * this.rainK;
     const arr = (rain.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;

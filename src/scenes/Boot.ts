@@ -21,6 +21,7 @@ import { mastery } from '../systems/Mastery';
 import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { initWoods } from './Woods';
+import { initHome } from './Home';
 import { applyFarmLook } from './FarmLookApply';
 import { currentLook } from '../world/FarmLook';
 import { settings, shadowsWanted } from '../systems/Settings';
@@ -170,6 +171,7 @@ export async function boot(): Promise<void> {
   initVisit(scene, interaction);
   initSquare(scene, interaction);
   initWoods(scene, interaction);
+  initHome(scene, interaction);
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;

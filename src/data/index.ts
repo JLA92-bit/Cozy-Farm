@@ -9,6 +9,8 @@ import masteryJson from './mastery.json';
 import farmhandsJson from './farmhands.json';
 import estateJson from './estate.json';
 import wildlifeJson from './wildlife.json';
+import homeJson from './home.json';
+import furnitureJson from './furniture.json';
 import coopJson from './coop.json';
 import fishstallJson from './fishstall.json';
 import boatvisitsJson from './boatvisits.json';
@@ -375,6 +377,31 @@ export interface WildSpecies {
 }
 export interface WildSet { id: string; name: string; icon: string; reward: { coins: number; gems: number } }
 export const WILDLIFE = wildlifeJson as unknown as { level: number; species: WildSpecies[]; sets: WildSet[]; complete: { coins: number; gems: number } };
+
+/** 1.29 Home Sweet Home: inside the Farmhouse (home.json, furniture.json, src/systems/Home.ts). */
+export type PieceKind = 'floor' | 'surface' | 'wall' | 'rug' | 'ceiling';
+export interface PieceDef {
+  id: string; name: string; model: string; cat: string; kind: PieceKind; price: number;
+  scale?: number; top?: boolean; lamp?: boolean; wallY?: number;
+  /** pieces built in code have an icon instead of a 3D thumbnail */
+  icon?: string;
+  /** frames and plaques: a picture [width, height, centre height, tilt] on the front, showing a photo or a find */
+  picture?: [number, number, number, number?];
+  /** how it is got besides the catalogue: craft (Carpenter, needs items), gift (a villager's set) */
+  craft?: Record<string, number>; gift?: string;
+}
+export interface RoomLook { wall: [string, string, string]; floor: [string, string, string]; trim: string; ceiling: string; beams?: boolean }
+export interface HomeRoomDef { id: string; name: string; fh: number; icon: string; look: RoomLook }
+export const HOME = homeJson as unknown as {
+  level: number; wallHeight: number; maxItems: number;
+  sizes: { id: string; name: string; w: number; d: number; coins: number }[];
+  rooms: HomeRoomDef[];
+  wallPatterns: { id: string; name: string }[]; floorPatterns: { id: string; name: string }[];
+  palette: string[]; starter: Record<string, number>; discount: number; picks: number;
+};
+export const FURNITURE = (furnitureJson as unknown as { pieces: PieceDef[] }).pieces;
+export const PIECE: Record<string, PieceDef> = Object.fromEntries(FURNITURE.map((p) => [p.id, p]));
+export const HOME_ROOM: Record<string, HomeRoomDef> = Object.fromEntries(HOME.rooms.map((r) => [r.id, r]));
 for (const p of ESTATE) for (const s of p.stages) ROOM[s.id] = s;
 
 /** 1.9 The Museum (museum.json) and the expedition board (expeditions.json), both in the Wild Woods. */

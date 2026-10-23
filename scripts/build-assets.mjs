@@ -577,6 +577,12 @@ const ICONS = {
   sunrise: 'sunrise', rocket: 'rocket', zzz: 'zzz', wave: 'waving-hand', thumbs: 'thumbs-up', smile: 'smiling-face-with-smiling-eyes',
   hug: 'smiling-face-with-hearts', bat: 'bat', spider_web: 'spider-web', leaf: 'leaf-fluttering-in-wind', chestnut: 'chestnut',
   acorn: 'chestnut', shell: 'spiral-shell', framed: 'framed-picture', bricks: 'brick', tractor: 'tractor', seed: 'seedling', plus: 'plus', info: 'information',
+  // 1.29 Home Sweet Home
+  bed: 'bed', bathtub: 'bathtub', couch: 'couch-and-lamp', chair: 'chair', door: 'door', window: 'window', cooking: 'cooking',
+  rotate: 'clockwise-vertical-arrows', undo: 'right-arrow-curving-left', redo: 'left-arrow-curving-right', paintbrush: 'paintbrush',
+  wastebasket: 'wastebasket', mirror: 'mirror', teddy: 'teddy-bear', potted_plant: 'potted-plant', toilet: 'toilet', ruler: 'straight-ruler',
+  plate_cutlery: 'fork-and-knife-with-plate', card_box: 'card-file-box', clock_mantel: 'mantelpiece-clock', link: 'link',
+  label: 'label', floppy: 'floppy-disk', crayon: 'crayon', magic_wand: 'magic-wand', ladder: 'ladder', scissors: 'scissors', night: 'milky-way',
   ...FISHING_ICONS,
 };
 

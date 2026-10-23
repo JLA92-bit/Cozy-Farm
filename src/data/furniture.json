@@ -1,0 +1,2092 @@
+{
+ "_comment": "1.29 Home Sweet Home: furniture for inside the Farmhouse. kind: floor (stands on the floor), surface (small: on the floor or on top of a piece with top:true), wall (hangs on a wall, wallY = height of its base), rug (lies on the floor under everything), ceiling (hangs from the ceiling). scale: model scale (KayKit pieces are 0.36). lamp: can be switched on. Kenney pieces (kf_) recolour per part; the rest take one finish tint.",
+ "pieces": [
+  {
+   "id": "kf_loungesofa",
+   "name": "Cosy Sofa",
+   "model": "kf/loungesofa",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1800
+  },
+  {
+   "id": "kf_loungesofacorner",
+   "name": "Corner Sofa",
+   "model": "kf/loungesofacorner",
+   "cat": "living",
+   "kind": "floor",
+   "price": 2400
+  },
+  {
+   "id": "kf_loungesofalong",
+   "name": "Long Sofa",
+   "model": "kf/loungesofalong",
+   "cat": "living",
+   "kind": "floor",
+   "price": 2600
+  },
+  {
+   "id": "kf_loungesofaottoman",
+   "name": "Footstool",
+   "model": "kf/loungesofaottoman",
+   "cat": "living",
+   "kind": "floor",
+   "price": 600,
+   "top": true
+  },
+  {
+   "id": "kf_loungechair",
+   "name": "Lounge Chair",
+   "model": "kf/loungechair",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1100
+  },
+  {
+   "id": "kf_loungechairrelax",
+   "name": "Reading Recliner",
+   "model": "kf/loungechairrelax",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1500
+  },
+  {
+   "id": "kf_loungedesignsofa",
+   "name": "Sleek Sofa",
+   "model": "kf/loungedesignsofa",
+   "cat": "living",
+   "kind": "floor",
+   "price": 2200
+  },
+  {
+   "id": "kf_loungedesignsofacorner",
+   "name": "Sleek Corner Sofa",
+   "model": "kf/loungedesignsofacorner",
+   "cat": "living",
+   "kind": "floor",
+   "price": 2800
+  },
+  {
+   "id": "kf_loungedesignchair",
+   "name": "Sleek Armchair",
+   "model": "kf/loungedesignchair",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1300
+  },
+  {
+   "id": "kf_tablecoffee",
+   "name": "Coffee Table",
+   "model": "kf/tablecoffee",
+   "cat": "living",
+   "kind": "floor",
+   "price": 700,
+   "top": true
+  },
+  {
+   "id": "kf_tablecoffeesquare",
+   "name": "Square Coffee Table",
+   "model": "kf/tablecoffeesquare",
+   "cat": "living",
+   "kind": "floor",
+   "price": 650,
+   "top": true
+  },
+  {
+   "id": "kf_tablecoffeeglass",
+   "name": "Glass Coffee Table",
+   "model": "kf/tablecoffeeglass",
+   "cat": "living",
+   "kind": "floor",
+   "price": 900,
+   "top": true
+  },
+  {
+   "id": "kf_tablecoffeeglasssquare",
+   "name": "Square Glass Table",
+   "model": "kf/tablecoffeeglasssquare",
+   "cat": "living",
+   "kind": "floor",
+   "price": 850,
+   "top": true
+  },
+  {
+   "id": "kf_sidetable",
+   "name": "Side Table",
+   "model": "kf/sidetable",
+   "cat": "living",
+   "kind": "floor",
+   "price": 450,
+   "top": true
+  },
+  {
+   "id": "kf_sidetabledrawers",
+   "name": "Side Table with Drawers",
+   "model": "kf/sidetabledrawers",
+   "cat": "living",
+   "kind": "floor",
+   "price": 600,
+   "top": true
+  },
+  {
+   "id": "kf_cabinettelevision",
+   "name": "Low Cabinet",
+   "model": "kf/cabinettelevision",
+   "cat": "living",
+   "kind": "floor",
+   "price": 900,
+   "top": true
+  },
+  {
+   "id": "kf_cabinettelevisiondoors",
+   "name": "Low Cabinet with Doors",
+   "model": "kf/cabinettelevisiondoors",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1000,
+   "top": true
+  },
+  {
+   "id": "kf_televisionvintage",
+   "name": "Old Television",
+   "model": "kf/televisionvintage",
+   "cat": "living",
+   "kind": "surface",
+   "price": 1200
+  },
+  {
+   "id": "kf_radio",
+   "name": "Radio",
+   "model": "kf/radio",
+   "cat": "living",
+   "kind": "surface",
+   "price": 500
+  },
+  {
+   "id": "kf_bench",
+   "name": "Wooden Bench",
+   "model": "kf/bench",
+   "cat": "living",
+   "kind": "floor",
+   "price": 400,
+   "top": true
+  },
+  {
+   "id": "kf_benchcushion",
+   "name": "Cushioned Bench",
+   "model": "kf/benchcushion",
+   "cat": "living",
+   "kind": "floor",
+   "price": 550
+  },
+  {
+   "id": "kf_benchcushionlow",
+   "name": "Window Seat",
+   "model": "kf/benchcushionlow",
+   "cat": "living",
+   "kind": "floor",
+   "price": 700
+  },
+  {
+   "id": "kf_pillow",
+   "name": "Cushion",
+   "model": "kf/pillow",
+   "cat": "living",
+   "kind": "surface",
+   "price": 120
+  },
+  {
+   "id": "kf_pillowlong",
+   "name": "Long Cushion",
+   "model": "kf/pillowlong",
+   "cat": "living",
+   "kind": "surface",
+   "price": 160
+  },
+  {
+   "id": "kf_pillowblue",
+   "name": "Flat Cushion",
+   "model": "kf/pillowblue",
+   "cat": "living",
+   "kind": "surface",
+   "price": 120
+  },
+  {
+   "id": "kf_pillowbluelong",
+   "name": "Bolster",
+   "model": "kf/pillowbluelong",
+   "cat": "living",
+   "kind": "surface",
+   "price": 160
+  },
+  {
+   "id": "kf_coatrackstanding",
+   "name": "Coat Stand",
+   "model": "kf/coatrackstanding",
+   "cat": "living",
+   "kind": "floor",
+   "price": 450
+  },
+  {
+   "id": "kf_coatrack",
+   "name": "Coat Hooks",
+   "model": "kf/coatrack",
+   "cat": "living",
+   "kind": "wall",
+   "price": 300,
+   "wallY": 0.75
+  },
+  {
+   "id": "kf_doorway",
+   "name": "Wooden Door",
+   "model": "kf/doorway",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 900,
+   "wallY": 0
+  },
+  {
+   "id": "kf_doorwayfront",
+   "name": "Front Door",
+   "model": "kf/doorwayfront",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1100,
+   "wallY": 0
+  },
+  {
+   "id": "kf_doorwayopen",
+   "name": "Open Doorway",
+   "model": "kf/doorwayopen",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 800,
+   "wallY": 0
+  },
+  {
+   "id": "kf_paneling",
+   "name": "Wall Panel",
+   "model": "kf/paneling",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 200,
+   "wallY": 0
+  },
+  {
+   "id": "kf_stairs",
+   "name": "Staircase",
+   "model": "kf/stairs",
+   "cat": "decor",
+   "kind": "floor",
+   "price": 3200
+  },
+  {
+   "id": "kf_stairscorner",
+   "name": "Turning Staircase",
+   "model": "kf/stairscorner",
+   "cat": "decor",
+   "kind": "floor",
+   "price": 3600
+  },
+  {
+   "id": "kf_stairsopen",
+   "name": "Open Staircase",
+   "model": "kf/stairsopen",
+   "cat": "decor",
+   "kind": "floor",
+   "price": 3400
+  },
+  {
+   "id": "kf_cardboardboxclosed",
+   "name": "Moving Box",
+   "model": "kf/cardboardboxclosed",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 60,
+   "top": true
+  },
+  {
+   "id": "kf_cardboardboxopen",
+   "name": "Open Box",
+   "model": "kf/cardboardboxopen",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 60
+  },
+  {
+   "id": "kf_bear",
+   "name": "Teddy Bear",
+   "model": "kf/bear",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 350
+  },
+  {
+   "id": "kf_trashcan",
+   "name": "Waste Bin",
+   "model": "kf/trashcan",
+   "cat": "decor",
+   "kind": "floor",
+   "price": 150
+  },
+  {
+   "id": "kf_books",
+   "name": "Stack of Books",
+   "model": "kf/books",
+   "cat": "study",
+   "kind": "surface",
+   "price": 180
+  },
+  {
+   "id": "kf_bookcaseopen",
+   "name": "Tall Bookcase",
+   "model": "kf/bookcaseopen",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1200,
+   "top": true
+  },
+  {
+   "id": "kf_bookcaseopenlow",
+   "name": "Low Bookcase",
+   "model": "kf/bookcaseopenlow",
+   "cat": "study",
+   "kind": "floor",
+   "price": 700,
+   "top": true
+  },
+  {
+   "id": "kf_bookcaseclosed",
+   "name": "Tall Cupboard",
+   "model": "kf/bookcaseclosed",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1200,
+   "top": true
+  },
+  {
+   "id": "kf_bookcasecloseddoors",
+   "name": "Cupboard with Doors",
+   "model": "kf/bookcasecloseddoors",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1300,
+   "top": true
+  },
+  {
+   "id": "kf_bookcaseclosedwide",
+   "name": "Wide Cupboard",
+   "model": "kf/bookcaseclosedwide",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1700,
+   "top": true
+  },
+  {
+   "id": "kf_desk",
+   "name": "Desk",
+   "model": "kf/desk",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1100,
+   "top": true
+  },
+  {
+   "id": "kf_deskcorner",
+   "name": "Corner Desk",
+   "model": "kf/deskcorner",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1500,
+   "top": true
+  },
+  {
+   "id": "kf_chairdesk",
+   "name": "Desk Chair",
+   "model": "kf/chairdesk",
+   "cat": "study",
+   "kind": "floor",
+   "price": 600
+  },
+  {
+   "id": "kf_beddouble",
+   "name": "Double Bed",
+   "model": "kf/beddouble",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2400
+  },
+  {
+   "id": "kf_bedsingle",
+   "name": "Single Bed",
+   "model": "kf/bedsingle",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 1500
+  },
+  {
+   "id": "kf_bedbunk",
+   "name": "Bunk Beds",
+   "model": "kf/bedbunk",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2200
+  },
+  {
+   "id": "kf_cabinetbed",
+   "name": "Bedside Table",
+   "model": "kf/cabinetbed",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 400,
+   "top": true
+  },
+  {
+   "id": "kf_cabinetbeddrawer",
+   "name": "Bedside Drawer",
+   "model": "kf/cabinetbeddrawer",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 500,
+   "top": true
+  },
+  {
+   "id": "kf_cabinetbeddrawertable",
+   "name": "Bedside Cabinet",
+   "model": "kf/cabinetbeddrawertable",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 550,
+   "top": true
+  },
+  {
+   "id": "kf_kitchencabinet",
+   "name": "Kitchen Counter",
+   "model": "kf/kitchencabinet",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 800,
+   "top": true
+  },
+  {
+   "id": "kf_kitchencabinetdrawer",
+   "name": "Counter with Drawers",
+   "model": "kf/kitchencabinetdrawer",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 850,
+   "top": true
+  },
+  {
+   "id": "kf_kitchencabinetcornerinner",
+   "name": "Corner Counter",
+   "model": "kf/kitchencabinetcornerinner",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 850,
+   "top": true
+  },
+  {
+   "id": "kf_kitchencabinetcornerround",
+   "name": "Rounded Counter End",
+   "model": "kf/kitchencabinetcornerround",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 850,
+   "top": true
+  },
+  {
+   "id": "kf_kitchensink",
+   "name": "Kitchen Sink",
+   "model": "kf/kitchensink",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1200
+  },
+  {
+   "id": "kf_kitchenstove",
+   "name": "Kitchen Range",
+   "model": "kf/kitchenstove",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1600,
+   "top": true
+  },
+  {
+   "id": "kf_kitchenstoveelectric",
+   "name": "Hob and Oven",
+   "model": "kf/kitchenstoveelectric",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1600,
+   "top": true
+  },
+  {
+   "id": "kf_kitchenfridge",
+   "name": "Fridge",
+   "model": "kf/kitchenfridge",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1500
+  },
+  {
+   "id": "kf_kitchenfridgelarge",
+   "name": "Big Fridge",
+   "model": "kf/kitchenfridgelarge",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 2000
+  },
+  {
+   "id": "kf_kitchenfridgesmall",
+   "name": "Small Fridge",
+   "model": "kf/kitchenfridgesmall",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "top": true
+  },
+  {
+   "id": "kf_kitchenfridgebuiltin",
+   "name": "Fitted Fridge",
+   "model": "kf/kitchenfridgebuiltin",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1800
+  },
+  {
+   "id": "kf_kitchenbar",
+   "name": "Breakfast Bar",
+   "model": "kf/kitchenbar",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 900,
+   "top": true
+  },
+  {
+   "id": "kf_kitchenbarend",
+   "name": "Breakfast Bar End",
+   "model": "kf/kitchenbarend",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300,
+   "top": true
+  },
+  {
+   "id": "kf_stoolbar",
+   "name": "Bar Stool",
+   "model": "kf/stoolbar",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 350
+  },
+  {
+   "id": "kf_stoolbarsquare",
+   "name": "Square Bar Stool",
+   "model": "kf/stoolbarsquare",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 350
+  },
+  {
+   "id": "kf_kitchencabinetupper",
+   "name": "Wall Cupboard",
+   "model": "kf/kitchencabinetupper",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 700,
+   "wallY": 0.85
+  },
+  {
+   "id": "kf_kitchencabinetupperdouble",
+   "name": "Double Wall Cupboard",
+   "model": "kf/kitchencabinetupperdouble",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 800,
+   "wallY": 0.85
+  },
+  {
+   "id": "kf_kitchencabinetupperlow",
+   "name": "Low Wall Cupboard",
+   "model": "kf/kitchencabinetupperlow",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 550,
+   "wallY": 1.0
+  },
+  {
+   "id": "kf_kitchencabinetuppercorner",
+   "name": "Corner Wall Cupboard",
+   "model": "kf/kitchencabinetuppercorner",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 500,
+   "wallY": 0.85
+  },
+  {
+   "id": "kf_hoodlarge",
+   "name": "Cooker Hood",
+   "model": "kf/hoodlarge",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 700,
+   "wallY": 0.85
+  },
+  {
+   "id": "kf_kitchencoffeemachine",
+   "name": "Coffee Maker",
+   "model": "kf/kitchencoffeemachine",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 450
+  },
+  {
+   "id": "kf_kitchenblender",
+   "name": "Blender",
+   "model": "kf/kitchenblender",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 300
+  },
+  {
+   "id": "kf_toaster",
+   "name": "Toaster",
+   "model": "kf/toaster",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 250
+  },
+  {
+   "id": "kf_table",
+   "name": "Dining Table",
+   "model": "kf/table",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "top": true
+  },
+  {
+   "id": "kf_tablecloth",
+   "name": "Dining Table with Cloth",
+   "model": "kf/tablecloth",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1300,
+   "top": true
+  },
+  {
+   "id": "kf_tablecross",
+   "name": "Farmhouse Table",
+   "model": "kf/tablecross",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1200,
+   "top": true
+  },
+  {
+   "id": "kf_tablecrosscloth",
+   "name": "Farmhouse Table with Cloth",
+   "model": "kf/tablecrosscloth",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1400,
+   "top": true
+  },
+  {
+   "id": "kf_tableglass",
+   "name": "Glass Table",
+   "model": "kf/tableglass",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1400,
+   "top": true
+  },
+  {
+   "id": "kf_tableround",
+   "name": "Round Table",
+   "model": "kf/tableround",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1200,
+   "top": true
+  },
+  {
+   "id": "kf_chair",
+   "name": "Wooden Chair",
+   "model": "kf/chair",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300
+  },
+  {
+   "id": "kf_chaircushion",
+   "name": "Cushioned Chair",
+   "model": "kf/chaircushion",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 400
+  },
+  {
+   "id": "kf_chairrounded",
+   "name": "Spindle Chair",
+   "model": "kf/chairrounded",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 350
+  },
+  {
+   "id": "kf_chairmoderncushion",
+   "name": "Modern Chair",
+   "model": "kf/chairmoderncushion",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 450
+  },
+  {
+   "id": "kf_chairmodernframecushion",
+   "name": "Frame Chair",
+   "model": "kf/chairmodernframecushion",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 450
+  },
+  {
+   "id": "kf_washer",
+   "name": "Washing Machine",
+   "model": "kf/washer",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 1400,
+   "top": true
+  },
+  {
+   "id": "kf_bathtub",
+   "name": "Bathtub",
+   "model": "kf/bathtub",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 2200
+  },
+  {
+   "id": "kf_shower",
+   "name": "Shower",
+   "model": "kf/shower",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 2000
+  },
+  {
+   "id": "kf_showerround",
+   "name": "Corner Shower",
+   "model": "kf/showerround",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 2100
+  },
+  {
+   "id": "kf_toilet",
+   "name": "Toilet",
+   "model": "kf/toilet",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 900
+  },
+  {
+   "id": "kf_toiletsquare",
+   "name": "Square Toilet",
+   "model": "kf/toiletsquare",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 900
+  },
+  {
+   "id": "kf_bathroomsink",
+   "name": "Wall Basin",
+   "model": "kf/bathroomsink",
+   "cat": "bathroom",
+   "kind": "wall",
+   "price": 800,
+   "wallY": 0.45
+  },
+  {
+   "id": "kf_bathroomsinksquare",
+   "name": "Basin Unit",
+   "model": "kf/bathroomsinksquare",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 1000,
+   "top": true
+  },
+  {
+   "id": "kf_bathroomcabinet",
+   "name": "Bathroom Cabinet",
+   "model": "kf/bathroomcabinet",
+   "cat": "bathroom",
+   "kind": "wall",
+   "price": 500,
+   "wallY": 0.85
+  },
+  {
+   "id": "kf_bathroomcabinetdrawer",
+   "name": "Bathroom Drawers",
+   "model": "kf/bathroomcabinetdrawer",
+   "cat": "bathroom",
+   "kind": "floor",
+   "price": 700,
+   "top": true
+  },
+  {
+   "id": "kf_bathroommirror",
+   "name": "Mirror",
+   "model": "kf/bathroommirror",
+   "cat": "bathroom",
+   "kind": "wall",
+   "price": 450,
+   "wallY": 0.7
+  },
+  {
+   "id": "kf_lamproundfloor",
+   "name": "Round Floor Lamp",
+   "model": "kf/lamproundfloor",
+   "cat": "lights",
+   "kind": "floor",
+   "price": 700,
+   "lamp": true
+  },
+  {
+   "id": "kf_lampsquarefloor",
+   "name": "Square Floor Lamp",
+   "model": "kf/lampsquarefloor",
+   "cat": "lights",
+   "kind": "floor",
+   "price": 700,
+   "lamp": true
+  },
+  {
+   "id": "kf_lamproundtable",
+   "name": "Round Table Lamp",
+   "model": "kf/lamproundtable",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 400,
+   "lamp": true
+  },
+  {
+   "id": "kf_lampsquaretable",
+   "name": "Square Table Lamp",
+   "model": "kf/lampsquaretable",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 400,
+   "lamp": true
+  },
+  {
+   "id": "kf_lampwall",
+   "name": "Wall Light",
+   "model": "kf/lampwall",
+   "cat": "lights",
+   "kind": "wall",
+   "price": 450,
+   "wallY": 0.9,
+   "lamp": true
+  },
+  {
+   "id": "kf_lampsquareceiling",
+   "name": "Ceiling Light",
+   "model": "kf/lampsquareceiling",
+   "cat": "lights",
+   "kind": "ceiling",
+   "price": 600,
+   "lamp": true
+  },
+  {
+   "id": "kf_ceilingfan",
+   "name": "Ceiling Fan",
+   "model": "kf/ceilingfan",
+   "cat": "lights",
+   "kind": "ceiling",
+   "price": 1200,
+   "lamp": true
+  },
+  {
+   "id": "kf_rugdoormat",
+   "name": "Doormat",
+   "model": "kf/rugdoormat",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 150
+  },
+  {
+   "id": "kf_rugrectangle",
+   "name": "Long Rug",
+   "model": "kf/rugrectangle",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 900
+  },
+  {
+   "id": "kf_rugrounded",
+   "name": "Rounded Rug",
+   "model": "kf/rugrounded",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 900
+  },
+  {
+   "id": "kf_ruground",
+   "name": "Round Rug",
+   "model": "kf/ruground",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 700
+  },
+  {
+   "id": "kf_rugsquare",
+   "name": "Square Rug",
+   "model": "kf/rugsquare",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 650
+  },
+  {
+   "id": "kf_plantsmall1",
+   "name": "Little Plant",
+   "model": "kf/plantsmall1",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150
+  },
+  {
+   "id": "kf_plantsmall2",
+   "name": "Little Fern",
+   "model": "kf/plantsmall2",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150
+  },
+  {
+   "id": "kf_plantsmall3",
+   "name": "Little Shrub",
+   "model": "kf/plantsmall3",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150
+  },
+  {
+   "id": "kf_pottedplant",
+   "name": "Potted Plant",
+   "model": "kf/pottedplant",
+   "cat": "plants",
+   "kind": "floor",
+   "price": 500
+  },
+  {
+   "id": "kk_couch",
+   "name": "Country Sofa",
+   "model": "kk/couch",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1900,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_couch_pillows",
+   "name": "Country Sofa with Cushions",
+   "model": "kk/couch_pillows",
+   "cat": "living",
+   "kind": "floor",
+   "price": 2100,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_armchair",
+   "name": "Country Armchair",
+   "model": "kk/armchair",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1100,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_armchair_pillows",
+   "name": "Armchair with Cushions",
+   "model": "kk/armchair_pillows",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1200,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_table_low",
+   "name": "Low Country Table",
+   "model": "kk/table_low",
+   "cat": "living",
+   "kind": "floor",
+   "price": 700,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_table_small",
+   "name": "Little Country Table",
+   "model": "kk/table_small",
+   "cat": "living",
+   "kind": "floor",
+   "price": 450,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_table_medium",
+   "name": "Country Table",
+   "model": "kk/table_medium",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1000,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_table_medium_long",
+   "name": "Long Country Table",
+   "model": "kk/table_medium_long",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1300,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_chair_a",
+   "name": "Painted Chair",
+   "model": "kk/chair_a",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_chair_a_wood",
+   "name": "Country Chair",
+   "model": "kk/chair_a_wood",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_chair_b",
+   "name": "Ladderback Chair",
+   "model": "kk/chair_b",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 320,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_chair_b_wood",
+   "name": "Oak Ladderback",
+   "model": "kk/chair_b_wood",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 320,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_chair_c",
+   "name": "Slat Chair",
+   "model": "kk/chair_c",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 320,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_chair_stool",
+   "name": "Painted Stool",
+   "model": "kk/chair_stool",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 200,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_chair_stool_wood",
+   "name": "Milking Stool",
+   "model": "kk/chair_stool_wood",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 200,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_bed_double_a",
+   "name": "Quilted Double Bed",
+   "model": "kk/bed_double_a",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2500,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_bed_double_b",
+   "name": "Patchwork Double Bed",
+   "model": "kk/bed_double_b",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2500,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_bed_single_a",
+   "name": "Quilted Single Bed",
+   "model": "kk/bed_single_a",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 1500,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_bed_single_b",
+   "name": "Patchwork Single Bed",
+   "model": "kk/bed_single_b",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 1500,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cabinet_medium",
+   "name": "Country Dresser",
+   "model": "kk/cabinet_medium",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 1000,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_cabinet_medium_decorated",
+   "name": "Dresser with Trinkets",
+   "model": "kk/cabinet_medium_decorated",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 1300,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cabinet_small",
+   "name": "Little Cupboard",
+   "model": "kk/cabinet_small",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 500,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kk_cabinet_small_decorated",
+   "name": "Cupboard with Trinkets",
+   "model": "kk/cabinet_small_decorated",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 700,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_pillow_a",
+   "name": "Plump Cushion",
+   "model": "kk/pillow_a",
+   "cat": "living",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_pillow_b",
+   "name": "Striped Cushion",
+   "model": "kk/pillow_b",
+   "cat": "living",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_lamp_standing",
+   "name": "Country Floor Lamp",
+   "model": "kk/lamp_standing",
+   "cat": "lights",
+   "kind": "floor",
+   "price": 750,
+   "scale": 0.36,
+   "lamp": true
+  },
+  {
+   "id": "kk_lamp_table",
+   "name": "Country Table Lamp",
+   "model": "kk/lamp_table",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 450,
+   "scale": 0.36,
+   "lamp": true
+  },
+  {
+   "id": "kk_book_set",
+   "name": "Row of Books",
+   "model": "kk/book_set",
+   "cat": "study",
+   "kind": "surface",
+   "price": 200,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_book_single",
+   "name": "A Good Book",
+   "model": "kk/book_single",
+   "cat": "study",
+   "kind": "surface",
+   "price": 60,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_shelf_a_big",
+   "name": "Long Wall Shelf",
+   "model": "kk/shelf_a_big",
+   "cat": "study",
+   "kind": "wall",
+   "price": 500,
+   "scale": 0.36,
+   "wallY": 0.8,
+   "top": true
+  },
+  {
+   "id": "kk_shelf_a_small",
+   "name": "Wall Shelf",
+   "model": "kk/shelf_a_small",
+   "cat": "study",
+   "kind": "wall",
+   "price": 300,
+   "scale": 0.36,
+   "wallY": 0.8,
+   "top": true
+  },
+  {
+   "id": "kk_shelf_b_large",
+   "name": "Long Plank Shelf",
+   "model": "kk/shelf_b_large",
+   "cat": "study",
+   "kind": "wall",
+   "price": 450,
+   "scale": 0.36,
+   "wallY": 0.8,
+   "top": true
+  },
+  {
+   "id": "kk_shelf_b_small",
+   "name": "Plank Shelf",
+   "model": "kk/shelf_b_small",
+   "cat": "study",
+   "kind": "wall",
+   "price": 280,
+   "scale": 0.36,
+   "wallY": 0.8,
+   "top": true
+  },
+  {
+   "id": "kk_shelf_b_large_decorated",
+   "name": "Shelf of Odds and Ends",
+   "model": "kk/shelf_b_large_decorated",
+   "cat": "study",
+   "kind": "wall",
+   "price": 700,
+   "scale": 0.36,
+   "wallY": 0.8
+  },
+  {
+   "id": "kk_shelf_b_small_decorated",
+   "name": "Shelf of Keepsakes",
+   "model": "kk/shelf_b_small_decorated",
+   "cat": "study",
+   "kind": "wall",
+   "price": 500,
+   "scale": 0.36,
+   "wallY": 0.8
+  },
+  {
+   "id": "kk_pictureframe_large_a",
+   "name": "Tall Painting",
+   "model": "kk/pictureframe_large_a",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 900,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kk_pictureframe_large_b",
+   "name": "Landscape Painting",
+   "model": "kk/pictureframe_large_b",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1200,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kk_pictureframe_medium",
+   "name": "Portrait",
+   "model": "kk/pictureframe_medium",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 600,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kk_pictureframe_small_a",
+   "name": "Little Picture",
+   "model": "kk/pictureframe_small_a",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 300,
+   "scale": 0.36,
+   "wallY": 0.9
+  },
+  {
+   "id": "kk_pictureframe_small_b",
+   "name": "Wide Little Picture",
+   "model": "kk/pictureframe_small_b",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 300,
+   "scale": 0.36,
+   "wallY": 0.9
+  },
+  {
+   "id": "kk_pictureframe_small_c",
+   "name": "Square Little Picture",
+   "model": "kk/pictureframe_small_c",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 300,
+   "scale": 0.36,
+   "wallY": 0.9
+  },
+  {
+   "id": "kk_pictureframe_standing_a",
+   "name": "Standing Photo",
+   "model": "kk/pictureframe_standing_a",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 250,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_pictureframe_standing_b",
+   "name": "Wide Standing Photo",
+   "model": "kk/pictureframe_standing_b",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 250,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_oval_a",
+   "name": "Oval Rag Rug",
+   "model": "kk/rug_oval_a",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 600,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_oval_b",
+   "name": "Oval Braided Rug",
+   "model": "kk/rug_oval_b",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 600,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_rectangle_a",
+   "name": "Woven Rug",
+   "model": "kk/rug_rectangle_a",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 650,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_rectangle_b",
+   "name": "Kilim Rug",
+   "model": "kk/rug_rectangle_b",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 650,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_rectangle_stripes_a",
+   "name": "Striped Rug",
+   "model": "kk/rug_rectangle_stripes_a",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 650,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_rug_rectangle_stripes_b",
+   "name": "Wide Striped Rug",
+   "model": "kk/rug_rectangle_stripes_b",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 650,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cactus_medium_a",
+   "name": "Cactus Pot",
+   "model": "kk/cactus_medium_a",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cactus_medium_b",
+   "name": "Prickly Pear Pot",
+   "model": "kk/cactus_medium_b",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cactus_small_a",
+   "name": "Tiny Cactus",
+   "model": "kk/cactus_small_a",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150,
+   "scale": 0.36
+  },
+  {
+   "id": "kk_cactus_small_b",
+   "name": "Tiny Succulent",
+   "model": "kk/cactus_small_b",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_kitchencounter_straight_a_backsplash",
+   "name": "Tiled Counter",
+   "model": "kr/kitchencounter_straight_a_backsplash",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 900,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchencounter_straight_b_backsplash",
+   "name": "Tiled Counter with Drawers",
+   "model": "kr/kitchencounter_straight_b_backsplash",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 950,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchencounter_straight_decorated",
+   "name": "Counter with Utensils",
+   "model": "kr/kitchencounter_straight_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_kitchencounter_innercorner_backsplash",
+   "name": "Tiled Inner Corner",
+   "model": "kr/kitchencounter_innercorner_backsplash",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 950,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchencounter_outercorner_backsplash",
+   "name": "Tiled Outer Corner",
+   "model": "kr/kitchencounter_outercorner_backsplash",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 950,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchencounter_sink_backsplash",
+   "name": "Butler Sink",
+   "model": "kr/kitchencounter_sink_backsplash",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1300,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_kitchentable_a",
+   "name": "Work Table",
+   "model": "kr/kitchentable_a",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 800,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchentable_a_large",
+   "name": "Long Work Table",
+   "model": "kr/kitchentable_a_large",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchentable_a_large_decorated",
+   "name": "Busy Work Table",
+   "model": "kr/kitchentable_a_large_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1400,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_kitchentable_b",
+   "name": "Butcher Block",
+   "model": "kr/kitchentable_b",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 850,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchentable_b_large",
+   "name": "Long Butcher Block",
+   "model": "kr/kitchentable_b_large",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1150,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_kitchentable_sink",
+   "name": "Scullery Sink",
+   "model": "kr/kitchentable_sink",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1200,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_stove_single",
+   "name": "Range Cooker",
+   "model": "kr/stove_single",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1700,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_stove_multi",
+   "name": "Big Range Cooker",
+   "model": "kr/stove_multi",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 2000,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_stove_multi_decorated",
+   "name": "Range with Pans",
+   "model": "kr/stove_multi_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 2300,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_oven",
+   "name": "Bread Oven",
+   "model": "kr/oven",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 2100,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_fridge_a",
+   "name": "Larder Fridge",
+   "model": "kr/fridge_a",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1600,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_fridge_a_decorated",
+   "name": "Fridge with Magnets",
+   "model": "kr/fridge_a_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1700,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_fridge_b",
+   "name": "Tall Larder",
+   "model": "kr/fridge_b",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1700,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_kitchencabinet",
+   "name": "Country Wall Cupboard",
+   "model": "kr/kitchencabinet",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 750,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kr_kitchencabinet_half",
+   "name": "Little Wall Cupboard",
+   "model": "kr/kitchencabinet_half",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 550,
+   "scale": 0.36,
+   "wallY": 1.0
+  },
+  {
+   "id": "kr_kitchencabinet_corner",
+   "name": "Corner Wall Cupboard",
+   "model": "kr/kitchencabinet_corner",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 650,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kr_extractorhood",
+   "name": "Chimney Hood",
+   "model": "kr/extractorhood",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 900,
+   "scale": 0.36,
+   "wallY": 0.85
+  },
+  {
+   "id": "kr_towelrail",
+   "name": "Towel Rail",
+   "model": "kr/towelrail",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 250,
+   "scale": 0.36,
+   "wallY": 0.6
+  },
+  {
+   "id": "kr_shelf_papertowel_decorated",
+   "name": "Spice Shelf",
+   "model": "kr/shelf_papertowel_decorated",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 450,
+   "scale": 0.36,
+   "wallY": 0.8
+  },
+  {
+   "id": "kr_table_round_a",
+   "name": "Round Kitchen Table",
+   "model": "kr/table_round_a",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_table_round_a_decorated",
+   "name": "Set Kitchen Table",
+   "model": "kr/table_round_a_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1500,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_table_round_a_small",
+   "name": "Little Round Table",
+   "model": "kr/table_round_a_small",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 600,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_table_round_b",
+   "name": "Round Pedestal Table",
+   "model": "kr/table_round_b",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1100,
+   "scale": 0.36,
+   "top": true
+  },
+  {
+   "id": "kr_chair_a",
+   "name": "Bistro Chair",
+   "model": "kr/chair_a",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_chair_b",
+   "name": "Cafe Chair",
+   "model": "kr/chair_b",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_cuttingboard",
+   "name": "Chopping Board",
+   "model": "kr/cuttingboard",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_pot_a_stew",
+   "name": "Pot of Stew",
+   "model": "kr/pot_a_stew",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 250,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_pot_b",
+   "name": "Stock Pot",
+   "model": "kr/pot_b",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 200,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_pan_a",
+   "name": "Frying Pan",
+   "model": "kr/pan_a",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 150,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_stew_pot",
+   "name": "Little Saucepan",
+   "model": "kr/stew_pot",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_bowl",
+   "name": "Bowl",
+   "model": "kr/bowl",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 60,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_plate",
+   "name": "Plate",
+   "model": "kr/plate",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 40,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_food_stew",
+   "name": "Bowl of Stew",
+   "model": "kr/food_stew",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 100,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_food_dinner",
+   "name": "Sunday Dinner",
+   "model": "kr/food_dinner",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_jar_a_large",
+   "name": "Storage Jar",
+   "model": "kr/jar_a_large",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_jar_b_medium",
+   "name": "Preserve Jar",
+   "model": "kr/jar_b_medium",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 100,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_jar_c_small",
+   "name": "Little Jar",
+   "model": "kr/jar_c_small",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 80,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_jar_d_large",
+   "name": "Tall Jar",
+   "model": "kr/jar_d_large",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 120,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_menu",
+   "name": "Recipe Card",
+   "model": "kr/menu",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 60,
+   "scale": 0.36
+  },
+  {
+   "id": "kr_dishrack_plates",
+   "name": "Plate Rack",
+   "model": "kr/dishrack_plates",
+   "cat": "kitchen",
+   "kind": "surface",
+   "price": 300,
+   "scale": 0.36
+  },
+  {
+   "id": "proc_window",
+   "name": "Cottage Window",
+   "model": "proc:window",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1200,
+   "icon": "window",
+   "wallY": 0.55
+  },
+  {
+   "id": "proc_window_tall",
+   "name": "Tall Window",
+   "model": "proc:window_tall",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1400,
+   "icon": "window",
+   "wallY": 0.35
+  },
+  {
+   "id": "proc_window_wide",
+   "name": "Picture Window",
+   "model": "proc:window_wide",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 2000,
+   "icon": "window",
+   "wallY": 0.5
+  },
+  {
+   "id": "proc_window_round",
+   "name": "Round Window",
+   "model": "proc:window_round",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1100,
+   "icon": "window",
+   "wallY": 0.6
+  },
+  {
+   "id": "proc_curtains",
+   "name": "Long Curtains",
+   "model": "proc:curtains",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 700,
+   "icon": "window",
+   "wallY": 0.3
+  },
+  {
+   "id": "proc_curtains_short",
+   "name": "Cafe Curtains",
+   "model": "proc:curtains_short",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 400,
+   "icon": "window",
+   "wallY": 0.62
+  },
+  {
+   "id": "proc_fireplace",
+   "name": "Fireplace",
+   "model": "proc:fireplace",
+   "cat": "living",
+   "kind": "floor",
+   "price": 4500,
+   "icon": "fire",
+   "top": true,
+   "lamp": true
+  },
+  {
+   "id": "proc_clock",
+   "name": "Wall Clock",
+   "model": "proc:clock",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 900,
+   "icon": "clock_mantel",
+   "wallY": 1.0
+  },
+  {
+   "id": "proc_frame_wall",
+   "name": "Picture Frame",
+   "model": "proc:frame_wall",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 500,
+   "icon": "framed",
+   "wallY": 0.8,
+   "picture": [
+    0.36,
+    0.28,
+    0.19
+   ]
+  },
+  {
+   "id": "proc_frame_big",
+   "name": "Big Picture Frame",
+   "model": "proc:frame_big",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1200,
+   "icon": "framed",
+   "wallY": 0.55,
+   "picture": [
+    0.68,
+    0.5,
+    0.31
+   ]
+  },
+  {
+   "id": "proc_frame_stand",
+   "name": "Photo on a Stand",
+   "model": "proc:frame_stand",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 300,
+   "icon": "framed",
+   "picture": [
+    0.17,
+    0.21,
+    0.135,
+    -0.2
+   ]
+  },
+  {
+   "id": "proc_plaque",
+   "name": "Trophy Plaque",
+   "model": "proc:plaque",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 800,
+   "icon": "trophy",
+   "wallY": 0.85,
+   "picture": [
+    0.5,
+    0.25,
+    0.15
+   ]
+  },
+  {
+   "id": "proc_bookshelf",
+   "name": "Bookshelf",
+   "model": "proc:bookshelf",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1600,
+   "icon": "books",
+   "top": true
+  },
+  {
+   "id": "proc_candles",
+   "name": "Candlesticks",
+   "model": "proc:candles",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 350,
+   "icon": "candle",
+   "lamp": true
+  },
+  {
+   "id": "proc_vase",
+   "name": "Vase of Flowers",
+   "model": "proc:vase",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 300,
+   "icon": "blossom"
+  }
+ ]
+}

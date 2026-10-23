@@ -601,6 +601,41 @@ releases?.forEach((r, i) => {
   for (const t of ed.trips) if (!(t.hours > 0 && t.items > 0)) err(`expeditions: trip ${t.id} needs hours and items`);
   for (const v of Object.keys(ed.favour)) if (!vIds.includes(v)) err(`expeditions: favour for unknown villager ${v}`);
 }
+{
+  // 1.29 Home Sweet Home: rooms, sizes, patterns, the palette and every piece of furniture
+  const hm = read('home.json');
+  const fu = read('furniture.json').pieces;
+  const items = read('items.json').items, villagers = read('villagers.json').villagers;
+  const hex = /^#[0-9a-f]{6}$/;
+  const kinds = new Set(['floor', 'surface', 'wall', 'rug', 'ceiling']);
+  const cats = new Set(['living', 'bedroom', 'kitchen', 'bathroom', 'study', 'lights', 'rugs', 'plants', 'decor']);
+  const wallP = new Set(hm.wallPatterns.map((p) => p.id)), floorP = new Set(hm.floorPatterns.map((p) => p.id));
+  if (!(hm.level >= 1) || !(hm.wallHeight > 1) || !(hm.maxItems >= 20)) err('home: level, wallHeight or maxItems out of range');
+  hm.sizes.forEach((sz, i) => { if (!(sz.w >= 3 && sz.d >= 3)) err(`home size ${sz.id}: too small`); if (i && !(sz.w > hm.sizes[i - 1].w && sz.coins > hm.sizes[i - 1].coins)) err(`home size ${sz.id}: must be bigger and cost more than the one before`); });
+  let fh = 0;
+  for (const r of hm.rooms) {
+    if (!(r.fh >= fh)) err(`home room ${r.id}: rooms must open in Farmhouse level order`);
+    fh = r.fh;
+    if (icons && !icons[r.icon]) err(`home room ${r.id}: unknown icon ${r.icon}`);
+    if (!wallP.has(r.look.wall[0]) || !floorP.has(r.look.floor[0])) err(`home room ${r.id}: unknown pattern`);
+    for (const c of [r.look.wall[1], r.look.wall[2], r.look.floor[1], r.look.floor[2], r.look.trim, r.look.ceiling]) if (!hex.test(c)) err(`home room ${r.id}: colour ${c} must be #rrggbb`);
+  }
+  if (hm.rooms[0]?.fh !== 1) err('home: the first room must be open from Farmhouse level 1');
+  for (const c of hm.palette) if (!hex.test(c)) err(`home palette: ${c} must be #rrggbb`);
+  const ids = new Set();
+  for (const p of fu) {
+    if (ids.has(p.id)) err(`furniture ${p.id}: duplicate id`);
+    ids.add(p.id);
+    if (!kinds.has(p.kind)) err(`furniture ${p.id}: unknown kind ${p.kind}`);
+    if (!cats.has(p.cat)) err(`furniture ${p.id}: unknown category ${p.cat}`);
+    if (!(p.price > 0)) err(`furniture ${p.id}: needs a price`);
+    if (models && !p.model.startsWith('proc:') && !models[p.model]) err(`furniture ${p.id}: model ${p.model} is not in the asset manifest`);
+    if (p.kind === 'wall' && !(p.wallY >= 0 && p.wallY < hm.wallHeight)) err(`furniture ${p.id}: a wall piece needs wallY below the wall height`);
+    if (p.craft) for (const it of Object.keys(p.craft)) if (!items[it]) err(`furniture ${p.id}: craft needs unknown item ${it}`);
+    if (p.gift && !villagers.some((v) => v.id === p.gift)) err(`furniture ${p.id}: gift from unknown villager ${p.gift}`);
+  }
+  for (const k of Object.keys(hm.starter)) if (!ids.has(k)) err(`home starter: unknown piece ${k}`);
+}
 if (errors.length) {
   console.error(`data invalid:\n - ${errors.join('\n - ')}`);
   process.exit(1);

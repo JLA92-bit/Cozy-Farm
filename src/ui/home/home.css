@@ -1,0 +1,126 @@
+/* 1.29 Home Sweet Home: the home's banner, tool bars and the sheet that slides up */
+
+#ui-root.homing .toast-stack { top: calc(var(--safe-top) + 92px); }
+.home-door .icon { width: 30px; height: 30px; }
+.home-door { width: 44px; height: 44px; transform: translate(-50%, -100%); display: flex; align-items: center; justify-content: center; background: var(--cream); border: 3px solid var(--outline); border-radius: 50%; box-shadow: 0 3px 0 var(--outline); pointer-events: auto; cursor: pointer; }
+
+.hm-banner { max-width: 640px; }
+
+/* the bar of tools along the bottom */
+.hm-bar {
+  position: absolute; left: calc(var(--safe-left) + 6px); right: calc(var(--safe-right) + 6px); bottom: calc(var(--safe-bottom) + 6px); z-index: 42;
+  max-width: 760px; margin: 0 auto; display: flex; gap: 4px; padding: 5px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;
+  background: var(--cream); border: 3px solid var(--outline); border-radius: 18px; box-shadow: 0 4px 0 var(--outline);
+}
+.hm-bar::-webkit-scrollbar { display: none; }
+.btn.hm-tool {
+  flex: 1 0 auto; min-width: 54px; min-height: 52px; padding: 3px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  font-size: 12px; line-height: 1.05; border-radius: 12px; position: relative;
+}
+.btn.hm-tool .icon { width: 26px; height: 26px; }
+.btn.hm-tool.on { --c: var(--btn-yellow); --d: var(--btn-yellow-dark); }
+.btn.hm-tool.dim { filter: grayscale(.8) opacity(.6); }
+.btn.hm-tool.done { --c: var(--btn-green); --d: var(--btn-green-dark); }
+.btn.hm-tool[data-count]::after {
+  content: attr(data-count); position: absolute; top: -4px; right: -2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
+  background: var(--btn-red); color: #fff; font-size: 11px; line-height: 18px; border: 2px solid var(--outline);
+}
+.hm-tool-label { white-space: nowrap; }
+.hm-sep { flex: 0 0 2px; background: rgba(0, 0, 0, .12); margin: 6px 2px; border-radius: 2px; }
+
+/* the piece in your hands */
+.hm-piece {
+  position: absolute; left: calc(var(--safe-left) + 6px); right: calc(var(--safe-right) + 6px); bottom: calc(var(--safe-bottom) + 80px); z-index: 43;
+  max-width: 760px; margin: 0 auto; padding: 6px 6px 6px 10px; display: none; flex-direction: column; gap: 4px;
+  background: #fff3c4; border: 3px solid var(--outline); border-radius: 16px; box-shadow: 0 4px 0 var(--outline);
+}
+.hm-piece.show { display: flex; animation: hm-up .25s cubic-bezier(.34, 1.6, .6, 1) both; }
+.hm-piece-name { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; min-width: 0; }
+.hm-piece-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-piece-icon { width: 30px; height: 30px; }
+.hm-piece-tools { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
+.hm-piece-tools::-webkit-scrollbar { display: none; }
+@keyframes hm-up { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* the sheet: storage, paint, colours, rooms, looks */
+.hm-sheet {
+  position: absolute; left: calc(var(--safe-left) + 6px); right: calc(var(--safe-right) + 6px); bottom: calc(var(--safe-bottom) + 80px); z-index: 44;
+  max-width: 760px; margin: 0 auto; height: 42vh; display: none; flex-direction: column;
+  background: var(--cream); border: 3px solid var(--outline); border-radius: 18px; box-shadow: 0 4px 0 var(--outline);
+}
+.hm-sheet.show { display: flex; animation: hm-up .25s cubic-bezier(.34, 1.6, .6, 1) both; }
+#ui-root.homing .hm-piece.show ~ .hm-bar { }
+.hm-sheet.show ~ .hm-piece.show { bottom: calc(var(--safe-bottom) + 80px + 42vh + 6px); }
+.hm-sheet-head { display: flex; align-items: center; gap: 8px; padding: 6px 6px 4px 12px; border-bottom: 2px solid var(--cream-2); }
+.hm-sheet-title { flex: 1; font-family: var(--font-display); font-size: 18px; color: #fff; -webkit-text-stroke: 1.5px var(--outline); paint-order: stroke fill; }
+.btn.hm-close { min-height: 34px; min-width: 34px; padding: 0 8px; }
+.hm-sheet-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 10px 12px; touch-action: pan-y; overscroll-behavior: contain; }
+
+/* in landscape the sheet sits at the side, so the room stays in view */
+@media (orientation: landscape) and (max-height: 560px) {
+  .hm-sheet { left: auto; right: calc(var(--safe-right) + 6px); top: calc(var(--safe-top) + 70px); bottom: calc(var(--safe-bottom) + 76px); width: min(46vw, 420px); height: auto; margin: 0; }
+  .hm-sheet.show ~ .hm-piece.show { bottom: calc(var(--safe-bottom) + 76px); right: calc(min(46vw, 420px) + 14px + var(--safe-right)); }
+  .hm-piece { bottom: calc(var(--safe-bottom) + 76px); }
+  .btn.hm-tool { min-height: 46px; }
+  .btn.hm-tool .icon { width: 22px; height: 22px; }
+}
+
+.hm-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; touch-action: pan-x; }
+.hm-chips::-webkit-scrollbar { display: none; }
+.hm-chip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 10px; border-radius: 18px;
+  border: 2px solid var(--outline); background: #fff; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer;
+}
+.hm-chip .icon { width: 18px; height: 18px; }
+.hm-chip.on { background: var(--btn-yellow); }
+.hm-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--outline); display: inline-block; }
+
+.hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.hm-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; min-height: 108px;
+  background: #fff; border: 2px solid var(--outline); border-radius: 14px; font: inherit; color: var(--ink); cursor: pointer; text-align: center;
+}
+.hm-card-img { width: 64px; height: 64px; object-fit: contain; }
+.hm-card-name { font-size: 12px; font-weight: 700; line-height: 1.1; }
+.hm-card-sub { font-size: 11px; color: var(--ink-soft); line-height: 1.1; }
+.hm-count { position: absolute; top: 4px; right: 6px; font-size: 13px; color: #fff; -webkit-text-stroke: 1.2px var(--outline); paint-order: stroke fill; font-family: var(--font-display); }
+.hm-cat { cursor: default; min-height: 160px; }
+.hm-cat.pick { background: #fff8d9; border-color: #c8962a; }
+.hm-sale { position: absolute; top: 4px; left: 6px; font-family: var(--font-display); font-size: 13px; color: #fff; background: var(--btn-red); border: 2px solid var(--outline); border-radius: 8px; padding: 0 4px; }
+.hm-card-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: auto; }
+.hm-cat-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+.hm-cat-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.hm-empty { padding: 18px 8px; text-align: center; color: var(--ink-soft); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.hm-hint { font-size: 13px; color: var(--ink-soft); margin: 2px 0 8px; }
+.hm-label { font-weight: 700; font-size: 14px; margin: 8px 0 4px; }
+.hm-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.hm-row .hm-label { margin: 0; }
+.hm-buttons { margin-top: 8px; }
+.hm-input { flex: 1 1 140px; min-height: 40px; padding: 4px 10px; border: 2px solid var(--outline); border-radius: 12px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); min-width: 0; }
+.hm-search { flex: none; width: 100%; }
+.hm-range { flex: 1 1 140px; accent-color: var(--btn-green); }
+.hm-switch { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; min-height: 40px; }
+.hm-switch input { width: 22px; height: 22px; accent-color: var(--btn-green); }
+
+.hm-patterns { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; }
+.hm-pattern { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; background: #fff; border: 2px solid var(--outline); border-radius: 12px; font: inherit; font-size: 11px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.hm-pattern img { width: 56px; height: 56px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, .2); image-rendering: auto; }
+.hm-pattern.on { background: var(--btn-yellow); box-shadow: 0 0 0 3px #fff3c4 inset; }
+
+.hm-palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 5px; }
+.hm-swatch { position: relative; aspect-ratio: 1; min-height: 34px; border-radius: 10px; border: 2px solid var(--outline); cursor: pointer; padding: 0; }
+.hm-swatch.on { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--outline); z-index: 1; }
+.hm-any { display: flex; align-items: center; justify-content: center; background: conic-gradient(#f25f5c, #ffc93c, #6cc644, #3fa9f5, #a77bf3, #f25f5c); overflow: hidden; }
+.hm-any .icon { width: 20px; height: 20px; pointer-events: none; }
+.hm-custom { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+
+.hm-rooms { display: flex; flex-wrap: wrap; gap: 6px; }
+.hm-room { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 4px 12px; background: #fff; border: 2px solid var(--outline); border-radius: 14px; font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; }
+.hm-room .icon { width: 24px; height: 24px; }
+.hm-room.on { background: var(--btn-yellow); }
+.hm-room.locked { opacity: .7; cursor: default; font-weight: 600; }
+.hm-look { padding: 8px; margin-bottom: 8px; }
+.hm-slot { font-family: var(--font-display); font-size: 20px; color: #fff; -webkit-text-stroke: 1.5px var(--outline); paint-order: stroke fill; width: 24px; text-align: center; }
+
+.hm-card.hm-pic { min-height: 96px; }
+.hm-card.hm-pic.on { background: var(--btn-yellow); }

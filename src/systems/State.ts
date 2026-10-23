@@ -178,6 +178,8 @@ export interface SaveData {
     today?: { day: string; planted: number; fed: number; queued: number; wages: number };
   };
   mastery?: { done: string[]; /** 1.25 the line picked for each mastered crop or workshop (entry id -> line id) */ picks?: Record<string, string> };
+  /** 1.29 Home Sweet Home: inside the Farmhouse (src/systems/Home.ts) */
+  home?: HomeState;
 }
 
 /** 1.9 The Wild Woods (src/systems/Woods.ts). */
@@ -335,3 +337,56 @@ export interface NeighbourState {
 }
 
 export const SAVE_VERSION = 1;
+
+/** 1.29 Home Sweet Home (src/systems/Home.ts). */
+export type WallStyle = [pattern: string, colour: string, colour2: string];
+export interface HomeItem {
+  /** unique id within the home */
+  u: number;
+  /** piece id (furniture.json) */
+  f: string;
+  /** floor pieces: centre in room metres (0,0 = middle); wall pieces: x along the wall from its middle */
+  x: number;
+  z: number;
+  /** height of the base above the floor (wall pieces, and pieces standing on another) */
+  y?: number;
+  /** quarter turns */
+  r: number;
+  /** wall pieces: which wall (0 north, 1 east, 2 south, 3 west) */
+  w?: number;
+  /** the piece this one stands on */
+  on?: number;
+  /** colour per part (Kenney material name, or "tint" for one-finish pieces) */
+  c?: Record<string, string>;
+  /** a lamp switched off (lamps are on by default) */
+  off?: boolean;
+  /** what a display piece shows: an item id or a wildlife photo (wild:<species>) */
+  show?: string;
+}
+export interface HomeLook { name: string; walls: [WallStyle, WallStyle, WallStyle, WallStyle]; floor: WallStyle; trim: string; ceiling: string; beams?: boolean; wainscot?: HomeRoom['wainscot']; curtains?: string; items: HomeItem[] }
+export interface HomeRoom {
+  /** index into home.json sizes */
+  size: number;
+  name?: string;
+  walls: [WallStyle, WallStyle, WallStyle, WallStyle];
+  /** lower half of every wall: its own pattern and colours, and how high (0-1 of the wall) */
+  wainscot?: { p: string; a: string; b: string; h: number };
+  floor: WallStyle;
+  trim: string;
+  ceiling: string;
+  beams?: boolean;
+  items: HomeItem[];
+  /** three saved looks */
+  looks?: (HomeLook | null)[];
+}
+export interface HomeState {
+  rooms: Record<string, HomeRoom>;
+  /** pieces not placed anywhere */
+  storage: Record<string, number>;
+  /** pieces bought once: always in the catalogue to buy again */
+  known: string[];
+  /** next item uid */
+  uid: number;
+  /** the room shown last */
+  last?: string;
+}

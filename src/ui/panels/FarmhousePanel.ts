@@ -2,7 +2,8 @@ import { Panel } from '../Panel';
 import { farmhands } from '../../systems/Farmhands';
 import { h, icon, button, priceTag, clear, fmt } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, FARMHOUSE } from '../../data';
+import { BUILDING, FARMHOUSE, HOME } from '../../data';
+import { homeUnlocked, openRooms } from '../../systems/Home';
 import { game } from '../../systems/Game';
 import { buildings, speedupCost } from '../../systems/Buildings';
 import { upkeep } from '../../systems/Upkeep';
@@ -60,6 +61,12 @@ export function openFarmhouse(): void {
           render();
         }, `small ${game.coins >= Math.min(...[...plan.treat, ...plan.repair].map((x) => x.cost)) ? 'yellow' : 'disabled'}`)));
     }
+
+    // 1.29 inside the Farmhouse
+    p.body.append(h('div', { class: 'card' },
+      h('div', { class: 'title' }, icon('door'), ' Inside your home'),
+      h('div', { class: 'sub' }, homeUnlocked() ? `${openRooms().length} ${openRooms().length === 1 ? 'room' : 'rooms'} to furnish and decorate just as you like. Each Farmhouse level opens another.` : `Opens at level ${HOME.level}: rooms to furnish and decorate just as you like.`),
+      homeUnlocked() ? button([icon('door'), ' Go inside'], () => { p.close(); ui.open('home'); }, 'small green') : null));
 
     // 1.25 farmhands: a card to hire and task them
     if (farmhands.isOpen()) {
