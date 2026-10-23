@@ -513,23 +513,32 @@ function guestBanner(name: string, rooms: Record<string, unknown>): HTMLElement 
 
 function guestRoomName(id: string): string { return view?.source?.rooms[id]?.name || HOME_ROOM[id]?.name || 'Room'; }
 
+let switchingRoom = false;
 async function guestRoom(id: string): Promise<void> {
-  if (!guest || !view || !life) return;
-  for (const m of guest.mugs) view.group.remove(m);
-  guest.mugs = [];
-  await view.show(id);
-  frameRoom();
-  view.setAzimuth(ctx!.scene.rig.azimuth);
-  const host = guest.host;
-  life.extras = [];
-  await life.start(game.state.player.look, false);
-  if (host) {
-    guest.host = await HomeChar.create(host.char.look, view.group, 'host');
-    const spot = life.nav.nearestFree(0.3, -0.3) ?? [0, 0];
-    guest.host.placeAt(spot[0], spot[1]);
-    life.extras.push(guest.host);
-  }
-  for (const b of guest.banner.querySelectorAll<HTMLElement>('.hm-guest-rooms .hm-chip')) b.classList.toggle('on', b.textContent === guestRoomName(id));
+  if (!guest || !view || !life || switchingRoom || id === view.roomId) return;
+  switchingRoom = true;
+  try {
+    for (const m of guest.mugs) view.group.remove(m);
+    guest.mugs = [];
+    await view.show(id);
+    frameRoom();
+    view.setAzimuth(ctx!.scene.rig.azimuth);
+    const look = guest.host?.char.look;
+    // start() clears out everyone in the room, their farmer included (1.30.2: clearing the list first left the old
+    // one standing, so a friend's farmer showed twice after changing rooms)
+    guest.host = null;
+    await life.start(game.state.player.look, false);
+    const host = look && view ? await HomeChar.create(look, view.group, 'host') : null;
+    // left while their farmer was being drawn
+    if (host && (!guest || !life)) host.dispose();
+    else if (host && guest && life) {
+      guest.host = host;
+      const spot = life.nav.nearestFree(0.3, -0.3) ?? [0, 0];
+      host.placeAt(spot[0], spot[1]);
+      life.extras.push(host);
+    }
+    if (guest) for (const b of guest.banner.querySelectorAll<HTMLElement>('.hm-guest-rooms .hm-chip')) b.classList.toggle('on', b.textContent === guestRoomName(id));
+  } finally { switchingRoom = false; }
 }
 
 /** Sit down together (the two seats closest to each other), a mug each on the nearest table, and tell the server. */

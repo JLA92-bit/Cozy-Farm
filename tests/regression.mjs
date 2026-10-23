@@ -953,6 +953,34 @@ try {
     check('furniture in the home adds charm (no cap)', sized.c0 === 0 && sized.c1 === 3 && sized.many === Math.floor(400 * 2800 / 300), JSON.stringify(sized));
     check('furniture built in code shows a real preview', sized.previews === 6, JSON.stringify(sized));
     check('a saved size is kept within limits', !sized.rs || (sized.rs[0] === 1.5 && sized.rs[1] === 1), JSON.stringify(sized));
+    // 1.30.2 in a friend's home their farmer is there once, also after changing rooms (it used to be added again
+    // each time without the old one going)
+    const bot = await page.evaluate(async () => {
+      const H = window.__home;
+      await H.leave();
+      const db = JSON.parse(localStorage.getItem('cozy-acres-online-local') || 'null');
+      const b = db?.profiles?.find((p) => p.bot);
+      if (!b) return null;
+      const lr = JSON.parse(JSON.stringify(window.__game.state.home.rooms.living));
+      localStorage.setItem('cozy-acres-online-farms-home-' + b.id, JSON.stringify({ v: 1, name: b.name, rooms: { living: lr, bedroom: lr } }));
+      return { id: b.id, name: b.name };
+    });
+    if (bot) {
+      await page.evaluate((b) => window.__visit.visit(b), bot);
+      await page.waitForFunction(() => window.__visit.active && !window.__visit.busy, null, { timeout: 60000 });
+      await page.waitForTimeout(1500);
+      await page.evaluate(() => document.querySelector('.visit-inside')?.click());
+      await page.waitForFunction(() => document.querySelector('.hm-guest-rooms'), null, { timeout: 30000 }).catch(() => {});
+      await page.waitForTimeout(2000);
+      const people = () => page.evaluate(() => { const g = window.__home.view?.group; let n = 0; for (const c of g?.children ?? []) { let sk = false; c.traverse((o) => { if (o.isSkinnedMesh) sk = true; }); if (sk) n++; } return n; });
+      const counts = [await people()];
+      for (const room of ['Bedroom', 'Living Room']) {
+        await page.evaluate((r) => [...document.querySelectorAll('.hm-guest-rooms .hm-chip')].find((b) => b.textContent === r)?.click(), room);
+        await page.waitForTimeout(3000);
+        counts.push(await people());
+      }
+      check("a friend's farmer is in their home once, also after changing rooms", counts.every((n) => n === 2), JSON.stringify(counts));
+    } else check("a friend's farmer is in their home once, also after changing rooms", false, 'no practice neighbour to visit');
   }
 
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back
