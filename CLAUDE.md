@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 23 October 2026 (game version 1.30.1 committed locally; 1.30.0 and everything before it pushed and live, deploy run 64). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
+Last updated: 23 October 2026 (game version 1.30.2 committed locally; 1.30.1 and everything before it pushed and live, deploy run 65). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.30.1** (local). Live: 1.30.0 "Come On In" (deploy run 64, needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.30.2** (local). Live: 1.30.1 (deploy run 65) on 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
@@ -24,7 +24,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.30.1 (local, 23 Oct):** the home opens at level 15 (`home.json` `level`, was 30). Game only.
+**1.30.2 (local, 23 Oct):** home charm, `Timers.homeCharm` (each placed piece price / `home.json` `charm.coinsPer` 300, no cap; added in `farmCharm`, so HUD, bonuses, leaderboard and visits). Piece size `HomeItem.s` (0.5-1.5, `SCALE_*` in `systems/Home.ts`; `matrixFor` scales, clamps take `k`, `HomeView.fits`, `controls.resize`, riders carried). Decorate hides people (`HomeLife.setHidden`; mode remembered in localStorage `cozy-acres-home-mode`). Pieces built in code get real catalogue previews (`piece:<id>` thumbs in `Thumbs.ts`). 97 regression checks.
+
+**1.30.1 (pushed 23 Oct, deploy run 65):** the home opens at level 15 (`home.json` `level`, was 30). Game only.
 
 **1.30.0 (pushed 23 Oct, deploy run 64): Come On In.** Patterned rugs (`patterned` pieces, item `pat`, `HomeView.addRugTop`). People: `world/home/HomePeople.ts` (`HomeNav` 0.2 m grid round floor pieces, A*, seats from `seat` pieces; `HomeChar` walk/sit/settle), `scenes/HomeLife.ts` (farmer, villagers dropping in), Relax/Decorate switch. Friends: server section `1.30 home visits and coffee` (`home_snapshots`, `publish_home`, `home_coffee`, `coffee_visit`, `my_coffee_visits`; tested on local PG16), `online/HomeShare.ts` (snapshot, `sanitizeHome` via `repairHome`, publish every 5 min and on leaving, coffee poll every 10 min sends a letter), backends `publishHome/getHome/coffeeVisit/myCoffeeVisits`, `HomeView.source` (a friend's home, read only), `enterGuestHome` from the visit banner (`visitBannerHooks`, `visitEndHooks`, `visitedFarm` in Visit.ts). Privacy page and data-safety.md updated. **Needs `schema.sql` re-run and the Play Data safety form checked.** 92 regression checks.
 
@@ -269,6 +271,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-23: 1.30.1 pushed (deploy run 65); 1.30.2 (local): furniture adds charm (no cap), make pieces smaller or bigger, people hidden while decorating, real previews for pieces built in code.
 - 2026-10-23: 1.30.0 pushed (deploy run 64); 1.30.1 (local): the home opens at level 15 instead of 30.
 - 2026-10-23: 1.29.2 pushed (deploy run 63); 1.30.0 (local): patterned rugs, your farmer and villagers in the home, friends step inside and come over for coffee (server change).
 - 2026-10-23: 1.29.1 pushed (deploy run 62); 1.29.2 (local): books and small things go on wall shelves and inside bookcases, and ride with a moved shelf.
@@ -278,4 +281,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-21: handover written (`HANDOVER-2026-10-21.md`); 1.28.5 live and schema.sql run by the owner.
 - 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).
 - 2026-10-17: admin player deep dive: tabbed player page (farm, barn, progress, stats, activity, social, support, raw), letters and notifications to one player, richer player list.
-- 2026-10-17: 1.28.4: the Halloween look removed altogether (owner: a failed trial).

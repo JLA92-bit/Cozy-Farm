@@ -147,7 +147,7 @@ class Home {
    * Move a piece (and whatever stands on it, which keeps its place on top). `remember` false while dragging, so a
    * whole drag is one undo step (the drag start remembers).
    */
-  move(roomId: string, uid: number, to: { x: number; z: number; y?: number; r?: number; w?: number; on?: number | null }, remember = true, carry = true): boolean {
+  move(roomId: string, uid: number, to: { x: number; z: number; y?: number; r?: number; w?: number; on?: number | null; s?: number }, remember = true, carry = true): boolean {
     const r = this.state.rooms[roomId];
     const it = r?.items.find((i) => i.u === uid);
     if (!r || !it) return false;
@@ -169,6 +169,7 @@ class Home {
     if (to.r !== undefined) it.r = ((to.r % 4) + 4) % 4;
     if (to.w !== undefined) it.w = to.w;
     if (to.on === null) delete it.on; else if (to.on !== undefined) it.on = to.on;
+    if (to.s !== undefined) { const k = clampScale(to.s); if (k === 1) delete it.s; else it.s = k; }
     this.changed(roomId);
     return true;
   }
@@ -209,6 +210,7 @@ class Home {
     if (this.stored(it.f) <= 0 && !this.buy(it.f)) return null;
     const copy = this.place(roomId, it.f, { ...at, r: at.r ?? it.r, w: at.w ?? it.w }, it.c);
     if (copy && it.off) copy.off = true;
+    if (copy && it.s) copy.s = it.s;
     return copy;
   }
 
@@ -538,6 +540,8 @@ export function repairHome(v: unknown): HomeState | undefined {
       if (x.off === true) it.off = true;
       if (typeof x.show === 'string' && x.show.length <= 40) it.show = x.show;
       if (typeof x.pat === 'string' && validPattern(x.pat)) it.pat = x.pat;
+      const k = clampScale(num(x.s, 1));
+      if (k !== 1) it.s = k;
       out.push(it);
     }
     // a piece standing on one that is gone drops to the floor
@@ -573,6 +577,15 @@ export function repairHome(v: unknown): HomeState | undefined {
   if (Array.isArray(v.gifts)) out.gifts = [...new Set(v.gifts.filter((k): k is string => typeof k === 'string' && !!PIECE[k]?.gift))];
   if (typeof v.last === 'string' && HOME_ROOM[v.last]) out.last = v.last;
   return out;
+}
+
+/** 1.30.2 how far a piece can be made smaller or bigger, and the step the buttons take. */
+export const SCALE_MIN = 0.5;
+export const SCALE_MAX = 1.5;
+export const SCALE_STEP = 0.1;
+export function clampScale(k: number): number {
+  if (!Number.isFinite(k)) return 1;
+  return Math.round(Math.min(SCALE_MAX, Math.max(SCALE_MIN, k)) * 20) / 20;
 }
 
 /** A rug pattern id: "floor:<id>" or "wall:<id>" from home.json. */

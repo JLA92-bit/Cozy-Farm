@@ -364,6 +364,8 @@ export interface HomeItem {
   show?: string;
   /** 1.30 a patterned rug's pattern: "floor:<id>" or "wall:<id>" (its two colours are c.a and c.b) */
   pat?: string;
+  /** 1.30.2 the piece's own size (1 or missing is as made; SCALE_MIN to SCALE_MAX in systems/Home.ts) */
+  s?: number;
 }
 export interface HomeLook { name: string; walls: [WallStyle, WallStyle, WallStyle, WallStyle]; floor: WallStyle; trim: string; ceiling: string; beams?: boolean; wainscot?: HomeRoom['wainscot']; curtains?: string; items: HomeItem[] }
 export interface HomeRoom {

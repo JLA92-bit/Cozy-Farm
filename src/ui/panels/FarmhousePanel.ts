@@ -8,7 +8,7 @@ import { game } from '../../systems/Game';
 import { buildings, speedupCost } from '../../systems/Buildings';
 import { upkeep } from '../../systems/Upkeep';
 import { audio } from '../../systems/Audio';
-import { formatTime, isUpgrading } from '../../systems/Timers';
+import { formatTime, homeCharm, isUpgrading } from '../../systems/Timers';
 import {
   CAP_KEYS, CAP_NAMES, MAX_FARMHOUSE, capAt, farmhouseBuilding, farmhouseGains, gainText, type CapKey,
 } from '../../systems/Caps';
@@ -65,7 +65,7 @@ export function openFarmhouse(): void {
     // 1.29 inside the Farmhouse
     p.body.append(h('div', { class: 'card' },
       h('div', { class: 'title' }, icon('door'), ' Inside your home'),
-      h('div', { class: 'sub' }, homeUnlocked() ? `${openRooms().length} ${openRooms().length === 1 ? 'room' : 'rooms'} to furnish and decorate just as you like. Each Farmhouse level opens another.` : `Opens at level ${HOME.level}: rooms to furnish and decorate just as you like.`),
+      h('div', { class: 'sub' }, homeUnlocked() ? `${openRooms().length} ${openRooms().length === 1 ? 'room' : 'rooms'} to furnish and decorate just as you like. Each Farmhouse level opens another. Your furniture adds ${homeCharm(game.state.home)} charm.` : `Opens at level ${HOME.level}: rooms to furnish and decorate just as you like, and the furniture adds charm.`),
       homeUnlocked() ? button([icon('door'), ' Go inside'], () => { p.close(); ui.open('home'); }, 'small green') : null));
 
     // 1.25 farmhands: a card to hire and task them

@@ -216,7 +216,7 @@ export class HomeView {
     for (const it of this.room?.items ?? []) {
       const def = PIECE[it.f];
       if (this.source || !def || it.w !== undefined || it.on !== undefined || !pieceGeoNow(it.f)) continue;
-      const c = this.clampFloor(it.f, it.r, it.x, it.z);
+      const c = this.clampFloor(it.f, it.r, it.x, it.z, it.s);
       // riders move with it (no undo step: this only tidies up)
       if (Math.abs(c.x - it.x) > 0.0005 || Math.abs(c.z - it.z) > 0.0005) home.move(this.roomId, it.u, { x: c.x, z: c.z, y: it.y }, false);
     }
@@ -323,9 +323,10 @@ export class HomeView {
     const geo = pieceGeoNow(it.f);
     const m = new THREE.Matrix4();
     if (!def || !geo) return m;
-    const pos = this.positionOf(it, def, geo.size);
+    const k = it.s ?? 1;
+    const pos = this.positionOf(it, def, geo.size.clone().multiplyScalar(k));
     const rot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.yawOf(it, def));
-    return m.compose(pos, rot, new THREE.Vector3(1, 1, 1));
+    return m.compose(pos, rot, new THREE.Vector3(k, k, k));
   }
 
   yawOf(it: HomeItem, def: PieceDef): number {
@@ -350,17 +351,17 @@ export class HomeView {
     return new THREE.Vector3(it.x, it.y ?? 0, it.z);
   }
 
-  /** Half size on the floor after quarter turns. */
-  footprint(piece: string, r: number): { hx: number; hz: number } {
+  /** Half size on the floor after quarter turns (`k` is the piece's own scale). */
+  footprint(piece: string, r: number, k = 1): { hx: number; hz: number } {
     const s = pieceGeoNow(piece)?.size;
-    if (!s) return { hx: 0.25, hz: 0.25 };
-    return r % 2 ? { hx: s.z / 2, hz: s.x / 2 } : { hx: s.x / 2, hz: s.z / 2 };
+    if (!s) return { hx: 0.25 * k, hz: 0.25 * k };
+    return r % 2 ? { hx: s.z * k / 2, hz: s.x * k / 2 } : { hx: s.x * k / 2, hz: s.z * k / 2 };
   }
 
   /** Keep a floor position inside the room for a piece. */
-  clampFloor(piece: string, r: number, x: number, z: number): { x: number; z: number } {
+  clampFloor(piece: string, r: number, x: number, z: number, k = 1): { x: number; z: number } {
     const { w, d } = this.dims;
-    const { hx, hz } = this.footprint(piece, r);
+    const { hx, hz } = this.footprint(piece, r, k);
     return { x: THREE.MathUtils.clamp(x, -w / 2 + hx, w / 2 - hx), z: THREE.MathUtils.clamp(z, -d / 2 + hz, d / 2 - hz) };
   }
 
@@ -403,7 +404,7 @@ export class HomeView {
       const box = this.worldBox(it);
       if (!geo || !box) continue;
       for (const lv of geo.levels) {
-        const y = box.min.y + lv;
+        const y = box.min.y + lv * (it.s ?? 1);
         plane.constant = -y;
         if (!local.intersectPlane(plane, hit)) continue;
         if (hit.x < box.min.x + 0.01 || hit.x > box.max.x - 0.01 || hit.z < box.min.z + 0.01 || hit.z > box.max.z - 0.01) continue;
@@ -418,8 +419,8 @@ export class HomeView {
   levelsOf(piece: string): number[] | undefined { return pieceGeoNow(piece)?.levels; }
 
   /** Keep a small piece on the surface it stands on (inside that piece's outline). */
-  clampOnto(piece: string, r: number, x: number, z: number, box: THREE.Box3): { x: number; z: number } {
-    const { hx, hz } = this.footprint(piece, r);
+  clampOnto(piece: string, r: number, x: number, z: number, box: THREE.Box3, k = 1): { x: number; z: number } {
+    const { hx, hz } = this.footprint(piece, r, k);
     const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2;
     const fx = Math.max(0, (box.max.x - box.min.x) / 2 - hx), fz = Math.max(0, (box.max.z - box.min.z) / 2 - hz);
     return { x: THREE.MathUtils.clamp(x, cx - fx, cx + fx), z: THREE.MathUtils.clamp(z, cz - fz, cz + fz) };
@@ -492,10 +493,20 @@ export class HomeView {
   }
 
   /** Keep a wall piece on its wall and below the top. */
-  clampWall(piece: string, w: number, x: number, y: number): { x: number; y: number } {
-    const s = pieceGeoNow(piece)?.size ?? new THREE.Vector3(0.4, 0.4, 0.1);
+  clampWall(piece: string, w: number, x: number, y: number, k = 1): { x: number; y: number } {
+    const s = (pieceGeoNow(piece)?.size ?? new THREE.Vector3(0.4, 0.4, 0.1)).clone().multiplyScalar(k);
     const half = (w % 2 === 0 ? this.dims.w : this.dims.d) / 2;
     return { x: THREE.MathUtils.clamp(x, -half + s.x / 2, half - s.x / 2), y: THREE.MathUtils.clamp(y, 0, HOME.wallHeight - s.y) };
+  }
+
+  /** Would a piece at this scale fit its room (floor pieces) or its wall (wall pieces)? */
+  fits(it: HomeItem, k: number): boolean {
+    const s = pieceGeoNow(it.f)?.size;
+    if (!s) return false;
+    const { w, d } = this.dims;
+    if (it.w !== undefined) return s.x * k <= (it.w % 2 === 0 ? w : d) && s.y * k <= HOME.wallHeight;
+    const { hx, hz } = this.footprint(it.f, it.r, k);
+    return hx * 2 <= w && hz * 2 <= d && s.y * k <= HOME.wallHeight;
   }
 
   // --------------------------------------------------------------------------------------------- selection

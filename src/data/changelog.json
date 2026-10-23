@@ -1,6 +1,31 @@
 {
  "releases": [
   {
+   "version": "1.30.2",
+   "date": "2026-10-23",
+   "title": "Room to Breathe",
+   "icon": "couch",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "couch",
+     "text": "Make any piece smaller or bigger: tap - or + by its name (50% to 150%), or the size to put it back as made"
+    },
+    {
+     "icon": "sparkle_heart",
+     "text": "Your furniture now adds charm to your farm: the more you furnish, the more charm"
+    },
+    {
+     "icon": "farmer",
+     "text": "In Decorate everyone steps out of sight so nobody is in your way; switch to Relax to see them again"
+    },
+    {
+     "icon": "framed",
+     "text": "Patterned rugs, windows, frames and handmade pieces now show a real preview in the catalogue"
+    }
+   ]
+  },
+  {
    "version": "1.30.1",
    "date": "2026-10-23",
    "title": "Come On In Sooner",

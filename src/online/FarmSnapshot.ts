@@ -98,7 +98,7 @@ export function fitSnapshot(s: FarmSnapshot): { snap: FarmSnapshot; dropped: num
 
 /** The public snapshot of a farm. Pure: reads `state` only, at time `now`. */
 export function farmSnapshot(state: SaveData, now: number = Date.now()): FarmSnapshot {
-  const charm = farmCharm(state.buildings, now);
+  const charm = farmCharm(state.buildings, now, state.home);
   const b: SnapBuilding[] = [];
   for (const pb of state.buildings) {
     const def = BUILDING[pb.type];

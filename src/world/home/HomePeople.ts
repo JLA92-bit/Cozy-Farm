@@ -137,12 +137,13 @@ export class HomeNav {
       if (!def?.seat || !geo || it.on !== undefined) continue;
       const yaw = (it.r * Math.PI) / 2;
       const fx = Math.sin(yaw), fz = Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
-      const seatY = geo.levels.find((l) => l >= 0.12 && l <= 0.6) ?? geo.size.y * 0.5;
-      const n = Math.max(1, Math.min(4, Math.floor(geo.size.x / 0.42)));
+      const sc = it.s ?? 1, size = geo.size.clone().multiplyScalar(sc);
+      const seatY = (geo.levels.find((l) => l >= 0.12 && l <= 0.6) ?? geo.size.y * 0.5) * sc;
+      const n = Math.max(1, Math.min(4, Math.floor(size.x / 0.42)));
       for (let k = 0; k < n; k++) {
-        const along = (k - (n - 1) / 2) * (geo.size.x / n);
-        const x = it.x + rx * along + fx * geo.size.z * 0.08, z = it.z + rz * along + fz * geo.size.z * 0.08;
-        out.push({ uid: it.u, slot: k, x, z, y: seatY, yaw, fx: x + fx * (geo.size.z / 2 + 0.22), fz: z + fz * (geo.size.z / 2 + 0.22) });
+        const along = (k - (n - 1) / 2) * (size.x / n);
+        const x = it.x + rx * along + fx * size.z * 0.08, z = it.z + rz * along + fz * size.z * 0.08;
+        out.push({ uid: it.u, slot: k, x, z, y: seatY, yaw, fx: x + fx * (size.z / 2 + 0.22), fz: z + fz * (size.z / 2 + 0.22) });
       }
     }
     return out;

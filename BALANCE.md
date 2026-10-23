@@ -831,8 +831,14 @@ Sized for a host and two or three friends to finish in a few days. One open proj
 
 ## 1.29 Home Sweet Home (`home.json`, `furniture.json`, `src/systems/Home.ts`)
 
-Inside the Farmhouse, from level 15 (level 30 until 1.30.1). Looks only: the home gives no XP, charm or score, so its prices are set for
-spending, not for return.
+Inside the Farmhouse, from level 15 (level 30 until 1.30.1). No XP or score; prices are set for spending, not for return.
+
+- **Charm (1.30.2):** every piece standing in a room adds its price / 300 in charm (`home.json` `charm`), no cap
+  (owner). That is the same rate as farm decor (about 300-350 coins a charm, e.g. the Market Fruit Cart), so the home
+  is no shortcut; 100 charm takes about 30,000 coins of furniture. Storage and saved looks do not count. Leaderboard:
+  the server takes up to 1,000 new charm at once and 400 an hour after, so a big home already furnished before the
+  update shows its full charm on the board within a few hours; only a jump over 3,000 at once (about 900,000 coins of
+  furniture placed) is held off the boards until a developer looks (dashboard Leaderboards page).
 
 - **Furniture:** 229 catalogue pieces from 40 to 4,500 coins (median 700). Buying one of everything once costs about
   200k coins, roughly 3-5 days of income at level 40+ (50-70k a day). Six pieces a day are 25% off; nothing is ever

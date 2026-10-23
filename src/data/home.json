@@ -4,6 +4,7 @@
  "wallHeight": 1.6,
  "maxItems": 120,
  "lookItems": 600,
+ "charm": { "_comment": "1.30.2 furnishing adds charm: every piece standing in a room (not in storage or a saved look) is worth its price / coinsPer, with no cap (owner). Same rate as farm decor.", "coinsPer": 300 },
  "sizes": [
   { "id": "cosy", "name": "Cosy", "w": 4, "d": 4, "coins": 0 },
   { "id": "roomy", "name": "Roomy", "w": 5.5, "d": 5.5, "coins": 15000 },

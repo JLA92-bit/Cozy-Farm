@@ -4,7 +4,9 @@ import { HOME, HOME_ROOM, PIECE, VILLAGER } from '../data';
 import { assets } from '../core/Assets';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { game } from '../systems/Game';
-import { home, homeUnlocked, roomOpen } from '../systems/Home';
+import { clampScale, home, homeUnlocked, repairHome, roomOpen, SCALE_MAX, SCALE_MIN, SCALE_STEP } from '../systems/Home';
+import { homeCharm } from '../systems/Timers';
+import { thumbs } from '../world/Thumbs';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { audio } from '../systems/Audio';
@@ -48,6 +50,7 @@ let selected: number | null = null;
 let life: HomeLife | null = null;
 /** 1.30 relax: taps move your farmer and sit them down; decorate: taps pick up pieces */
 let mode: 'relax' | 'decorate' = 'decorate';
+try { if (localStorage.getItem('cozy-acres-home-mode') === 'relax') mode = 'relax'; } catch { /* storage blocked */ }
 let dragging = false;
 let grab = new THREE.Vector3();
 let rebuildQueued = false;
@@ -95,7 +98,7 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
       h('div', { class: 'visit-bubble home-door', role: 'button', 'aria-label': 'Go inside your Farmhouse', onclick: (e: MouseEvent) => { e.stopPropagation(); void enterHome(); } }, icon('door')),
     'door');
   });
-  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, select, placeFromStorage, controls, get life() { return life; }, get selected() { return selected; } } });
+  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, repair: repairHome, homeCharm, charm: () => homeCharm(game.state.home), thumb: (id: string) => thumbs.get(`piece:${id}`), select, placeFromStorage, controls, get life() { return life; }, get selected() { return selected; } } });
 }
 
 function queueRebuild(): void {
@@ -142,6 +145,7 @@ export async function enterHome(roomId?: string): Promise<void> {
     view.group.visible = true;
     inHome = true;
     life = new HomeLife(view, () => scene.loop.wake(0.3));
+    life.setHidden(mode === 'decorate');
     await life.start(game.state.player.look);
     scene.handler = homeHandler;
     scene.env.indoors = true;
@@ -244,6 +248,10 @@ export const controls = {
   get mode(): 'relax' | 'decorate' { return mode; },
   setMode(m: 'relax' | 'decorate'): void {
     mode = m;
+    try { localStorage.setItem('cozy-acres-home-mode', m); } catch { /* storage blocked */ }
+    // 1.30.2 people step out of sight while you decorate, so they are never in the way
+    life?.setHidden(m === 'decorate');
+    ctx?.scene.loop.wake(0.3);
     if (m === 'relax') select(null);
     homeUi?.refresh();
     if (m === 'relax' && hints.firstTime('intro:home-relax')) ui.feedback.toast('Make yourself at home', 'Tap the floor to walk there, a chair or sofa to sit down, and a visitor to say hello.', 'couch');
@@ -270,11 +278,11 @@ export const controls = {
       const front = view.frontWalls();
       let w = it.w ?? 0;
       for (let k = 0; k < 4; k++) { w = (w + (dir > 0 ? 1 : 3)) % 4; if (!front[w]) break; }
-      const c = view.clampWall(it.f, w, 0, it.y ?? def.wallY ?? 0.8);
+      const c = view.clampWall(it.f, w, 0, it.y ?? def.wallY ?? 0.8, it.s);
       moveCarrying(controls.roomId, it.u, { x: c.x, z: 0, y: c.y, w }, true);
     } else {
       const r = (it.r + (dir > 0 ? 1 : 3)) % 4;
-      const c = it.on !== undefined ? { x: it.x, z: it.z } : view.clampFloor(it.f, r, it.x, it.z);
+      const c = it.on !== undefined ? { x: it.x, z: it.z } : view.clampFloor(it.f, r, it.x, it.z, it.s);
       moveCarrying(controls.roomId, it.u, { x: c.x, z: c.z, y: it.y, r }, true);
     }
     audio.play('tap', { volume: 0.6 });
@@ -292,7 +300,7 @@ export const controls = {
     if (!it || !view) return;
     const def = PIECE[it.f];
     const off = def.kind === 'wall' ? { x: it.x + 0.3, z: 0, y: it.y, w: it.w } : { x: it.x + 0.3, z: it.z + 0.3, y: it.y, on: it.on };
-    if (def.kind !== 'wall' && it.on === undefined) { const c = view.clampFloor(it.f, it.r, off.x, off.z); off.x = c.x; off.z = c.z; }
+    if (def.kind !== 'wall' && it.on === undefined) { const c = view.clampFloor(it.f, it.r, off.x, off.z, it.s); off.x = c.x; off.z = c.z; }
     const copy = home.duplicate(controls.roomId, it.u, off);
     if (!copy) { ui.feedback.toast('No more of those', game.coins < home.price(it.f) ? 'Not enough coins for another.' : 'This room is full.', 'package', 'warn'); audio.play('error'); return; }
     select(copy.u);
@@ -303,6 +311,39 @@ export const controls = {
     if (!it) return;
     const on = home.toggleLamp(controls.roomId, it.u);
     audio.play(on ? 'tap' : 'close', { volume: 0.6 });
+  },
+  /** 1.30.2 the picked-up piece's size (1 is as made). */
+  get scale(): number { return controls.item()?.s ?? 1; },
+  canScale(dir: number): boolean {
+    const it = controls.item();
+    if (!it || !view) return false;
+    const k = clampScale((it.s ?? 1) + dir * SCALE_STEP);
+    return k !== (it.s ?? 1) && view.fits(it, k);
+  },
+  /** Make the picked-up piece a step bigger (1) or smaller (-1), or back to its own size (0). */
+  resize(dir: number): void {
+    const it = controls.item();
+    if (!it || !view) return;
+    const was = it.s ?? 1;
+    const k = dir === 0 ? 1 : clampScale(was + dir * SCALE_STEP);
+    if (k === was) { if (dir) { ui.feedback.toast(dir > 0 ? 'As big as it goes' : 'As small as it goes', `Pieces go from ${Math.round(SCALE_MIN * 100)}% to ${Math.round(SCALE_MAX * 100)}% of their size.`, 'couch'); audio.play('error'); } return; }
+    if (!view.fits(it, k)) { ui.feedback.toast('Too big for here', 'There is not room for it any bigger.', 'couch', 'warn'); audio.play('error'); return; }
+    const def = PIECE[it.f];
+    const to: Parameters<typeof home.move>[2] = { x: it.x, z: it.z, y: it.y, s: k };
+    if (def.kind === 'wall' && it.w !== undefined) {
+      const c = view.clampWall(it.f, it.w, it.x, it.y ?? def.wallY ?? 0.8, k);
+      Object.assign(to, { x: c.x, y: c.y, w: it.w });
+    } else if (it.on !== undefined) {
+      const base = home.item(controls.roomId, it.on);
+      const box = base ? view.worldBox(base) : null;
+      if (box) Object.assign(to, view.clampOnto(it.f, it.r, it.x, it.z, box, k));
+    } else Object.assign(to, view.clampFloor(it.f, it.r, it.x, it.z, k));
+    moveCarrying(controls.roomId, it.u, to, true);
+    life?.furnitureChanged();
+    view.refreshItem(it.u);
+    view.select(it.u);
+    homeUi?.refresh();
+    audio.play('tap', { volume: 0.5 });
   },
   turnCamera(dir: number): void {
     if (!ctx || !view) return;
@@ -359,7 +400,7 @@ async function placeFromStorage(piece: string): Promise<HomeItem | null> {
   if (!it) return null;
   view.sync();
   life?.furnitureChanged();
-  if (mode === 'relax') { mode = 'decorate'; homeUi?.refresh(); }
+  if (mode === 'relax') controls.setMode('decorate');
   select(it.u);
   audio.play('pop', { volume: 0.7 });
   return it;
@@ -671,7 +712,7 @@ const homeHandler: WorldHandler = {
       const wp = view.wallPoint(ray);
       if (!wp) return;
       const x = snapTo(wp.x - (wp.w === it.w ? grab.x : 0)), y = snapTo(wp.y - (wp.w === it.w ? grab.y : 0));
-      const c = view.clampWall(it.f, wp.w, x, y);
+      const c = view.clampWall(it.f, wp.w, x, y, it.s);
       moveCarrying(roomId, it.u, { x: c.x, z: 0, y: c.y, w: wp.w }, false);
     } else {
       const fp = view.floorPoint(ray, it.on !== undefined ? it.y ?? 0 : 0);
@@ -685,7 +726,7 @@ const homeHandler: WorldHandler = {
         const s = view.surfaceHit(ray, skip);
         if (s) {
           const fine = (v: number) => Math.round(v / 0.025) * 0.025;
-          const c = view.clampOnto(it.f, it.r, fine(s.x), fine(s.z), s.box);
+          const c = view.clampOnto(it.f, it.r, fine(s.x), fine(s.z), s.box, it.s);
           moveCarrying(roomId, it.u, { x: c.x, z: c.z, y: s.y, on: s.uid }, false);
           view.refreshItem(it.u);
           view.select(it.u);
@@ -694,7 +735,7 @@ const homeHandler: WorldHandler = {
         const flat = view.floorPoint(ray, 0)!;
         x = snapTo(flat.x - grab.x); z = snapTo(flat.z - grab.z);
       }
-      const c = view.clampFloor(it.f, it.r, x, z);
+      const c = view.clampFloor(it.f, it.r, x, z, it.s);
       moveCarrying(roomId, it.u, { x: c.x, z: c.z, y, on }, false);
     }
     view.refreshItem(it.u);

@@ -13,6 +13,7 @@ import { boatvisit } from '../systems/BoatVisit';
 import { Renderer } from '../core/Renderer';
 import { BUILDINGS, CROPS, LAND, TREES, ANIMALS } from '../data';
 import { game } from '../systems/Game';
+import { homeCharm } from '../systems/Timers';
 import { saves } from '../systems/Save';
 import { GpuGuard } from './GpuGuard';
 import { skills } from '../systems/Skills';
@@ -349,7 +350,8 @@ function wireProgression(): void {
   ui.register('__charm', () => {
     const b = buildings.bonuses();
     const c = ECONOMY.charm;
-    ui.feedback.toast(`Charm ${buildings.charm()}`, `+${Math.round(b.growth * 100)}% crop speed, +${Math.round(b.orderCoins * 100)}% order coins, ${b.villagers} visitors. Every ${c.step} charm adds more!`, 'sparkle_heart');
+    const fromHome = homeCharm(game.state.home);
+    ui.feedback.toast(`Charm ${buildings.charm()}`, `+${Math.round(b.growth * 100)}% crop speed, +${Math.round(b.orderCoins * 100)}% order coins, ${b.villagers} visitors. Every ${c.step} charm adds more!${fromHome ? ` Your home adds ${fromHome}.` : ''}`, 'sparkle_heart');
   });
   sideEntries.push(() => { const f = festivals.today(); return f && game.state.player.created && game.state.tutorial.done ? { id: 'festival', icon: f.def.icon, label: 'Festival', color: 'pink', badge: festivals.pending() } : null; });
   sideEntries.push(() => (daily.check() ? { id: 'daily', icon: 'calendar', label: 'Daily', color: 'yellow', badge: true } : null));

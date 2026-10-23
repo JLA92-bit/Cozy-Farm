@@ -6,7 +6,8 @@ import type { WallStyle } from '../../systems/State';
 import { audio } from '../../systems/Audio';
 import { pieceGeo, pieceGeoNow, PART_NAMES } from '../../world/home/FurnitureGeo';
 import { patternPreview } from '../../world/home/HomeStyle';
-import { button, clear, fmt, h, icon, priceTag } from '../dom';
+import { button, clear, fmt, h, icon, priceTag, setIcon } from '../dom';
+import { thumbs } from '../../world/Thumbs';
 import { ui } from '../UI';
 import { openCatalogue } from './Catalogue';
 
@@ -28,6 +29,9 @@ export interface HomeControls {
   store(): void;
   duplicate(): void;
   toggleLamp(): void;
+  readonly scale: number;
+  canScale(dir: number): boolean;
+  resize(dir: number): void;
   turnCamera(dir: number): void;
   setSnap(step: number): void;
   reframe(): void;
@@ -49,7 +53,13 @@ export const CATS: { id: string; name: string; icon: string }[] = [
 ];
 
 /** The piece's thumbnail. */
-export const pieceIcon = (def: PieceDef, cls = 'icon'): HTMLImageElement => icon(def.icon ?? `model:${def.model}`, cls);
+export const pieceIcon = (def: PieceDef, cls = 'icon'): HTMLImageElement => {
+  if (!def.model.startsWith('proc:')) return icon(def.icon ?? `model:${def.model}`, cls);
+  // 1.30.2 pieces built in code are drawn as they look in the room; their emoji is only a fallback
+  const key = `piece:${def.id}`, img = icon(key, cls);
+  if (def.icon) void thumbs.get(key).then((url) => { if (!url) setIcon(img, def.icon!); });
+  return img;
+};
 
 /** Colours copied with "Copy style", ready to paste on another piece. */
 let clipboard: { piece: string; colours: Record<string, string> } | null = null;
@@ -156,7 +166,12 @@ export class HomeUI {
     const def = PIECE[it.f];
     const act = (label: string, ic: string, fn: () => void, cls = '') => button([icon(ic), h('span', { class: 'hm-tool-label' }, label)], fn, `hm-tool ${cls}`, { 'aria-label': label });
     this.pieceBar.append(
-      h('div', { class: 'hm-piece-name' }, pieceIcon(def, 'icon hm-piece-icon'), h('span', null, def.name)),
+      h('div', { class: 'hm-piece-name' }, pieceIcon(def, 'icon hm-piece-icon'), h('span', null, def.name),
+        // 1.30.2 make it smaller or bigger; the size itself puts it back as made
+        h('div', { class: 'hm-size', role: 'group', 'aria-label': 'Size' },
+          button('-', () => this.c.resize(-1), `small hm-size-btn${this.c.canScale(-1) ? '' : ' dim'}`, { 'aria-label': 'Smaller' }),
+          button(`${Math.round(this.c.scale * 100)}%`, () => this.c.resize(0), 'small hm-size-val', { 'aria-label': 'Size, tap for its own size' }),
+          button('+', () => this.c.resize(1), `small hm-size-btn${this.c.canScale(1) ? '' : ' dim'}`, { 'aria-label': 'Bigger' }))),
       h('div', { class: 'hm-piece-tools' },
         act(def.kind === 'wall' ? 'Next wall' : 'Turn', 'rotate', () => this.c.rotate(1)),
         act('Colours', 'paint', () => this.toggleSheet('colours'), this.sheetKind === 'colours' ? 'on' : ''),

@@ -611,6 +611,7 @@ releases?.forEach((r, i) => {
   const cats = new Set(['living', 'bedroom', 'kitchen', 'bathroom', 'study', 'lights', 'rugs', 'plants', 'decor']);
   const wallP = new Set(hm.wallPatterns.map((p) => p.id)), floorP = new Set(hm.floorPatterns.map((p) => p.id));
   if (!(hm.level >= 1) || !(hm.wallHeight > 1) || !(hm.maxItems >= 20)) err('home: level, wallHeight or maxItems out of range');
+  if (!(hm.charm?.coinsPer >= 100)) err('home: charm.coinsPer must be at least 100 (farm decor is about 300 coins a charm)');
   hm.sizes.forEach((sz, i) => { if (!(sz.w >= 3 && sz.d >= 3)) err(`home size ${sz.id}: too small`); if (i && !(sz.w > hm.sizes[i - 1].w && sz.coins > hm.sizes[i - 1].coins)) err(`home size ${sz.id}: must be bigger and cost more than the one before`); });
   let fh = 0;
   for (const r of hm.rooms) {

@@ -38,6 +38,11 @@
 .hm-piece-name { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; min-width: 0; }
 .hm-piece-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hm-piece-icon { width: 30px; height: 30px; }
+.hm-piece-name > span { flex: 1; }
+.hm-size { display: flex; align-items: center; gap: 3px; flex: none; }
+.hm-size .hm-size-btn { min-width: 36px; min-height: 36px; padding: 0 8px; font-size: 20px; font-weight: 800; }
+.hm-size .hm-size-val { min-width: 54px; min-height: 36px; padding: 0 6px; font-size: 14px; background: #fff; }
+.hm-size .dim { opacity: .45; }
 .hm-piece-tools { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
 .hm-piece-tools::-webkit-scrollbar { display: none; }
 @keyframes hm-up { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }

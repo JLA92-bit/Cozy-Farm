@@ -401,7 +401,7 @@ export interface PieceDef {
 export interface RoomLook { wall: [string, string, string]; floor: [string, string, string]; trim: string; ceiling: string; beams?: boolean }
 export interface HomeRoomDef { id: string; name: string; fh: number; icon: string; look: RoomLook }
 export const HOME = homeJson as unknown as {
-  level: number; wallHeight: number; maxItems: number; lookItems: number;
+  level: number; wallHeight: number; maxItems: number; lookItems: number; charm: { coinsPer: number };
   sizes: { id: string; name: string; w: number; d: number; coins: number }[];
   rooms: HomeRoomDef[];
   wallPatterns: { id: string; name: string }[]; floorPatterns: { id: string; name: string }[];

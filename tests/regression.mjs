@@ -900,6 +900,59 @@ try {
     });
     check('people walk round furniture, sit down, and step aside when a piece is put on them', life.inside === 0 && life.seated && life.pushed, JSON.stringify(life));
     check('a patterned rug keeps its pattern and colours', life.rug, JSON.stringify(life));
+    // 1.30.2 people are out of sight (and never picked) while you decorate; pieces can be made smaller or bigger
+    const sized = await page.evaluate(async () => {
+      const H = window.__home, sys = H.sys, id = 'living', C = H.controls, L = H.life;
+      C.setMode('decorate');
+      const hidden = L.everyone.length > 0 && L.everyone.every((p) => !p.char.root.visible);
+      const ray = { distanceToPoint: () => 0 };
+      const noPick = L.personAt(ray) === null;
+      C.setMode('relax');
+      const shown = L.everyone.every((p) => p.char.root.visible);
+      C.setMode('decorate');
+      sys.clearRoom(id);
+      sys.give('kf_table', 1);
+      const table = await H.placeFromStorage('kf_table');
+      sys.move(id, table.u, { x: 0, z: 0, r: 0 });
+      H.view.rebuild();
+      const top0 = H.view.worldBox(sys.item(id, table.u)).max.y;
+      sys.give('kf_books', 1);
+      const book = await H.placeFromStorage('kf_books');
+      sys.move(id, book.u, { x: 0.1, z: 0, y: top0, on: table.u });
+      H.view.rebuild();
+      H.select(table.u);
+      C.resize(1); C.resize(1); C.resize(1);
+      const t = sys.item(id, table.u), b = sys.item(id, book.u);
+      const top1 = H.view.worldBox(t).max.y;
+      const bookOn = Math.abs((b.y ?? 0) - top1) < 0.01;
+      sys.undo(id);
+      const undone = sys.item(id, table.u).s === 1.2;
+      for (let i = 0; i < 20; i++) C.resize(1);
+      const max = sys.item(id, table.u).s;
+      C.resize(0);
+      const reset = sys.item(id, table.u).s === undefined;
+      const repaired = H.repair({ rooms: { living: { items: [{ u: 1, f: 'kf_table', x: 0, z: 0, r: 0, s: 9 }, { u: 2, f: 'kf_table', x: 0, z: 0, r: 0, s: 'x' }] } }, storage: {}, known: [], uid: 3 });
+      const rs = repaired ? repaired.rooms.living.items.map((i) => i.s ?? 1) : null;
+      H.select(null);
+      // 1.30.2 furnishing adds charm: price / coinsPer per piece in a room, no cap
+      sys.clearRoom(id);
+      const c0 = H.charm();
+      sys.give('kf_table', 1);
+      await H.placeFromStorage('kf_table');
+      const c1 = H.charm();
+      const fake = { rooms: { a: { items: Array.from({ length: 400 }, () => ({ f: 'gift_rosa_bed' })) } } };
+      const many = H.homeCharm(fake);
+      // 1.30.2 pieces built in code get a real preview (they used to show a stand-in emoji)
+      const procs = ['proc_rugp_rect', 'proc_rugp_round', 'proc_window', 'proc_fireplace', 'craft_wreath', 'gift_bram_stove'];
+      const urls = await Promise.all(procs.map((p) => H.thumb(p)));
+      const previews = urls.filter((u) => typeof u === 'string' && u.startsWith('data:image/png') && u.length > 2000).length;
+      return { hidden, noPick, shown, s: t.s, top0, top1, bookOn, undone, max, reset, rs, c0, c1, many, previews };
+    });
+    check('people are hidden (and never picked) while decorating, and back in Relax', sized.hidden && sized.noPick && sized.shown, JSON.stringify(sized));
+    check('a piece can be made bigger (whatever stands on it rises with it), undone and put back as made', sized.s === 1.3 && sized.top1 > sized.top0 * 1.25 && sized.bookOn && sized.undone && sized.max <= 1.5 && sized.reset, JSON.stringify(sized));
+    check('furniture in the home adds charm (no cap)', sized.c0 === 0 && sized.c1 === 3 && sized.many === Math.floor(400 * 2800 / 300), JSON.stringify(sized));
+    check('furniture built in code shows a real preview', sized.previews === 6, JSON.stringify(sized));
+    check('a saved size is kept within limits', !sized.rs || (sized.rs[0] === 1.5 && sized.rs[1] === 1), JSON.stringify(sized));
   }
 
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back

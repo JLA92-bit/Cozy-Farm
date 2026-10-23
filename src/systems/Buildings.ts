@@ -220,7 +220,7 @@ export class BuildingSystem {
   }
 
   charm(): number {
-    return farmCharm(game.state.buildings, game.now());
+    return farmCharm(game.state.buildings, game.now(), game.state.home);
   }
 
   /** Charm-derived bonuses (see economy.json -> charm). */

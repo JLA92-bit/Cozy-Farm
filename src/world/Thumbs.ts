@@ -96,6 +96,28 @@ class Thumbs {
       attachFx(o.children[0], { uid: 1, type, x: 0, z: 0, rot: 0, level: 1 }, def, '')?.update(0, 0.6, 0.45);
       return o;
     }
+    if (key.startsWith('piece:')) {
+      // 1.30.2 a piece of home furniture as it looks in the room (pieces built in code have no model file)
+      const [{ pieceGeo, colouredGeo, materialFor }, { patternTexture }, { PIECE }] = await Promise.all([import('./home/FurnitureGeo'), import('./home/HomeStyle'), import('../data')]);
+      const id = key.slice(6), def = PIECE[id];
+      if (!def) return null;
+      const geo = await pieceGeo(id);
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(colouredGeo(id, undefined, def.lamp ? true : undefined) ?? geo.base, materialFor(id, undefined) ?? geo.material));
+      if (def.patterned) {
+        // the patterned top, in the colours a new rug comes in
+        const [w, d, shape] = def.patterned;
+        const tex = patternTexture('floor', 'checker', '#f3e3c3', '#c0473b').clone();
+        tex.needsUpdate = true;
+        tex.repeat.set((w - 0.12) / 0.5, (d - 0.12) / 0.5);
+        const top = shape === 'round' ? new THREE.CircleGeometry(0.5, 40).scale(w - 0.12, d - 0.12, 1) : new THREE.PlaneGeometry(w - 0.12, d - 0.12);
+        top.rotateX(-Math.PI / 2);
+        const m = new THREE.Mesh(top, new THREE.MeshLambertMaterial({ map: tex }));
+        m.position.y = 0.0135;
+        g.add(m);
+      }
+      return g;
+    }
     const id = key.slice(6);
     if (id.startsWith('proc/')) return new THREE.Mesh(procGeometry(id.slice(5)), assets.vertexMaterial);
     if (!assets.has(id)) return null;

@@ -27,6 +27,8 @@ export class HomeLife {
   private loading = false;
   /** extra people the caller manages (a friend's farmer over for coffee) */
   extras: HomeChar[] = [];
+  /** 1.30.2 everyone is out of sight while you decorate (they carry on, unseen, and come back in Relax) */
+  private hidden = false;
 
   constructor(private view: HomeView, private wake: () => void) {
     this.nav = new HomeNav(view);
@@ -46,10 +48,23 @@ export class HomeLife {
         const spot = this.entrance();
         this.player.placeAt(spot[0], spot[1]);
         this.player.char.root.rotation.y = Math.PI;
+        this.player.char.root.visible = !this.hidden;
       } finally { this.loading = false; }
     }
     if (villagers) this.planVillagers();
   }
+
+  /** Hide or show everyone (Decorate hides them so they are never in the way). */
+  setHidden(h: boolean): void {
+    this.hidden = h;
+    for (const p of this.everyone) {
+      p.char.root.visible = !h;
+      if (h) speech.hush(p.char.root);
+    }
+  }
+  get isHidden(): boolean { return this.hidden; }
+
+  private say(p: HomeChar, text: string, dur: number): void { if (!this.hidden) speech.say(p.char.root, { text, dur }); }
 
   stop(): void {
     for (const p of this.everyone) p.dispose();
@@ -102,6 +117,7 @@ export class HomeLife {
 
   /** Who is under a ray (people are about a body wide), nearest first. */
   personAt(ray: THREE.Ray): HomeChar | null {
+    if (this.hidden) return null;
     let best: HomeChar | null = null, bestD = Infinity;
     const tmp = new THREE.Vector3();
     for (const p of this.everyone) {
@@ -126,9 +142,10 @@ export class HomeLife {
     const spot = this.entrance();
     g.placeAt(spot[0], spot[1]);
     g.char.root.rotation.y = Math.PI;
+    g.char.root.visible = !this.hidden;
     this.guests.push(g);
     const v = VILLAGERS.find((x) => x.id === id);
-    speech.say(g.char.root, { text: `Knock knock! ${v?.name ?? 'A friend'} here.`, dur: 3 });
+    this.say(g, `Knock knock! ${v?.name ?? 'A friend'} here.`, 3);
     this.wake();
   }
 
@@ -141,7 +158,7 @@ export class HomeLife {
     }
     if (g.stayed > (g.userStay ?? 90)) {
       g.leaving = true;
-      speech.say(g.char.root, { text: 'I must be off. Thanks for having me!', dur: 3 });
+      this.say(g, 'I must be off. Thanks for having me!', 3);
       const out = this.entrance();
       if (!g.walkTo(this.nav, out[0], out[1])) { this.guests.splice(this.guests.indexOf(g), 1); g.dispose(); }
       return;
@@ -151,7 +168,7 @@ export class HomeLife {
     const seats = this.freeSeats(g);
     if (!g.seat && seats.length && Math.random() < 0.55) {
       const s = seats[Math.floor(Math.random() * seats.length)];
-      g.sitOn(this.nav, s, () => speech.say(g.char.root, { text: SIT_LINES[Math.floor(Math.random() * SIT_LINES.length)], dur: 3 }));
+      g.sitOn(this.nav, s, () => this.say(g, SIT_LINES[Math.floor(Math.random() * SIT_LINES.length)], 3));
       return;
     }
     // look at something in the room
@@ -163,7 +180,7 @@ export class HomeLife {
       if (Math.random() < 0.5) {
         const v = VILLAGERS.find((x) => x.id === g.id);
         const lines = Math.random() < 0.6 ? HOME_LINES : (v?.chat ?? HOME_LINES);
-        speech.say(g.char.root, { text: lines[Math.floor(Math.random() * lines.length)], dur: 3.5 });
+        this.say(g, lines[Math.floor(Math.random() * lines.length)], 3.5);
       }
     });
   }

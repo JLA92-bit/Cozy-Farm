@@ -220,6 +220,8 @@ class UIManager {
       haptics.play('celebrate');
     });
     bus.on('charm', () => this.hud.refresh());
+    // 1.30.2 furnishing the home adds charm
+    bus.on('home:changed', () => this.hud.refresh());
     bus.on('levelup', () => { this.hud.refresh(); this.hud.levelUpFlash(); });
   }
 

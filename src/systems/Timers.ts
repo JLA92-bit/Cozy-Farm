@@ -1,5 +1,5 @@
-import { ANIMAL, BUILDING, ECONOMY, RECIPE } from '../data';
-import type { PlacedBuilding } from './State';
+import { ANIMAL, BUILDING, ECONOMY, HOME, PIECE, RECIPE } from '../data';
+import type { HomeState, PlacedBuilding } from './State';
 import { animalTimeMult } from './SkillEffects';
 
 /** Pure helpers that derive timer state from timestamps (so offline progress is automatic). */
@@ -31,14 +31,22 @@ export function isBuilt(b: PlacedBuilding, now: number): boolean { return !b.bui
  * A farm's charm: every built building's charm, but Level Markers, leaderboard trophies and streak plaques (group
  * 'trophies') together add at most economy.json charm.trophyMax (1.17), so charm stays about decorating.
  */
-export function farmCharm(buildings: PlacedBuilding[], now: number): number {
+export function farmCharm(buildings: PlacedBuilding[], now: number, home?: HomeState): number {
   let c = 0, trophies = 0;
   for (const b of buildings) {
     const def = BUILDING[b.type];
     if (!def || !isBuilt(b, now)) continue;
     if (def.group === 'trophies') trophies += def.charm; else c += def.charm;
   }
-  return c + Math.min(trophies, ECONOMY.charm.trophyMax);
+  return c + Math.min(trophies, ECONOMY.charm.trophyMax) + homeCharm(home);
+}
+
+/** 1.30.2 the charm a furnished home adds: each piece in a room is worth its price / home.json charm.coinsPer. */
+export function homeCharm(home?: HomeState): number {
+  if (!home) return 0;
+  let c = 0;
+  for (const r of Object.values(home.rooms)) for (const it of r.items) c += (PIECE[it.f]?.price ?? 0) / HOME.charm.coinsPer;
+  return Math.floor(c);
 }
 export function isUpgrading(b: PlacedBuilding, now: number): boolean { return !!b.upgradeEnd && b.upgradeEnd > now; }
 
