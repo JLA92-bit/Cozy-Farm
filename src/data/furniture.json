@@ -2087,6 +2087,424 @@
    "kind": "surface",
    "price": 300,
    "icon": "blossom"
+  },
+  {
+   "id": "craft_wreath",
+   "name": "Pinecone Wreath",
+   "model": "proc:wreath",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 200,
+   "craft": {
+    "pinecone": 10,
+    "moss": 6
+   },
+   "wallY": 0.85,
+   "icon": "pinecone_wreath"
+  },
+  {
+   "id": "craft_ragrug",
+   "name": "Rag Rug",
+   "model": "proc:ragrug",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 300,
+   "craft": {
+    "cotton_fabric": 3,
+    "yarn": 1
+   },
+   "icon": "thread"
+  },
+  {
+   "id": "craft_claypots",
+   "name": "Clay Pot Trio",
+   "model": "proc:claypots",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150,
+   "craft": {
+    "clay_pot": 2
+   },
+   "icon": "clay_pot"
+  },
+  {
+   "id": "craft_beeswax",
+   "name": "Beeswax Candlesticks",
+   "model": "proc:candles",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 100,
+   "craft": {
+    "beeswax_candle": 2
+   },
+   "lamp": true,
+   "colours": {
+    "wax": "#ffd98a",
+    "holder": "#9a6a3d"
+   },
+   "icon": "beeswax_candle"
+  },
+  {
+   "id": "craft_shellmirror",
+   "name": "Shell Mirror",
+   "model": "proc:shellmirror",
+   "cat": "bathroom",
+   "kind": "wall",
+   "price": 400,
+   "craft": {
+    "seashell": 6,
+    "quartz": 1
+   },
+   "wallY": 0.6,
+   "icon": "shell"
+  },
+  {
+   "id": "craft_woodlandvase",
+   "name": "Woodland Vase",
+   "model": "proc:vase",
+   "cat": "plants",
+   "kind": "surface",
+   "price": 150,
+   "craft": {
+    "woodland_vase": 1
+   },
+   "colours": {
+    "vase": "#6e8f4a",
+    "flowers": "#e9ff8a"
+   },
+   "icon": "woodland_vase"
+  },
+  {
+   "id": "craft_owlmobile",
+   "name": "Feather Mobile",
+   "model": "proc:mobile",
+   "cat": "decor",
+   "kind": "ceiling",
+   "price": 250,
+   "craft": {
+    "owl_feather": 3,
+    "pinecone": 4
+   },
+   "icon": "owl_feather"
+  },
+  {
+   "id": "craft_resintable",
+   "name": "Varnished Farmhouse Table",
+   "model": "kf/tablecross",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 600,
+   "craft": {
+    "resin_varnish": 2
+   },
+   "top": true,
+   "colours": {
+    "wood": "#6e4426"
+   }
+  },
+  {
+   "id": "craft_woolchair",
+   "name": "Woolly Armchair",
+   "model": "kf/loungechair",
+   "cat": "living",
+   "kind": "floor",
+   "price": 500,
+   "craft": {
+    "yarn": 2,
+    "wool": 4
+   },
+   "colours": {
+    "carpet": "#f7f1e3",
+    "wood": "#7a4f2a"
+   }
+  },
+  {
+   "id": "craft_acornlamp",
+   "name": "Golden Acorn Lamp",
+   "model": "kk/lamp_table",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 300,
+   "craft": {
+    "golden_acorn": 1,
+    "pine_resin": 3
+   },
+   "lamp": true,
+   "scale": 0.36,
+   "colours": {
+    "tint": "#ffd27a"
+   }
+  },
+  {
+   "id": "gift_rosa_oven",
+   "name": "Rosa's Bread Oven",
+   "model": "kr/oven",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 2400,
+   "gift": "rosa",
+   "hearts": 3,
+   "scale": 0.36,
+   "top": true,
+   "colours": {
+    "tint": "#ffe2b8"
+   }
+  },
+  {
+   "id": "gift_rosa_shelf",
+   "name": "Rosa's Spice Shelf",
+   "model": "kr/shelf_papertowel_decorated",
+   "cat": "kitchen",
+   "kind": "wall",
+   "price": 900,
+   "gift": "rosa",
+   "hearts": 6,
+   "scale": 0.36,
+   "wallY": 0.8
+  },
+  {
+   "id": "gift_rosa_bed",
+   "name": "Rosa's Patchwork Bed",
+   "model": "kk/bed_double_b",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2800,
+   "gift": "rosa",
+   "hearts": 9,
+   "scale": 0.36
+  },
+  {
+   "id": "gift_tom_plaque",
+   "name": "Old Tom's Fishing Plaque",
+   "model": "proc:plaque",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1000,
+   "gift": "tom",
+   "hearts": 3,
+   "wallY": 0.85,
+   "picture": [
+    0.5,
+    0.25,
+    0.15
+   ],
+   "colours": {
+    "board": "#3b6aa8",
+    "trim": "#f7f1e3"
+   },
+   "icon": "trophy"
+  },
+  {
+   "id": "gift_tom_chair",
+   "name": "Old Tom's Recliner",
+   "model": "kf/loungechairrelax",
+   "cat": "living",
+   "kind": "floor",
+   "price": 1800,
+   "gift": "tom",
+   "hearts": 6,
+   "colours": {
+    "carpet": "#27406b",
+    "wood": "#5a3a22",
+    "metal": "#c99a2e"
+   }
+  },
+  {
+   "id": "gift_tom_porthole",
+   "name": "Old Tom's Porthole",
+   "model": "proc:window_round",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1400,
+   "gift": "tom",
+   "hearts": 9,
+   "wallY": 0.6,
+   "colours": {
+    "frame": "#c99a2e"
+   },
+   "icon": "window"
+  },
+  {
+   "id": "gift_juniper_painting",
+   "name": "Juniper's Painting",
+   "model": "proc:frame_big",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1500,
+   "gift": "juniper",
+   "hearts": 3,
+   "wallY": 0.55,
+   "picture": [
+    0.68,
+    0.5,
+    0.31
+   ],
+   "colours": {
+    "frame": "#5e4596"
+   },
+   "icon": "framed"
+  },
+  {
+   "id": "gift_juniper_books",
+   "name": "Juniper's Bookshelf",
+   "model": "proc:bookshelf",
+   "cat": "study",
+   "kind": "floor",
+   "price": 1900,
+   "gift": "juniper",
+   "hearts": 6,
+   "top": true,
+   "colours": {
+    "wood": "#f7f1e3",
+    "books1": "#e88a99",
+    "books2": "#9277d1",
+    "books3": "#6cb9b0"
+   },
+   "icon": "books"
+  },
+  {
+   "id": "gift_juniper_lamp",
+   "name": "Juniper's Reading Lamp",
+   "model": "kf/lamproundfloor",
+   "cat": "lights",
+   "kind": "floor",
+   "price": 900,
+   "gift": "juniper",
+   "hearts": 9,
+   "lamp": true,
+   "colours": {
+    "metal": "#5e4596",
+    "lamp": "#fde2e4"
+   }
+  },
+  {
+   "id": "gift_pip_bear",
+   "name": "Pip's Teddy",
+   "model": "kf/bear",
+   "cat": "decor",
+   "kind": "surface",
+   "price": 500,
+   "gift": "pip",
+   "hearts": 3,
+   "colours": {
+    "fur": "#f6c1c7"
+   }
+  },
+  {
+   "id": "gift_pip_bunks",
+   "name": "Pip's Bunk Beds",
+   "model": "kf/bedbunk",
+   "cat": "bedroom",
+   "kind": "floor",
+   "price": 2400,
+   "gift": "pip",
+   "hearts": 6,
+   "colours": {
+    "wood": "#6cb9b0",
+    "carpet": "#ffe066"
+   }
+  },
+  {
+   "id": "gift_pip_rug",
+   "name": "Pip's Rainbow Rug",
+   "model": "proc:ragrug",
+   "cat": "rugs",
+   "kind": "rug",
+   "price": 900,
+   "gift": "pip",
+   "hearts": 9,
+   "colours": {
+    "rag1": "#e88a99",
+    "rag2": "#ffe066",
+    "rag3": "#8cc46a",
+    "rag4": "#6a9bd6"
+   },
+   "icon": "thread"
+  },
+  {
+   "id": "gift_hazel_table",
+   "name": "Hazel's Tea Table",
+   "model": "kr/table_round_a_decorated",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1700,
+   "gift": "hazel",
+   "hearts": 3,
+   "scale": 0.36
+  },
+  {
+   "id": "gift_hazel_clock",
+   "name": "Hazel's Shop Clock",
+   "model": "proc:clock",
+   "cat": "decor",
+   "kind": "wall",
+   "price": 1200,
+   "gift": "hazel",
+   "hearts": 6,
+   "wallY": 1.0,
+   "colours": {
+    "case": "#c99a2e",
+    "face": "#fff3b0"
+   },
+   "icon": "clock_mantel"
+  },
+  {
+   "id": "gift_hazel_counter",
+   "name": "Hazel's Shop Counter",
+   "model": "kf/kitchenbar",
+   "cat": "kitchen",
+   "kind": "floor",
+   "price": 1300,
+   "gift": "hazel",
+   "hearts": 9,
+   "top": true,
+   "colours": {
+    "wood": "#a8322b",
+    "woodDark": "#6e2420"
+   }
+  },
+  {
+   "id": "gift_bram_stove",
+   "name": "Bram's Iron Stove",
+   "model": "proc:fireplace",
+   "cat": "living",
+   "kind": "floor",
+   "price": 4800,
+   "gift": "bram",
+   "hearts": 3,
+   "top": true,
+   "lamp": true,
+   "colours": {
+    "stone": "#3b3b45",
+    "mantel": "#22232a"
+   },
+   "icon": "fire"
+  },
+  {
+   "id": "gift_bram_shelf",
+   "name": "Bram's Tool Shelf",
+   "model": "kk/shelf_b_large_decorated",
+   "cat": "study",
+   "kind": "wall",
+   "price": 900,
+   "gift": "bram",
+   "hearts": 6,
+   "scale": 0.36,
+   "wallY": 0.8
+  },
+  {
+   "id": "gift_bram_bench",
+   "name": "Bram's Iron Bench",
+   "model": "kf/bench",
+   "cat": "living",
+   "kind": "floor",
+   "price": 800,
+   "gift": "bram",
+   "hearts": 9,
+   "top": true,
+   "colours": {
+    "wood": "#5d554b"
+   }
   }
  ]
 }

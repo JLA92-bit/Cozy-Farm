@@ -5,7 +5,10 @@
  * Kept free of three.js and UI: positions are checked by the room view (src/world/home/HomeView.ts), this file only
  * keeps them inside the room.
  */
-import { FURNITURE, HOME, HOME_ROOM, PIECE, type HomeRoomDef, type PieceDef } from '../data';
+import { FURNITURE, HOME, HOME_ROOM, PIECE, VILLAGER, type HomeRoomDef, type PieceDef } from '../data';
+import { mail } from './Mail';
+import { upkeep } from './Upkeep';
+import { village } from './Village';
 import { game } from './Game';
 import { localDay } from './Progression';
 import type { HomeItem, HomeLook, HomeRoom, HomeState, WallStyle } from './State';
@@ -419,6 +422,54 @@ class Home {
     this.changed('');
   }
 
+  // ------------------------------------------------------------------------------------------- crafting
+
+  /** Crafted pieces are made at the Carpenter's Workshop. */
+  canCraftHere(): boolean { return upkeep.hasCarpenter(); }
+
+  /** What is still missing to make a crafted piece (item -> how many more), empty when it can be made. */
+  craftShort(piece: string): Record<string, number> {
+    const def = PIECE[piece];
+    const out: Record<string, number> = {};
+    for (const [it, n] of Object.entries(def?.craft ?? {})) { const have = game.state.inventory[it] ?? 0; if (have < n) out[it] = n - have; }
+    return out;
+  }
+
+  craft(piece: string): boolean {
+    const def = PIECE[piece];
+    if (!def?.craft || !this.canCraftHere() || Object.keys(this.craftShort(piece)).length || !game.canAfford(def.price)) return false;
+    for (const [it, n] of Object.entries(def.craft)) game.addItem(it, -n);
+    game.spend(def.price);
+    this.give(piece);
+    return true;
+  }
+
+  // ------------------------------------------------------------------------------------------- villagers' sets
+
+  /** Gift pieces whose hearts have been reached, sent once each, with one letter per villager. Returns the pieces sent now. */
+  sendGifts(): string[] {
+    if (!homeUnlocked()) return [];
+    const st = this.state;
+    st.gifts ??= [];
+    const sent: string[] = [];
+    const byWho = new Map<string, string[]>();
+    for (const def of FURNITURE) {
+      if (!def.gift || st.gifts.includes(def.id) || village.hearts(def.gift) < (def.hearts ?? 99)) continue;
+      st.gifts.push(def.id);
+      this.give(def.id);
+      sent.push(def.id);
+      byWho.set(def.gift, [...(byWho.get(def.gift) ?? []), def.name.replace(/^.*'s /, '').toLowerCase()]);
+    }
+    const farmer = game.state.player.name || 'friend';
+    for (const [who, names] of byWho) {
+      const v = VILLAGER[who];
+      if (!v) continue;
+      const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
+      mail.send(who, 'Something for your home', `Dear ${farmer},\n\nI made ${names.length > 1 ? 'a few things' : 'a little something'} for the Farmhouse: my ${list}. ${names.length > 1 ? "They're" : "It's"} waiting in your home storage. I hope ${names.length > 1 ? 'they find' : 'it finds'} a cosy spot!\n\n${v.name}`);
+    }
+    return sent;
+  }
+
   /** Sell a stored piece back for half. */
   sellBack(piece: string): boolean {
     const def = PIECE[piece];
@@ -493,6 +544,7 @@ export function repairHome(v: unknown): HomeState | undefined {
   }
   const known = [...new Set(Array.isArray(v.known) ? v.known.filter((k): k is string => typeof k === 'string' && !!PIECE[k]) : [])];
   const out: HomeState = { rooms, storage, known, uid };
+  if (Array.isArray(v.gifts)) out.gifts = [...new Set(v.gifts.filter((k): k is string => typeof k === 'string' && !!PIECE[k]?.gift))];
   if (typeof v.last === 'string' && HOME_ROOM[v.last]) out.last = v.last;
   return out;
 }

@@ -633,6 +633,10 @@ releases?.forEach((r, i) => {
     if (p.kind === 'wall' && !(p.wallY >= 0 && p.wallY < hm.wallHeight)) err(`furniture ${p.id}: a wall piece needs wallY below the wall height`);
     if (p.craft) for (const it of Object.keys(p.craft)) if (!items[it]) err(`furniture ${p.id}: craft needs unknown item ${it}`);
     if (p.gift && !villagers.some((v) => v.id === p.gift)) err(`furniture ${p.id}: gift from unknown villager ${p.gift}`);
+    if (p.gift && !(p.hearts >= 1 && p.hearts <= 10)) err(`furniture ${p.id}: a gift piece needs hearts 1-10`);
+    if (p.model.startsWith('proc:') && !p.icon) err(`furniture ${p.id}: a piece built in code needs an icon`);
+    if (p.icon && icons && !icons[p.icon]) err(`furniture ${p.id}: unknown icon ${p.icon}`);
+    if (p.craft && p.gift) err(`furniture ${p.id}: crafted or a gift, not both`);
   }
   for (const k of Object.keys(hm.starter)) if (!ids.has(k)) err(`home starter: unknown piece ${k}`);
 }

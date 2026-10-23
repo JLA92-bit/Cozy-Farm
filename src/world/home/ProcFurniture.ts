@@ -121,6 +121,52 @@ const BUILDERS: Record<string, () => ProcPart[]> = {
     }
     return parts;
   },
+  // 1.29 crafted pieces
+  wreath: () => {
+    const parts: ProcPart[] = [{ part: 'greenery', colour: '#3d6b33', geo: new THREE.TorusGeometry(0.2, 0.06, 8, 20).translate(0, 0.27, 0.06) }];
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      parts.push({ part: 'cones', colour: '#8a5528', geo: new THREE.ConeGeometry(0.035, 0.08, 7).rotateX(Math.PI / 2).translate(Math.cos(a) * 0.2, 0.27 + Math.sin(a) * 0.2, 0.1) });
+    }
+    parts.push({ part: 'bow', colour: '#d9473a', geo: box(0.14, 0.07, 0.04, 0, 0.04, 0.08) });
+    return parts;
+  },
+  ragrug: () => {
+    // an oval rag rug: rings of four colours
+    const parts: ProcPart[] = [];
+    const rings = 7;
+    for (let k = rings; k >= 1; k--) {
+      const g = new THREE.CylinderGeometry(0.075 * k, 0.075 * k, 0.01, 28).scale(1.35, 1, 1).translate(0, (rings - k) * 0.0012, 0);
+      parts.push({ part: `rag${(k % 4) + 1}`, colour: ['#c0473b', '#e7d3b3', '#6a9bd6', '#8cc46a'][k % 4], geo: g });
+    }
+    return parts;
+  },
+  claypots: () => [
+    { part: 'clay', colour: '#c96f45', geo: cyl(0.07, 0.12, -0.09, 0, 0, 12, 0.05) },
+    { part: 'clay', colour: '#c96f45', geo: cyl(0.055, 0.09, 0.08, 0, 0.03, 12, 0.04) },
+    { part: 'clay', colour: '#c96f45', geo: cyl(0.045, 0.07, 0, 0, -0.08, 12, 0.035) },
+    { part: 'plants', colour: '#5f9a43', geo: new THREE.SphereGeometry(0.07, 8, 6).translate(-0.09, 0.15, 0) },
+    { part: 'plants', colour: '#5f9a43', geo: new THREE.SphereGeometry(0.055, 8, 6).translate(0.08, 0.12, 0.03) },
+    { part: 'plants', colour: '#8cc46a', geo: new THREE.SphereGeometry(0.045, 8, 6).translate(0, 0.09, -0.08) },
+  ],
+  shellmirror: () => {
+    const parts: ProcPart[] = [{ part: 'glass', colour: '#d8f0ee', geo: disc(0.2, 0.015, 0, 0.27, 0.02, 28) }, { part: 'frame', colour: '#f7f1e3', geo: disc(0.25, 0.02, 0, 0.27, 0, 28) }];
+    for (let k = 0; k < 10; k++) {
+      const a = (k / 10) * Math.PI * 2;
+      parts.push({ part: 'shells', colour: ['#fde2e4', '#ffe8c7', '#f6c1c7'][k % 3], geo: new THREE.SphereGeometry(0.04, 8, 5).scale(1, 0.8, 0.5).translate(Math.cos(a) * 0.235, 0.27 + Math.sin(a) * 0.235, 0.035) });
+    }
+    return parts;
+  },
+  mobile: () => {
+    const parts: ProcPart[] = [{ part: 'wood', colour: '#8a5528', geo: new THREE.CylinderGeometry(0.008, 0.008, 0.5, 6).rotateZ(Math.PI / 2).translate(0, 0.45, 0) }];
+    parts.push({ part: 'wood', colour: '#8a5528', geo: cyl(0.004, 0.12, 0, 0.45, 0, 4) });
+    for (let k = 0; k < 5; k++) {
+      const x = -0.22 + k * 0.11, len = 0.15 + (k % 2) * 0.1;
+      parts.push({ part: 'strings', colour: '#f7f1e3', geo: cyl(0.002, len, x, 0.45 - len, 0, 3) });
+      parts.push({ part: 'feathers', colour: ['#c99a6b', '#f7f1e3', '#8a5528'][k % 3], geo: new THREE.SphereGeometry(0.03, 6, 4).scale(0.5, 1.8, 0.2).translate(x, 0.42 - len, 0) });
+    }
+    return parts;
+  },
 };
 
 export const hasProc = (name: string): boolean => !!BUILDERS[name];

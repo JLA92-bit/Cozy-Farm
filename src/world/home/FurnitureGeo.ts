@@ -19,6 +19,8 @@ export const PART_NAMES: Record<string, string> = {
   frame: 'Frame', sill: 'Sill', rod: 'Rod', fabric: 'Fabric', tie: 'Tie-back', stone: 'Stone', firebox: 'Firebox', mantel: 'Mantel', logs: 'Logs',
   case: 'Case', face: 'Face', hands: 'Hands', mount: 'Mount', board: 'Board', trim: 'Trim', books1: 'Books', books2: 'More books', books3: 'Other books',
   holder: 'Holder', wax: 'Candles', vase: 'Vase', stems: 'Stems', flowers: 'Flowers',
+  greenery: 'Greenery', cones: 'Pinecones', bow: 'Bow', rag1: 'Rag 1', rag2: 'Rag 2', rag3: 'Rag 3', rag4: 'Rag 4', clay: 'Clay', plants: 'Plants',
+  shells: 'Shells', strings: 'Strings', feathers: 'Feathers',
 };
 
 export interface PieceGeo {
@@ -127,6 +129,8 @@ function finish(def: PieceDef, chunks: THREE.BufferGeometry[], index: number[], 
   merged.computeBoundingSphere();
   const size = merged.boundingBox!.getSize(new THREE.Vector3());
   const partIndex = Uint8Array.from(index);
+  // crafted and gift pieces start in their own colours
+  if (def.colours) parts.forEach((p, i) => { if (def.colours![p]) defaults[i] = def.colours![p]; });
   // pictures (frames, plaques) are drawn on a plane in front: keep where it goes, in the piece's own space
   const geo: PieceGeo = { base: merged, material: atlas ? assets.materials.get(assets.info(def.model).atlas!)! : assets.vertexMaterial, parts, defaults, partIndex, size, scale, atlas };
   paint(geo, merged, {});

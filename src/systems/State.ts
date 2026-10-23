@@ -389,4 +389,6 @@ export interface HomeState {
   uid: number;
   /** the room shown last */
   last?: string;
+  /** villagers' gift pieces already sent */
+  gifts?: string[];
 }

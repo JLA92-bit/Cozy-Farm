@@ -56,6 +56,13 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
   });
   scene.onFrame(() => frame());
   ui.register('home', () => void enterHome());
+  // 1.29 villagers' furniture sets: sent as friendship grows (and to farms that already have the hearts)
+  const gifts = () => {
+    for (const id of home.sendGifts()) ui.feedback.toast('A gift for your home', `${PIECE[id].name} is in your home storage. There's a letter too.`, 'gift');
+  };
+  game.bus.on('village:points', gifts);
+  game.bus.on('levelup', gifts);
+  setTimeout(gifts, 4000);
   game.bus.on('home:changed', ({ room }) => {
     if (!inHome || !view || dragging) return;
     if (room && room !== view.roomId) return;

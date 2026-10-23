@@ -124,3 +124,8 @@
 
 .hm-card.hm-pic { min-height: 96px; }
 .hm-card.hm-pic.on { background: var(--btn-yellow); }
+.hm-needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.hm-need { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 700; }
+.hm-need .icon { width: 18px; height: 18px; }
+.hm-need.short { color: var(--btn-red-dark); }
+.hm-cat.locked { opacity: .8; background: #f3ead6; }

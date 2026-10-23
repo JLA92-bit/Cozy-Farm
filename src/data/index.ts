@@ -389,6 +389,10 @@ export interface PieceDef {
   picture?: [number, number, number, number?];
   /** how it is got besides the catalogue: craft (Carpenter, needs items), gift (a villager's set) */
   craft?: Record<string, number>; gift?: string;
+  /** a gift piece arrives at this many hearts with the villager */
+  hearts?: number;
+  /** the colours the piece starts in (crafted and gift pieces have their own) */
+  colours?: Record<string, string>;
 }
 export interface RoomLook { wall: [string, string, string]; floor: [string, string, string]; trim: string; ceiling: string; beams?: boolean }
 export interface HomeRoomDef { id: string; name: string; fh: number; icon: string; look: RoomLook }
