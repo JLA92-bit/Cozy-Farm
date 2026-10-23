@@ -129,3 +129,9 @@
 .hm-need .icon { width: 18px; height: 18px; }
 .hm-need.short { color: var(--btn-red-dark); }
 .hm-cat.locked { opacity: .8; background: #f3ead6; }
+.hm-guest { flex-wrap: wrap; }
+.hm-guest .hm-chips { padding-bottom: 0; margin-top: 4px; }
+.hm-guest-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.hm-guest-btns .btn { min-height: 46px; }
+.btn.visit-inside { margin-left: 6px; }
+.btn.visit-inside .icon { width: 20px; height: 20px; }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { HOME, PIECE, type PieceDef } from '../../data';
 import { home } from '../../systems/Home';
-import type { HomeItem, HomeRoom } from '../../systems/State';
+import type { HomeItem, HomeRoom, HomeState } from '../../systems/State';
 import { BatchSet, type PoolLike } from '../BatchPool';
 import { colouredGeo, materialFor, pieceGeo, pieceGeoNow } from './FurnitureGeo';
 import { patternTexture, shade, TILE_M } from './HomeStyle';
@@ -72,12 +72,18 @@ export class HomeView {
     }
   }
 
-  get room(): HomeRoom | null { return home.room(this.roomId); }
-  get dims(): { w: number; d: number } { return home.size(this.roomId); }
+  /** 1.30 a friend's home (read only) instead of the player's own */
+  source: HomeState | null = null;
+  get room(): HomeRoom | null { return this.source ? this.source.rooms[this.roomId] ?? null : home.room(this.roomId); }
+  get dims(): { w: number; d: number } {
+    if (!this.source) return home.size(this.roomId);
+    const s = HOME.sizes[Math.min(HOME.sizes.length - 1, this.source.rooms[this.roomId]?.size ?? 0)];
+    return { w: s.w, d: s.d };
+  }
 
   /** Load every model the room's pieces need. */
   async preload(roomId: string): Promise<void> {
-    const r = home.room(roomId);
+    const r = this.source ? this.source.rooms[roomId] : home.room(roomId);
     const ids = new Set<string>([...(r?.items.map((i) => i.f) ?? []), ...(r?.looks?.flatMap((l) => l?.items.map((i) => i.f) ?? []) ?? [])]);
     await Promise.all([...ids].map((id) => pieceGeo(id).catch((e) => console.warn('[home] piece failed', id, e))));
   }
@@ -209,7 +215,7 @@ export class HomeView {
     // keep every floor piece inside the walls (after moving everything, or anything else that pushed one out)
     for (const it of this.room?.items ?? []) {
       const def = PIECE[it.f];
-      if (!def || it.w !== undefined || it.on !== undefined || !pieceGeoNow(it.f)) continue;
+      if (this.source || !def || it.w !== undefined || it.on !== undefined || !pieceGeoNow(it.f)) continue;
       const c = this.clampFloor(it.f, it.r, it.x, it.z);
       // riders move with it (no undo step: this only tidies up)
       if (Math.abs(c.x - it.x) > 0.0005 || Math.abs(c.z - it.z) > 0.0005) home.move(this.roomId, it.u, { x: c.x, z: c.z, y: it.y }, false);

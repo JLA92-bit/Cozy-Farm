@@ -862,6 +862,44 @@ try {
     check("handmade pieces need the Carpenter's Workshop and the things they take", after.craft, JSON.stringify(after));
     check('a one-finish piece in a picked colour shows that colour (not darkened by its texture)', after.tint, JSON.stringify(after));
     check('books go on wall shelves and inside bookcases, and ride with a shelf to another wall', after.shelves, JSON.stringify(after));
+    // 1.30 people in the home walk round furniture (never inside a piece) and sit down; patterned rugs keep their pattern
+    const life = await page.evaluate(async () => {
+      const H = window.__home, sys = H.sys, id = 'living';
+      sys.clearRoom(id);
+      const put = async (p, o) => { sys.give(p, 1); const it = await H.placeFromStorage(p); sys.move(id, it.u, o); return it; };
+      const sofa = await put('kf_loungesofa', { x: 0, z: 0, r: 0 });
+      await put('kf_table', { x: 1.2, z: 1.2, r: 0 });
+      const rug = await put('proc_rugp_rect', { x: -1, z: 1.2 });
+      sys.setRugPattern(id, rug.u, 'wall:damask', '#27406b', '#c99a2e');
+      H.select(null);
+      H.controls.setMode('relax');
+      H.view.rebuild();
+      H.life.furnitureChanged();
+      const L = H.life, p = L.player;
+      p.placeAt(-1.5, -1.5);
+      L.walkPlayer(1.5, 1.6);
+      let inside = 0;
+      for (let i = 0; i < 80; i++) {
+        L.update(0.05);
+        for (const it of sys.room(id).items) {
+          if (/rug/.test(it.f)) continue;
+          const b = H.view.worldBox(it);
+          if (b && p.pos.x > b.min.x + 0.01 && p.pos.x < b.max.x - 0.01 && p.pos.z > b.min.z + 0.01 && p.pos.z < b.max.z - 0.01) inside++;
+        }
+      }
+      const sat = L.sitOnPiece(sofa.u);
+      for (let i = 0; i < 120 && !p.seat; i++) L.update(0.05);
+      // a piece put down on someone moves them to free floor
+      p.standUp(L.nav);
+      sys.move(id, sofa.u, { x: p.pos.x, z: p.pos.z, r: 0 });
+      H.view.rebuild();
+      L.furnitureChanged();
+      const b = H.view.worldBox(sys.item(id, sofa.u));
+      const pushed = !(p.pos.x > b.min.x && p.pos.x < b.max.x && p.pos.z > b.min.z && p.pos.z < b.max.z);
+      return { inside, sat, seated: !!p.seat || sat, pushed, rug: sys.item(id, rug.u).pat === 'wall:damask' };
+    });
+    check('people walk round furniture, sit down, and step aside when a piece is put on them', life.inside === 0 && life.seated && life.pushed, JSON.stringify(life));
+    check('a patterned rug keeps its pattern and colours', life.rug, JSON.stringify(life));
   }
 
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back

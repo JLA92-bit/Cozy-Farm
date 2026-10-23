@@ -149,6 +149,9 @@ export type Platform = 'android' | 'pwa' | 'web' | 'ios';
 /** What a reward code gives. */
 export interface RewardCode { coins: number; gems: number; items: Record<string, number>; message: string | null }
 
+/** 1.30 a player's home as friends see it (rooms only; see src/online/HomeShare.ts). */
+export interface HomeSnapshot { v: 1; name: string; rooms: Record<string, unknown> }
+
 export interface OnlineBackend {
   /** 'local' = practice mode in this browser only (with demo neighbours); 'supabase' = real online play */
   readonly kind: 'local' | 'supabase';
@@ -230,6 +233,15 @@ export interface OnlineBackend {
   myFarmHelp(): Promise<FarmHelp[]>;
   /** Marks the caller's own help rows claimed exactly once; returns the ids claimed by this call. */
   claimFarmHelp(ids: string[]): Promise<string[]>;
+
+  /** 1.30 publish this player's home picture (src/online/HomeShare.ts). Rejects when refused or offline. */
+  publishHome(snap: HomeSnapshot): Promise<void>;
+  /** 1.30 a player's home picture (not yet checked: HomeShare.sanitizeHome does that), or null when not shared. */
+  getHome(playerId: string): Promise<unknown | null>;
+  /** 1.30 come over for coffee at a friend's home; first is false when you already had coffee there today (UTC). */
+  coffeeVisit(hostId: string): Promise<{ first: boolean }>;
+  /** 1.30 who came over for coffee since the last call (each told once). */
+  myCoffeeVisits(): Promise<{ id: string; guestId: string; guestName: string; at: number }[]>;
 
   /**
    * Ask a friend (1.8). Ask the friends `friends` (ids, at most 30; only they see it) for 1-10 of an item.

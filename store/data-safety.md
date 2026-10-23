@@ -13,6 +13,9 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
 - **Sign in with Google is optional.** It links Google to the anonymous account and turns on the cloud save.
 - **Farm visits** (from 1.4): a public snapshot of the farm layout (fields and crop stages, buildings, animals,
   trees, decorations, plus farmer name, level and look) so neighbours can visit. No coins, items or other save data.
+- **Home visits** (from 1.30): a public picture of the rooms inside the Farmhouse (walls, floors, furniture, room
+  names, farmer name) so friends can step inside, and coffee visits (who visited whom, the day). No coins, items or
+  other save data. Removed with the account.
 - **Neighbour help** (from 1.5): helping a neighbour's farm (water, feed, tend) and likes, with an optional guestbook
   note picked from a **preset list** (no free text).
 - **Phone notifications are optional** (from 1.5, off until the player switches them on): the device's push

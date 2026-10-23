@@ -1,4 +1,4 @@
-import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest } from './types';
+import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest, HomeSnapshot } from './types';
 import { ASK, HELP_REASONS, cleanFill, cleanRequest } from './AskHelp';
 import { cleanClaim, cleanCoop } from './Coop';
 import { COOP } from '../data';
@@ -259,6 +259,29 @@ export class LocalBackend implements OnlineBackend {
     farms[this.id] = snapshot;
     try { localStorage.setItem(FARMS_KEY, JSON.stringify(farms)); } catch { throw new Error('storage full'); }
   }
+
+  // 1.30 home visits and coffee (practice mode: kept on this device; the practice neighbours keep their doors shut)
+  async publishHome(snap: HomeSnapshot): Promise<void> {
+    await this.init();
+    try { localStorage.setItem(`${FARMS_KEY}-home-${this.id}`, JSON.stringify(snap)); } catch { throw new Error('storage full'); }
+  }
+
+  async getHome(playerId: string): Promise<unknown | null> {
+    await this.init();
+    try { return JSON.parse(localStorage.getItem(`${FARMS_KEY}-home-${playerId}`) ?? 'null'); } catch { return null; }
+  }
+
+  async coffeeVisit(hostId: string): Promise<{ first: boolean }> {
+    await this.init();
+    if (hostId === this.id) throw new Error('self');
+    const key = `${FARMS_KEY}-coffee-${hostId}`;
+    const day = new Date(this.now()).toISOString().slice(0, 10);
+    const first = localStorage.getItem(key) !== day;
+    try { localStorage.setItem(key, day); } catch { /* storage full: still friendly */ }
+    return { first };
+  }
+
+  async myCoffeeVisits(): Promise<{ id: string; guestId: string; guestName: string; at: number }[]> { return []; }
 
   async getFarm(playerId: string): Promise<FarmSnapshot | null> {
     await this.init();

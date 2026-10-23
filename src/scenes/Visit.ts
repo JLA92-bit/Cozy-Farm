@@ -93,8 +93,16 @@ export function initVisit(scene: FarmScene, interaction: Interaction): void {
 
 export function isVisiting(): boolean { return !!cur; }
 
+/** 1.30 called when a visit ends (before the visited farm is removed): stepping back out of a friend's home. */
+export const visitEndHooks: (() => void)[] = [];
+
 /** Extras on the visit banner (1.8 Ask a friend shows what this friend is asking for). Called once per visit. */
 export const visitBannerHooks: ((ownerId: string, banner: HTMLElement) => void)[] = [];
+
+/** 1.30 whose farm is being visited (for stepping inside their home). */
+export function visitedFarm(): { id: string; name: string; look: FarmSnapshot['look'] } | null {
+  return cur ? { id: cur.owner.id, name: cur.owner.name, look: cur.snap.look } : null;
+}
 
 /** "Granny Mae's", "Old Toms'". */
 export function possessive(name: string): string { return /s$/i.test(name) ? `${name}'` : `${name}'s`; }
@@ -291,6 +299,7 @@ export async function goHome(fromBrowserBack = false): Promise<void> {
 
 /** Remove the visited farm and show the player's own one again (also used when a visit fails). */
 function leave(scene: FarmScene, interaction: Interaction): void {
+  for (const fn of visitEndHooks) { try { fn(); } catch (e) { console.warn('[visit] end hook', e); } }
   const a = cur;
   cur = null;
   scene.visit = null;

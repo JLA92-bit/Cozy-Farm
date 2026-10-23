@@ -1,6 +1,36 @@
 {
  "releases": [
   {
+   "version": "1.30.0",
+   "date": "2026-10-23",
+   "title": "Come On In",
+   "icon": "door",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "farmer",
+     "text": "Your farmer now lives in your home: switch to Relax, tap the floor to walk and tap a chair, sofa or bed to sit down"
+    },
+    {
+     "icon": "hug",
+     "text": "Villagers drop in during the day to look round, sit a while and chat"
+    },
+    {
+     "icon": "door",
+     "text": "Visiting a friend's farm? Tap Go inside to see their home, and Have a coffee to sit down together. They'll hear you came over"
+    },
+    {
+     "icon": "card_box",
+     "text": "Five patterned rugs: any floor or wallpaper pattern in your own colours, with a border to match"
+    },
+    {
+     "icon": "couch",
+     "text": "Everyone walks round your furniture and steps aside when you put a piece down"
+    }
+   ],
+   "sections": []
+  },
+  {
    "version": "1.29.2",
    "date": "2026-10-23",
    "title": "Books on Shelves",

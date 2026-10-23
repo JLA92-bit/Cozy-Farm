@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { HOME, PIECE, VILLAGER } from '../data';
+import { HOME, HOME_ROOM, PIECE, VILLAGER } from '../data';
+import { assets } from '../core/Assets';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { game } from '../systems/Game';
 import { home, homeUnlocked, roomOpen } from '../systems/Home';
 import { saves } from '../systems/Save';
@@ -14,7 +16,11 @@ import { tutorial } from '../ui/Tutorial';
 import { ui } from '../ui/UI';
 import { h, icon } from '../ui/dom';
 import { speech } from '../ui/Speech';
-import { hideWipe, isVisiting, showWipe } from './Visit';
+import { hideWipe, isVisiting, possessive, showWipe, visitBannerHooks, visitEndHooks, visitedFarm } from './Visit';
+import { online } from '../online/Online';
+import { publishHome, sanitizeHome, startHomeSync } from '../online/HomeShare';
+import { HomeChar } from '../world/home/HomePeople';
+import type { CharacterLook } from '../systems/State';
 import { isInSquare } from './Square';
 import { isInWoods } from './Woods';
 import { HomeUI } from '../ui/home/HomeUI';
@@ -61,6 +67,13 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
   });
   scene.onFrame((dt) => frame(dt));
   ui.register('home', () => void enterHome());
+  // 1.30 friends: step inside a friend's home from their farm, and hear who came over for coffee
+  visitBannerHooks.push((ownerId, banner) => {
+    const row = banner.querySelector('.visit-help-row') ?? banner;
+    row.append(h('button', { class: 'btn small yellow visit-inside', type: 'button', 'aria-label': 'Go inside their Farmhouse', onclick: () => { const f = visitedFarm(); if (f && f.id === ownerId) void enterGuestHome(f); } }, icon('door'), 'Go inside'));
+  });
+  visitEndHooks.push(() => { if (guest) leaveGuestHome(false); });
+  startHomeSync((names) => ui.feedback.toast(names.length > 1 ? 'Friends came over for coffee' : `${names[0]} came over for coffee`, 'There is a letter about it in your mailbox.', 'chai'));
   // 1.29 villagers' furniture sets: sent as friendship grows (and to farms that already have the hearts)
   const gifts = () => {
     for (const id of home.sendGifts()) ui.feedback.toast('A gift for your home', `${PIECE[id].name} is in your home storage. There's a letter too.`, 'gift');
@@ -186,6 +199,7 @@ export async function leaveHome(fromBrowserBack = false): Promise<void> {
   await new Promise((r) => setTimeout(r, 380));
   cleanup();
   saves.save();
+  void publishHome(true);
   await hideWipe(wipe);
   busy = false;
 }
@@ -374,6 +388,239 @@ function moveCarrying(roomId: string, uid: number, to: Parameters<typeof home.mo
   }
 }
 
+// ------------------------------------------------------------------------------------ 1.30 a friend's home
+
+interface Guest {
+  owner: { id: string; name: string };
+  host: HomeChar | null;
+  saved: { target: THREE.Vector3; distance: number; min: number; max: number; bounds: THREE.Box2; handler: WorldHandler | null; azimuth: number; elevation: number };
+  frame: ((dt: number, t: number) => void) | null;
+  hidden: HTMLElement[];
+  banner: HTMLElement;
+  mugs: THREE.Mesh[];
+  coffee: boolean;
+}
+let guest: Guest | null = null;
+
+export function isInGuestHome(): boolean { return !!guest; }
+
+/** Step inside a friend's home while visiting their farm (read only: you can walk about, sit and have coffee). */
+export async function enterGuestHome(owner: { id: string; name: string; look: CharacterLook }): Promise<void> {
+  if (!ctx || busy || inHome || guest || !ctx.scene.visit) return;
+  busy = true;
+  const { scene } = ctx;
+  const wipe = showWipe(`Knocking at ${possessive(owner.name)} door`);
+  let data: ReturnType<typeof sanitizeHome> = null;
+  try { data = sanitizeHome(await Promise.race([online.getHome(owner.id), new Promise<null>((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000))])); } catch (e) { console.warn('[home] could not load the home', e); }
+  if (!data || !scene.visit) {
+    await hideWipe(wipe);
+    busy = false;
+    ui.feedback.toast(`${possessive(owner.name)} door is shut`, 'They have not shared their home yet. Homes open at level 30.', 'door');
+    return;
+  }
+  try {
+    if (!view) { view = new HomeView(); scene.scene.add(view.group); }
+    view.source = data.home;
+    const rooms = Object.keys(data.home.rooms);
+    await view.show(rooms.includes('living') ? 'living' : rooms[0]);
+    const rig = scene.rig;
+    const saved = { target: rig.target.clone(), distance: rig.distance, min: rig.minDistance, max: rig.maxDistance, bounds: rig.bounds.clone(), handler: scene.handler, azimuth: rig.azimuth, elevation: rig.elevation };
+    view.group.visible = true;
+    scene.handler = guestHandler;
+    scene.env.indoors = true;
+    rig.stop();
+    rig.elevation = THREE.MathUtils.degToRad(50);
+    frameRoom(true);
+    view.setAzimuth(rig.azimuth);
+    life = new HomeLife(view, () => scene.loop.wake(0.3));
+    await life.start(game.state.player.look, false);
+    // the visited farm's frame hook is swapped for the home's while inside (the farm stays paused)
+    const vis = scene.visit;
+    const prevFrame = vis.frame;
+    vis.frame = (dt) => guestFrame(dt);
+    const hidden = [...ui.root.querySelectorAll<HTMLElement>('.visit-banner, .help-visit')].filter((el) => el.style.display !== 'none');
+    for (const el of hidden) el.style.display = 'none';
+    guest = { owner, host: null, saved, frame: prevFrame, hidden, banner: guestBanner(owner.name, data.home.rooms), mugs: [], coffee: false };
+    ui.root.append(guest.banner);
+    // their farmer is in, by the middle of the room
+    try {
+      const host = await HomeChar.create(owner.look, view.group, 'host');
+      const spot = life.nav.nearestFree(0.3, -0.3) ?? [0, 0];
+      host.placeAt(spot[0], spot[1]);
+      life.extras.push(host);
+      guest.host = host;
+      host.face(life.player?.pos.x ?? 0, life.player?.pos.z ?? 1);
+      speech.say(host.char.root, { text: 'Come in, come in!', dur: 3 });
+    } catch (e) { console.warn('[home] host could not be drawn', e); }
+    scene.loop.wake(1);
+  } catch (e) {
+    console.error('[home] could not show the home', e);
+    leaveGuestHome(true);
+  }
+  await hideWipe(wipe);
+  busy = false;
+}
+
+function guestBanner(name: string, rooms: Record<string, unknown>): HTMLElement {
+  const chips = h('div', { class: 'hm-chips hm-guest-rooms' }, ...Object.keys(rooms).map((id) => h('button', { class: `hm-chip${id === view?.roomId ? ' on' : ''}`, type: 'button', onclick: () => void guestRoom(id) }, guestRoomName(id))));
+  return h('div', { class: 'visit-banner visit-keep hm-guest' },
+    h('div', { class: 'visit-title' }, h('div', { class: 'visit-name outlined' }, `${possessive(name)} home`), chips),
+    h('div', { class: 'hm-guest-btns' },
+      h('button', { class: 'btn yellow', type: 'button', onclick: () => void haveCoffee() }, icon('chai'), 'Have a coffee'),
+      h('button', { class: 'btn green visit-home', type: 'button', onclick: () => void leaveGuestHomeWipe() }, icon('house'), 'Back outside')));
+}
+
+function guestRoomName(id: string): string { return view?.source?.rooms[id]?.name || HOME_ROOM[id]?.name || 'Room'; }
+
+async function guestRoom(id: string): Promise<void> {
+  if (!guest || !view || !life) return;
+  for (const m of guest.mugs) view.group.remove(m);
+  guest.mugs = [];
+  await view.show(id);
+  frameRoom();
+  view.setAzimuth(ctx!.scene.rig.azimuth);
+  const host = guest.host;
+  life.extras = [];
+  await life.start(game.state.player.look, false);
+  if (host) {
+    guest.host = await HomeChar.create(host.char.look, view.group, 'host');
+    const spot = life.nav.nearestFree(0.3, -0.3) ?? [0, 0];
+    guest.host.placeAt(spot[0], spot[1]);
+    life.extras.push(guest.host);
+  }
+  for (const b of guest.banner.querySelectorAll<HTMLElement>('.hm-guest-rooms .hm-chip')) b.classList.toggle('on', b.textContent === guestRoomName(id));
+}
+
+/** Sit down together (the two seats closest to each other), a mug each on the nearest table, and tell the server. */
+async function haveCoffee(): Promise<void> {
+  if (!guest || !view || !life || !life.player) return;
+  const me = life.player, host = guest.host;
+  const seats = life.freeSeats();
+  let pair: [typeof seats[0], typeof seats[0]] | null = null, best = Infinity;
+  for (let i = 0; i < seats.length; i++) for (let j = 0; j < seats.length; j++) {
+    if (i === j) continue;
+    const d = Math.hypot(seats[i].x - seats[j].x, seats[i].z - seats[j].z) + Math.hypot(seats[i].x - me.pos.x, seats[i].z - me.pos.z) * 0.1;
+    if (d < best && d > 0.2) { best = d; pair = [seats[i], seats[j]]; }
+  }
+  const cheers = () => {
+    speech.say(me.char.root, { icon: 'chai', text: 'Cheers!', dur: 3 });
+    if (host) setTimeout(() => speech.say(host.char.root, { icon: 'chai', text: 'Lovely to see you!', dur: 3 }), 900);
+    if (pair) placeMugs(pair[0], pair[1]);
+  };
+  if (pair && host) { host.sitOn(life.nav, pair[0]); me.sitOn(life.nav, pair[1], cheers); }
+  else if (host) me.walkTo(life.nav, host.pos.x + 0.4, host.pos.z + 0.3, () => { me.face(host.pos.x, host.pos.z); host.face(me.pos.x, me.pos.z); cheers(); });
+  else cheers();
+  if (guest.coffee) return;
+  guest.coffee = true;
+  try {
+    const r = await online.coffeeVisit(guest.owner.id);
+    ui.feedback.toast(r.first ? `Coffee with ${guest?.owner.name ?? 'a friend'}` : 'Another cup?', r.first ? 'They will hear you came over.' : 'You have already had coffee here today. Still lovely!', 'chai');
+  } catch (e) {
+    const msg = (e as Error)?.message ?? '';
+    ui.feedback.toast('Coffee for one', msg === 'busy' ? 'They have had a lot of visitors today. Try again tomorrow!' : "We couldn't let them know you came. Check your connection.", 'chai', 'warn');
+  }
+}
+
+/** A mug of coffee for each of you on the table nearest the two seats (if there is one). */
+function placeMugs(a: { x: number; z: number }, b: { x: number; z: number }): void {
+  if (!guest || !view) return;
+  const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
+  let table: THREE.Box3 | null = null, bestD = 1.6;
+  for (const it of view.room?.items ?? []) {
+    if (!PIECE[it.f]?.top || it.w !== undefined) continue;
+    const box = view.worldBox(it);
+    if (!box) continue;
+    const d = Math.hypot((box.min.x + box.max.x) / 2 - mx, (box.min.z + box.max.z) / 2 - mz);
+    if (d < bestD && box.max.y < 0.9) { bestD = d; table = box; }
+  }
+  if (!table) return;
+  const mug = mugGeometry();
+  for (const s of [a, b]) {
+    const x = THREE.MathUtils.clamp(s.x, table.min.x + 0.06, table.max.x - 0.06), z = THREE.MathUtils.clamp(s.z, table.min.z + 0.06, table.max.z - 0.06);
+    const m = new THREE.Mesh(mug, assets.vertexMaterial);
+    m.position.set(x, table.max.y, z);
+    m.castShadow = true;
+    view.group.add(m);
+    guest.mugs.push(m);
+  }
+}
+
+let mugGeo: THREE.BufferGeometry | null = null;
+function mugGeometry(): THREE.BufferGeometry {
+  if (mugGeo) return mugGeo;
+  const parts: [THREE.BufferGeometry, string][] = [
+    [new THREE.CylinderGeometry(0.035, 0.03, 0.07, 12).translate(0, 0.035, 0), '#f7f1e3'],
+    [new THREE.CylinderGeometry(0.03, 0.03, 0.005, 12).translate(0, 0.068, 0), '#6e4426'],
+    [new THREE.TorusGeometry(0.018, 0.006, 6, 10).translate(0.04, 0.038, 0), '#f7f1e3'],
+  ];
+  const geos = parts.map(([g, col]) => {
+    const n = g.index ? g.toNonIndexed() : g;
+    const c = new THREE.Color(col);
+    const arr = new Float32Array(n.attributes.position.count * 3);
+    for (let i = 0; i < n.attributes.position.count; i++) c.toArray(arr, i * 3);
+    n.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+    n.deleteAttribute('uv');
+    return n;
+  });
+  mugGeo = mergeGeometries(geos, false)!;
+  return mugGeo;
+}
+
+async function leaveGuestHomeWipe(): Promise<void> {
+  if (!guest || busy) return;
+  busy = true;
+  const wipe = showWipe('Back outside');
+  await new Promise((r) => setTimeout(r, 380));
+  leaveGuestHome(false);
+  await hideWipe(wipe);
+  busy = false;
+}
+
+/** Back out to the friend's farm, exactly as the visit was. */
+export function leaveGuestHome(failed: boolean): void {
+  const scene = ctx?.scene;
+  const g = guest;
+  guest = null;
+  life?.stop();
+  life = null;
+  if (view) { for (const m of g?.mugs ?? []) view.group.remove(m); view.group.visible = false; view.source = null; }
+  if (!scene) return;
+  scene.env.indoors = false;
+  scene.env.fogFloor = 0;
+  if (g) {
+    if (scene.visit && g.frame) scene.visit.frame = g.frame;
+    const rig = scene.rig;
+    rig.stop();
+    gsap.killTweensOf(rig, 'azimuth');
+    rig.bounds.copy(g.saved.bounds); rig.target.copy(g.saved.target);
+    rig.distance = g.saved.distance; rig.minDistance = g.saved.min; rig.maxDistance = g.saved.max;
+    rig.azimuth = g.saved.azimuth; rig.elevation = g.saved.elevation;
+    scene.handler = g.saved.handler;
+    g.banner.remove();
+    for (const el of g.hidden) el.style.display = '';
+  }
+  if (failed) ui.feedback.toast("Couldn't go inside", 'Something in the house could not be drawn. Try again later.', 'cloud', 'warn');
+  scene.loop.wake(1);
+}
+
+/** Leaving the friend's farm altogether also leaves their home. */
+export function guestFrame(dt: number): void {
+  if (!guest || !life || !ctx) return;
+  life.update(dt);
+  view?.setNight(ctx.scene.env.night);
+  ctx.scene.env.fogFloor = 40;
+  ctx.scene.loop.wake(0.1);
+}
+
+const guestHandler: WorldHandler = {
+  pointerDown(): void {},
+  tap(p: Pointer): void { if (ctx) relaxTap(ctx.scene.ray(p), true); },
+  longPress(p: Pointer): void { if (ctx) relaxTap(ctx.scene.ray(p), true); },
+  dragStart(): DragKind { return 'pan'; },
+  toolDrag(): void {},
+  toolDragEnd(): void {},
+};
+
 // ------------------------------------------------------------------------------------ taps and drags
 
 const homeHandler: WorldHandler = {
@@ -463,11 +710,11 @@ const homeHandler: WorldHandler = {
 };
 
 /** 1.30 relax: tap a visitor to say hello, a seat to sit, a lamp to switch it, anywhere else to walk there. */
-function relaxTap(ray: THREE.Ray): void {
+function relaxTap(ray: THREE.Ray, asGuest = false): void {
   if (!view || !life) return;
   const who = life.personAt(ray);
   if (who && who !== life.player) {
-    if (VILLAGER[who.id]) { ui.open('village', { villager: who.id }); return; }
+    if (VILLAGER[who.id] && !asGuest) { ui.open('village', { villager: who.id }); return; }
     speech.say(who.char.root, { text: 'Hello!', dur: 2 });
     return;
   }
@@ -478,7 +725,7 @@ function relaxTap(ray: THREE.Ray): void {
     if (life.sitOnPiece(hit.uid)) { audio.play('tap', { volume: 0.4 }); return; }
     if (!life.freeSeats(life.player ?? undefined).some((s) => s.uid === hit.uid)) { ui.feedback.toast('Someone is sitting there', 'Try another seat.', 'couch'); return; }
   }
-  if (hit && def?.lamp && def.kind !== 'floor') { home.toggleLamp(view.roomId, hit.uid); return; }
+  if (hit && def?.lamp && def.kind !== 'floor' && !asGuest) { home.toggleLamp(view.roomId, hit.uid); return; }
   const fp = view.floorPoint(ray, 0);
   if (fp && life.walkPlayer(fp.x, fp.z)) audio.play('tap', { volume: 0.3 });
 }

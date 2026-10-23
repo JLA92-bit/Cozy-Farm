@@ -410,3 +410,17 @@ due, which is fine on the free plan. Use one of the two, not both.)
 | Function answers 401 "Invalid JWT" / "Missing authorization header" | JWT verification is still on: deploy with `--no-verify-jwt`, or switch it off in the function's settings (step C3). |
 | Notifications stopped after making new VAPID keys | Expected: every player switches notifications off and on again in Settings (the game also does this by itself the next time it opens, if permission is still granted). |
 | A warning `push_cron_tick: add the Vault secret cozy_project_url` in the database logs | Step D2. |
+
+## Home visits and coffee (1.30)
+
+Friends visiting your farm can tap **Go inside** to see your Farmhouse (read only): they walk about, sit down and
+can **Have a coffee**. Server section `1.30 home visits and coffee` in `supabase/schema.sql`:
+
+- `home_snapshots` (one row per player, at most 192 KB, readable by signed-in players), written only by
+  `publish_home(p_data)`: shape `{v: 1, name, rooms}`, at most 12 rooms, one publish per 10 seconds. The game
+  (`src/online/HomeShare.ts`) shares the rooms only (no storage, catalogue or saved looks) every 5 minutes when
+  changed and when leaving the home; a friend's picture is checked with `repairHome` before it is drawn.
+- `home_coffee` (one row per guest per host per UTC day; no client access) via `coffee_visit(p_host)`, which returns
+  `{first}`; caps of 40 guests per host and 30 visits per guest a day. `my_coffee_visits()` hands the host new visits
+  once each (the game sends a letter) and forgets visits older than 30 days. Coffee gives no coins, items or XP.
+- Both tables cascade when an account is deleted. Practice mode keeps homes and coffee on the device.

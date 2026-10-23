@@ -1,6 +1,6 @@
 import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import { cleanClaim, cleanCoop } from './Coop';
-import type { AccountLock, CoopClaim, CoopProject } from './types';
+import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -627,6 +627,32 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (!valid.length) return [];
     const rows = await this.rpc<FarmHelpRow[]>('claim_farm_help', { p_ids: valid });
     return (rows ?? []).map((r) => r.id);
+  }
+
+  // ------------------------------------------------------------------ 1.30 home visits and coffee
+  async publishHome(snap: HomeSnapshot): Promise<void> {
+    if (JSON.stringify(snap).length > 190000) throw new Error('home too big');
+    const at = await this.rpc<string | null>('publish_home', { p_data: snap });
+    if (!at) throw new Error('home refused');
+  }
+
+  async getHome(playerId: string): Promise<unknown | null> {
+    if (!UUID.test(playerId)) return null;
+    const row = await this.query((sb) => sb.from('home_snapshots').select('data').eq('user_id', playerId).maybeSingle() as PromiseLike<Result<{ data: unknown }>>);
+    return row?.data ?? null;
+  }
+
+  async coffeeVisit(hostId: string): Promise<{ first: boolean }> {
+    if (!UUID.test(hostId)) throw new Error('unknown player');
+    try {
+      const r = await this.rpc<{ first?: boolean }>('coffee_visit', { p_host: hostId });
+      return { first: !!r?.first };
+    } catch (e) { throw this.helpError(e); }
+  }
+
+  async myCoffeeVisits(): Promise<{ id: string; guestId: string; guestName: string; at: number }[]> {
+    const rows = await this.rpc<{ id: string; guest_id: string; guest_name: string; created_at: string }[]>('my_coffee_visits', {});
+    return (rows ?? []).filter((r) => UUID.test(r.id)).map((r) => ({ id: r.id, guestId: r.guest_id, guestName: String(r.guest_name ?? 'Farmer').slice(0, 24), at: ms(r.created_at) }));
   }
 
   // ------------------------------------------------------------------ ask a friend (1.8)

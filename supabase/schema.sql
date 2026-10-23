@@ -4298,3 +4298,129 @@ grant execute on function public.admin_lock_player(uuid, timestamptz, text) to a
 grant execute on function public.admin_unlock_player(uuid) to authenticated;
 grant execute on function public.admin_player_locks(uuid) to authenticated;
 grant execute on function public.admin_locked_players() to authenticated;
+
+-- ===== 1.30 home visits and coffee =====
+-- Friends can step inside each other's Farmhouse while visiting their farm, and come over for coffee. Each
+-- player's home picture (rooms, walls, floors and furniture; nothing else from the save) is a row in
+-- home_snapshots, written only through publish_home(). A coffee visit is a row in home_coffee: one per guest per
+-- host per UTC day; the host's game picks up new ones with my_coffee_visits() and says who came over. Coffee is
+-- only friendly: it gives no coins, items or XP. Rows cascade when either account is deleted.
+
+create table if not exists public.home_snapshots (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  data       jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 196608),
+  updated_at timestamptz not null default now()
+);
+alter table public.home_snapshots enable row level security;
+revoke all on public.home_snapshots from anon, authenticated, public;
+grant select on public.home_snapshots to authenticated;
+drop policy if exists "home snapshots are public to players" on public.home_snapshots;
+create policy "home snapshots are public to players" on public.home_snapshots
+  for select to authenticated using (true);
+
+-- Store the caller's home picture. At most one publish per 10 seconds ('too soon'); returns null (stores nothing)
+-- when it is too big or the wrong shape.
+create or replace function public.publish_home(p_data jsonb)
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_cur timestamptz;
+  v_at timestamptz := now();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
+  if p_data is null or jsonb_typeof(p_data) <> 'object' or coalesce(p_data ->> 'v', '') <> '1'
+     or jsonb_typeof(p_data -> 'rooms') is distinct from 'object'
+     or octet_length(p_data::text) > 196608
+     or (select count(*) from jsonb_object_keys(p_data -> 'rooms')) > 12 then
+    return null;
+  end if;
+  select h.updated_at into v_cur from public.home_snapshots h where h.user_id = uid for update;
+  if found and v_cur > v_at - interval '10 seconds' then raise exception 'too soon'; end if;
+  insert into public.home_snapshots as h (user_id, data, updated_at)
+  values (uid, p_data, v_at)
+  on conflict (user_id) do update set data = excluded.data, updated_at = excluded.updated_at;
+  return v_at;
+end;
+$$;
+
+create table if not exists public.home_coffee (
+  id         uuid primary key default gen_random_uuid(),
+  host_id    uuid not null references public.profiles (id) on delete cascade,
+  guest_id   uuid not null references public.profiles (id) on delete cascade,
+  guest_name text not null check (char_length(guest_name) between 1 and 24),
+  day        date not null default ((now() at time zone 'utc')::date),
+  created_at timestamptz not null default now(),
+  seen_at    timestamptz,
+  check (host_id <> guest_id),
+  unique (host_id, guest_id, day)
+);
+create index if not exists home_coffee_host_idx on public.home_coffee (host_id, seen_at);
+alter table public.home_coffee enable row level security;
+revoke all on public.home_coffee from anon, authenticated, public;
+
+-- Come over for coffee at a friend's home: once per host per UTC day. Returns {"first": true} the first time
+-- today and {"first": false} after that (nothing new is written).
+create or replace function public.coffee_visit(p_host uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_day date := (now() at time zone 'utc')::date;
+  v_name text;
+  v_n integer;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
+  if p_host is null or p_host = uid then raise exception 'not yourself'; end if;
+  select p.name into v_name from public.profiles p where p.id = uid;
+  if not found then raise exception 'no profile'; end if;
+  perform 1 from public.profiles p where p.id = p_host for update;
+  if not found then raise exception 'unknown player'; end if;
+  if exists (select 1 from public.home_coffee c where c.host_id = p_host and c.guest_id = uid and c.day = v_day) then
+    return jsonb_build_object('first', false);
+  end if;
+  select count(*) into v_n from public.home_coffee c where c.host_id = p_host and c.day = v_day;
+  if v_n >= 40 then raise exception 'busy'; end if;
+  select count(*) into v_n from public.home_coffee c where c.guest_id = uid and c.day = v_day;
+  if v_n >= 30 then raise exception 'too many today'; end if;
+  insert into public.home_coffee (host_id, guest_id, guest_name, day)
+  values (p_host, uid, public.clean_text(v_name, 24, 'Farmer'), v_day)
+  on conflict (host_id, guest_id, day) do nothing;
+  return jsonb_build_object('first', true);
+end;
+$$;
+
+-- The host's new coffee visits (marked seen by this call, so each is told once), newest first. Also forgets
+-- visits older than 30 days.
+create or replace function public.my_coffee_visits()
+returns table (id uuid, guest_id uuid, guest_name text, created_at timestamptz)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  delete from public.home_coffee c where c.host_id = uid and c.created_at < now() - interval '30 days';
+  return query
+    update public.home_coffee c set seen_at = now()
+     where c.host_id = uid and c.seen_at is null
+    returning c.id, c.guest_id, c.guest_name, c.created_at;
+end;
+$$;
+
+revoke all on function public.publish_home(jsonb) from public, anon;
+revoke all on function public.coffee_visit(uuid) from public, anon;
+revoke all on function public.my_coffee_visits() from public, anon;
+grant execute on function public.publish_home(jsonb) to authenticated;
+grant execute on function public.coffee_visit(uuid) to authenticated;
+grant execute on function public.my_coffee_visits() to authenticated;
