@@ -239,9 +239,11 @@ export class HomeView {
     if (def.patterned) this.addRugTop(it, def.patterned, m);
     if (def.picture) {
       const [pw, ph, py, tilt = 0] = def.picture;
-      const key = it.show ?? '';
+      // 1.30.4 a kept photo (from this home, or the friend's home being visited); one that is gone shows the painting
+      const photo = it.show?.startsWith('photo:') ? (this.source ?? home.state).photos?.find((p) => `photo:${p.id}` === it.show)?.d : undefined;
+      const key = photo ? `photo|${(pw / ph).toFixed(3)}|${photo.length}|${photo.slice(-48)}` : it.show?.startsWith('photo:') ? '' : it.show ?? '';
       let mat = this.pictureMats.get(key);
-      if (!mat) { mat = new THREE.MeshLambertMaterial({ map: pictureTexture(it.show) }); this.pictureMats.set(key, mat); }
+      if (!mat) { mat = new THREE.MeshLambertMaterial({ map: pictureTexture(it.show, photo, pw / ph) }); this.pictureMats.set(key, mat); }
       const mesh = new THREE.Mesh(this.picGeo, mat);
       const local = new THREE.Matrix4().compose(new THREE.Vector3(0, py, geo.size.z / 2 + 0.004 - (tilt ? geo.size.z * 0.25 : 0)), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), tilt), new THREE.Vector3(pw, ph, 1));
       mesh.matrixAutoUpdate = false;

@@ -395,4 +395,7 @@ export interface HomeState {
   last?: string;
   /** villagers' gift pieces already sent */
   gifts?: string[];
+  /** 1.30.4 photos kept from Photo mode to hang on picture frames (show "photo:<id>"); small JPEG data URLs */
+  photos?: HomePhoto[];
 }
+export interface HomePhoto { id: number; d: string }

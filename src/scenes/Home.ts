@@ -7,6 +7,8 @@ import { game } from '../systems/Game';
 import { clampScale, home, homeUnlocked, repairHome, roomOpen, SCALE_MAX, SCALE_MIN, SCALE_STEP } from '../systems/Home';
 import { homeCharm } from '../systems/Timers';
 import { thumbs } from '../world/Thumbs';
+import { whenPhotoLoaded } from '../world/home/Pictures';
+import { openPhotoMode } from '../ui/PhotoMode';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { audio } from '../systems/Audio';
@@ -69,6 +71,8 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
     if (inHome) void leaveHome(true);
   });
   scene.onFrame((dt) => frame(dt));
+  // a kept photo is drawn on its frame once its picture has loaded
+  whenPhotoLoaded(() => scene.loop.wake(0.3));
   ui.register('home', () => void enterHome());
   // 1.30 friends: step inside a friend's home from their farm, and hear who came over for coffee
   visitBannerHooks.push((ownerId, banner) => {
@@ -356,6 +360,14 @@ export const controls = {
     try { localStorage.setItem('cozy-acres-home-snap', String(step)); } catch { /* storage blocked */ }
   },
   reframe: () => frameRoom(),
+  /** 1.30.4 Photo mode in the home: everyone comes out to be in the picture, and goes back after. */
+  photo(): void {
+    if (!view) return;
+    select(null);
+    life?.setHidden(false);
+    homeUi?.closeSheet();
+    openPhotoMode({ caption: `${possessive(game.state.player.name || 'Farmer')} ${home.roomName(view.roomId)}`, onClose: () => { life?.setHidden(mode === 'decorate'); ctx?.scene.loop.wake(0.3); } });
+  },
   leave: () => void leaveHome(),
   frontWalls: (): boolean[] => view?.frontWalls() ?? [false, false, true, true],
   /** Slide the picture so the room shows in the part of the screen a sheet leaves free (fractions of the screen). */
@@ -508,6 +520,7 @@ function guestBanner(name: string, rooms: Record<string, unknown>): HTMLElement 
     h('div', { class: 'visit-title' }, h('div', { class: 'visit-name outlined' }, `${possessive(name)} home`), chips),
     h('div', { class: 'hm-guest-btns' },
       h('button', { class: 'btn yellow', type: 'button', onclick: () => void haveCoffee() }, icon('chai'), 'Have a coffee'),
+      h('button', { class: 'btn blue round hm-photo', type: 'button', 'aria-label': 'Take photos', onclick: () => openPhotoMode({ caption: `${possessive(name)} home` }) }, icon('camera')),
       h('button', { class: 'btn green visit-home', type: 'button', onclick: () => void leaveGuestHomeWipe() }, icon('house'), 'Back outside')));
 }
 

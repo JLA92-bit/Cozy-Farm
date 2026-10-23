@@ -150,7 +150,7 @@ export type Platform = 'android' | 'pwa' | 'web' | 'ios';
 export interface RewardCode { coins: number; gems: number; items: Record<string, number>; message: string | null }
 
 /** 1.30 a player's home as friends see it (rooms only; see src/online/HomeShare.ts). */
-export interface HomeSnapshot { v: 1; name: string; rooms: Record<string, unknown> }
+export interface HomeSnapshot { v: 1; name: string; rooms: Record<string, unknown>; photos?: { id: number; d: string }[] }
 
 export interface OnlineBackend {
   /** 'local' = practice mode in this browser only (with demo neighbours); 'supabase' = real online play */

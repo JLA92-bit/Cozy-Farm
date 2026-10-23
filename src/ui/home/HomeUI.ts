@@ -1,7 +1,7 @@
 import { FURNITURE, HOME, HOME_ROOM, ITEMS, PIECE, type PieceDef } from '../../data';
 import { pictureIcon, pictureName } from '../../world/home/Pictures';
 import { game } from '../../systems/Game';
-import { home, nextRoom, openRooms } from '../../systems/Home';
+import { home, nextRoom, openRooms, PHOTO_MAX } from '../../systems/Home';
 import type { WallStyle } from '../../systems/State';
 import { audio } from '../../systems/Audio';
 import { pieceGeo, pieceGeoNow, PART_NAMES } from '../../world/home/FurnitureGeo';
@@ -35,6 +35,7 @@ export interface HomeControls {
   turnCamera(dir: number): void;
   setSnap(step: number): void;
   reframe(): void;
+  photo(): void;
   leave(): void;
   frontWalls(): boolean[];
   readonly mode: 'relax' | 'decorate';
@@ -135,7 +136,9 @@ export class HomeUI {
       h('div', { class: 'visit-title' },
         h('div', { class: 'visit-name outlined' }, home.roomName(this.c.roomId)),
         h('div', { class: 'visit-sub' }, h('span', null, `${size.name} room, ${size.w} by ${size.d} m`), h('span', null, `${n} ${n === 1 ? 'piece' : 'pieces'}`))),
-      button([icon('house'), h('span', null, 'Back to the farm')], () => this.c.leave(), 'green visit-home', { 'aria-label': 'Back to your farm' }));
+      h('div', { class: 'hm-banner-btns' },
+        button(icon('camera'), () => this.c.photo(), 'blue round hm-photo', { 'aria-label': 'Take photos' }),
+        button([icon('house'), h('span', { class: 'hm-long' }, 'Back to the farm'), h('span', { class: 'hm-short' }, 'Farm')], () => this.c.leave(), 'green visit-home', { 'aria-label': 'Back to your farm' })));
   }
 
   private renderBar(): void {
@@ -409,9 +412,23 @@ export class HomeUI {
       { name: 'From your barn', shows: Object.keys(st.inventory).filter((k) => ITEMS[k] && st.inventory[k] > 0).map((k) => `item:${k}`) },
     ];
     const pick = (show: string | null) => { home.setShow(this.c.roomId, it.u, show); audio.play('pop', { volume: 0.5 }); };
+    // 1.30.4 your own photos from Photo mode first, each with a way to let it go
+    const photos = st.home?.photos ?? [];
+    const pgrid = h('div', { class: 'hm-grid' });
+    for (const p of photos) {
+      const show = `photo:${p.id}`;
+      const drop = button('✕', () => { home.removePhoto(p.id); audio.play('close', { volume: 0.5 }); this.renderSheet(); }, 'red small hm-photo-drop', { 'aria-label': 'Let this photo go' });
+      drop.addEventListener('click', (e) => e.stopPropagation());
+      pgrid.append(h('div', { class: 'hm-photo-tile' },
+        h('button', { class: `hm-card hm-pic${it.show === show ? ' on' : ''}`, type: 'button', 'aria-label': 'Your photo', onclick: () => pick(show) },
+          h('img', { class: 'hm-card-img hm-photo-img', src: p.d, alt: '' }), h('span', { class: 'hm-card-name' }, 'Your photo')),
+        drop));
+    }
+    this.sheetBody.append(h('div', { class: 'hm-label' }, `Your photos (${photos.length} of ${PHOTO_MAX})`),
+      photos.length ? pgrid : h('div', { class: 'hm-hint' }, 'Tap the camera at the top, take a photo and tap Hang at home.'));
     const tile = (show: string | null) => h('button', { class: `hm-card hm-pic${(it.show ?? null) === show ? ' on' : ''}`, type: 'button', 'aria-label': pictureName(show ?? undefined), onclick: () => pick(show) },
       show ? icon(pictureIcon(show) ?? 'framed', 'hm-card-img') : icon('framed', 'hm-card-img'), h('span', { class: 'hm-card-name' }, pictureName(show ?? undefined)));
-    this.sheetBody.append(h('div', { class: 'hm-grid' }, tile(null)));
+    this.sheetBody.append(h('div', { class: 'hm-label' }, 'A painting'), h('div', { class: 'hm-grid' }, tile(null)));
     for (const g of groups) {
       if (!g.shows.length) continue;
       const grid = h('div', { class: 'hm-grid' });

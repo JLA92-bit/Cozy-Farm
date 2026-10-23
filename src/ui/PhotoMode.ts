@@ -6,6 +6,8 @@ import { Panel } from './Panel';
 import { game } from '../systems/Game';
 import { audio, haptics } from '../systems/Audio';
 import type { WorldHandler } from '../scenes/FarmScene';
+import { home, homeUnlocked, PHOTO_MAX, validPhoto } from '../systems/Home';
+import { saves } from '../systems/Save';
 import './photo.css';
 
 /**
@@ -32,10 +34,15 @@ interface Saved {
 
 let active: PhotoMode | null = null;
 
-export function openPhotoMode(): void {
+/** caption: the name on the polaroid (the farm's by default); onClose runs once photo mode has put everything back. */
+export interface PhotoOpts { caption?: string; onClose?: () => void }
+
+export function openPhotoMode(opts: PhotoOpts = {}): void {
   if (active) return;
-  active = new PhotoMode();
+  active = new PhotoMode(opts);
 }
+
+export const isPhotoMode = (): boolean => !!active;
 
 class PhotoMode {
   private saved: Saved;
@@ -46,7 +53,7 @@ class PhotoMode {
   private busy = false;
   private keyFn = (e: KeyboardEvent): void => { if (e.key === 'Escape') this.close(); };
 
-  constructor() {
+  constructor(private opts: PhotoOpts) {
     Panel.closeAll();
     const s = ui.scene, rig = s.rig;
     this.saved = {
@@ -93,7 +100,7 @@ class PhotoMode {
         slider('Turn', -180, 180, Math.round(deg(rig.azimuth - Math.PI / 4)), (v) => { rig.azimuth = Math.PI / 4 + THREE.MathUtils.degToRad(v); }),
         slider('Tilt', 18, 85, Math.round(deg(rig.elevation)), (v) => { rig.elevation = THREE.MathUtils.degToRad(v); })),
       snap);
-    this.el = h('div', { class: 'photo-ui passthrough' },
+    this.el = h('div', { class: 'photo-ui passthrough sq-keep' },
       this.frameEl,
       h('div', { class: 'photo-top' }, h('div', { class: 'photo-title outlined' }, icon('camera'), 'Photo mode'), close),
       h('div', { class: 'photo-hint' }, 'Drag to move, pinch to zoom'),
@@ -121,7 +128,7 @@ class PhotoMode {
   }
 
   private updateCaption(): void {
-    this.caption.replaceChildren(h('b', null, farmName()), h('span', null, dateText()));
+    this.caption.replaceChildren(h('b', null, this.opts.caption ?? farmName()), h('span', null, dateText()));
   }
 
   /** Render one high resolution frame and compose the photo with the chosen frame and filter. */
@@ -158,7 +165,7 @@ class PhotoMode {
     this.busy = false;
     if (!blob) { ui.feedback.toast('Could not take the photo', 'Please try again', 'cross'); return; }
     game.incStat('photos_taken');
-    this.showResult(blob);
+    this.showResult(blob, out);
   }
 
   /** The polaroid window in canvas pixels. */
@@ -174,7 +181,7 @@ class PhotoMode {
     gsap.to(f, { opacity: 0, duration: 0.5, ease: 'power2.out', onComplete: () => f.remove() });
   }
 
-  private showResult(blob: Blob): void {
+  private showResult(blob: Blob, photo: HTMLCanvasElement): void {
     const url = URL.createObjectURL(blob);
     const file = new File([blob], `cozy-acres-${fileStamp()}.jpg`, { type: 'image/jpeg' });
     const canShare = typeof navigator.share === 'function' && !!navigator.canShare?.({ files: [file] });
@@ -198,9 +205,24 @@ class PhotoMode {
         h('div', { class: 'photo-result-row' },
           canShare ? button([icon('heart'), 'Share'], () => void share(), 'blue') : null,
           button([icon('package'), 'Save'], save, canShare ? 'grey' : 'blue'),
+          // 1.30.4 keep it for the home, to hang on a picture frame (not while on a friend's farm: their save is shown)
+          homeUnlocked() && !ui.scene.visit ? button([icon('framed'), 'Hang at home'], () => this.keep(photo, card), 'green photo-keep-btn') : null,
           button('Back', done, 'small grey'))));
     this.el.append(card);
     gsap.from(card.firstElementChild, { scale: 0.6, rotate: -6, duration: 0.45, ease: 'back.out(1.8)' });
+  }
+
+  /** Keep a small copy of the photo for the home's picture frames. */
+  private keep(photo: HTMLCanvasElement, card: HTMLElement): void {
+    const n = home.state.photos?.length ?? 0;
+    if (n >= PHOTO_MAX) { ui.feedback.toast('Your photo album is full', `Your home keeps ${PHOTO_MAX} photos. Pick a picture frame in your home and let one go first.`, 'framed', 'warn'); audio.play('error'); return; }
+    const d = homePhoto(photo);
+    const kept = d ? home.addPhoto(d) : null;
+    if (!kept) { ui.feedback.toast('Could not keep the photo', 'Please try again', 'cross'); return; }
+    saves.save();
+    audio.play('pop');
+    card.querySelector('.photo-keep-btn')?.remove();
+    ui.feedback.toast('Kept for your home', 'Pick a picture frame in your home, then Picture, to hang it.', 'framed');
   }
 
   close(): void {
@@ -223,7 +245,21 @@ class PhotoMode {
     audio.play('close');
     gsap.to(this.el, { opacity: 0, duration: 0.2, onComplete: () => this.el.remove() });
     s.loop.wake(1);
+    this.opts.onClose?.();
   }
+}
+
+/** A small JPEG of a photo for the home (at most 320 pixels wide), made smaller until it fits PHOTO_CHARS. */
+function homePhoto(src: HTMLCanvasElement): string | null {
+  for (const [w, q] of [[320, 0.72], [280, 0.62], [240, 0.55], [200, 0.5]] as const) {
+    const c = h('canvas') as HTMLCanvasElement;
+    c.width = Math.min(w, src.width);
+    c.height = Math.round(c.width * src.height / src.width);
+    c.getContext('2d')!.drawImage(src, 0, 0, c.width, c.height);
+    const d = c.toDataURL('image/jpeg', q);
+    if (validPhoto(d)) return d;
+  }
+  return null;
 }
 
 function farmName(): string { return `${game.state.player.name}'s Farm`; }

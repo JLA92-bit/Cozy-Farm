@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.30.4",
+   "date": "2026-10-23",
+   "title": "Say Cheese at Home",
+   "icon": "camera",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "camera",
+     "text": "A camera button in your home (and in a friend's): take photos of your rooms with Photo mode"
+    },
+    {
+     "icon": "framed",
+     "text": "Tap Hang at home on any photo, then pick it on a picture frame. Your home keeps up to 6, and friends who visit see them"
+    },
+    {
+     "icon": "farmer",
+     "text": "Everyone comes out to be in the picture, even while you are decorating"
+    }
+   ]
+  },
+  {
    "version": "1.30.3",
    "date": "2026-10-23",
    "title": "Just the One of You",

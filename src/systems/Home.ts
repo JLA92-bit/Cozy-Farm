@@ -11,7 +11,7 @@ import { upkeep } from './Upkeep';
 import { village } from './Village';
 import { game } from './Game';
 import { localDay } from './Progression';
-import type { HomeItem, HomeLook, HomeRoom, HomeState, WallStyle } from './State';
+import type { HomeItem, HomeLook, HomePhoto, HomeRoom, HomeState, WallStyle } from './State';
 
 const UNDO_MAX = 30;
 /** positions are kept to the millimetre: small saves */
@@ -253,6 +253,28 @@ class Home {
     it.pat = pat;
     it.c = { ...(it.c ?? {}), a, b };
     this.changed(roomId);
+  }
+
+  // ------------------------------------------------------------------------------------------- 1.30.4 photos
+
+  /** Keep a photo for the home (a small JPEG data URL). Null when the album is full or the picture is unusable. */
+  addPhoto(d: string): HomePhoto | null {
+    const st = this.state;
+    if (!validPhoto(d) || (st.photos?.length ?? 0) >= PHOTO_MAX) return null;
+    const p = { id: st.uid++, d };
+    (st.photos ??= []).push(p);
+    this.changed('');
+    return p;
+  }
+  photo(id: number): HomePhoto | undefined { return this.state.photos?.find((p) => p.id === id); }
+  /** Let a photo go: every frame showing it (in rooms and saved looks) goes back to the painting. */
+  removePhoto(id: number): void {
+    const st = this.state;
+    if (!st.photos?.some((p) => p.id === id)) return;
+    st.photos = st.photos.filter((p) => p.id !== id);
+    const key = `photo:${id}`;
+    for (const r of Object.values(st.rooms)) for (const list of [r.items, ...(r.looks ?? []).map((l) => l?.items ?? [])]) for (const it of list) if (it.show === key) delete it.show;
+    this.changed('');
   }
 
   setShow(roomId: string, uid: number, show: string | null): void {
@@ -574,6 +596,11 @@ export function repairHome(v: unknown): HomeState | undefined {
   }
   const known = [...new Set(Array.isArray(v.known) ? v.known.filter((k): k is string => typeof k === 'string' && !!PIECE[k]) : [])];
   const out: HomeState = { rooms, storage, known, uid };
+  if (Array.isArray(v.photos)) {
+    const seen = new Set<number>();
+    const photos = v.photos.filter((p): p is HomePhoto => isObj(p) && Number.isInteger(p.id) && (p.id as number) > 0 && validPhoto(p.d) && !seen.has(p.id as number) && !!seen.add(p.id as number)).slice(0, PHOTO_MAX).map((p) => ({ id: p.id, d: p.d }));
+    if (photos.length) { out.photos = photos; out.uid = Math.max(out.uid, ...photos.map((p) => p.id + 1)); }
+  }
   if (Array.isArray(v.gifts)) out.gifts = [...new Set(v.gifts.filter((k): k is string => typeof k === 'string' && !!PIECE[k]?.gift))];
   if (typeof v.last === 'string' && HOME_ROOM[v.last]) out.last = v.last;
   return out;
@@ -586,6 +613,13 @@ export const SCALE_STEP = 0.1;
 export function clampScale(k: number): number {
   if (!Number.isFinite(k)) return 1;
   return Math.round(Math.min(SCALE_MAX, Math.max(SCALE_MIN, k)) * 20) / 20;
+}
+
+/** 1.30.4 photos kept for the home: how many, and how big each may be (keeps cloud saves and shared homes small). */
+export const PHOTO_MAX = 6;
+export const PHOTO_CHARS = 20000;
+export function validPhoto(d: unknown): d is string {
+  return typeof d === 'string' && d.length <= PHOTO_CHARS && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d);
 }
 
 /** A rug pattern id: "floor:<id>" or "wall:<id>" from home.json. */

@@ -20,6 +20,7 @@ export function pictureIcon(show: string | undefined): string | null {
 
 export function pictureName(show: string | undefined): string {
   if (!show) return 'A painting';
+  if (show.startsWith('photo:')) return 'Your photo';
   if (show.startsWith('wild:')) return WILDLIFE.species.find((s) => s.id === show.slice(5))?.name ?? 'A photo';
   if (show.startsWith('item:')) return ITEMS[show.slice(5)]?.name ?? 'A find';
   return 'A painting';
@@ -36,9 +37,41 @@ function painting(g: CanvasRenderingContext2D): void {
   g.fillStyle = '#7a3a2a'; g.beginPath(); g.moveTo(S * 0.18, S * 0.63); g.lineTo(S * 0.26, S * 0.55); g.lineTo(S * 0.34, S * 0.63); g.fill();
 }
 
-/** The texture for a picture choice (cached). */
-export function pictureTexture(show: string | undefined): THREE.CanvasTexture {
-  const key = show ?? '';
+/**
+ * 1.30.4 a photo from Photo mode (`d`, a JPEG data URL) filling a frame of width / height `aspect`: the middle of the
+ * photo at the frame's shape, drawn over the whole square canvas (the frame stretches it back). A painting until loaded.
+ */
+function photoTexture(d: string, aspect: number): THREE.CanvasTexture {
+  const key = `photo|${aspect.toFixed(3)}|${d.length}|${d.slice(-48)}`;
+  let tex = cache.get(key);
+  if (tex) return tex;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d')!;
+  painting(g);
+  tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const img = new Image();
+  img.onload = () => {
+    const ia = img.width / img.height;
+    let sw = img.width, sh = img.height;
+    if (ia > aspect) sw = sh * aspect; else sh = sw / aspect;
+    g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, S, S);
+    tex!.needsUpdate = true;
+    onPhotoLoaded?.();
+  };
+  img.src = d;
+  cache.set(key, tex);
+  return tex;
+}
+/** Called when a photo has been drawn (the room asks for a frame so it shows). */
+let onPhotoLoaded: (() => void) | null = null;
+export function whenPhotoLoaded(fn: () => void): void { onPhotoLoaded = fn; }
+
+/** The texture for a picture choice (cached). Photos need their picture (`photo`) and the frame's shape. */
+export function pictureTexture(show: string | undefined, photo?: string, aspect = 1): THREE.CanvasTexture {
+  if (show?.startsWith('photo:') && photo) return photoTexture(photo, aspect);
+  const key = show?.startsWith('photo:') ? '' : show ?? '';
   let tex = cache.get(key);
   if (tex) return tex;
   const c = document.createElement('canvas');

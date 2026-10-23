@@ -140,3 +140,14 @@
 .hm-guest-btns .btn { min-height: 46px; }
 .btn.visit-inside { margin-left: 6px; }
 .btn.visit-inside .icon { width: 20px; height: 20px; }
+
+/* 1.30.4 the camera in the home, and photos kept for picture frames */
+.hm-banner-btns { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.btn.hm-photo { width: 46px; height: 46px; min-height: 46px; padding: 0; flex: 0 0 auto; }
+.btn.hm-photo .icon { width: 28px; height: 28px; }
+.hm-photo-tile { position: relative; }
+.hm-photo-tile > .hm-card { width: 100%; }
+.hm-photo-img { object-fit: cover; border-radius: 6px; }
+.btn.hm-photo-drop { position: absolute; top: -6px; right: -6px; width: 30px; height: 30px; min-height: 30px; padding: 0; font-size: 14px; }
+.hm-short { display: none; }
+@media (max-width: 400px) { .hm-banner-btns .hm-long { display: none; } .hm-banner-btns .hm-short { display: inline; } }

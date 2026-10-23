@@ -29,14 +29,26 @@ export function homeSnapshot(): HomeSnapshot | null {
     void _looks;
     rooms[id] = rest;
   }
-  return { v: 1, name: (game.state.player.name || 'Farmer').slice(0, 24), rooms };
+  const snap: HomeSnapshot = { v: 1, name: (game.state.player.name || 'Farmer').slice(0, 24), rooms };
+  // 1.30.4 the photos hanging in a room go along, as many as fit under the server's limit (the rest show a painting)
+  const hung = new Set(Object.values(rooms).flatMap((r) => r.items.map((i) => i.show)).filter((s) => s?.startsWith('photo:')));
+  const photos = (st.photos ?? []).filter((p) => hung.has(`photo:${p.id}`));
+  let bytes = JSON.stringify(snap).length;
+  for (const p of photos) {
+    if (bytes + p.d.length + 40 > SHARE_BYTES) break;
+    (snap.photos ??= []).push(p);
+    bytes += p.d.length + 40;
+  }
+  return snap;
 }
+/** a little under the server's limit for a shared home (supabase/schema.sql home_snapshots, 196,608 bytes) */
+const SHARE_BYTES = 190000;
 
 /** A friend's home picture, made safe to draw (unknown rooms and pieces dropped, numbers and colours checked). */
 export function sanitizeHome(raw: unknown): { name: string; home: HomeState } | null {
   if (!raw || typeof raw !== 'object' || (raw as { v?: unknown }).v !== 1) return null;
-  const r = raw as { name?: unknown; rooms?: unknown };
-  const st = repairHome({ rooms: r.rooms, storage: {}, known: [], uid: 1 });
+  const r = raw as { name?: unknown; rooms?: unknown; photos?: unknown };
+  const st = repairHome({ rooms: r.rooms, storage: {}, known: [], uid: 1, photos: r.photos });
   if (!st || !Object.keys(st.rooms).length) return null;
   return { name: typeof r.name === 'string' ? r.name.slice(0, 24) : 'Farmer', home: st };
 }

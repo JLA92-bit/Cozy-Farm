@@ -14,8 +14,9 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
 - **Farm visits** (from 1.4): a public snapshot of the farm layout (fields and crop stages, buildings, animals,
   trees, decorations, plus farmer name, level and look) so neighbours can visit. No coins, items or other save data.
 - **Home visits** (from 1.30): a public picture of the rooms inside the Farmhouse (walls, floors, furniture, room
-  names, farmer name) so friends can step inside, and coffee visits (who visited whom, the day). No coins, items or
-  other save data. Removed with the account. Covered by the types already declared (Other user-generated content,
+  names, farmer name) so friends can step inside, and coffee visits (who visited whom, the day). From 1.30.4 it also
+  carries the small in-game photos (from Photo mode, pictures of the game only) the player hung on picture frames.
+  No coins, items or other save data. Removed with the account. Covered by the types already declared (Other user-generated content,
   Other actions): **the Play form answers do not change**.
 - **Neighbour help** (from 1.5): helping a neighbour's farm (water, feed, tend) and likes, with an optional guestbook
   note picked from a **preset list** (no free text).

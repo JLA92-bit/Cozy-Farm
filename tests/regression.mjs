@@ -953,6 +953,28 @@ try {
     check('furniture in the home adds charm (no cap)', sized.c0 === 0 && sized.c1 === 3 && sized.many === Math.floor(400 * 2800 / 300), JSON.stringify(sized));
     check('furniture built in code shows a real preview', sized.previews === 6, JSON.stringify(sized));
     check('a saved size is kept within limits', !sized.rs || (sized.rs[0] === 1.5 && sized.rs[1] === 1), JSON.stringify(sized));
+    // 1.30.4 photos kept for the home: at most PHOTO_MAX, only small JPEGs, and letting one go clears its frames
+    const ph = await page.evaluate(async () => {
+      const H = window.__home, sys = H.sys, id = 'living';
+      const c = document.createElement('canvas'); c.width = 160; c.height = 120;
+      const g = c.getContext('2d'); g.fillStyle = '#7cb342'; g.fillRect(0, 0, 160, 120);
+      const d = c.toDataURL('image/jpeg', 0.7);
+      for (const p of [...(sys.state.photos ?? [])]) sys.removePhoto(p.id);
+      const kept = [];
+      for (let i = 0; i < 8; i++) kept.push(sys.addPhoto(d));
+      const n = kept.filter(Boolean).length;
+      const bad = sys.addPhoto('data:image/png;base64,AAAA');
+      sys.clearRoom(id);
+      sys.give('proc_frame_big', 1);
+      const f = await H.placeFromStorage('proc_frame_big');
+      sys.setShow(id, f.u, `photo:${kept[0].id}`);
+      sys.removePhoto(kept[0].id);
+      const cleared = sys.item(id, f.u).show === undefined;
+      const rep = H.repair({ rooms: {}, storage: {}, known: [], uid: 1, photos: [{ id: 5, d }, { id: 5, d }, { id: 6, d: 'javascript:alert(1)' }, { id: 7, d: d + 'x'.repeat(30000) }] });
+      for (const p of [...(sys.state.photos ?? [])]) sys.removePhoto(p.id);
+      return { n, bad: bad === null, cleared, repaired: rep.photos?.length ?? 0, uid: rep.uid };
+    });
+    check('photos kept for the home: six at most, small JPEGs only, a frame goes back to a painting when one is let go', ph.n === 6 && ph.bad && ph.cleared && ph.repaired === 1 && ph.uid >= 6, JSON.stringify(ph));
     // 1.30.2 in a friend's home their farmer is there once, also after changing rooms (it used to be added again
     // each time without the old one going)
     const bot = await page.evaluate(async () => {
