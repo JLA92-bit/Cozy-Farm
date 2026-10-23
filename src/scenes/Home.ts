@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { HOME, PIECE } from '../data';
+import { HOME, PIECE, VILLAGER } from '../data';
 import { game } from '../systems/Game';
 import { home, homeUnlocked, roomOpen } from '../systems/Home';
 import { saves } from '../systems/Save';
@@ -13,10 +13,12 @@ import { Panel } from '../ui/Panel';
 import { tutorial } from '../ui/Tutorial';
 import { ui } from '../ui/UI';
 import { h, icon } from '../ui/dom';
+import { speech } from '../ui/Speech';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import { isInSquare } from './Square';
 import { isInWoods } from './Woods';
 import { HomeUI } from '../ui/home/HomeUI';
+import { HomeLife } from './HomeLife';
 import type { DragKind, Pointer } from '../core/Input';
 import type { FarmScene, WorldHandler } from './FarmScene';
 import type { Interaction } from './Interaction';
@@ -37,6 +39,9 @@ let busy = false;
 let ignorePop = false;
 let saved: { target: THREE.Vector3; distance: number; min: number; max: number; bounds: THREE.Box2; handler: WorldHandler | null; azimuth: number; elevation: number } | null = null;
 let selected: number | null = null;
+let life: HomeLife | null = null;
+/** 1.30 relax: taps move your farmer and sit them down; decorate: taps pick up pieces */
+let mode: 'relax' | 'decorate' = 'decorate';
 let dragging = false;
 let grab = new THREE.Vector3();
 let rebuildQueued = false;
@@ -54,7 +59,7 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
     if (ignorePop) { ignorePop = false; return; }
     if (inHome) void leaveHome(true);
   });
-  scene.onFrame(() => frame());
+  scene.onFrame((dt) => frame(dt));
   ui.register('home', () => void enterHome());
   // 1.29 villagers' furniture sets: sent as friendship grows (and to farms that already have the hearts)
   const gifts = () => {
@@ -77,7 +82,7 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
       h('div', { class: 'visit-bubble home-door', role: 'button', 'aria-label': 'Go inside your Farmhouse', onclick: (e: MouseEvent) => { e.stopPropagation(); void enterHome(); } }, icon('door')),
     'door');
   });
-  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, select, placeFromStorage, controls, get selected() { return selected; } } });
+  Object.assign(window as unknown as Record<string, unknown>, { __home: { enter: enterHome, leave: () => leaveHome(), get active() { return inHome; }, get view() { return view; }, sys: home, select, placeFromStorage, controls, get life() { return life; }, get selected() { return selected; } } });
 }
 
 function queueRebuild(): void {
@@ -88,6 +93,7 @@ function queueRebuild(): void {
     if (!view || !inHome) return;
     void view.preload(view.roomId).then(() => {
       view?.rebuild();
+      life?.furnitureChanged();
       if (selected !== null && !home.item(view!.roomId, selected)) select(null);
       else view?.select(selected);
       homeUi?.refresh();
@@ -122,6 +128,8 @@ export async function enterHome(roomId?: string): Promise<void> {
     saved = { target: rig.target.clone(), distance: rig.distance, min: rig.minDistance, max: rig.maxDistance, bounds: rig.bounds.clone(), handler: scene.handler, azimuth: rig.azimuth, elevation: rig.elevation };
     view.group.visible = true;
     inHome = true;
+    life = new HomeLife(view, () => scene.loop.wake(0.3));
+    await life.start(game.state.player.look);
     scene.handler = homeHandler;
     scene.env.indoors = true;
     rig.stop();
@@ -186,6 +194,8 @@ function cleanup(): void {
   const scene = ctx!.scene;
   inHome = false;
   select(null);
+  life?.stop();
+  life = null;
   home.clearHistory();
   scene.env.indoors = false;
   scene.env.fogFloor = 0;
@@ -217,6 +227,13 @@ export const controls = {
   get roomId(): string { return view?.roomId ?? home.current(); },
   get selected(): number | null { return selected; },
   get snap(): number { return snap; },
+  get mode(): 'relax' | 'decorate' { return mode; },
+  setMode(m: 'relax' | 'decorate'): void {
+    mode = m;
+    if (m === 'relax') select(null);
+    homeUi?.refresh();
+    if (m === 'relax' && hints.firstTime('intro:home-relax')) ui.feedback.toast('Make yourself at home', 'Tap the floor to walk there, a chair or sofa to sit down, and a visitor to say hello.', 'couch');
+  },
   item(): HomeItem | undefined { return selected === null ? undefined : home.item(controls.roomId, selected); },
   select: (uid: number | null) => select(uid),
   async goRoom(id: string): Promise<void> {
@@ -224,6 +241,7 @@ export const controls = {
     select(null);
     await view.show(id);
     home.setCurrent(id);
+    await life?.start(game.state.player.look);
     frameRoom();
     view.setAzimuth(ctx!.scene.rig.azimuth);
     homeUi?.refresh();
@@ -326,6 +344,8 @@ async function placeFromStorage(piece: string): Promise<HomeItem | null> {
   }
   if (!it) return null;
   view.sync();
+  life?.furnitureChanged();
+  if (mode === 'relax') { mode = 'decorate'; homeUi?.refresh(); }
   select(it.u);
   audio.play('pop', { volume: 0.7 });
   return it;
@@ -360,7 +380,9 @@ const homeHandler: WorldHandler = {
   pointerDown(): void {},
   tap(p: Pointer): void {
     if (!ctx || !view) return;
-    const hit = view.pick(ctx.scene.ray(p));
+    const ray = ctx.scene.ray(p);
+    if (mode === 'relax') { relaxTap(ray); return; }
+    const hit = view.pick(ray);
     if (!hit) { if (selected !== null) select(null); return; }
     if (hit.uid === selected) {
       // a second tap on a lamp switches it
@@ -373,7 +395,7 @@ const homeHandler: WorldHandler = {
   },
   longPress(p: Pointer): void { homeHandler.tap(p); },
   dragStart(p: Pointer): DragKind {
-    if (!ctx || !view || selected === null) return 'pan';
+    if (!ctx || !view || selected === null || mode === 'relax') return 'pan';
     const hit = view.pick(ctx.scene.ray(p));
     // drag the picked-up piece (or anything when it is the only thing under the finger); else move the camera
     if (!hit || hit.uid !== selected) return 'pan';
@@ -433,14 +455,38 @@ const homeHandler: WorldHandler = {
   },
   toolDragEnd(): void {
     dragging = false;
+    life?.furnitureChanged();
     if (selected !== null) { view?.refreshItem(selected); view?.select(selected); }
     audio.play('build', { volume: 0.35 });
     homeUi?.refresh();
   },
 };
 
-function frame(): void {
+/** 1.30 relax: tap a visitor to say hello, a seat to sit, a lamp to switch it, anywhere else to walk there. */
+function relaxTap(ray: THREE.Ray): void {
+  if (!view || !life) return;
+  const who = life.personAt(ray);
+  if (who && who !== life.player) {
+    if (VILLAGER[who.id]) { ui.open('village', { villager: who.id }); return; }
+    speech.say(who.char.root, { text: 'Hello!', dur: 2 });
+    return;
+  }
+  if (who === life.player) { void life.player!.char.gesture('emote-yes'); return; }
+  const hit = view.pick(ray);
+  const def = hit ? PIECE[home.item(view.roomId, hit.uid)?.f ?? ''] : undefined;
+  if (hit && def?.seat) {
+    if (life.sitOnPiece(hit.uid)) { audio.play('tap', { volume: 0.4 }); return; }
+    if (!life.freeSeats(life.player ?? undefined).some((s) => s.uid === hit.uid)) { ui.feedback.toast('Someone is sitting there', 'Try another seat.', 'couch'); return; }
+  }
+  if (hit && def?.lamp && def.kind !== 'floor') { home.toggleLamp(view.roomId, hit.uid); return; }
+  const fp = view.floorPoint(ray, 0);
+  if (fp && life.walkPlayer(fp.x, fp.z)) audio.play('tap', { volume: 0.3 });
+}
+
+function frame(dt: number): void {
   if (!inHome || !view || !ctx) return;
+  life?.update(dt);
+  if (mode === 'decorate') life?.idlePlayer();
   view.setNight(ctx.scene.env.night);
   ctx.scene.env.fogFloor = 40;
 }

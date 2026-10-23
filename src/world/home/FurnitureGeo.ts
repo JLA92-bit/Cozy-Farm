@@ -134,7 +134,7 @@ function finish(def: PieceDef, chunks: THREE.BufferGeometry[], index: number[], 
   // crafted and gift pieces start in their own colours
   if (def.colours) parts.forEach((p, i) => { if (def.colours![p]) defaults[i] = def.colours![p]; });
   // pictures (frames, plaques) are drawn on a plane in front: keep where it goes, in the piece's own space
-  const geo: PieceGeo = { base: merged, material: atlas ? assets.materials.get(assets.info(def.model).atlas!)! : assets.vertexMaterial, parts, defaults, partIndex, size, scale, atlas, levels: def.top ? shelfLevels(merged, size) : [] };
+  const geo: PieceGeo = { base: merged, material: atlas ? assets.materials.get(assets.info(def.model).atlas!)! : assets.vertexMaterial, parts, defaults, partIndex, size, scale, atlas, levels: def.top || def.seat ? shelfLevels(merged, size) : [] };
   paint(geo, merged, {});
   geos.set(def.id, geo);
   return geo;

@@ -33,6 +33,8 @@ export interface HomeControls {
   reframe(): void;
   leave(): void;
   frontWalls(): boolean[];
+  readonly mode: 'relax' | 'decorate';
+  setMode(m: 'relax' | 'decorate'): void;
   setViewShift(x: number, y: number): void;
   readonly azimuth: number;
 }
@@ -131,7 +133,9 @@ export class HomeUI {
     const tool = (label: string, ic: string, fn: () => void, cls = '', attrs: Record<string, string> = {}) =>
       button([icon(ic), h('span', { class: 'hm-tool-label' }, label)], fn, `hm-tool ${cls}`, { 'aria-label': label, ...attrs });
     const stored = home.storedTotal();
+    const relax = this.c.mode === 'relax';
     this.bar.append(
+      tool(relax ? 'Decorate' : 'Relax', relax ? 'paintbrush' : 'couch', () => this.c.setMode(relax ? 'decorate' : 'relax'), relax ? 'on' : ''),
       tool('Storage', 'package', () => this.toggleSheet('storage'), this.sheetKind === 'storage' ? 'on' : '', stored ? { 'data-count': String(Math.min(99, stored)) } : {}),
       tool('Catalogue', 'store', () => openCatalogue(this.c)),
       tool('Paint', 'paintbrush', () => this.toggleSheet('paint'), this.sheetKind === 'paint' ? 'on' : ''),

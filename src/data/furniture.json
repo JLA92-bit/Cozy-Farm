@@ -7,7 +7,8 @@
    "model": "kf/loungesofa",
    "cat": "living",
    "kind": "floor",
-   "price": 1800
+   "price": 1800,
+   "seat": true
   },
   {
    "id": "kf_loungesofacorner",
@@ -15,7 +16,8 @@
    "model": "kf/loungesofacorner",
    "cat": "living",
    "kind": "floor",
-   "price": 2400
+   "price": 2400,
+   "seat": true
   },
   {
    "id": "kf_loungesofalong",
@@ -23,7 +25,8 @@
    "model": "kf/loungesofalong",
    "cat": "living",
    "kind": "floor",
-   "price": 2600
+   "price": 2600,
+   "seat": true
   },
   {
    "id": "kf_loungesofaottoman",
@@ -32,7 +35,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 600,
-   "top": true
+   "top": true,
+   "seat": true
   },
   {
    "id": "kf_loungechair",
@@ -40,7 +44,8 @@
    "model": "kf/loungechair",
    "cat": "living",
    "kind": "floor",
-   "price": 1100
+   "price": 1100,
+   "seat": true
   },
   {
    "id": "kf_loungechairrelax",
@@ -48,7 +53,8 @@
    "model": "kf/loungechairrelax",
    "cat": "living",
    "kind": "floor",
-   "price": 1500
+   "price": 1500,
+   "seat": true
   },
   {
    "id": "kf_loungedesignsofa",
@@ -56,7 +62,8 @@
    "model": "kf/loungedesignsofa",
    "cat": "living",
    "kind": "floor",
-   "price": 2200
+   "price": 2200,
+   "seat": true
   },
   {
    "id": "kf_loungedesignsofacorner",
@@ -64,7 +71,8 @@
    "model": "kf/loungedesignsofacorner",
    "cat": "living",
    "kind": "floor",
-   "price": 2800
+   "price": 2800,
+   "seat": true
   },
   {
    "id": "kf_loungedesignchair",
@@ -72,7 +80,8 @@
    "model": "kf/loungedesignchair",
    "cat": "living",
    "kind": "floor",
-   "price": 1300
+   "price": 1300,
+   "seat": true
   },
   {
    "id": "kf_tablecoffee",
@@ -169,7 +178,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 400,
-   "top": true
+   "top": true,
+   "seat": true
   },
   {
    "id": "kf_benchcushion",
@@ -177,7 +187,8 @@
    "model": "kf/benchcushion",
    "cat": "living",
    "kind": "floor",
-   "price": 550
+   "price": 550,
+   "seat": true
   },
   {
    "id": "kf_benchcushionlow",
@@ -185,7 +196,8 @@
    "model": "kf/benchcushionlow",
    "cat": "living",
    "kind": "floor",
-   "price": 700
+   "price": 700,
+   "seat": true
   },
   {
    "id": "kf_pillow",
@@ -406,7 +418,8 @@
    "model": "kf/chairdesk",
    "cat": "study",
    "kind": "floor",
-   "price": 600
+   "price": 600,
+   "seat": true
   },
   {
    "id": "kf_beddouble",
@@ -414,7 +427,8 @@
    "model": "kf/beddouble",
    "cat": "bedroom",
    "kind": "floor",
-   "price": 2400
+   "price": 2400,
+   "seat": true
   },
   {
    "id": "kf_bedsingle",
@@ -422,7 +436,8 @@
    "model": "kf/bedsingle",
    "cat": "bedroom",
    "kind": "floor",
-   "price": 1500
+   "price": 1500,
+   "seat": true
   },
   {
    "id": "kf_bedbunk",
@@ -430,7 +445,8 @@
    "model": "kf/bedbunk",
    "cat": "bedroom",
    "kind": "floor",
-   "price": 2200
+   "price": 2200,
+   "seat": true
   },
   {
    "id": "kf_cabinetbed",
@@ -578,7 +594,8 @@
    "model": "kf/stoolbar",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 350
+   "price": 350,
+   "seat": true
   },
   {
    "id": "kf_stoolbarsquare",
@@ -586,7 +603,8 @@
    "model": "kf/stoolbarsquare",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 350
+   "price": 350,
+   "seat": true
   },
   {
    "id": "kf_kitchencabinetupper",
@@ -717,7 +735,8 @@
    "model": "kf/chair",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 300
+   "price": 300,
+   "seat": true
   },
   {
    "id": "kf_chaircushion",
@@ -725,7 +744,8 @@
    "model": "kf/chaircushion",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 400
+   "price": 400,
+   "seat": true
   },
   {
    "id": "kf_chairrounded",
@@ -733,7 +753,8 @@
    "model": "kf/chairrounded",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 350
+   "price": 350,
+   "seat": true
   },
   {
    "id": "kf_chairmoderncushion",
@@ -741,7 +762,8 @@
    "model": "kf/chairmoderncushion",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 450
+   "price": 450,
+   "seat": true
   },
   {
    "id": "kf_chairmodernframecushion",
@@ -749,7 +771,8 @@
    "model": "kf/chairmodernframecushion",
    "cat": "kitchen",
    "kind": "floor",
-   "price": 450
+   "price": 450,
+   "seat": true
   },
   {
    "id": "kf_washer",
@@ -988,7 +1011,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 1900,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_couch_pillows",
@@ -997,7 +1021,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 2100,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_armchair",
@@ -1006,7 +1031,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 1100,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_armchair_pillows",
@@ -1015,7 +1041,8 @@
    "cat": "living",
    "kind": "floor",
    "price": 1200,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_table_low",
@@ -1064,7 +1091,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 300,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_chair_a_wood",
@@ -1073,7 +1101,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 300,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_chair_b",
@@ -1082,7 +1111,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 320,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_chair_b_wood",
@@ -1091,7 +1121,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 320,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_chair_c",
@@ -1100,7 +1131,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 320,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_chair_stool",
@@ -1110,7 +1142,8 @@
    "kind": "floor",
    "price": 200,
    "scale": 0.36,
-   "top": true
+   "top": true,
+   "seat": true
   },
   {
    "id": "kk_chair_stool_wood",
@@ -1120,7 +1153,8 @@
    "kind": "floor",
    "price": 200,
    "scale": 0.36,
-   "top": true
+   "top": true,
+   "seat": true
   },
   {
    "id": "kk_bed_double_a",
@@ -1129,7 +1163,8 @@
    "cat": "bedroom",
    "kind": "floor",
    "price": 2500,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_bed_double_b",
@@ -1138,7 +1173,8 @@
    "cat": "bedroom",
    "kind": "floor",
    "price": 2500,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_bed_single_a",
@@ -1147,7 +1183,8 @@
    "cat": "bedroom",
    "kind": "floor",
    "price": 1500,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_bed_single_b",
@@ -1156,7 +1193,8 @@
    "cat": "bedroom",
    "kind": "floor",
    "price": 1500,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kk_cabinet_medium",
@@ -1772,7 +1810,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 300,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kr_chair_b",
@@ -1781,7 +1820,8 @@
    "cat": "kitchen",
    "kind": "floor",
    "price": 300,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "kr_cuttingboard",
@@ -2301,7 +2341,8 @@
    "colours": {
     "carpet": "#f7f1e3",
     "wood": "#7a4f2a"
-   }
+   },
+   "seat": true
   },
   {
    "id": "craft_acornlamp",
@@ -2356,7 +2397,8 @@
    "price": 2800,
    "gift": "rosa",
    "hearts": 9,
-   "scale": 0.36
+   "scale": 0.36,
+   "seat": true
   },
   {
    "id": "gift_tom_plaque",
@@ -2392,7 +2434,8 @@
     "carpet": "#27406b",
     "wood": "#5a3a22",
     "metal": "#c99a2e"
-   }
+   },
+   "seat": true
   },
   {
    "id": "gift_tom_porthole",
@@ -2487,7 +2530,8 @@
    "colours": {
     "wood": "#6cb9b0",
     "carpet": "#ffe066"
-   }
+   },
+   "seat": true
   },
   {
    "id": "gift_pip_rug",
@@ -2589,7 +2633,8 @@
    "top": true,
    "colours": {
     "wood": "#5d554b"
-   }
+   },
+   "seat": true
   }
  ]
 }
