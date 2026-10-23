@@ -819,6 +819,17 @@ try {
       g.state.buildings.push({ uid: 99001, type: 'carpenter', x: 40, z: 40, rot: 0, level: 1 });
       const made = sys.craft('craft_wreath');
       res.craft = noShop && made && sys.stored('craft_wreath') === 1 && !g.state.inventory.pinecone;
+      // a one-finish (KayKit) piece in a picked colour is drawn with the tint material, so a swatch looks the same
+      // on it as on every other piece (multiplied over its texture it came out much darker)
+      await H.enter('living');
+      for (let i = 0; i < 40 && !H.active; i++) await new Promise((r) => setTimeout(r, 100));
+      sys.give('kk_couch', 2);
+      const plain = await H.placeFromStorage('kk_couch');
+      const painted = await H.placeFromStorage('kk_couch');
+      sys.setColours('living', painted.u, { tint: '#d9473a' });
+      H.view.rebuild();
+      const names = []; H.view.group.traverse((o) => { if (o.isBatchedMesh) names.push(o.name); });
+      res.tint = !!plain && names.some((n) => n.endsWith('-tinted')) && names.some((n) => /kaykit-furniture$/.test(n));
       return res;
     });
     check('an old farm opens the home with the starter pieces', r.starter >= 8, JSON.stringify(r));
@@ -830,6 +841,7 @@ try {
     check('enlarging a room keeps every piece', after.enlarged, JSON.stringify(after));
     check("a villager's furniture set arrives once, with one letter", after.gifts && after.giftsOnce, JSON.stringify(after));
     check("handmade pieces need the Carpenter's Workshop and the things they take", after.craft, JSON.stringify(after));
+    check('a one-finish piece in a picked colour shows that colour (not darkened by its texture)', after.tint, JSON.stringify(after));
   }
 
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back

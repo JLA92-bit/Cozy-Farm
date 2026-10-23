@@ -151,6 +151,41 @@ function paint(geo: PieceGeo, g: THREE.BufferGeometry, colours: Record<string, s
   g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
 }
 
+const tinted = new Map<THREE.Material, THREE.Material>();
+
+/**
+ * A one-finish (KayKit) piece in a colour the player picked: the picked colour is the colour, and the piece's own
+ * painted texture only gives light and shade. Multiplying the colour over the texture (the plain atlas material)
+ * made the same swatch come out much darker or muddier than on other pieces.
+ */
+export function tintMaterial(base: THREE.Material): THREE.Material {
+  let m = tinted.get(base);
+  if (!m) {
+    m = base.clone();
+    m.name = `${base.name}-tinted`;
+    m.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+        #ifdef USE_MAP
+          vec4 tintTexel = texture2D( map, vMapUv );
+          float tintL = dot( tintTexel.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
+          diffuseColor.rgb *= clamp( 0.55 + 0.8 * sqrt( tintL ), 0.55, 1.15 );
+        #endif`);
+    };
+    m.customProgramCacheKey = () => 'home-tint';
+    tinted.set(base, m);
+  }
+  return m;
+}
+
+/** The material to draw a piece with: one-finish pieces in a picked colour use the tint material. */
+export function materialFor(piece: string, colours: Record<string, string> | undefined): THREE.Material | null {
+  const geo = geos.get(piece);
+  if (!geo) return null;
+  if (!geo.atlas) return geo.material;
+  const tint = colours?.tint ?? PIECE[piece]?.colours?.tint;
+  return tint && tint.toLowerCase() !== '#ffffff' ? tintMaterial(geo.material) : geo.material;
+}
+
 /** The piece's geometry in these colours (cached per colour set; the default colours share the base geometry). */
 export function colouredGeo(piece: string, colours: Record<string, string> | undefined, lit?: boolean): THREE.BufferGeometry | null {
   const geo = geos.get(piece);

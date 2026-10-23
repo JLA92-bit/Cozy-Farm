@@ -3,7 +3,7 @@ import { HOME, PIECE, type PieceDef } from '../../data';
 import { home } from '../../systems/Home';
 import type { HomeItem, HomeRoom } from '../../systems/State';
 import { BatchSet, type PoolLike } from '../BatchPool';
-import { colouredGeo, pieceGeo, pieceGeoNow } from './FurnitureGeo';
+import { colouredGeo, materialFor, pieceGeo, pieceGeoNow } from './FurnitureGeo';
 import { patternTexture, shade, TILE_M } from './HomeStyle';
 import { pictureTexture } from './Pictures';
 
@@ -225,7 +225,7 @@ export class HomeView {
     const def = PIECE[it.f];
     if (!geo || !def) { void pieceGeo(it.f).then(() => { if (this.room?.items.includes(it)) this.refreshItem(it.u); }); return; }
     const g = colouredGeo(it.f, it.c, def.lamp ? !it.off : undefined)!;
-    const pool = this.batches.pool(g, geo.material, def.kind !== 'rug');
+    const pool = this.batches.pool(g, materialFor(it.f, it.c) ?? geo.material, def.kind !== 'rug');
     const m = this.matrixFor(it);
     const handle = pool.add(m);
     this.placed.set(it.u, { pool, handle, geom: g, matrix: m });
