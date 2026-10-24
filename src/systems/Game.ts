@@ -22,6 +22,7 @@ export interface GameEvents extends Record<string, unknown> {
   'restoration:changed': { room: string; bundle?: string };
   /** 1.9: something was picked or dug up in the Wild Woods (src/systems/Woods.ts) */
   'woods:changed': Record<string, never>;
+  'mine:changed': Record<string, never>;
   /** 1.29 something in the home changed (a room id, or '' for storage and the catalogue) */
   'home:changed': { room: string };
   /** 1.8.5: every bundle of a room is full, so the room is rebuilt */

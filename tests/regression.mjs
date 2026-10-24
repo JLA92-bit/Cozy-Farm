@@ -1019,6 +1019,80 @@ try {
     } else check("a friend's farmer is in their home once, also after changing rooms", false, 'no practice neighbour to visit');
   }
 
+  // 1.31 The Old Mine: a damaged mine save is mended, floors are the same all day, 60 swings a day, the ladder,
+  // pickaxe tiers, the lift, chests once, geodes, and going down and back up again
+  {
+    const s0 = copy();
+    s0.restoration ??= { given: {}, done: [], seen: [] };
+    s0.restoration.done = [...(s0.restoration.done ?? []), 'mine_entrance'];
+    s0.mine = { deepest: 999, pickaxe: 9, day: localDay(Date.now()), swings: 'lots', hits: { 3: [1, 'a'], bad: 4 }, carts: [2, 2, -1], pools: 'no', chests: [5, 5, 'x'], letters: ['intro', 7], found: { coal: 3, nope: 2 } };
+    await setStorage({ [KEY]: JSON.stringify(s0) });
+    await boot();
+    const m = await page.evaluate(() => {
+      const M = window.__mine.sys, g = window.__game, raw = JSON.parse(JSON.stringify(g.state.mine));
+      const rep = { deepest: raw.deepest, pickaxe: raw.pickaxe, chests: raw.chests, carts: raw.carts, found: Object.keys(raw.found) };
+      const st = M.st;
+      Object.assign(st, { deepest: 0, pickaxe: 0, swings: 0, hits: {}, carts: [], pools: [], chests: [] });
+      const a = JSON.stringify(M.layout(1)), b = JSON.stringify(M.layout(1));
+      const tomorrow = JSON.stringify(M.layout(1, g.now() + 86400000));
+      // swing until the lantern is out, moving down a floor's layout whenever one is cleared
+      let swung = 0;
+      for (let f = 1; f < 20 && M.swingsLeft() > 0; f++) {
+        const L = M.layout(f);
+        for (const k of L.rocks) while (M.swingsLeft() > 0 && !M.broken(f, k)) { if (M.swing(L, k.i)) swung++; else break; }
+      }
+      const L1 = M.layout(1);
+      const after = M.swing(L1, L1.rocks.findIndex((k) => !M.broken(1, k)));
+      // a new day's oil: break the ladder rock on floor 1 and go down
+      st.swings = 0; st.hits = {};
+      const ladderBefore = M.descend(L1).ok;
+      const lad = L1.rocks[L1.ladder];
+      while (!M.broken(1, lad)) M.swing(L1, lad.i);
+      const down = M.descend(L1);
+      // the caverns need the copper pickaxe
+      st.deepest = 20; st.swings = 0; st.hits = {};
+      const L20 = M.layout(20), r20 = L20.rocks[L20.ladder];
+      while (!M.broken(20, r20)) M.swing(L20, r20.i);
+      const blocked = M.descend(L20);
+      const lifts = M.lifts().join(',');
+      const c1 = M.openChest(5), c2 = M.openChest(5), c3 = M.openChest(30);
+      // Bram: a pickaxe for bars and coins, a geode for 25 coins
+      const next = M.nextPickaxe();
+      for (const [k, n] of Object.entries(next.needs)) g.addItem(k, n);
+      g.addCoins(next.coins + 1000);
+      const bought = M.buyPickaxe();
+      g.addItem('geode', 1);
+      const coins = g.coins;
+      const geo = M.crackGeode();
+      const geo2 = M.crackGeode();
+      return { rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
+    });
+    check('a damaged mine save is mended', m.rep.deepest === 60 && m.rep.pickaxe === 3 && m.rep.chests.join() === '5' && m.rep.carts.join() === '2' && m.rep.found.join() === 'coal', JSON.stringify(m.rep));
+    check('a mine floor is the same all day and different the next', m.same && m.differs, JSON.stringify(m));
+    check('60 swings a day, then the lantern is out', m.swung === 60 && m.max === 60 && m.after === null, JSON.stringify(m));
+    check('the ladder down is under a rock; breaking it lets you go down a floor', !m.ladderBefore && m.down.ok && m.down.floor === 2, JSON.stringify(m));
+    check('the Crystal Caverns need the copper pickaxe', !m.blocked.ok && /copper/i.test(m.blocked.reason ?? ''), JSON.stringify(m.blocked));
+    check('the lift stops at every fifth floor reached, a chest opens once', m.lifts === '1,5,10,15,20' && m.c1 && m.c2 === null && m.c3 === null, JSON.stringify(m));
+    check('Bram makes the next pickaxe and cracks a geode for 25 coins', m.bought && m.pick === 1 && !!m.geo && m.paid === 25 && m.geodes === 0 && m.geo2 === null, JSON.stringify(m));
+    // the scene: row over, go down, and back climbs up then rows home
+    await page.evaluate(() => { const s = window.__game.state; s.welcome18 && (s.welcome18.done = true); });
+    await page.evaluate(() => window.__mine.enter());
+    await page.waitForFunction(() => window.__mine.active, null, { timeout: 60000 });
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => window.__mine.down(1));
+    await page.waitForFunction(() => window.__mine.floorNo === 1, null, { timeout: 30000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    const on1 = await page.evaluate(() => ({ floor: window.__mine.floorNo, rocks: window.__mine.floor?.rocks.length ?? 0, banner: !!document.querySelector('.mn-under') }));
+    await page.evaluate(() => history.back());
+    await page.waitForTimeout(3500);
+    const up = await page.evaluate(() => ({ active: window.__mine.active, floor: window.__mine.floorNo }));
+    await page.evaluate(() => history.back());
+    await page.waitForTimeout(3500);
+    const home = await page.evaluate(() => window.__mine.active);
+    check('down to floor 1 and back up to the island, then home', on1.floor === 1 && on1.rocks >= 12 && on1.banner && up.active && up.floor === 0 && !home, JSON.stringify({ on1, up, home }));
+    check('the mine has no errors', errors.length === 0, errors.join(' | '));
+  }
+
   // nothing invisible covers the farm: an overlay that is a direct child of #ui-root gets pointer events back
   // (#ui-root > *), so a full-screen one swallows every touch (1.28.3: the removed Halloween vignette did this)
   {

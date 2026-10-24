@@ -1,6 +1,39 @@
 {
  "releases": [
   {
+   "version": "1.31.0",
+   "date": "2026-10-24",
+   "title": "The Old Mine",
+   "icon": "pick",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "pick",
+     "text": "The Old Mine opens at level 18, across the water to the north. Help Bram's crew restore the entrance, then take the lift down"
+    },
+    {
+     "icon": "lift",
+     "text": "60 floors in three layers: the Old Workings, the Crystal Caverns and the Ember Deeps. Break rocks to find the ladder down, and the lift remembers every fifth floor"
+    },
+    {
+     "icon": "ruby",
+     "text": "Ores, coal, rubies, emeralds, sapphires, opals and diamonds, fossils for three new Museum shelves, geodes for Bram to crack, mine carts, glowing pools and a chest on every lift floor"
+    },
+    {
+     "icon": "mining",
+     "text": "A new skill, Mining, and better pickaxes from Bram. Your lantern lasts 60 swings a day"
+    },
+    {
+     "icon": "gold_bar",
+     "text": "The Smelter and the Jeweller: bars, rings, pendants and a diamond tiara. New mine decor for the farm and mine furniture for your home"
+    },
+    {
+     "icon": "wild_cave_bat",
+     "text": "Bats, glow worms and cave salamanders for the Wildlife Album"
+    }
+   ]
+  },
+  {
    "version": "1.30.5",
    "date": "2026-10-24",
    "title": "Back Where You Were",

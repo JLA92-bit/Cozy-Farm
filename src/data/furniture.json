@@ -2635,6 +2635,117 @@
     "wood": "#5d554b"
    },
    "seat": true
+  },
+  {
+   "id": "mine_glass_lantern",
+   "name": "Miner's Glass Lantern",
+   "model": "mine/lanternglass",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 700,
+   "scale": 1.4,
+   "lamp": true
+  },
+  {
+   "id": "mine_sconce",
+   "name": "Torch Sconce",
+   "model": "mine/torch_mounted",
+   "cat": "lights",
+   "kind": "wall",
+   "price": 900,
+   "scale": 0.45,
+   "wallY": 1.0,
+   "lamp": true
+  },
+  {
+   "id": "mine_gem_case",
+   "name": "Gem Display Case",
+   "model": "proc:gem_case",
+   "cat": "decor",
+   "kind": "floor",
+   "price": 3800,
+   "icon": "gem",
+   "top": true
+  },
+  {
+   "id": "mine_cart_planter",
+   "name": "Mine Cart Planter",
+   "model": "proc:cart_planter",
+   "cat": "plants",
+   "kind": "floor",
+   "price": 2200,
+   "icon": "mine_cart"
+  },
+  {
+   "id": "mine_ore_shelf",
+   "name": "Ore Shelf",
+   "model": "proc:ore_shelf",
+   "cat": "study",
+   "kind": "floor",
+   "price": 2600,
+   "icon": "copper_ore",
+   "top": true
+  },
+  {
+   "id": "mine_crystal_lamp",
+   "name": "Crystal Lamp",
+   "model": "proc:crystal_lamp",
+   "cat": "lights",
+   "kind": "surface",
+   "price": 1100,
+   "icon": "crystal",
+   "lamp": true,
+   "craft": {
+    "quartz": 4,
+    "amethyst": 1
+   }
+  },
+  {
+   "id": "mine_geode_bookends",
+   "name": "Geode Bookends",
+   "model": "proc:geode_bookends",
+   "cat": "study",
+   "kind": "surface",
+   "price": 900,
+   "icon": "geode",
+   "craft": {
+    "stone": 10,
+    "amethyst": 2
+   }
+  },
+  {
+   "id": "mine_stone_fireplace",
+   "name": "Stone Fireplace",
+   "model": "proc:fireplace",
+   "cat": "living",
+   "kind": "floor",
+   "price": 5200,
+   "icon": "fire",
+   "top": true,
+   "lamp": true,
+   "colours": {
+    "stone": "#8a8478",
+    "mantel": "#5a4a3a"
+   },
+   "craft": {
+    "stone_brick": 12,
+    "iron_bar": 2
+   }
+  },
+  {
+   "id": "mine_crystal_chandelier",
+   "name": "Crystal Chandelier",
+   "model": "proc:crystal_chandelier",
+   "cat": "lights",
+   "kind": "ceiling",
+   "price": 4200,
+   "icon": "crystal",
+   "lamp": true,
+   "craft": {
+    "quartz": 6,
+    "silver_bar": 1,
+    "amethyst": 3
+   }
   }
  ]
 }

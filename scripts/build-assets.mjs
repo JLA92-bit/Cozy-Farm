@@ -29,6 +29,8 @@ const FTK = path.join(KM, 'fantasy-town-kit-1.0/Models/GLTF format');
 const KKR = path.join(CACHE, 'kaykit-restaurant/addons/kaykit_restaurant_bits/Assets/gltf');
 const KKH = path.join(CACHE, 'kaykit-halloween/addons/kaykit_halloween_bits/Assets/gltf');
 const KKF = path.join(CACHE, 'kaykit-furniture/addons/kaykit_furniture_bits/Assets/gltf');
+// 1.31 The Old Mine
+const KKD = path.join(CACHE, 'kaykit-dungeon/addons/kaykit_dungeon_remastered/Assets/gltf');
 
 if (!fs.existsSync(CACHE)) {
   console.error('Missing .asset-cache - run scripts/fetch-assets.sh first');
@@ -73,6 +75,12 @@ const com = (id, name) => [id, path.join(KG, 'city-kit-commercial', `${name}.glb
 const cas = (id, name) => [id, path.join(KG, 'castle-kit', `${name}.glb`), 'kenney-castle', 'Kenney Castle Kit'];
 const kfk = (id, name) => [id, path.join(KG, 'furniture-kit', `${name}.glb`), null, 'Kenney Furniture Kit'];
 const ftk = (id, name) => [id, path.join(FTK, `${name}.glb`), null, 'Kenney Fantasy Town Kit'];
+// 1.31 The Old Mine: cave rock and cliffs (Nature Kit), timbers, torches and props (KayKit Dungeon Remastered),
+// crystals (Tower Defense Kit), a gem, ladders and a lever (Platformer Kit), lanterns (Graveyard Kit)
+const kkd = (id, name) => [id, findFile(KKD, `${name}.gltf.glb`) ?? findFile(KKD, `${name}.glb`), 'kaykit-dungeon', 'KayKit Dungeon Remastered'];
+const tdk = (id, name) => [id, path.join(KM, 'tower-defense-kit-1/Models/GLTF format', `${name}.glb`), null, 'Kenney Tower Defense Kit'];
+const pfk = (id, name) => [id, path.join(KM, 'kenney_platformerkit/Models/GLTF format', `${name}.glb`), null, 'Kenney Platformer Kit'];
+const gyk = (id, name) => [id, path.join(KM, 'kenney_graveyardkit_3/Models/GLTF format', `${name}.glb`), null, 'Kenney Graveyard Kit'];
 
 const MODELS = [
   // buildings
@@ -309,6 +317,22 @@ const MODELS = [
     'cuttingboard', 'pot_A_stew', 'pot_B', 'pan_A', 'stew_pot', 'bowl', 'plate', 'jar_A_large', 'jar_B_medium', 'jar_C_small', 'jar_D_large',
     'food_stew', 'food_dinner', 'menu', 'dishrack_plates']
     .map((n) => kkr(`kr/${n.toLowerCase()}`, n)),
+  // 1.31 The Old Mine (ADD_ONLY='mine/*' adds just these)
+  ...['cliff-cave-rock', 'cliff-cave-stone', 'cliff-block-rock', 'cliff-block-stone', 'cliff-blockhalf-rock', 'cliff-large-rock', 'cliff-large-stone',
+    'cliff-corner-rock', 'cliff-cornerinner-rock', 'cliff-top-rock', 'rock-largea', 'rock-largeb', 'rock-largec', 'rock-larged', 'rock-largee', 'rock-largef',
+    'rock-smalla', 'rock-smallb', 'rock-smallc', 'rock-smalld', 'rock-smalle', 'rock-smallf', 'rock-smallg', 'rock-smallh', 'rock-talla', 'rock-tallb',
+    'rock-tallc', 'rock-talld', 'rock-talle', 'stone-largea', 'stone-largeb', 'stone-largec', 'stone-larged', 'stone-talla', 'stone-tallb', 'stone-tallc',
+    'stone-smalla', 'stone-smallb', 'stone-smallc', 'mushroom-redgroup', 'mushroom-tangroup', 'mushroom-tantall', 'ground-pathrocks', 'campfire-stones']
+    .map((n) => nat(`mine/${n}`, n)),
+  ...['torch_mounted', 'torch_lit', 'barrel_large', 'barrel_small', 'barrel_small_stack', 'box_large', 'box_small', 'box_stacked', 'crates_stacked',
+    'chest', 'chest_gold', 'rubble_large', 'rubble_half', 'pillar', 'wall_scaffold', 'wall_open_scaffold', 'wall_corner_scaffold', 'stairs_wood', 'keg',
+    'candle_lit', 'candle_triple', 'coin_stack_large', 'coin_stack_small', 'shelf_small_candles', 'table_small', 'stool', 'column', 'keyring_hanging']
+    .map((n) => kkd(`mine/${n.toLowerCase()}`, n)),
+  ...['detail_crystal', 'detail_crystalLarge', 'snow_detail_crystal', 'snow_detail_crystalLarge', 'detail_rocks', 'detail_rocksLarge']
+    .map((n) => tdk(`mine/${n.toLowerCase()}`, n)),
+  ...['jewel', 'ladder', 'ladderLong', 'lever', 'crateStrong'].map((n) => pfk(`mine/${n.toLowerCase()}`, n)),
+  ...['lanternGlass', 'lanternCandle', 'lightpostAll'].map((n) => gyk(`mine/${n.toLowerCase()}`, n)),
+  hol('mine/track_straight', 'trackStraight'), hol('mine/track_corner', 'trackCorner'), hol('mine/track_corner_large', 'trackCornerLarge'),
 ];
 
 // animations kept per model category (others are stripped to save bytes)

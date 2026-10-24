@@ -23,6 +23,8 @@ import { crafting } from '../systems/Crafting';
 import { initSquare } from './Square';
 import { initWoods } from './Woods';
 import { initHome } from './Home';
+import { initMine } from './Mine';
+import { mine } from '../systems/Mine';
 import { applyFarmLook } from './FarmLookApply';
 import { currentLook } from '../world/FarmLook';
 import { settings, shadowsWanted } from '../systems/Settings';
@@ -160,6 +162,7 @@ export async function boot(): Promise<void> {
   restoration.init();
   mastery.init();
   farmhands.init();
+  mine.init();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -173,6 +176,7 @@ export async function boot(): Promise<void> {
   initSquare(scene, interaction);
   initWoods(scene, interaction);
   initHome(scene, interaction);
+  initMine(scene, interaction);
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;

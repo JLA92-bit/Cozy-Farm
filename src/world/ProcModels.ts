@@ -15,6 +15,7 @@ import { JUICEPRESS_PROC } from './models/juicepress';
 import { TEAHOUSE_PROC } from './models/teahouse';
 import { COOP_PROC } from './models/coop';
 import { KILN_PROC } from './models/kiln';
+import { MINE_PROC } from './models/mine';
 import { FISHSTALL_PROC } from './models/fishstall';
 
 /**
@@ -450,6 +451,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...TEAHOUSE_PROC,
   ...COOP_PROC,
   ...KILN_PROC,
+  ...MINE_PROC,
   ...FISHSTALL_PROC,
 };
 

@@ -20,6 +20,7 @@ import museumJson from './museum.json';
 import expeditionsJson from './expeditions.json';
 import schedulesJson from './schedules.json';
 import woodsJson from './woods.json';
+import mineJson from './mine.json';
 import festivalsJson from './festivals.json';
 import cycleJson from './cycle.json';
 import animalsJson from './animals.json';
@@ -188,7 +189,7 @@ export const VILLAGER = Object.fromEntries(VILLAGERS.map((v) => [v.id, v])) as R
 export const FRIENDSHIP = villagersJson.friendship;
 
 /** 1.8.5 Skills (skills.json). */
-export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking' | 'crafting' | 'foraging';
+export type SkillId = 'farming' | 'animals' | 'fishing' | 'cooking' | 'crafting' | 'foraging' | 'mining';
 export interface SkillPerkDef { id: string; name: string; icon: string; text: string }
 export interface SkillDef {
   id: SkillId; name: string; icon: string; color: string; about: string; grows: string;
@@ -360,6 +361,27 @@ for (const s of GROVE_STAGES) ROOM[s.id] = s;
 /** 1.27 The Treehouse: build stages and furnishings are restoration rooms too (ids treehouse_<name>), see src/systems/Treehouse.ts. */
 export const TREEHOUSE = (woodsJson as unknown as { treehouse: { region: string; campFinds: number; stages: RoomDef[]; furnishings: RoomDef[] } }).treehouse;
 for (const s of [...TREEHOUSE.stages, ...TREEHOUSE.furnishings]) ROOM[s.id] = s;
+
+/** 1.31 The Old Mine (mine.json): layers, rocks, pickaxes, chests, letters; the entrance is a restoration room. */
+export type MineRockKind = 'stone' | 'boulder' | 'ore' | 'gem' | 'geode' | 'fossil';
+/** [item, weight, min, max] */
+export type MineDrop = [string, number, number, number];
+export interface MineLayer { id: 'workings' | 'caverns' | 'deeps'; name: string; from: number; to: number; pickaxe: number; icon: string; about: string; kinds: Partial<Record<MineRockKind, number>>; drops: Partial<Record<MineRockKind, MineDrop[]>> }
+export interface MinePickaxe { id: string; name: string; power: number; icon: string; about: string; coins: number; needs: Record<string, number> }
+export interface MineLetter { title: string; body: string; attach?: { coins?: number; gems?: number } }
+export const MINE = mineJson as unknown as {
+  level: number; swings: number; floors: number; liftEvery: number; rocksPerFloor: [number, number]; geodeCost: number;
+  layers: MineLayer[];
+  rocks: Record<MineRockKind, { hard: number; xp: number }> & { deep: number };
+  pickaxes: MinePickaxe[];
+  cart: { chance: number; drops: Record<string, [string, number][]> };
+  pool: { chance: number; drops: MineDrop[] };
+  geode: [string, number][];
+  chests: Record<string, { coins: number; gems: number; items: Record<string, number> }>;
+  letters: Record<'intro' | 'caverns' | 'deeps' | 'bottom', MineLetter>;
+  entrance: RoomDef;
+};
+ROOM[MINE.entrance.id] = MINE.entrance;
 /** 1.26 Estate Projects (estate.json, src/systems/Estate.ts): each stage is a restoration room (estate_<project>_<stage>). */
 export interface EstateProject {
   id: string; name: string; icon: string; villager: string; opensAt: number; about: string;

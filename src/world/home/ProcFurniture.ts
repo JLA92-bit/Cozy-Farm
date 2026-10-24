@@ -173,6 +173,71 @@ const BUILDERS: Record<string, () => ProcPart[]> = {
   rugp_runner: () => rugBase(2.2, 0.6, false),
   rugp_round: () => rugBase(1.3, 1.3, true),
   rugp_oval: () => rugBase(1.7, 1.1, true),
+  // 1.31 from the Old Mine
+  crystal_lamp: () => {
+    const parts: ProcPart[] = [{ part: 'base', colour: '#5a4a3e', geo: cyl(0.1, 0.05, 0, 0, 0, 10, 0.12) }];
+    for (const [x, z, h, t] of [[0, 0, 0.32, 0], [0.05, 0.03, 0.22, 0.35], [-0.05, 0.02, 0.2, -0.4], [0.01, -0.05, 0.18, 0.3]] as const) {
+      parts.push({ part: 'crystal', colour: '#c7a6ff', geo: new THREE.CylinderGeometry(0, 0.035, h, 6).translate(0, h / 2, 0).rotateZ(t * 0.8).rotateX(t * 0.5).translate(x, 0.05, z) });
+    }
+    return parts;
+  },
+  gem_case: () => [
+    { part: 'wood', colour: '#6a4428', geo: box(0.7, 0.7, 0.4, 0, 0, -0.2) },
+    { part: 'velvet', colour: '#7a2e3a', geo: box(0.62, 0.02, 0.34, 0, 0.7, -0.2) },
+    { part: 'glass', colour: '#d9f1ff', geo: box(0.66, 0.26, 0.36, 0, 0.72, -0.2) },
+    { part: 'gems', colour: '#e2533c', geo: new THREE.OctahedronGeometry(0.045).translate(-0.18, 0.77, -0.2) },
+    { part: 'gems', colour: '#4fae6a', geo: new THREE.OctahedronGeometry(0.05).translate(0, 0.77, -0.15) },
+    { part: 'gems', colour: '#3f6fd8', geo: new THREE.OctahedronGeometry(0.045).translate(0.18, 0.77, -0.22) },
+    { part: 'wood', colour: '#6a4428', geo: box(0.7, 0.03, 0.4, 0, 0.98, -0.2) },
+  ],
+  cart_planter: () => {
+    const parts: ProcPart[] = [
+      { part: 'cart', colour: '#8a5a33', geo: box(0.7, 0.3, 0.45, 0, 0.14, -0.22) },
+      { part: 'iron', colour: '#4a4a52', geo: box(0.74, 0.04, 0.49, 0, 0.42, -0.22) },
+      { part: 'soil', colour: '#4a3424', geo: box(0.64, 0.02, 0.4, 0, 0.42, -0.22) },
+    ];
+    for (const x of [-0.24, 0.24]) for (const z of [-0.47, 0.03]) parts.push({ part: 'iron', colour: '#4a4a52', geo: new THREE.CylinderGeometry(0.08, 0.08, 0.04, 12).rotateX(Math.PI / 2).translate(x, 0.08, z) });
+    for (let k = 0; k < 7; k++) {
+      const x = -0.25 + (k % 4) * 0.17, z = -0.32 + Math.floor(k / 4) * 0.2;
+      parts.push({ part: 'leaves', colour: '#4f9a3a', geo: new THREE.IcosahedronGeometry(0.08, 0).translate(x, 0.5, z) });
+      parts.push({ part: 'flowers', colour: k % 2 ? '#ff8fb4' : '#ffcf3f', geo: new THREE.IcosahedronGeometry(0.035, 0).translate(x + 0.02, 0.58, z + 0.02) });
+    }
+    return parts;
+  },
+  geode_bookends: () => {
+    const parts: ProcPart[] = [];
+    for (const s of [-1, 1]) {
+      const shell = new THREE.SphereGeometry(0.09, 10, 8, 0, Math.PI).rotateY(s > 0 ? Math.PI / 2 : -Math.PI / 2).translate(s * 0.16, 0.09, 0);
+      parts.push({ part: 'stone', colour: '#7c7068', geo: shell });
+      parts.push({ part: 'crystal', colour: '#a77bf3', geo: new THREE.CircleGeometry(0.075, 10).rotateY(s > 0 ? -Math.PI / 2 : Math.PI / 2).translate(s * 0.158, 0.09, 0) });
+    }
+    const cols = ['#d9473a', '#3f86d8', '#ffcf3f', '#4fae3a'];
+    cols.forEach((c, i) => parts.push({ part: 'books', colour: c, geo: box(0.05, 0.16 + (i % 2) * 0.03, 0.12, -0.08 + i * 0.055, 0, -0.06) }));
+    return parts;
+  },
+  ore_shelf: () => {
+    const parts: ProcPart[] = [
+      { part: 'wood', colour: '#7a4a2a', geo: box(0.9, 1.1, 0.06, 0, 0, -0.3) },
+      { part: 'wood', colour: '#7a4a2a', geo: box(0.06, 1.1, 0.3, -0.42, 0, -0.3) },
+      { part: 'wood', colour: '#7a4a2a', geo: box(0.06, 1.1, 0.3, 0.42, 0, -0.3) },
+    ];
+    for (const y of [0.04, 0.4, 0.75, 1.07]) parts.push({ part: 'wood', colour: '#8a5a33', geo: box(0.84, 0.03, 0.3, 0, y, -0.3) });
+    const ores: [string, string][] = [['ore', '#c4743a'], ['ore', '#9aa4ae'], ['gems', '#a77bf3'], ['ore', '#e8c34a'], ['gems', '#4fae6a'], ['ore', '#dfe4ea']];
+    ores.forEach(([part, c], i) => parts.push({ part, colour: c, geo: new THREE.DodecahedronGeometry(0.07, 0).translate(-0.24 + (i % 3) * 0.24, 0.5 + Math.floor(i / 3) * 0.35, -0.16) }));
+    return parts;
+  },
+  crystal_chandelier: () => {
+    const parts: ProcPart[] = [
+      { part: 'chain', colour: '#4a4a52', geo: cyl(0.012, 0.3, 0, 0.42, 0, 6) },
+      { part: 'iron', colour: '#4a4a52', geo: new THREE.TorusGeometry(0.28, 0.02, 6, 24).rotateX(Math.PI / 2).translate(0, 0.42, 0) },
+    ];
+    for (let k = 0; k < 8; k++) {
+      const a = (k / 8) * Math.PI * 2;
+      parts.push({ part: 'crystal', colour: '#d6c4ff', geo: new THREE.CylinderGeometry(0, 0.035, 0.16, 6).rotateX(Math.PI).translate(Math.cos(a) * 0.28, 0.33, Math.sin(a) * 0.28) });
+    }
+    parts.push({ part: 'crystal', colour: '#d6c4ff', geo: new THREE.CylinderGeometry(0, 0.06, 0.3, 6).rotateX(Math.PI).translate(0, 0.27, 0) });
+    return parts;
+  },
 };
 
 function rugBase(w: number, d: number, round: boolean): ProcPart[] {

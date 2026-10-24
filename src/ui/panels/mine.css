@@ -1,0 +1,45 @@
+/* 1.31 The Old Mine: the banner underground, the lift and Bram's forge */
+.mn-banner .mn-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.mn-banner .mn-desc { display: inline-flex; align-items: center; gap: 4px; }
+.mn-banner .mn-desc .icon { width: 18px; height: 18px; }
+.mn-under { background: linear-gradient(180deg, #3a2c22, #2a201a); color: #fff3df; border-color: #1a120d; }
+.mn-under.mn-caverns { background: linear-gradient(180deg, #2a3150, #1c2038); border-color: #0e1122; }
+.mn-under.mn-deeps { background: linear-gradient(180deg, #4a2418, #2e140d); border-color: #1a0a06; }
+.mn-under .visit-sub { color: #f2dcc0; display: flex; align-items: center; gap: 4px; }
+.mn-under .visit-sub .icon { width: 18px; height: 18px; }
+.mn-side { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex: 0 0 auto; }
+.mn-lantern { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.mn-lantern .icon { width: 22px; height: 22px; flex: none; }
+.mn-oil { flex: 1; min-width: 90px; height: 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.45); border: 2px solid rgba(0, 0, 0, 0.5); overflow: hidden; }
+.mn-oil-fill { height: 100%; background: linear-gradient(90deg, #ff9a3a, #ffd36a); border-radius: 6px; box-shadow: 0 0 8px rgba(255, 190, 90, 0.8); transition: width .3s ease; }
+.mn-oil-n { font-weight: 800; font-size: 14px; min-width: 22px; text-align: right; }
+.mn-hint { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+
+.mn-intro { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.mn-intro-icon { width: 42px; height: 42px; flex: none; }
+.mn-intro-title { font-weight: 800; font-size: 16px; }
+.mn-intro-text { font-size: 13px; opacity: 0.85; }
+.mn-floors { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; align-items: start; }
+.mn-floors .section-title { grid-column: 1 / -1; margin-top: 6px; }
+.mn-floor { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; border: 3px solid var(--outline); background: #f6ead2; font-family: var(--font-display); font-size: 15px; min-height: 52px; box-shadow: 0 3px 0 var(--outline); cursor: pointer; }
+.mn-floor .icon { width: 26px; height: 26px; }
+.mn-floor.mn-caverns { background: #dfe4ff; }
+.mn-floor.mn-deeps { background: #ffe0cc; }
+.mn-floor.locked { opacity: 0.55; }
+.mn-floor-n { flex: 1; text-align: left; }
+.mn-floor-tag { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; background: #ffd84a; border-radius: 8px; padding: 1px 5px; }
+.mn-floor-tag .icon { width: 14px; height: 14px; }
+.mn-card { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 14px; background: #fff8ea; border: 2px solid rgba(0, 0, 0, 0.12); margin-bottom: 8px; }
+.mn-card.next { background: #fff1d6; }
+.mn-card-icon { width: 40px; height: 40px; flex: none; }
+.mn-card-name { font-weight: 800; }
+.mn-card-sub { font-size: 13px; opacity: 0.85; margin-bottom: 6px; }
+.mn-card .btn { margin-top: 4px; }
+.mn-needs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.mn-need { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 10px; background: #f2e2c4; font-size: 13px; }
+.mn-need .icon { width: 20px; height: 20px; }
+.mn-need.ok { background: #d6f2c4; }
+.mn-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mn-stats > div { display: flex; flex-direction: column; align-items: center; padding: 8px; border-radius: 12px; background: #f6ead2; }
+.mn-stats b { font-size: 20px; }
+.mn-stats span { font-size: 12px; opacity: 0.8; text-align: center; }

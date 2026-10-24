@@ -221,7 +221,7 @@ releases?.forEach((r, i) => {
       }
     }
   }
-  if (ids.size !== 6) err('skills.json: expected the six skills (farming, animals, fishing, cooking, crafting, foraging)');
+  if (ids.size !== 7) err('skills.json: expected the seven skills (farming, animals, fishing, cooking, crafting, foraging, mining)');
   for (const [k, v] of Object.entries(s.values ?? {})) if (typeof v !== 'number' || !Number.isFinite(v)) err(`skills.json: value ${k} must be a number`);
   if (/\u2014|\u2013/.test(JSON.stringify(s))) err('skills.json: no em or en dashes in text');
 }
@@ -469,7 +469,7 @@ releases?.forEach((r, i) => {
     }
   }
   const wl = read('wildlife.json');
-  const sets = new Set(wl.sets.map((x) => x.id)), places = new Set(['farm', 'glade', ...read('woods.json').regions.map((r) => r.id)]);
+  const sets = new Set(wl.sets.map((x) => x.id)), places = new Set(['farm', 'glade', 'mine', ...read('woods.json').regions.map((r) => r.id)]);
   const seen = new Set();
   for (const sp of wl.species) {
     if (seen.has(sp.id)) err(`wildlife ${sp.id}: duplicate id`);
@@ -514,6 +514,30 @@ releases?.forEach((r, i) => {
     if (!v.arc.letters?.at(-1)?.attach) err(`villager ${v.id} arc: the last letter carries the gift`);
   }
 }
+// 1.31 the Old Mine: layers cover every floor in order, drops are real items, pickaxes get stronger, chests sit on lift floors
+{
+  const md = read('mine.json'), items = read('items.json').items;
+  let next = 1;
+  for (const l of md.layers) {
+    if (l.from !== next || !(l.to >= l.from)) err(`mine layer ${l.id}: floors must follow on from ${next}`);
+    next = l.to + 1;
+    if (!(l.pickaxe >= 0 && l.pickaxe < md.pickaxes.length)) err(`mine layer ${l.id}: unknown pickaxe tier ${l.pickaxe}`);
+    for (const [kind, w] of Object.entries(l.kinds)) {
+      if (!md.rocks[kind]) err(`mine layer ${l.id}: unknown rock kind ${kind}`);
+      if (!(w > 0) || !l.drops[kind]?.length) err(`mine layer ${l.id}: rock kind ${kind} needs a weight and drops`);
+    }
+    for (const list of Object.values(l.drops)) for (const [item, w, lo, hi] of list) if (!items[item] || !(w > 0) || !(lo >= 1 && hi >= lo)) err(`mine layer ${l.id}: bad drop ${item}`);
+    if (!md.cart.drops[l.id]?.every(([item, n]) => items[item] && n > 0)) err(`mine cart: drops for ${l.id} missing or unknown`);
+  }
+  if (next - 1 !== md.floors) err(`mine: layers end at ${next - 1}, floors is ${md.floors}`);
+  if (!(md.swings >= 10 && md.liftEvery >= 1 && md.rocksPerFloor[0] >= 4 && md.rocksPerFloor[1] >= md.rocksPerFloor[0] && md.rocksPerFloor[1] <= 22)) err('mine: swings, liftEvery or rocksPerFloor out of range');
+  let pow = 0;
+  for (const p of md.pickaxes) { if (!(p.power > pow)) err(`mine pickaxe ${p.id}: must be stronger than the one before`); pow = p.power; for (const k of Object.keys(p.needs)) if (!items[k]) err(`mine pickaxe ${p.id}: unknown item ${k}`); }
+  for (const [f, c] of Object.entries(md.chests)) { if (Number(f) % md.liftEvery || Number(f) > md.floors) err(`mine chest on floor ${f}: chests sit on lift floors`); for (const k of Object.keys(c.items)) if (!items[k]) err(`mine chest ${f}: unknown item ${k}`); }
+  for (const [item, w] of md.geode) if (!items[item] || !(w > 0)) err(`mine geode: bad find ${item}`);
+  for (const [item] of md.pool.drops) if (!items[item]) err(`mine pool: unknown item ${item}`);
+  if (md.entrance.opensAt !== md.level) err('mine: the entrance opens at the mine level');
+}
 // 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat
 // visitor's wish, a villager's favourite or a thing the game itself spends (seeds, fertiliser, bait, event tokens)
 {
@@ -534,8 +558,12 @@ releases?.forEach((r, i) => {
   for (const [k, it] of Object.entries(items)) if (it.bouquet) add(k);
   const fishData = read('fish.json');
   add(fishData.baitItem); add(fishData.luckyBait.item);
-  // spent by the game's own code
-  for (const k of ['rare_seed', 'quality_fertiliser', 'fertiliser']) add(k);
+  // 1.31 the Old Mine: the entrance's bundles and Bram's pickaxes
+  const md = read('mine.json');
+  for (const b of md.entrance.bundles) Object.keys(b.wants).forEach(add);
+  for (const p of md.pickaxes) Object.keys(p.needs).forEach(add);
+  // spent by the game's own code (geodes: cracked open by Bram in the mine)
+  for (const k of ['rare_seed', 'quality_fertiliser', 'fertiliser', 'geode']) add(k);
   for (const [k, it] of Object.entries(items)) if (it.cat !== 'event' && !uses.has(k)) err(`item ${k}: has no use (add it to a recipe, bundle, Museum shelf, boat wish list, treat or villager favourite)`);
 }
 // 1.28 Together: co-op projects need real items that exist by the project's level, real decorations, and the server's

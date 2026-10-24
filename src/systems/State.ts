@@ -180,6 +180,30 @@ export interface SaveData {
   mastery?: { done: string[]; /** 1.25 the line picked for each mastered crop or workshop (entry id -> line id) */ picks?: Record<string, string> };
   /** 1.29 Home Sweet Home: inside the Farmhouse (src/systems/Home.ts) */
   home?: HomeState;
+  /** 1.31 The Old Mine (src/systems/Mine.ts) */
+  mine?: MineState;
+}
+
+/** 1.31 The Old Mine. `day` is the local day the daily fields (swings, hits, carts, pools) belong to. */
+export interface MineState {
+  /** the deepest floor reached (0: not been down yet); the lift goes to every lift floor up to here */
+  deepest: number;
+  /** pickaxe tier (mine.json pickaxes) */
+  pickaxe: number;
+  day: string;
+  /** swings used today */
+  swings: number;
+  /** today: swings put into each rock, by floor then rock index */
+  hits: Record<string, number[]>;
+  /** today: floors whose cart was emptied and whose pool was dipped */
+  carts: number[];
+  pools: number[];
+  /** floors whose chest has been opened (ever) */
+  chests: number[];
+  /** Bram's letters already sent */
+  letters: string[];
+  /** how many of each item came out of the mine */
+  found: Record<string, number>;
 }
 
 /** 1.9 The Wild Woods (src/systems/Woods.ts). */

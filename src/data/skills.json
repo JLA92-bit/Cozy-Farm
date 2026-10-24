@@ -31,7 +31,8 @@
     "forageGoldPerLevel": 0.01,
     "keenEyesChance": 0.2,
     "extraDigs": 2,
-    "wildGold": 0.05, "hardyStockSick": 0.6, "sturdyJointsWear": 0.75
+    "wildGold": 0.05, "hardyStockSick": 0.6, "sturdyJointsWear": 0.75,
+    "mineBonusPerLevel": 0.01, "strongArmChance": 0.125, "prospectorChance": 0.34, "gemSenseMult": 2, "secondWindSwings": 15, "cartLuckMult": 2
   },
   "skills": [
     {
@@ -137,6 +138,24 @@
           { "id": "lucky_finds", "name": "Lucky Finds", "icon": "gem", "text": "Fossils, artifacts and gems turn up much more often" }
         ]
       }
+    },
+    {
+      "id": "mining", "name": "Mining", "icon": "mining", "color": "grey",
+      "about": "Opens with the Old Mine. Grows as you break rocks, find gems and fossils and go deeper.",
+      "grows": "Breaking rocks, finding gems and fossils, and reaching new floors in the Old Mine",
+      "xp": { "rocks_broken": 2, "mine_gems": 6, "mine_fossils": 8, "mine_floors": 12, "geodes_cracked": 4, "mine_carts": 4 },
+      "perLevel": "+1% chance a rock gives a bonus find",
+      "perks": {
+        "5": [
+          { "id": "strong_arm", "name": "Strong Arm", "icon": "pick", "text": "1 rock in 8 breaks in a single swing" },
+          { "id": "prospector", "name": "Prospector", "icon": "copper_ore", "text": "Ore rocks give one more ore 1 time in 3" }
+        ],
+        "10": [
+          { "id": "gem_sense", "name": "Gem Sense", "icon": "gem", "text": "Gem rocks turn up twice as often" },
+          { "id": "second_wind", "name": "Second Wind", "icon": "candle", "text": "15 more swings a day" }
+        ]
+      },
+      "bonus": [{ "level": 7, "id": "cart_luck", "name": "Cart Luck", "icon": "mine_cart", "text": "Mine carts and cave pools give twice as much" }]
     }
   ]
 }

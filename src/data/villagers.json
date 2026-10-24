@@ -45,7 +45,8 @@
         "strawberry",
         "strawberry_cake",
         "cream",
-        "pancakes"
+        "pancakes",
+        "ruby_ring"
       ],
       "likes": [
         "bread",
@@ -59,7 +60,8 @@
         "bramble_crumble",
         "peach_cobbler",
         "rice_pudding",
-        "tea_biscuits"
+        "tea_biscuits",
+        "crystal_vase"
       ],
       "dislikes": [
         "onion",
@@ -295,7 +297,8 @@
         "sushi_platter",
         "fish_pie",
         "seafood_curry",
-        "apple_pie"
+        "apple_pie",
+        "gem_lantern"
       ],
       "likes": [
         "fish",
@@ -307,7 +310,9 @@
         "forest_tea",
         "fried_rice",
         "risotto",
-        "honey_tea"
+        "honey_tea",
+        "cave_pearl",
+        "sapphire_pendant"
       ],
       "dislikes": [
         "wool",
@@ -543,7 +548,8 @@
         "petal",
         "cherry",
         "grapes",
-        "ice_cream"
+        "ice_cream",
+        "opal_pendant"
       ],
       "likes": [
         "strawberry_jam",
@@ -557,7 +563,9 @@
         "peach",
         "plum_jam",
         "moonflower_tea",
-        "flower_crown"
+        "flower_crown",
+        "birthstone_charm",
+        "diamond_tiara"
       ],
       "dislikes": [
         "sardine",
@@ -793,7 +801,8 @@
         "apple",
         "pumpkin",
         "cookie",
-        "seashell"
+        "seashell",
+        "geode"
       ],
       "likes": [
         "caramel",
@@ -807,7 +816,9 @@
         "sweet_potato_pie",
         "cranberry_sauce",
         "acorn_bread",
-        "iced_tea"
+        "iced_tea",
+        "trilobite",
+        "glow_moss"
       ],
       "dislikes": [
         "beet",
@@ -1062,7 +1073,8 @@
         "apple_jam",
         "cheese",
         "goat_cheese",
-        "cherry_jam"
+        "cherry_jam",
+        "gold_locket"
       ],
       "likes": [
         "butter",
@@ -1075,7 +1087,9 @@
         "herbal_salve",
         "olive_oil",
         "plum_cake",
-        "chai"
+        "chai",
+        "emerald_brooch",
+        "silver_ring"
       ],
       "dislikes": [
         "wheat"
@@ -1310,7 +1324,8 @@
         "corn_bread",
         "pumpkin_pie",
         "carrot_cake",
-        "cheese"
+        "cheese",
+        "gold_bar"
       ],
       "likes": [
         "bread",
@@ -1323,7 +1338,10 @@
         "resin_varnish",
         "garlic_bread",
         "olive_focaccia",
-        "mint_tea"
+        "mint_tea",
+        "iron_bar",
+        "stone_brick",
+        "copper_bar"
       ],
       "dislikes": [
         "petal",

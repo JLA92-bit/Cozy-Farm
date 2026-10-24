@@ -1,6 +1,6 @@
 # Plan: 1.31 "The Old Mine"
 
-**Status: plan only (24 Oct 2026), waiting for the owner's answers in section 9.** Nothing is built yet.
+**Status: built in 1.31.0 (24 Oct 2026).** Owner answers: 60 swings a day, a new Mining skill, level 18, all in one release, across the water. Changes from the plan: the cave pool gives glow moss and cave pearls (not fish), and Bram makes pickaxes at the mine (not at the village forge).
 
 Owner's brief: a new place to play, drawing on big cozy games. Inspiration: Stardew Valley's mines (floor by floor,
 an elevator every few floors, better pickaxes, geodes for the Museum), Dreamlight Valley's caves (pretty, calm, no

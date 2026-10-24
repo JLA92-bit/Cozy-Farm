@@ -26,6 +26,8 @@ shipped in `public/assets`.
 | Minigolf Kit | Kenney | https://kenney.nl/assets/minigolf-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Minigolf course pieces, windmill, castle, flags, clubs |
 | Watercraft Pack | Kenney | https://kenney.nl/assets/watercraft-pack (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Boats for the Boat Visitors |
 | Hexagon Kit | Kenney | https://kenney.nl/assets/hexagon-kit (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | Little hex diorama decorations |
+| KayKit Dungeon Remastered 1.0 | Kay Lousberg | https://kaylousberg.itch.io/kaykit-dungeon-remastered (GitHub: https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0) | CC0 1.0 | 1.31 The Old Mine: timber supports, mounted torches, barrels, crates, chests, rubble, pillars, candles |
+| Tower Defense Kit, Platformer Kit, Graveyard Kit | Kenney | https://kenney.nl/assets (mirror: https://github.com/ETdoFresh/kenney.nl) | CC0 1.0 | 1.31 The Old Mine: crystal clusters, a cut gem, ladders, a lever, glass lanterns; Nature Kit cliffs and rocks make the cave walls |
 | Pirate Kit, City Kit (Suburban), City Kit (Commercial), Castle Kit | Kenney | https://kenney.nl/assets (GLB mirror: https://github.com/Hidencod/tge-assets) | CC0 1.0 | Dock, palm, chest and boats; village houses and planters; market parasols and awnings; banners |
 
 ## Textures and effects

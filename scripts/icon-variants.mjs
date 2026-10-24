@@ -179,6 +179,45 @@ export const ICON_VARIANTS = {
   wild_penguin: { base: 'penguin' },
   wild_polar_bear: { base: 'polar-bear' },
   wild_panda: { base: 'panda' },
+  // 1.31 The Old Mine: rock, ore, gems, fossils, relics, bars and the Jeweller's work
+  stone: { base: 'rock', hue: 0, sat: 0.15, light: 1.12 },
+  coal: { base: 'rock', hue: 0, sat: 0.1, light: 0.42 },
+  silver_ore: { base: 'rock', hue: 190, sat: 0.25, light: 1.35, badge: 'sparkles' },
+  gold_ore: { base: 'rock', hue: 48, sat: 2.2, light: 1.25, badge: 'sparkles' },
+  ruby: { base: 'gem-stone', hue: 165, sat: 1.4, light: 0.95 },
+  emerald: { base: 'gem-stone', hue: -95, sat: 1.3, light: 0.85 },
+  sapphire: { base: 'gem-stone', hue: 20, sat: 1.4, light: 0.72 },
+  opal: { base: 'gem-stone', hue: 0, sat: 0.35, light: 1.35, badge: 'rainbow' },
+  diamond: { base: 'gem-stone', hue: 0, sat: 0.05, light: 1.6, badge: 'sparkles' },
+  geode: { base: 'rock', hue: 70, sat: 0.5, light: 0.8, badge: 'gem-stone' },
+  trilobite: { base: 'lady-beetle', hue: 0, sat: 0.15, light: 0.85, flip: true },
+  fossil_fish: { base: 'fish', hue: 0, sat: 0.15, light: 0.95 },
+  crystal_shell: { base: 'spiral-shell', hue: 140, sat: 0.9, light: 1.2, badge: 'sparkles' },
+  cave_bear_tooth: { base: 'tooth', hue: 0, sat: 0.6, light: 0.88 },
+  petrified_wood: { base: 'wood', hue: 0, sat: 0.35, light: 0.8 },
+  miners_lamp: { base: 'diya-lamp', hue: 0, sat: 0.7, light: 0.9 },
+  old_pick_head: { base: 'pick', hue: 0, sat: 0.35, light: 0.75 },
+  carved_stone: { base: 'moai', hue: 0, sat: 0.6, light: 0.95 },
+  glow_moss: { base: 'herb', hue: 70, sat: 1.1, light: 1.15, badge: 'sparkles' },
+  cave_pearl: { base: 'oyster', hue: 120, sat: 0.5, light: 1.15, badge: 'sparkles' },
+  stone_brick: { base: 'brick', hue: 0, sat: 0.1, light: 1.05 },
+  silver_ring: { base: 'ring', hue: 0, sat: 0.05, light: 1.25 },
+  ruby_ring: { base: 'ring', hue: 160, sat: 1.2 },
+  emerald_brooch: { base: 'nazar-amulet', hue: 110, sat: 1.1 },
+  sapphire_pendant: { base: 'nazar-amulet', hue: 10, sat: 1.3, light: 0.85 },
+  opal_pendant: { base: 'nazar-amulet', hue: 0, sat: 0.3, light: 1.3, badge: 'rainbow' },
+  crystal_vase: { base: 'amphora', hue: 190, sat: 0.35, light: 1.4 },
+  gem_lantern: { base: 'red-paper-lantern', hue: 190, sat: 1.0, badge: 'gem-stone' },
+  birthstone_charm: { base: 'gem-stone', hue: 70, sat: 1.2, badge: 'sparkling-heart' },
+  gold_locket: { base: 'nazar-amulet', hue: 175, sat: 1.4, light: 1.3 },
+  diamond_tiara: { base: 'crown', hue: 0, sat: 0.25, light: 1.35, badge: 'gem-stone' },
+  mining: { base: 'hammer-and-pick' },
+  mine_cart: { base: 'railway-car', hue: 20, sat: 0.6, light: 0.8 },
+  lift: { base: 'elevator' },
+  lantern_post: { base: 'red-paper-lantern', hue: 30, sat: 0.8 },
+  wild_cave_bat: { base: 'bat' },
+  wild_glow_worm: { base: 'worm', hue: 90, sat: 1.0, light: 1.2, badge: 'sparkles' },
+  wild_cave_salamander: { base: 'lizard', hue: -100, sat: 0.8, light: 1.1 },
   // 1.24 The Tea House and the Florist
   tea_leaf: { base: 'herb', hue: -10, sat: 1.1 },
   rose: { base: 'rose' },
@@ -361,9 +400,26 @@ export function variantSvg(json, v, iconsMap) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${base.left ?? 0} ${base.top ?? 0} ${w} ${h}" width="64" height="64">${body}</svg>`;
 }
 
+/** 1.31 metal bars: a drawn ingot (top, front and side faces and a shine) in each metal's colours. */
+export const INGOT_ICONS = {
+  copper_bar: ['#f2a46a', '#d9773d', '#a8532a'],
+  iron_bar: ['#c9d2da', '#8f9aa6', '#646e7a'],
+  silver_bar: ['#ffffff', '#d8e0e8', '#a9b4c0'],
+  gold_bar: ['#ffe58a', '#ffc21f', '#d9921a'],
+};
+function ingotSvg([top, front, side]) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="64" height="64">`
+    + `<path d="M3 21 L9 12 L29 12 L23 21 Z" fill="${top}"/>`
+    + `<path d="M3 21 L23 21 L23 27 L3 27 Z" fill="${front}"/>`
+    + `<path d="M23 21 L29 12 L29 18 L23 27 Z" fill="${side}"/>`
+    + `<path d="M8 19 L12 14 L21 14" stroke="#ffffff" stroke-opacity="0.7" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+    + `<path d="M3 21 L9 12 L29 12 L29 18 L23 27 L3 27 Z" fill="none" stroke="#000" stroke-opacity="0.18" stroke-width="0.8" stroke-linejoin="round"/></svg>`;
+}
+
 /** Write the variant icons into `dir`; returns {key: 'icons/key.svg'} for the manifest. */
 export function writeVariants(json, dir, iconsMap) {
   const out = {};
+  for (const [key, cols] of Object.entries(INGOT_ICONS)) { fs.writeFileSync(path.join(dir, `${key}.svg`), ingotSvg(cols)); out[key] = `icons/${key}.svg`; }
   for (const [key, v] of Object.entries(ICON_VARIANTS)) {
     const svg = variantSvg(json, v, iconsMap);
     if (!svg) { console.warn('icon variant missing source:', key); continue; }

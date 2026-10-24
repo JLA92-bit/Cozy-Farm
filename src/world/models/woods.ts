@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MINE_WILD_PROC } from './mine';
 import { PAL, geo } from '../Procedural';
 import type { ForageKind } from '../../data';
 
@@ -395,6 +396,8 @@ export const WILD_PROC: Record<string, () => THREE.BufferGeometry> = {
   'proc:hedgehog': hedgehogGeometry, 'proc:squirrel': squirrelGeometry, 'proc:owl': owlGeometry,
   'proc:duck': duckGeometry, 'proc:heron': heronGeometry, 'proc:frog': frogGeometry, 'proc:otter': otterGeometry,
   'proc:robin': robinGeometry, 'proc:butterfly': butterflyGeometry, 'proc:badger': badgerGeometry,
+  // 1.31 the Old Mine's cave animals
+  ...MINE_WILD_PROC,
 };
 
 // ------------------------------------------------------------------ 1.27 the treehouse

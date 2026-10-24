@@ -4,6 +4,7 @@ import { SKILLS, SKILL_PERK_LEVELS, WOODS, type SkillDef } from '../../data';
 import { game } from '../../systems/Game';
 import { skills } from '../../systems/Skills';
 import { roomDone } from '../../systems/RestorationEffects';
+import { mine } from '../../systems/Mine';
 import { audio } from '../../systems/Audio';
 import './skills.css';
 
@@ -65,7 +66,7 @@ export function renderSkills(into: HTMLElement, refresh: () => void = () => {}):
     h('div', null, h('div', { class: 'sk-intro-title' }, 'Skills'), h('div', { class: 'sk-intro-text' }, 'Each skill grows by itself as you play. Every level helps a little, and at levels 5 and 10 you choose a perk.'))));
   for (const def of SKILLS) {
     // Crafting opens with Bram's Workshop in the village square
-    if ((def.id === 'crafting' && !roomDone('workshop')) || (def.id === 'foraging' && game.level < WOODS.level)) {
+    if ((def.id === 'crafting' && !roomDone('workshop')) || (def.id === 'foraging' && game.level < WOODS.level) || (def.id === 'mining' && !mine.open)) {
       into.append(h('div', { class: 'sk-card grey' }, h('div', { class: 'sk-head' }, ring(def),
         h('div', { class: 'grow' }, h('div', { class: 'sk-name' }, def.name), h('div', { class: 'sk-sub' }, def.about)))));
       continue;

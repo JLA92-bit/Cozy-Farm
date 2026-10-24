@@ -1,0 +1,137 @@
+{
+ "_comment": "1.31 The Old Mine (src/systems/Mine.ts, world/MineView.ts, scenes/Mine.ts). Across the water from the farm's north beach. Opens at `level` once the entrance room (mine_entrance, a restoration room) is restored. 60 floors in three layers; each floor's rocks are laid out from a seed of the day and the floor, so it looks the same all day and new the next. `swings` a day (lantern oil). A rock takes ceil(hard / power) swings with the pickaxe's power. One rock on every floor hides the ladder down; a lift every `liftEvery` floors remembers how deep you got. Chests on lift floors open once ever. Carts give a small bundle of ore once a day; pools (deeper layers) a find once a day. Geodes are cracked by Bram for `geodeCost` coins: one find from `geode` (a find like digging, never sold for gems or money).",
+ "level": 18,
+ "swings": 60,
+ "floors": 60,
+ "liftEvery": 5,
+ "rocksPerFloor": [12, 16],
+ "geodeCost": 25,
+ "layers": [
+  {
+   "id": "workings",
+   "name": "The Old Workings",
+   "from": 1,
+   "to": 20,
+   "pickaxe": 0,
+   "icon": "pick",
+   "about": "Timber props, lanterns and old rails. Copper, iron, quartz and the odd fossil.",
+   "kinds": { "stone": 46, "ore": 30, "gem": 8, "fossil": 6, "boulder": 10 },
+   "drops": {
+    "stone": [["stone", 60, 1, 2], ["coal", 30, 1, 2], ["clay", 10, 1, 1]],
+    "boulder": [["stone", 50, 2, 3], ["coal", 35, 1, 3], ["copper_ore", 15, 1, 2]],
+    "ore": [["copper_ore", 50, 1, 3], ["iron_ore", 38, 1, 2], ["coal", 12, 1, 2]],
+    "gem": [["quartz", 55, 1, 1], ["topaz", 30, 1, 1], ["amethyst", 15, 1, 1]],
+    "fossil": [["fossil_fern", 30, 1, 1], ["ammonite", 25, 1, 1], ["trilobite", 25, 1, 1], ["fossil_bone", 12, 1, 1], ["old_pick_head", 5, 1, 1], ["miners_lamp", 3, 1, 1]]
+   }
+  },
+  {
+   "id": "caverns",
+   "name": "The Crystal Caverns",
+   "from": 21,
+   "to": 40,
+   "pickaxe": 1,
+   "icon": "crystal",
+   "about": "Glowing crystal clusters and still, starry pools. Silver, rubies, emeralds and geodes.",
+   "kinds": { "stone": 36, "ore": 28, "gem": 14, "fossil": 6, "geode": 8, "boulder": 8 },
+   "drops": {
+    "stone": [["stone", 50, 1, 2], ["coal", 35, 1, 2], ["quartz", 15, 1, 1]],
+    "boulder": [["stone", 45, 2, 3], ["coal", 35, 2, 3], ["iron_ore", 20, 1, 2]],
+    "ore": [["silver_ore", 42, 1, 2], ["iron_ore", 38, 1, 3], ["copper_ore", 12, 1, 2], ["coal", 8, 1, 2]],
+    "gem": [["amethyst", 30, 1, 1], ["jade", 20, 1, 1], ["ruby", 26, 1, 1], ["emerald", 24, 1, 1]],
+    "geode": [["geode", 100, 1, 2]],
+    "fossil": [["crystal_shell", 34, 1, 1], ["fossil_fish", 34, 1, 1], ["trilobite", 18, 1, 1], ["carved_stone", 8, 1, 1], ["miners_lamp", 6, 1, 1]]
+   }
+  },
+  {
+   "id": "deeps",
+   "name": "The Ember Deeps",
+   "from": 41,
+   "to": 60,
+   "pickaxe": 2,
+   "icon": "fire",
+   "about": "A warm amber glow and carvings older than the valley. Gold, sapphires, opals and, very rarely, diamonds.",
+   "kinds": { "stone": 32, "ore": 30, "gem": 16, "fossil": 6, "geode": 8, "boulder": 8 },
+   "drops": {
+    "stone": [["stone", 45, 1, 2], ["coal", 45, 1, 3], ["topaz", 10, 1, 1]],
+    "boulder": [["stone", 40, 2, 3], ["coal", 40, 2, 3], ["silver_ore", 20, 1, 2]],
+    "ore": [["gold_ore", 42, 1, 2], ["silver_ore", 36, 1, 2], ["iron_ore", 14, 1, 2], ["coal", 8, 2, 3]],
+    "gem": [["sapphire", 34, 1, 1], ["opal", 30, 1, 1], ["ruby", 18, 1, 1], ["emerald", 12, 1, 1], ["diamond", 6, 1, 1]],
+    "geode": [["geode", 100, 1, 2]],
+    "fossil": [["cave_bear_tooth", 32, 1, 1], ["petrified_wood", 32, 1, 1], ["fossil_fish", 14, 1, 1], ["carved_stone", 16, 1, 1], ["old_pick_head", 6, 1, 1]]
+   }
+  }
+ ],
+ "rocks": {
+  "_comment": "hard: swings with the plain pickaxe (power 1). deep: added to hard in the Crystal Caverns and the Ember Deeps (bigger, harder rock)",
+  "stone": { "hard": 1, "xp": 1 },
+  "boulder": { "hard": 3, "xp": 3 },
+  "ore": { "hard": 2, "xp": 2 },
+  "gem": { "hard": 2, "xp": 4 },
+  "geode": { "hard": 2, "xp": 3 },
+  "fossil": { "hard": 2, "xp": 4 },
+  "deep": 1
+ },
+ "pickaxes": [
+  { "id": "pickaxe_plain", "name": "Old Pickaxe", "power": 1, "icon": "pick", "about": "Found leaning by the entrance. It does the job.", "coins": 0, "needs": {} },
+  { "id": "pickaxe_copper", "name": "Copper Pickaxe", "power": 1.5, "icon": "pick", "about": "Bram's first proper pick for you. Hard enough for the Crystal Caverns.", "coins": 800, "needs": { "copper_bar": 5 } },
+  { "id": "pickaxe_iron", "name": "Iron Pickaxe", "power": 2, "icon": "pick", "about": "Heavy and sure. It opens the way to the Ember Deeps.", "coins": 3000, "needs": { "iron_bar": 6, "copper_bar": 2 } },
+  { "id": "pickaxe_gold", "name": "Golden Pickaxe", "power": 3, "icon": "pick", "about": "Bram's finest work: almost every rock breaks in a swing or two.", "coins": 12000, "needs": { "gold_bar": 6, "silver_bar": 3, "diamond": 1 } }
+ ],
+ "cart": { "chance": 0.34, "drops": { "workings": [["copper_ore", 3], ["iron_ore", 2], ["coal", 3]], "caverns": [["iron_ore", 3], ["silver_ore", 2], ["coal", 3]], "deeps": [["silver_ore", 3], ["gold_ore", 2], ["coal", 4]] } },
+ "pool": { "chance": 0.34, "drops": [["glow_moss", 70, 1, 3], ["cave_pearl", 30, 1, 1]] },
+ "geode": [["quartz", 22], ["amethyst", 20], ["topaz", 16], ["jade", 12], ["ruby", 9], ["emerald", 8], ["sapphire", 6], ["opal", 5], ["crystal_shell", 2]],
+ "chests": {
+  "5": { "coins": 800, "gems": 2, "items": { "copper_bar": 2 } },
+  "10": { "coins": 1500, "gems": 3, "items": { "iron_bar": 2 } },
+  "15": { "coins": 2500, "gems": 3, "items": { "topaz": 3 } },
+  "20": { "coins": 4000, "gems": 5, "items": { "amethyst": 3 } },
+  "25": { "coins": 5000, "gems": 4, "items": { "silver_bar": 2 } },
+  "30": { "coins": 6500, "gems": 5, "items": { "ruby": 2 } },
+  "35": { "coins": 8000, "gems": 5, "items": { "emerald": 2 } },
+  "40": { "coins": 10000, "gems": 8, "items": { "geode": 5 } },
+  "45": { "coins": 12000, "gems": 6, "items": { "gold_bar": 2 } },
+  "50": { "coins": 15000, "gems": 8, "items": { "sapphire": 2 } },
+  "55": { "coins": 18000, "gems": 8, "items": { "opal": 2 } },
+  "60": { "coins": 25000, "gems": 15, "items": { "diamond": 2 } }
+ },
+ "letters": {
+  "intro": {
+   "title": "The old mine",
+   "body": "Dear {farmer},\n\nThere's a little island off your north beach with an old mine in it. My grandad worked it, back when the valley still had a forge in every village. It's been boarded up for fifty years.\n\nI've been down to the entrance and the timbers are rotten, but the rock behind is sound. If you help me fix it up, it's yours to explore: copper and iron near the top, and they say crystals deeper down.\n\nLook for the signpost and the boat on your north beach. Bring a lunch.\n\nBram"
+  },
+  "caverns": {
+   "title": "Crystals!",
+   "body": "Dear {farmer},\n\nYou've reached the bottom of the Old Workings. Grandad used to talk about a cave below it where the walls light up like the night sky. I always thought he was making it up.\n\nThe rock down there is harder. Bring me five copper bars and I'll make you a proper pickaxe.\n\nBram"
+  },
+  "deeps": {
+   "title": "Warm down there?",
+   "body": "Dear {farmer},\n\nForty floors! Under the crystals, the old miners wrote of a warm, amber deep with carvings on the walls that nobody in the valley ever made.\n\nYou'll want iron for that. I'll be at the forge.\n\nBram"
+  },
+  "bottom": {
+   "title": "The very bottom",
+   "body": "Dear {farmer},\n\nSixty floors. You've been further down that mine than anyone ever, my grandad included. He'd have bought you a pint and talked your ear off.\n\nThe rocks will keep moving about, so there's always more to find. I made you something for the house.\n\nBram",
+   "attach": { "coins": 5000, "gems": 10 }
+  }
+ },
+ "entrance": {
+  "id": "mine_entrance",
+  "name": "The Mine Entrance",
+  "icon": "pick",
+  "color": "grey",
+  "villager": "bram",
+  "opensAt": 18,
+  "about": "The old mine on the north island has been boarded up for fifty years. Bram wants it open again: new timbers, rope and lamps, and a good lunch for the crew.",
+  "rebuilds": "the entrance to the Old Mine",
+  "reward": { "id": "mine_entrance", "text": "The Old Mine opens: sixty floors of rock to break, ore and gems to find, and Bram's pickaxes to earn." },
+  "letter": {
+   "title": "The mine is open!",
+   "body": "Dear {farmer},\n\nNew props, new ladders, and the lamps are lit. I went down the first ladder this morning and came straight back up for my coat. It's cool down there and it smells of old stone.\n\nTake the old pickaxe by the entrance. Mind your head.\n\nBram"
+  },
+  "bundles": [
+   { "id": "timber", "name": "New Timbers", "icon": "axe", "wants": { "cotton_fabric": 10, "wheat": 120, "corn": 80 } },
+   { "id": "lamps", "name": "Lamps and Rope", "icon": "candle", "wants": { "yarn": 20, "syrup": 15, "sugar": 30 } },
+   { "id": "lunch", "name": "Lunch for the Crew", "icon": "wheat", "wants": { "bread": 40, "cheese": 15, "carrot_cake": 8 } },
+   { "id": "wages", "name": "Crew Wages", "icon": "coin", "wants": { "coins": 8000 } }
+  ]
+ }
+}

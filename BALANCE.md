@@ -852,3 +852,35 @@ Inside the Farmhouse, from level 15 (level 30 until 1.30.1). No XP or score; pri
   a time). Once received, a gift piece can be bought again at its catalogue price.
 - **Limits:** 120 pieces a room; saved looks share 600 pieces across the home. A fully furnished home with every look
   saved adds about 170 KB to the save, inside the 512 KB cloud save limit.
+
+## 1.31 The Old Mine (`mine.json`, `src/systems/Mine.ts`)
+
+Across the water to the north, from level 18. Bram's crew opens it with one restoration room (`mine_entrance`: timber,
+lamps, lunch and 8,000 coins in wages). No danger, nothing to lose, nothing random is ever sold.
+
+- **60 swings a day** (the lantern's oil; Second Wind at Mining 10 adds 15). A floor has 12-16 rocks; the ladder down
+  is under one of them, so a floor takes about 7 rocks (12 swings) to clear: about 5 floors a day, more with better
+  pickaxes. 60 floors, a lift every 5, so the bottom takes roughly 2-3 weeks of daily visits.
+- **Rocks a day and what they are worth** (expected, raw goods at barn price):
+
+  | Layer | Pickaxe | Swings a rock | Rocks a day | Value | Ore a day |
+  | --- | --- | --- | --- | --- | --- |
+  | Workings 1-20 | Old | 1.6 | 37 | 1,400 | copper 12, iron 6, coal 12 |
+  | Workings | Iron | 1.1 | 55 | 2,100 | copper 18, iron 9, coal 18 |
+  | Caverns 21-40 | Copper | 1.7 | 35 | 2,500 | iron 8, silver 6, coal 10 |
+  | Caverns | Golden | 1.1 | 56 | 4,000 | iron 13, silver 10, coal 16 |
+  | Deeps 41-60 | Iron | 1.7 | 36 | 3,800 | silver 7, gold 7, coal 15 |
+  | Deeps | Golden | 1.1 | 56 | 5,900 | silver 10, gold 10, coal 24 |
+
+  Small next to farm income at these levels on purpose: the mine is the home of ores, gems and fossils that the Manor,
+  Estate and Village Projects already ask for, plus the Museum's new shelves.
+- **Pickaxes (Bram):** Copper (5 copper bars, 800 coins; about 1-2 days, the floor 5 chest gives 2 bars) opens the
+  Crystal Caverns; Iron (6 iron bars, 2 copper bars, 3,000; about 2-3 days) opens the Ember Deeps; Golden (6 gold bars,
+  3 silver bars, a diamond, 12,000; about 4-5 days, diamonds are 1 in 3 days) is the best.
+- **Workshops:** the Smelter (18) turns 3 ore and coal into a bar for about +30% over the ore; the Jeweller (26) makes
+  rings, pendants and the Diamond Tiara for +55-90% over their parts, slower the dearer.
+- **Extras:** a mine cart on a third of floors (3-4 ores and coal, once a day; Cart Luck at Mining 7 doubles it), a
+  glowing pool on a third of deeper floors (glow moss or a cave pearl), a chest on each lift floor (once ever, 800
+  coins and 2 gems at floor 5 up to the bottom). Geodes are cracked by Bram for 25 coins (a mineral, about 1 in 4 a
+  precious gem).
+- **Mining skill:** XP from rocks (2), gems (6), fossils (8), new floors (12), geodes (4) and carts (4).

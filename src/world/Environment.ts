@@ -84,6 +84,11 @@ export class Environment {
   fogFloor = 0;
   /** 1.29 inside the Farmhouse: no rain, pollen, birds or butterflies in the room */
   indoors = false;
+  /**
+   * 1.31 underground (the Old Mine): a dark cave instead of the sky, close dark fog for depth and a dim tinted
+   * ambient light; torches and crystals light the rest. Null above ground.
+   */
+  cave: { sky: THREE.Color; near: number; far: number; hemiSky: THREE.Color; hemiGround: THREE.Color; hemi: number; sun: number; sunColor: THREE.Color } | null = null;
 
   setShadowMapSize(n: number): void {
     this.sun.shadow.mapSize.set(n, n);
@@ -201,6 +206,21 @@ export class Environment {
     const ang = -0.6 + p * 1.2;
     this.sun.position.set(focus.x + Math.cos(ang) * 18 - 6, 30 - dusk * 14, focus.z + Math.sin(ang) * 10 + 14);
     this.sun.target.position.set(focus.x, 0, focus.z);
+    if (this.cave) {
+      const c = this.cave;
+      this.sky.copy(c.sky);
+      fog.color.copy(c.sky);
+      fog.near = c.near;
+      fog.far = c.far;
+      this.hemi.intensity = c.hemi;
+      this.hemi.color.copy(c.hemiSky);
+      this.hemi.groundColor.copy(c.hemiGround);
+      this.sun.intensity = c.sun;
+      this.sun.color.copy(c.sunColor);
+      // a soft light from high above and behind the camera, so rocks keep their shape
+      this.sun.position.set(focus.x + 8, 26, focus.z + 12);
+      this.light = 0.5;
+    }
 
     // ---- clouds drift and wrap
     for (const c of this.clouds) {

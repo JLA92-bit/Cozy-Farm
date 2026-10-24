@@ -11,6 +11,7 @@ import { localDay } from './Progression';
 import { weatherToday } from './Weather';
 import { cycleNow } from './FestivalCycle';
 import { woods } from './Woods';
+import { mine } from './Mine';
 import { mail } from './Mail';
 import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
@@ -28,6 +29,8 @@ class WildlifeSystem {
   placeOpen(place: string): boolean {
     if (place === 'farm') return true;
     if (place === 'glade') return woods.unlocked;
+    // 1.31 the Old Mine's cave animals
+    if (place === 'mine') return mine.open;
     return woods.regionOpen(place);
   }
   private roll(s: WildSpecies, now: number): () => number { return rng(hashString(`${game.state.seed}:wild:${s.id}:${localDay(now)}`)); }

@@ -41,8 +41,9 @@ export class Feedback {
   }
 
   private dismiss(el: HTMLElement): void {
-    if (!el.isConnected) return;
+    // out of the queue first: a toast already gone from the page must not stay counted (toast()'s trim loop would spin)
     this.toastQueue = this.toastQueue.filter((t) => t !== el);
+    if (!el.isConnected) return;
     gsap.to(el, { y: -20, opacity: 0, duration: 0.25, onComplete: () => el.remove() });
   }
 

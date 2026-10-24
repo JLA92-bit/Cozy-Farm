@@ -5,7 +5,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, MINE, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -122,6 +122,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
   out.farmhands = repairFarmhands(s.farmhands);
   out.wildlife = repairWildlife(s.wildlife);
   out.home = repairHome(s.home);
+  out.mine = repairMine(s.mine);
   out.coop = isObj(s.coop) && Array.isArray(s.coop.plaques) ? { plaques: (s.coop.plaques as unknown[]).filter((p): p is Record<string, unknown> => isObj(p) && typeof p.project === 'string' && COOP.projects.some((d) => d.id === p.kind)).slice(-50)
     .map((p) => ({ project: p.project as string, kind: p.kind as string, host: typeof p.host === 'string' ? p.host.slice(0, 24) : '', names: strArr(p.names).slice(0, 30).map((n) => n.slice(0, 24)), at: finite(p.at, 0, 0) })),
     ...(Array.isArray(s.coop.pending) ? { pending: (s.coop.pending as unknown[]).filter((x): x is Record<string, unknown> => isObj(x) && typeof x.key === 'string' && typeof x.project === 'string' && typeof x.item === 'string' && !!ITEMS[x.item] && Array.isArray(x.taken)).slice(0, 20)
@@ -153,6 +154,25 @@ function repairSkills(v: unknown): SaveData['skills'] {
 }
 
 /** 1.27 Wildlife Album: only known species and sets. */
+/** 1.31 The Old Mine: numbers in range, lists of whole numbers, known items only. */
+function repairMine(v: unknown): SaveData['mine'] {
+  if (!isObj(v)) return undefined;
+  const int = (x: unknown, lo: number, hi: number) => (typeof x === 'number' && Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.floor(x))) : lo);
+  const ints = (x: unknown) => (Array.isArray(x) ? [...new Set(x.filter((n): n is number => Number.isInteger(n) && n >= 0 && n <= MINE.floors))] : []);
+  const hits: Record<string, number[]> = {};
+  if (isObj(v.hits)) for (const [k, list] of Object.entries(v.hits)) if (Number.isInteger(Number(k)) && Array.isArray(list)) hits[k] = list.slice(0, 40).map((n) => int(n, 0, 99));
+  return {
+    deepest: int(v.deepest, 0, MINE.floors),
+    pickaxe: int(v.pickaxe, 0, MINE.pickaxes.length - 1),
+    day: typeof v.day === 'string' ? v.day.slice(0, 12) : '',
+    swings: int(v.swings, 0, 999),
+    hits,
+    carts: ints(v.carts), pools: ints(v.pools), chests: ints(v.chests),
+    letters: Array.isArray(v.letters) ? v.letters.filter((x): x is string => typeof x === 'string' && x in MINE.letters) : [],
+    found: countMap(v.found, (k) => !!ITEMS[k]),
+  };
+}
+
 function repairWildlife(v: unknown): SaveData['wildlife'] {
   if (!isObj(v)) return undefined;
   const photos: Record<string, { first: number; n: number }> = {};

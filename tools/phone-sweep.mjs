@@ -23,7 +23,7 @@ const browser = await chromium.launch({ executablePath: exe, args: ['--use-gl=an
 
 // panels that need an argument, or open a flow rather than a screen
 const ARGS = { 'square-room': { room: 'estate_clock_base' }, critter: 'rabbit' };
-const SKIP = new Set(['__levelbadge', '__goal', 'visit', 'visit18', 'home']);
+const SKIP = new Set(['__levelbadge', '__goal', 'visit', 'visit18', 'home', 'mine']);
 
 let problems = 0;
 for (const s of sizes) {

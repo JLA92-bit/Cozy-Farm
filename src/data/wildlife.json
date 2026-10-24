@@ -16,6 +16,9 @@
   { "id": "robin", "name": "Robin", "set": "farm", "model": "proc:robin", "size": 2.2, "place": "farm", "from": 7, "to": 17, "weather": ["sunny"], "chance": 0.8, "about": "Sings from the fence posts on sunny days." },
   { "id": "butterfly", "name": "Peacock Butterfly", "set": "farm", "model": "proc:butterfly", "size": 2.2, "place": "farm", "from": 10, "to": 16, "weather": ["sunny"], "chance": 0.8, "about": "Flutters over the farm's edges on warm, sunny days." },
   { "id": "badger", "name": "Badger", "set": "farm", "model": "proc:badger", "size": 2.3, "place": "farm", "from": 21, "to": 4, "chance": 0.6, "about": "Shuffles past the farm at night, looking for worms." },
+  { "id": "cave_bat", "name": "Cave Bat", "set": "underground", "model": "proc:bat", "size": 1.6, "place": "mine", "from": 0, "to": 24, "chance": 0.75, "about": "Hangs upside down from the old props in the Old Mine, folded up like a little umbrella." },
+  { "id": "glow_worm", "name": "Glow Worm", "set": "underground", "model": "proc:glowworm", "size": 1.8, "place": "mine", "from": 0, "to": 24, "chance": 0.6, "about": "Lights the Crystal Caverns with a soft blue-green glow." },
+  { "id": "cave_salamander", "name": "Cave Salamander", "set": "underground", "model": "proc:salamander", "size": 1.7, "place": "mine", "from": 0, "to": 24, "chance": 0.45, "about": "Pale and patient. It lives by the still pools deep in the mine." },
   { "id": "penguin", "name": "Penguin", "set": "rare", "model": "pet/penguin", "size": 1.1, "place": "farm", "from": 10, "to": 17, "festival": true, "chance": 1, "about": "Comes by boat for festival days. Nobody knows from where." },
   { "id": "polar_bear", "name": "Polar Bear", "set": "rare", "model": "pet/polar", "size": 1.6, "place": "farm", "from": 10, "to": 17, "festival": true, "chance": 0.5, "about": "A very polite visitor on some festival days. Brings its own ice." },
   { "id": "panda", "name": "Panda", "set": "rare", "model": "pet/panda", "size": 1.6, "place": "grove", "from": 11, "to": 15, "chance": 0.35, "about": "Naps under the Elder Oak around midday, now and then." }
@@ -24,6 +27,7 @@
   { "id": "woodland", "name": "Woodland", "icon": "deer", "reward": { "coins": 6000, "gems": 15 } },
   { "id": "waterside", "name": "Waterside", "icon": "water_wave", "reward": { "coins": 6000, "gems": 15 } },
   { "id": "farm", "name": "Farm Edge", "icon": "wheat", "reward": { "coins": 5000, "gems": 10 } },
+  { "id": "underground", "name": "Underground", "icon": "pick", "reward": { "coins": 5000, "gems": 12 } },
   { "id": "rare", "name": "Rare Visitors", "icon": "sparkles", "reward": { "coins": 15000, "gems": 40 } }
  ],
  "complete": { "coins": 20000, "gems": 50 }

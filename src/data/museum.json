@@ -10,6 +10,9 @@
     { "id": "woodland", "name": "Woodland Gifts", "icon": "paw_prints", "items": ["shed_antler", "four_leaf_clover", "snail_shell", "silver_spoon", "golden_acorn", "owl_feather"], "reward": { "coins": 2400, "gems": 8 } },
     { "id": "creek", "name": "Creek Treasures", "icon": "gold_flake", "items": ["gold_flake", "agate", "jade", "river_pearl"], "reward": { "coins": 1500, "gems": 6 } },
     { "id": "aquarium", "name": "The Aquarium", "icon": "whale", "items": ["sea_turtle", "curious_seal", "dolphin", "baby_whale", "ghost_ray", "golden_crab", "kraken", "celestial_koi"], "reward": { "coins": 6000, "gems": 15 } },
+    { "id": "deep", "name": "The Deep", "icon": "gem", "items": ["silver_ore", "gold_ore", "ruby", "emerald", "sapphire", "opal", "diamond", "cave_pearl"], "reward": { "coins": 8000, "gems": 20 } },
+    { "id": "ancient", "name": "Ancient Life", "icon": "fossil_bone", "items": ["trilobite", "fossil_fish", "crystal_shell", "cave_bear_tooth", "petrified_wood"], "reward": { "coins": 5000, "gems": 12 } },
+    { "id": "relics", "name": "Miner's Relics", "icon": "pick", "items": ["miners_lamp", "old_pick_head", "carved_stone", "glow_moss"], "reward": { "coins": 3500, "gems": 8 } },
     { "id": "gold", "name": "Gold Star Case", "icon": "medal3", "kind": "gold", "slots": 6, "reward": { "coins": 2500, "gems": 8 } }
   ],
   "curator": { "coins": 6000, "gems": 25, "decor": "fountain_grand" }

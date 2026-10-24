@@ -2176,6 +2176,216 @@
    "sell": 5370,
    "icon": "moonflower_bouquet",
    "bouquet": true
+  },
+  "stone": {
+   "name": "Stone",
+   "cat": "mineral",
+   "sell": 4,
+   "icon": "stone"
+  },
+  "coal": {
+   "name": "Coal",
+   "cat": "mineral",
+   "sell": 12,
+   "icon": "coal"
+  },
+  "silver_ore": {
+   "name": "Silver Ore",
+   "cat": "mineral",
+   "sell": 70,
+   "icon": "silver_ore"
+  },
+  "gold_ore": {
+   "name": "Gold Ore",
+   "cat": "mineral",
+   "sell": 110,
+   "icon": "gold_ore"
+  },
+  "ruby": {
+   "name": "Ruby",
+   "cat": "mineral",
+   "sell": 220,
+   "icon": "ruby"
+  },
+  "emerald": {
+   "name": "Emerald",
+   "cat": "mineral",
+   "sell": 240,
+   "icon": "emerald"
+  },
+  "sapphire": {
+   "name": "Sapphire",
+   "cat": "mineral",
+   "sell": 260,
+   "icon": "sapphire"
+  },
+  "opal": {
+   "name": "Opal",
+   "cat": "mineral",
+   "sell": 300,
+   "icon": "opal"
+  },
+  "diamond": {
+   "name": "Diamond",
+   "cat": "mineral",
+   "sell": 450,
+   "icon": "diamond"
+  },
+  "geode": {
+   "name": "Geode",
+   "cat": "mineral",
+   "sell": 40,
+   "icon": "geode"
+  },
+  "trilobite": {
+   "name": "Trilobite",
+   "cat": "fossil",
+   "sell": 120,
+   "icon": "trilobite"
+  },
+  "fossil_fish": {
+   "name": "Fossil Fish",
+   "cat": "fossil",
+   "sell": 150,
+   "icon": "fossil_fish"
+  },
+  "crystal_shell": {
+   "name": "Crystal Shell",
+   "cat": "fossil",
+   "sell": 200,
+   "icon": "crystal_shell"
+  },
+  "cave_bear_tooth": {
+   "name": "Cave Bear Tooth",
+   "cat": "fossil",
+   "sell": 220,
+   "icon": "cave_bear_tooth"
+  },
+  "petrified_wood": {
+   "name": "Petrified Wood",
+   "cat": "fossil",
+   "sell": 180,
+   "icon": "petrified_wood"
+  },
+  "miners_lamp": {
+   "name": "Miner's Lamp",
+   "cat": "artifact",
+   "sell": 160,
+   "icon": "miners_lamp"
+  },
+  "old_pick_head": {
+   "name": "Old Pick Head",
+   "cat": "artifact",
+   "sell": 140,
+   "icon": "old_pick_head"
+  },
+  "carved_stone": {
+   "name": "Carved Stone",
+   "cat": "artifact",
+   "sell": 260,
+   "icon": "carved_stone"
+  },
+  "glow_moss": {
+   "name": "Glow Moss",
+   "cat": "forage",
+   "sell": 45,
+   "icon": "glow_moss"
+  },
+  "cave_pearl": {
+   "name": "Cave Pearl",
+   "cat": "mineral",
+   "sell": 180,
+   "icon": "cave_pearl"
+  },
+  "copper_bar": {
+   "name": "Copper Bar",
+   "cat": "goods",
+   "sell": 135,
+   "icon": "copper_bar"
+  },
+  "iron_bar": {
+   "name": "Iron Bar",
+   "cat": "goods",
+   "sell": 180,
+   "icon": "iron_bar"
+  },
+  "silver_bar": {
+   "name": "Silver Bar",
+   "cat": "goods",
+   "sell": 290,
+   "icon": "silver_bar"
+  },
+  "gold_bar": {
+   "name": "Gold Bar",
+   "cat": "goods",
+   "sell": 445,
+   "icon": "gold_bar"
+  },
+  "stone_brick": {
+   "name": "Stone Brick",
+   "cat": "goods",
+   "sell": 40,
+   "icon": "stone_brick"
+  },
+  "silver_ring": {
+   "name": "Silver Ring",
+   "cat": "goods",
+   "sell": 560,
+   "icon": "silver_ring"
+  },
+  "ruby_ring": {
+   "name": "Ruby Ring",
+   "cat": "goods",
+   "sell": 1150,
+   "icon": "ruby_ring"
+  },
+  "emerald_brooch": {
+   "name": "Emerald Brooch",
+   "cat": "goods",
+   "sell": 900,
+   "icon": "emerald_brooch"
+  },
+  "sapphire_pendant": {
+   "name": "Sapphire Pendant",
+   "cat": "goods",
+   "sell": 960,
+   "icon": "sapphire_pendant"
+  },
+  "opal_pendant": {
+   "name": "Opal Pendant",
+   "cat": "goods",
+   "sell": 1250,
+   "icon": "opal_pendant"
+  },
+  "crystal_vase": {
+   "name": "Crystal Vase",
+   "cat": "goods",
+   "sell": 520,
+   "icon": "crystal_vase"
+  },
+  "gem_lantern": {
+   "name": "Gem Lantern",
+   "cat": "goods",
+   "sell": 620,
+   "icon": "gem_lantern"
+  },
+  "birthstone_charm": {
+   "name": "Birthstone Charm",
+   "cat": "goods",
+   "sell": 1100,
+   "icon": "birthstone_charm"
+  },
+  "gold_locket": {
+   "name": "Gold Locket",
+   "cat": "goods",
+   "sell": 1300,
+   "icon": "gold_locket"
+  },
+  "diamond_tiara": {
+   "name": "Diamond Tiara",
+   "cat": "goods",
+   "sell": 4800,
+   "icon": "diamond_tiara"
   }
  }
 }
