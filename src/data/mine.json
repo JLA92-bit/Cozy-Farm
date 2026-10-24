@@ -109,8 +109,8 @@
   },
   "bottom": {
    "title": "The very bottom",
-   "body": "Dear {farmer},\n\nSixty floors. You've been further down that mine than anyone ever, my grandad included. He'd have bought you a pint and talked your ear off.\n\nThe rocks will keep moving about, so there's always more to find. I made you something for the house.\n\nBram",
-   "attach": { "coins": 5000, "gems": 10 }
+   "body": "Dear {farmer},\n\nSixty floors. You've been further down that mine than anyone ever, my grandad included. He'd have put the kettle on and talked your ear off.\n\nThe rocks will keep moving about, so there's always more to find. I made you a crystal chandelier for the house. It's waiting in your home's storage.\n\nBram",
+   "attach": { "coins": 5000, "gems": 10 }, "piece": "mine_crystal_chandelier"
   }
  },
  "entrance": {

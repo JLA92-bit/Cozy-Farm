@@ -126,8 +126,16 @@ function glowMat(colour: string, k = 0.75): THREE.MeshLambertMaterial {
   return m;
 }
 
+/** The invisible stand-in every tap target uses (one for all, never freed). */
+const HIDDEN = new THREE.MeshBasicMaterial({ visible: false });
+/** The hit dots over a rock: shared, since they are rebuilt on every swing. */
+const PIP_GEO = new THREE.SphereGeometry(0.06, 8, 6);
+const PIP_ON = new THREE.MeshBasicMaterial({ color: '#ffffff', depthTest: false, transparent: true });
+const PIP_OFF = new THREE.MeshBasicMaterial({ color: '#5a5a5a', depthTest: false, transparent: true });
+
 /** Geometry that belongs to the asset cache (or is shared between floors): never freed when a floor is rebuilt. */
 const SHARED = new WeakSet<THREE.BufferGeometry>();
+SHARED.add(PIP_GEO);
 
 /** A model's geometry (static, already loaded) placed into a builder with a transform. */
 function placeGeo(id: string, pal: Pal | null, seed: number, pos: THREE.Vector3, rotY: number, scale: THREE.Vector3): THREE.Mesh | null {
@@ -310,7 +318,7 @@ export class MineView {
     this.mouthGlow = glowSprite('#ffb055', 3.2, 0.5);
     this.mouthGlow.position.set(MOUTH.x - 0.6, 1.4, MOUTH.z - 0.6);
     g.add(this.mouthGlow);
-    const mouthPick = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.4, 2.4), new THREE.MeshBasicMaterial({ visible: false }));
+    const mouthPick = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.4, 2.4), HIDDEN);
     mouthPick.position.set(MOUTH.x, 1.6, MOUTH.z);
     mouthPick.rotation.y = Math.PI / 4;
     mouthPick.userData = { kind: 'entrance', i: 0 } satisfies MineHit;
@@ -330,7 +338,7 @@ export class MineView {
     boat.rotation.y = -JETTY_ANGLE + Math.PI / 2;
     boat.castShadow = true;
     g.add(boat);
-    const bp = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+    const bp = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 6), HIDDEN);
     bp.position.copy(boat.position);
     bp.userData = { kind: 'boat', i: 0 } satisfies MineHit;
     g.add(bp);
@@ -342,7 +350,7 @@ export class MineView {
       char.root.position.set(MOUTH.x + 3.0, 0, MOUTH.z + 0.6);
       char.root.rotation.y = Math.PI / 4 + 0.4;
       g.add(char.root);
-      const pick = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      const pick = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2, 8), HIDDEN);
       pick.position.set(char.root.position.x, 1, char.root.position.z);
       pick.userData = { kind: 'bram', i: 0 } satisfies MineHit;
       g.add(pick);
@@ -443,12 +451,12 @@ export class MineView {
     up.rotation.y = Math.PI / 4;
     up.castShadow = true;
     root.add(up);
-    const shaftMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: f.floor === 1 ? 0.32 : 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    const shaftMat = ownMat(new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: f.floor === 1 ? 0.32 : 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     this.shaft = new THREE.Mesh(lightShaftGeometry(), shaftMat);
     this.shaft.position.set(MINE_ENTRY.x - 0.4, 0, MINE_ENTRY.z - 0.4);
     this.shaft.renderOrder = 5;
     root.add(this.shaft);
-    const upPick = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 3.2, 8), new THREE.MeshBasicMaterial({ visible: false }));
+    const upPick = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 3.2, 8), HIDDEN);
     upPick.position.set(MINE_ENTRY.x - 0.3, 1.6, MINE_ENTRY.z - 0.3);
     upPick.userData = { kind: 'up', i: 0 } satisfies MineHit;
     root.add(upPick);
@@ -465,7 +473,7 @@ export class MineView {
       const lamp = glowSprite('#ffd27a', 1.4, 0.7);
       lamp.position.set(MINE_LIFT.x + 1.15, 1.9, MINE_LIFT.z);
       root.add(lamp);
-      const lp = new THREE.Mesh(new THREE.BoxGeometry(2, 3.6, 2), new THREE.MeshBasicMaterial({ visible: false }));
+      const lp = new THREE.Mesh(new THREE.BoxGeometry(2, 3.6, 2), HIDDEN);
       lp.position.set(MINE_LIFT.x, 1.8, MINE_LIFT.z);
       lp.userData = { kind: 'lift', i: 0 } satisfies MineHit;
       root.add(lp);
@@ -476,7 +484,7 @@ export class MineView {
         this.chest.position.set(MINE_LIFT.x - 1.9, 0, MINE_LIFT.z + 0.9);
         this.chest.rotation.y = Math.PI / 4;
         root.add(this.chest);
-        const cp = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshBasicMaterial({ visible: false }));
+        const cp = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), HIDDEN);
         cp.position.set(this.chest.position.x, 0.6, this.chest.position.z);
         cp.userData = { kind: 'chest', i: 0 } satisfies MineHit;
         root.add(cp);
@@ -491,7 +499,7 @@ export class MineView {
       rails.rotation.y = f.cart.rot;
       rails.receiveShadow = true;
       root.add(rails);
-      const cp = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.8), new THREE.MeshBasicMaterial({ visible: false }));
+      const cp = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.8), HIDDEN);
       cp.position.set(f.cart.x, 0.7, f.cart.z);
       cp.userData = { kind: 'cart', i: 0 } satisfies MineHit;
       root.add(cp);
@@ -508,7 +516,7 @@ export class MineView {
       rimMesh.position.set(p.x, 0, p.z);
       rimMesh.receiveShadow = true;
       root.add(rimMesh);
-      const water = new THREE.Mesh(new THREE.CircleGeometry(p.r, 28).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#0e3a52', emissive: layer === 'deeps' ? '#5a2a10' : '#0f6a7a', emissiveIntensity: 0.55, transparent: true, opacity: 0.92 }));
+      const water = new THREE.Mesh(new THREE.CircleGeometry(p.r, 28).rotateX(-Math.PI / 2), ownMat(new THREE.MeshLambertMaterial({ color: '#0e3a52', emissive: layer === 'deeps' ? '#5a2a10' : '#0f6a7a', emissiveIntensity: 0.55, transparent: true, opacity: 0.92 })));
       water.position.set(p.x, 0.04, p.z);
       root.add(water);
       this.poolDisc = water;
@@ -526,7 +534,7 @@ export class MineView {
       const mossMesh = new THREE.Mesh(moss.build(), glowMat('#4fe0b0', 0.9));
       mossMesh.position.set(p.x, 0, p.z);
       root.add(mossMesh);
-      const pp = new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, 0.6, 12), new THREE.MeshBasicMaterial({ visible: false }));
+      const pp = new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, 0.6, 12), HIDDEN);
       pp.position.set(p.x, 0.3, p.z);
       pp.userData = { kind: 'pool', i: 0 } satisfies MineHit;
       root.add(pp);
@@ -758,7 +766,7 @@ export class MineView {
       b.geometry(new THREE.TorusGeometry(0.06, 0.025, 5, 10, Math.PI * 1.5), '#e2d2b0', [0.02, h * 0.55, w * 0.44], [0.3, 0, 0.6]);
       group.add(new THREE.Mesh(b.build(), assets.vertexMaterial));
     }
-    const pick = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(0.5, w * 0.6), Math.max(0.5, w * 0.6), Math.max(1.0, h + 0.4), 8), new THREE.MeshBasicMaterial({ visible: false }));
+    const pick = new THREE.Mesh(new THREE.CylinderGeometry(Math.max(0.5, w * 0.6), Math.max(0.5, w * 0.6), Math.max(1.0, h + 0.4), 8), HIDDEN);
     pick.position.set(rock.x, Math.max(0.5, (h + 0.4) / 2), rock.z);
     pick.userData = { kind: 'rock', i: rock.i } satisfies MineHit;
     this.floorStuff.add(group, pick);
@@ -780,7 +788,7 @@ export class MineView {
       obj.rotation.y = w.yaw;
       if (w.id === 'glow_worm') obj.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.material = glowMat('#ffffff', 0.7); });
       this.floorStuff.add(obj);
-      const pick = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+      const pick = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 6), HIDDEN);
       pick.position.copy(w.at).add(new THREE.Vector3(0, 0.3, 0));
       pick.userData = { kind: 'wild', i: 0, id: s.id } satisfies MineHit;
       this.floorStuff.add(pick);
@@ -792,7 +800,7 @@ export class MineView {
   }
 
   private makeMotes(pal: Pal): void {
-    if (this.motes) { this.under.remove(this.motes); this.motes.geometry.dispose(); }
+    if (this.motes) { this.under.remove(this.motes); this.motes.geometry.dispose(); (this.motes.material as THREE.Material).dispose(); }
     const n = 110;
     const pos = new Float32Array(n * 3);
     this.moteData = [];
@@ -837,7 +845,7 @@ export class MineView {
       glow.position.y = 0.3;
       hole.add(glow);
       this.floorStuff.add(hole);
-      const pick = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 1.2, 10), new THREE.MeshBasicMaterial({ visible: false }));
+      const pick = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 1.2, 10), HIDDEN);
       pick.position.set(k.x, 0.6, k.z);
       pick.userData = { kind: 'down', i: 0 } satisfies MineHit;
       this.floorStuff.add(pick);
@@ -889,7 +897,7 @@ export class MineView {
     node.pips = [];
     if (!show) return;
     for (let i = 0; i < need; i++) {
-      const p = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshBasicMaterial({ color: i < hit ? '#ffffff' : '#5a5a5a', depthTest: false, transparent: true }));
+      const p = new THREE.Mesh(PIP_GEO, i < hit ? PIP_ON : PIP_OFF);
       p.position.set((i - (need - 1) / 2) * 0.18, node.h + 0.35, 0);
       p.renderOrder = 7;
       node.group.add(p);
@@ -933,8 +941,10 @@ export class MineView {
   }
 
   private pickaxeMesh(): THREE.Group {
-    if (this.pickaxe) return this.pickaxe;
     const tier = mine.pickaxe();
+    // a new pickaxe from Bram shows its own colour from the next swing
+    if (this.pickaxe && this.pickaxe.userData.tier === tier) return this.pickaxe;
+    if (this.pickaxe) { this.under.remove(this.pickaxe); disposeTree(this.pickaxe); }
     const head = ['#8a8f96', '#d9803f', '#b8c0c8', '#ffcf3a'][tier] ?? '#8a8f96';
     const b = geo();
     b.cyl(0.06, 0.07, 1.5, '#c48a50', [0, -0.75, 0], 6);
@@ -948,12 +958,11 @@ export class MineView {
     mesh.position.y = 0.85;
     g.add(mesh);
     g.visible = false;
+    g.userData.tier = tier;
     this.under.add(g);
     this.pickaxe = g;
     return g;
   }
-  /** A new pickaxe from Bram: the swing shows its colour. */
-  resetPickaxe(): void { if (this.pickaxe) { this.under.remove(this.pickaxe); this.pickaxe = undefined; } }
 
   private chipsAt(x: number, y: number, z: number, pal: Pal, n: number): void {
     for (let k = 0; k < n; k++) {
@@ -1103,6 +1112,8 @@ function brighten(g: THREE.BufferGeometry, k: number): THREE.BufferGeometry {
 }
 
 function sharedGeo(g: THREE.BufferGeometry): THREE.BufferGeometry { SHARED.add(g); return g; }
+/** A material made for one floor only: freed with it. */
+function ownMat<M extends THREE.Material>(m: M): M { m.userData.own = true; return m; }
 
 function disposeTree(o: THREE.Object3D): void {
   o.traverse((c) => {
@@ -1111,6 +1122,8 @@ function disposeTree(o: THREE.Object3D): void {
     if (!m.isMesh) return;
     // shared model geometries (from the asset cache) are kept; recoloured and built ones are freed
     if (m.geometry && !SHARED.has(m.geometry)) m.geometry.dispose();
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    for (const mat of mats) if (mat?.userData.own) mat.dispose();
   });
 }
 

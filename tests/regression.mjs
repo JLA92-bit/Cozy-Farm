@@ -1065,7 +1065,12 @@ try {
       const coins = g.coins;
       const geo = M.crackGeode();
       const geo2 = M.crackGeode();
-      return { rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
+      // the bottom: Bram's last letter, and the chandelier he made waits in the home's storage
+      const hs = window.__home?.sys?.state;
+      const had = hs?.storage?.mine_crystal_chandelier ?? 0;
+      st.deepest = 59; M.reach(60); M.reach(60);
+      const bottom = { letters: st.letters.join(), piece: (hs?.storage?.mine_crystal_chandelier ?? 0) - had };
+      return { bottom, rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
     });
     check('a damaged mine save is mended', m.rep.deepest === 60 && m.rep.pickaxe === 3 && m.rep.chests.join() === '5' && m.rep.carts.join() === '2' && m.rep.found.join() === 'coal', JSON.stringify(m.rep));
     check('a mine floor is the same all day and different the next', m.same && m.differs, JSON.stringify(m));
@@ -1073,6 +1078,7 @@ try {
     check('the ladder down is under a rock; breaking it lets you go down a floor', !m.ladderBefore && m.down.ok && m.down.floor === 2, JSON.stringify(m));
     check('the Crystal Caverns need the copper pickaxe', !m.blocked.ok && /copper/i.test(m.blocked.reason ?? ''), JSON.stringify(m.blocked));
     check('the lift stops at every fifth floor reached, a chest opens once', m.lifts === '1,5,10,15,20' && m.c1 && m.c2 === null && m.c3 === null, JSON.stringify(m));
+    check("the bottom floor brings Bram's last letter and one chandelier for the home", /bottom/.test(m.bottom.letters) && m.bottom.piece === 1, JSON.stringify(m.bottom));
     check('Bram makes the next pickaxe and cracks a geode for 25 coins', m.bought && m.pick === 1 && !!m.geo && m.paid === 25 && m.geodes === 0 && m.geo2 === null, JSON.stringify(m));
     // the scene: row over, go down, and back climbs up then rows home
     await page.evaluate(() => { const s = window.__game.state; s.welcome18 && (s.welcome18.done = true); });

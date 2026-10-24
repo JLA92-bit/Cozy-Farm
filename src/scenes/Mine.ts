@@ -284,6 +284,12 @@ const mineHandler: WorldHandler = {
 
 function tapAt(p: Pointer): void {
   if (!ctx || !view || busy) return;
+  // past midnight underground: the rocks are new today, so draw the floor again before anything is swung at
+  if (floor && floorNo > 0 && mine.layout(floorNo).seed !== floor.seed) {
+    ui.feedback.toast('A new day in the mine', 'The rocks have settled overnight and your lantern is full again.', 'candle');
+    void goDown(floorNo);
+    return;
+  }
   const hit = view.pick(ctx.scene.ray(p));
   if (!hit) return;
   const at = view.spotAt(hit) ?? undefined;
@@ -359,7 +365,7 @@ function swingAt(i: number): void {
     ctx.scene.rig.shake(0.06, 0.18);
     if (r.ladder) {
       audio.play('unlock', { volume: 0.7 });
-      ui.feedback.toast('The ladder down!', floorNo >= MINE.floors ? 'This is the very bottom.' : 'Tap the hole to climb down to the next floor.', 'ladder');
+      ui.feedback.toast('The ladder down!', 'Tap the hole to climb down to the next floor.', 'ladder');
     }
     const gem = r.drops.find((d) => ['mineral', 'fossil', 'artifact'].includes(ITEMS[d.item]?.cat) && ITEMS[d.item].sell >= 100);
     if (r.first.length) ui.feedback.toast(`${ITEMS[r.first[0]].name}!`, 'A new find for your collection', ITEMS[r.first[0]].icon);
@@ -391,7 +397,7 @@ function makeBanner(): HTMLElement {
       h('div', { class: 'visit-sub' }, h('span', null, icon(l.icon), l.name)),
       h('div', { class: 'mn-lantern', role: 'meter', 'aria-label': `${left} of ${max} swings left today`, 'aria-valuenow': String(left), 'aria-valuemax': String(max) },
         icon('candle'), h('div', { class: 'mn-oil' }, h('div', { class: 'mn-oil-fill', style: `width:${pct}%` })), h('span', { class: 'mn-oil-n' }, `${left}`)),
-      h('div', { class: 'mn-hint' }, floor && mine.ladderFound(floor) ? (floorNo >= MINE.floors ? 'The very bottom of the mine.' : 'The ladder is uncovered: tap the hole to go down.') : 'One rock hides the ladder down.')),
+      h('div', { class: 'mn-hint' }, floorNo >= MINE.floors ? 'The very bottom of the mine.' : floor && mine.ladderFound(floor) ? 'The ladder is uncovered: tap the hole to go down.' : 'One rock hides the ladder down.')),
     h('div', { class: 'mn-side' },
       button([icon('ladder'), h('span', null, 'Up')], () => void goUp(), 'green visit-home', { 'aria-label': 'Climb up to the island' }),
       floor?.lift ? button([icon('pick'), h('span', null, 'Lift')], () => openLift((n) => { if (n !== floorNo) void goDown(n); }), 'small blue') : null));

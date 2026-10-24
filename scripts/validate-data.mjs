@@ -537,6 +537,8 @@ releases?.forEach((r, i) => {
   for (const [item, w] of md.geode) if (!items[item] || !(w > 0)) err(`mine geode: bad find ${item}`);
   for (const [item] of md.pool.drops) if (!items[item]) err(`mine pool: unknown item ${item}`);
   if (md.entrance.opensAt !== md.level) err('mine: the entrance opens at the mine level');
+  const pieces = new Set(read('furniture.json').pieces.map((p) => p.id));
+  for (const [k, l] of Object.entries(md.letters)) if (l.piece && !pieces.has(l.piece)) err(`mine letter ${k}: unknown home piece ${l.piece}`);
 }
 // 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat
 // visitor's wish, a villager's favourite or a thing the game itself spends (seeds, fertiliser, bait, event tokens)

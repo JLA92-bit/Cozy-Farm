@@ -1,7 +1,7 @@
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, fmt, clear, priceTag } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL } from '../../data';
+import { BUILDING, ITEMS, itemSource, RECIPE, TREE, ANIMAL, WOODS, EXPEDITIONS, MINE } from '../../data';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
 import { QUALITY_NAME, qualityPrice, rollsQuality, type Quality } from '../../systems/Quality';
@@ -17,6 +17,13 @@ const CATS = [
   { id: 'stored', label: 'Stored', icon: 'hut' },
 ];
 
+/** Every item named in the woods' or the mine's data (worked out once): where a find can turn up. */
+let finds: { woods: string; mine: string } | null = null;
+const namedIn = (where: 'woods' | 'mine', item: string): boolean => {
+  finds ??= { woods: JSON.stringify([WOODS, EXPEDITIONS]), mine: JSON.stringify(MINE) };
+  return finds[where].includes(`"${item}"`);
+};
+
 export function sourceText(item: string): string {
   const s = itemSource(item);
   if (!s) return '';
@@ -25,7 +32,12 @@ export function sourceText(item: string): string {
   if (s.kind === 'animal') return `From ${ANIMAL[s.id].name}s`;
   if (s.kind === 'recipe') return `Made at the ${BUILDING[RECIPE[s.id].building].name}`;
   if (s.kind === 'fish') return 'Caught at the dock';
-  if (['forage', 'mineral', 'fossil', 'artifact'].includes(ITEMS[item]?.cat ?? '')) return 'Found in the Wild Woods';
+  if (['forage', 'mineral', 'fossil', 'artifact'].includes(ITEMS[item]?.cat ?? '')) {
+    const inMine = namedIn('mine', item), inWoods = namedIn('woods', item);
+    if (inMine && inWoods) return 'Found in the Wild Woods and the Old Mine';
+    if (inMine) return 'Found in the Old Mine';
+    return 'Found in the Wild Woods';
+  }
   // 1.8 daily finds turn up on the farm too
   return ['seashell', 'petal', 'acorn'].includes(item) ? 'Found on your farm and during events' : 'Found during events';
 }
@@ -36,7 +48,7 @@ const EMPTY: Record<string, string> = {
   animal: 'No animal goods yet. Feed your animals!',
   goods: 'No goods yet. Make some in your workshops!',
   fish: 'No fish yet. Try fishing at the dock!',
-  finds: 'Nothing found yet. Row over to the Wild Woods!',
+  finds: 'Nothing found yet. Row over to the Wild Woods or the Old Mine!',
 };
 
 const inCat = (id: string, t: string): boolean => {

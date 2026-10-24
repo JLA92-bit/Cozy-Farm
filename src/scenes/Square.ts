@@ -7,6 +7,7 @@ import { game } from '../systems/Game';
 import { restoration } from '../systems/Restoration';
 import { festivals } from '../systems/Festivals';
 import { isInWoods } from './Woods';
+import { isInMine } from './Mine';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { SQUARE, SquareView } from '../world/SquareView';
@@ -118,7 +119,7 @@ async function loadView(): Promise<SquareView> {
 
 /** Fly to the village square. `room` opens straight on that room afterwards. */
 export async function enterSquare(room?: string): Promise<void> {
-  if (!ctx || inSquare || busy || isInWoods()) return;
+  if (!ctx || inSquare || busy || isInWoods() || isInMine()) return;
   if (visiting.active || isVisiting()) return;
   if (!game.state.player.created || !game.state.tutorial.done || tutorial.running) {
     ui.feedback.toast('Not just yet', 'Finish settling in on your own farm first.', 'farmer');

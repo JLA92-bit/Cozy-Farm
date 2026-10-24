@@ -22,6 +22,7 @@ import { takePhoto } from '../ui/Photo';
 import { sayHello } from '../ui/panels/CritterPanel';
 import { hideWipe, isVisiting, showWipe } from './Visit';
 import { isInSquare } from './Square';
+import { isInMine } from './Mine';
 import type { DragKind, Pointer } from '../core/Input';
 import type { FarmScene, WorldHandler } from './FarmScene';
 import type { Interaction } from './Interaction';
@@ -81,7 +82,7 @@ async function loadView(): Promise<WoodsView> {
 
 /** Row over to the woods. */
 export async function enterWoods(): Promise<void> {
-  if (!ctx || inWoods || busy || isInSquare()) return;
+  if (!ctx || inWoods || busy || isInSquare() || isInMine()) return;
   if (visiting.active || isVisiting()) return;
   if (!woods.unlocked) {
     ui.feedback.toast('The Wild Woods', `Opens at level ${WOODS.level}.`, 'mushroom');

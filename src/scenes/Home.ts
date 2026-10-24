@@ -27,6 +27,7 @@ import { HomeChar } from '../world/home/HomePeople';
 import type { CharacterLook } from '../systems/State';
 import { isInSquare } from './Square';
 import { isInWoods } from './Woods';
+import { isInMine } from './Mine';
 import { HomeUI } from '../ui/home/HomeUI';
 import { HomeLife } from './HomeLife';
 import type { DragKind, Pointer } from '../core/Input';
@@ -97,7 +98,7 @@ export function initHome(scene: FarmScene, interaction: Interaction): void {
   // the door on the Farmhouse: a little bubble once the home is open
   scene.onFrame(() => {
     const fh = game.state.buildings.find((b) => b.type === 'farmhouse');
-    const show = !!fh && !inHome && !isInWoods() && !isInSquare() && !scene.visit && homeUnlocked() && !tutorial.running;
+    const show = !!fh && !inHome && !isInWoods() && !isInSquare() && !isInMine() && !scene.visit && homeUnlocked() && !tutorial.running;
     const at = show ? scene.farm.anchor(fh!.uid).clone().setY(3.2) : null;
     ui.world.setBubble('home-door', at, () =>
       h('div', { class: 'visit-bubble home-door', role: 'button', 'aria-label': 'Go inside your Farmhouse', onclick: (e: MouseEvent) => { e.stopPropagation(); void enterHome(); } }, icon('door')),
@@ -125,7 +126,7 @@ function queueRebuild(): void {
 
 /** Go inside. */
 export async function enterHome(roomId?: string): Promise<void> {
-  if (!ctx || inHome || busy || isInSquare() || isInWoods()) return;
+  if (!ctx || inHome || busy || isInSquare() || isInWoods() || isInMine()) return;
   if (visiting.active || isVisiting()) return;
   if (!homeUnlocked()) { ui.feedback.toast('Inside your Farmhouse', `Opens at level ${HOME.level}.`, 'door'); return; }
   if (tutorial.running) return;

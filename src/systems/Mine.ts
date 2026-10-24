@@ -10,6 +10,7 @@ import { ITEMS, MINE, SKILL_VALUES, type MineDrop, type MineLayer, type MineRock
 import { game } from './Game';
 import { saves } from './Save';
 import { mail } from './Mail';
+import { home } from './Home';
 import { localDay } from './Progression';
 import { roomDone } from './RestorationEffects';
 import { hasSkillBonus, hasSkillPerk, skillLevel } from './SkillEffects';
@@ -157,7 +158,7 @@ class MineSystem {
       logEvent('mine_rock', { floor: f.floor, kind: rock.kind });
     }
     game.bus.emit('mine:changed', {});
-    saves.save();
+    saves.saveSoon();
     return out;
   }
 
@@ -285,7 +286,7 @@ class MineSystem {
     return true;
   }
 
-  /** Remember a find (the Collection Book and the Almanac read this). True the first time. */
+  /** Remember a find (counts kept per item; true the first time, for the "new find" toast). */
   noteFound(item: string): boolean {
     if (!ITEMS[item]) return false;
     const st = this.st;
@@ -310,6 +311,7 @@ class MineSystem {
     st.letters.push(id);
     const l = MINE.letters[id];
     mail.send('bram', l.title, l.body.replace('{farmer}', game.state.player.name), l.attach);
+    if (l.piece) home.give(l.piece);
     saves.save();
   }
 

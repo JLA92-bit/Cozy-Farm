@@ -368,7 +368,7 @@ export type MineRockKind = 'stone' | 'boulder' | 'ore' | 'gem' | 'geode' | 'foss
 export type MineDrop = [string, number, number, number];
 export interface MineLayer { id: 'workings' | 'caverns' | 'deeps'; name: string; from: number; to: number; pickaxe: number; icon: string; about: string; kinds: Partial<Record<MineRockKind, number>>; drops: Partial<Record<MineRockKind, MineDrop[]>> }
 export interface MinePickaxe { id: string; name: string; power: number; icon: string; about: string; coins: number; needs: Record<string, number> }
-export interface MineLetter { title: string; body: string; attach?: { coins?: number; gems?: number } }
+export interface MineLetter { title: string; body: string; attach?: { coins?: number; gems?: number }; /** a home piece put in the home's storage with the letter */ piece?: string }
 export const MINE = mineJson as unknown as {
   level: number; swings: number; floors: number; liftEvery: number; rocksPerFloor: [number, number]; geodeCost: number;
   layers: MineLayer[];

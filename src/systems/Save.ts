@@ -160,7 +160,7 @@ function repairMine(v: unknown): SaveData['mine'] {
   const int = (x: unknown, lo: number, hi: number) => (typeof x === 'number' && Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.floor(x))) : lo);
   const ints = (x: unknown) => (Array.isArray(x) ? [...new Set(x.filter((n): n is number => Number.isInteger(n) && n >= 0 && n <= MINE.floors))] : []);
   const hits: Record<string, number[]> = {};
-  if (isObj(v.hits)) for (const [k, list] of Object.entries(v.hits)) if (Number.isInteger(Number(k)) && Array.isArray(list)) hits[k] = list.slice(0, 40).map((n) => int(n, 0, 99));
+  if (isObj(v.hits)) for (const [k, list] of Object.entries(v.hits)) if (Number.isInteger(Number(k)) && Number(k) >= 1 && Number(k) <= MINE.floors && Array.isArray(list)) hits[k] = list.slice(0, 40).map((n) => int(n, 0, 99));
   return {
     deepest: int(v.deepest, 0, MINE.floors),
     pickaxe: int(v.pickaxe, 0, MINE.pickaxes.length - 1),
@@ -488,6 +488,14 @@ class SaveSystem {
     if (backup && 'newer' in backup) { this.locked = true; throw new NewerSaveError(); }
     this.unreadableKept = !!main && !!store.get(UNREADABLE_KEY);
     return { data: createNewGame(), fresh: true };
+  }
+
+  private soonTimer = 0;
+  /** Save in a moment: quick repeated actions (mine swings) write once per burst, not once per tap. Hiding the app
+   * still saves at once. */
+  saveSoon(ms = 1500): void {
+    if (this.soonTimer) return;
+    this.soonTimer = window.setTimeout(() => { this.soonTimer = 0; this.save(); }, ms);
   }
 
   save(): boolean {
