@@ -8,7 +8,7 @@ import { clampScale, home, homeUnlocked, repairHome, roomOpen, SCALE_MAX, SCALE_
 import { homeCharm } from '../systems/Timers';
 import { thumbs } from '../world/Thumbs';
 import { whenPhotoLoaded } from '../world/home/Pictures';
-import { openPhotoMode } from '../ui/PhotoMode';
+import { closePhotoMode, openPhotoMode, photoOwnsBack } from '../ui/PhotoMode';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
 import { audio } from '../systems/Audio';
@@ -67,6 +67,7 @@ export function homeView(): HomeView | null { return view; }
 export function initHome(scene: FarmScene, interaction: Interaction): void {
   ctx = { scene, interaction };
   window.addEventListener('popstate', () => {
+    if (photoOwnsBack()) return;
     if (ignorePop) { ignorePop = false; return; }
     if (inHome) void leaveHome(true);
   });
@@ -198,6 +199,7 @@ function frameRoom(snapNow = false): void {
 export async function leaveHome(fromBrowserBack = false): Promise<void> {
   if (!ctx || !inHome || busy) return;
   busy = true;
+  closePhotoMode();
   if (!fromBrowserBack && (history.state as { cozyHome?: boolean } | null)?.cozyHome) {
     ignorePop = true;
     try { history.back(); } catch { ignorePop = false; }
@@ -641,6 +643,7 @@ async function leaveGuestHomeWipe(): Promise<void> {
 
 /** Back out to the friend's farm, exactly as the visit was. */
 export function leaveGuestHome(failed: boolean): void {
+  closePhotoMode();
   const scene = ctx?.scene;
   const g = guest;
   guest = null;

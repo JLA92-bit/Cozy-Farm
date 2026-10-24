@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { photoOwnsBack } from '../ui/PhotoMode';
 import { MANOR, MANOR_WINGS, ROOMS } from '../data';
 import { currentWing, manorStarted, wingsDone } from '../systems/Manor';
 import { clockTowerBuilt } from '../systems/Estate';
@@ -57,6 +58,7 @@ export function squareView(): SquareView | null { return view; }
 export function initSquare(scene: FarmScene, interaction: Interaction): void {
   ctx = { scene, interaction };
   window.addEventListener('popstate', () => {
+    if (photoOwnsBack()) return;
     if (ignorePop) { ignorePop = false; return; }
     if (inSquare) void leaveSquare(true);
   });

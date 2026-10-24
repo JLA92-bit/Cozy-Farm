@@ -953,6 +953,20 @@ try {
     check('furniture in the home adds charm (no cap)', sized.c0 === 0 && sized.c1 === 3 && sized.many === Math.floor(400 * 2800 / 300), JSON.stringify(sized));
     check('furniture built in code shows a real preview', sized.previews === 6, JSON.stringify(sized));
     check('a saved size is kept within limits', !sized.rs || (sized.rs[0] === 1.5 && sized.rs[1] === 1), JSON.stringify(sized));
+    // 1.30.5 the phone's back in photo mode closes photo mode only (it used to leave the home under it, leaving the
+    // photo screen over nothing)
+    const pb = await page.evaluate(async () => {
+      const H = window.__home;
+      if (!H.active) await H.enter();
+      await new Promise((r) => setTimeout(r, 1500));
+      document.querySelector('.hm-photo')?.click();
+      await new Promise((r) => setTimeout(r, 800));
+      const opened = document.getElementById('app').classList.contains('photo-on');
+      history.back();
+      await new Promise((r) => setTimeout(r, 1500));
+      return { opened, inHome: H.active, photoOn: document.getElementById('app').classList.contains('photo-on') };
+    });
+    check("back in photo mode closes it and stays in the home", pb.opened && pb.inHome && !pb.photoOn, JSON.stringify(pb));
     // 1.30.4 photos kept for the home: at most PHOTO_MAX, only small JPEGs, and letting one go clears its frames
     const ph = await page.evaluate(async () => {
       const H = window.__home, sys = H.sys, id = 'living';

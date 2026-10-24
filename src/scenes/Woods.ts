@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { photoOwnsBack } from '../ui/PhotoMode';
 import { ITEMS, ROOM, WOODS, WOODS_REGIONS } from '../data';
 import { game } from '../systems/Game';
 import { woods } from '../systems/Woods';
@@ -48,6 +49,7 @@ export function woodsView(): WoodsView | null { return view; }
 export function initWoods(scene: FarmScene, interaction: Interaction): void {
   ctx = { scene, interaction };
   window.addEventListener('popstate', () => {
+    if (photoOwnsBack()) return;
     if (ignorePop) { ignorePop = false; return; }
     if (inWoods) void leaveWoods(true);
   });

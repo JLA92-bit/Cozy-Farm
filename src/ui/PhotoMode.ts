@@ -40,7 +40,27 @@ export interface PhotoOpts { caption?: string; onClose?: () => void }
 export function openPhotoMode(opts: PhotoOpts = {}): void {
   if (active) return;
   active = new PhotoMode(opts);
+  // 1.30.5 the phone's back closes photo mode (and nothing else): its own history entry
+  try { history.pushState({ cozyPhoto: true }, ''); } catch { /* sandboxed */ }
 }
+
+/** Close photo mode if it is open (leaving a place while it is up). */
+export function closePhotoMode(): void { active?.close(); }
+
+/**
+ * True while a back press belongs to photo mode: the home, the square, the woods and visits leave on back, so they
+ * check this first (it stays true for the rest of the back event, whichever listener runs first).
+ */
+let swallow = false;
+let popping = false;
+export const photoOwnsBack = (): boolean => !!active || swallow;
+window.addEventListener('popstate', () => {
+  if (!active && !popping) return;
+  popping = false;
+  swallow = true;
+  setTimeout(() => { swallow = false; }, 0);
+  active?.close(true);
+});
 
 export const isPhotoMode = (): boolean => !!active;
 
@@ -225,9 +245,11 @@ class PhotoMode {
     ui.feedback.toast('Kept for your home', 'Pick a picture frame in your home, then Picture, to hang it.', 'framed');
   }
 
-  close(): void {
+  close(fromBack = false): void {
     if (active !== this) return;
     active = null;
+    // closed with its own button: take its history entry off again (the back that does it is swallowed)
+    if (!fromBack && (history.state as { cozyPhoto?: boolean } | null)?.cozyPhoto) { popping = true; try { history.back(); } catch { popping = false; } }
     const s = ui.scene, rig = s.rig, v = this.saved;
     window.removeEventListener('keydown', this.keyFn);
     rig.stop();

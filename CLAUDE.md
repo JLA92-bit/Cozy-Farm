@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 23 October 2026 (game version 1.30.4 committed locally; 1.30.3 and everything before it pushed and live, deploy run 67). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
+Last updated: 24 October 2026 (game version 1.30.5 committed locally; 1.30.4 and everything before it pushed and live, deploy run 68). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.30.4** (local). Live: 1.30.3 (deploy run 67) on 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.30.5** (local). Live: 1.30.4 (deploy run 68) on 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
@@ -24,7 +24,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.30.4 (local, 23 Oct):** Photo mode (`ui/PhotoMode.ts`, Settings > Take photos; `openPhotoMode({ caption, onClose })`) from a camera button in the home and a friend's home (`controls.photo`, people shown while it is open); "Hang at home" keeps a small JPEG in `home.photos` (`PHOTO_MAX` 6, `validPhoto` <= 20,000 chars, `addPhoto/removePhoto`), shown on frames as `show: "photo:<id>"` (`Pictures.photoTexture`, cropped to the frame); hung photos go in the shared home while it stays under 190,000 bytes. `.photo-ui` is `sq-keep` (it was hidden in the home, square and woods). 99 regression checks.
+**1.30.5 (local, 24 Oct):** fix: the phone's back in Photo mode left the home (or square, woods, visit) under it and kept the photo screen over nothing. Photo mode pushes its own history entry; `photoOwnsBack()` is checked first by every scene's popstate listener; closing with its button pops the entry again. 100 regression checks.
+
+**1.30.4 (pushed 23 Oct, deploy run 68):** Photo mode (`ui/PhotoMode.ts`, Settings > Take photos; `openPhotoMode({ caption, onClose })`) from a camera button in the home and a friend's home (`controls.photo`, people shown while it is open); "Hang at home" keeps a small JPEG in `home.photos` (`PHOTO_MAX` 6, `validPhoto` <= 20,000 chars, `addPhoto/removePhoto`), shown on frames as `show: "photo:<id>"` (`Pictures.photoTexture`, cropped to the frame); hung photos go in the shared home while it stays under 190,000 bytes. `.photo-ui` is `sq-keep` (it was hidden in the home, square and woods). 99 regression checks.
 
 **1.30.3 (pushed 23 Oct, deploy run 67):** fix: in a friend's home their farmer was added again on every room change (`guestRoom` emptied `life.extras` before `life.start`, so the old one was never removed); one switch at a time. 98 regression checks.
 
@@ -275,6 +277,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-24: 1.30.4 pushed (deploy run 68); 1.30.5 (local): back in Photo mode only closes Photo mode (it broke the home view).
 - 2026-10-23: 1.30.3 pushed (deploy run 67); 1.30.4 (local): camera button in the home, hang your photos on picture frames (friends see them too).
 - 2026-10-23: 1.30.2 pushed (deploy run 66); 1.30.3 (local): a friend's farmer no longer shows twice in their home after changing rooms.
 - 2026-10-23: 1.30.1 pushed (deploy run 65); 1.30.2 (local): furniture adds charm (no cap), make pieces smaller or bigger, people hidden while decorating, real previews for pieces built in code.
@@ -284,4 +287,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-23: 1.29.0 pushed (deploy run 61); 1.29.1 (local): picked colours look the same on KayKit pieces as on every other piece.
 - 2026-10-23: 1.29.0 (local): Home Sweet Home, inside the Farmhouse (9 rooms, 257 pieces, paint and paper, per-part colours, pictures, looks, handmade and villager pieces).
 - 2026-10-21: real-phone checklist (`store/phone-checklist.md`), `tools/phone-sweep.mjs`; fixes: the lock notice scrolls by touch, Unlock Path no longer pushes its header off short screens.
-- 2026-10-20: 1.28.5: account locks (suspend a player until a time or for good with a reason they see, full-screen notice with countdown, server refuses their online actions).

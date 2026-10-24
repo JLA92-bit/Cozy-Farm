@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { photoOwnsBack } from '../ui/PhotoMode';
 import type { DragKind, Pointer } from '../core/Input';
 import { ANIMAL, BUILDING, CROP, LAND, TREE } from '../data';
 import { farmSnapshot, fitSnapshot, FrozenGame, sanitizeSnapshot, snapshotState, type FarmSnapshot } from '../online/FarmSnapshot';
@@ -83,6 +84,7 @@ playerCardHooks.buttons.push((p, close) => {
 export function initVisit(scene: FarmScene, interaction: Interaction): void {
   ctx = { scene, interaction };
   window.addEventListener('popstate', () => {
+    if (photoOwnsBack()) return;
     if (ignorePop) { ignorePop = false; return; }
     if (cur) void goHome(true);
   });

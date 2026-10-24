@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.30.5",
+   "date": "2026-10-24",
+   "title": "Back Where You Were",
+   "icon": "camera",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "camera",
+     "text": "Fixed: pressing back while taking photos inside your home (or in the village and the woods) left you on an empty screen. Back now just closes Photo mode"
+    }
+   ]
+  },
+  {
    "version": "1.30.4",
    "date": "2026-10-23",
    "title": "Say Cheese at Home",
