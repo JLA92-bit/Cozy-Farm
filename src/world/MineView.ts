@@ -511,17 +511,24 @@ export class MineView {
       const p = f.pool;
       const rim = geo();
       const rr = rng(f.seed + 9);
-      for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; rim.sphere(0.22 + rr() * 0.12, i % 2 ? '#3a3c50' : '#4a4c64', [Math.cos(a) * (p.r + 0.1), 0.02, Math.sin(a) * (p.r + 0.1)], 0, [1, 0.5, 1]); }
+      // a cool crystal pool in the caverns, a warm amber spring in the deeps
+      const warm = layer === 'deeps';
+      const rimCols = warm ? ['#5a3424', '#74462e'] : ['#3a3c50', '#4a4c64'];
+      for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; rim.sphere(0.22 + rr() * 0.12, rimCols[i % 2], [Math.cos(a) * (p.r + 0.1), 0.02, Math.sin(a) * (p.r + 0.1)], 0, [1, 0.5, 1]); }
       const rimMesh = new THREE.Mesh(rim.build(), assets.vertexMaterial);
       rimMesh.position.set(p.x, 0, p.z);
       rimMesh.receiveShadow = true;
       root.add(rimMesh);
-      const water = new THREE.Mesh(new THREE.CircleGeometry(p.r, 28).rotateX(-Math.PI / 2), ownMat(new THREE.MeshLambertMaterial({ color: '#0e3a52', emissive: layer === 'deeps' ? '#5a2a10' : '#0f6a7a', emissiveIntensity: 0.55, transparent: true, opacity: 0.92 })));
+      const water = new THREE.Mesh(new THREE.CircleGeometry(p.r, 28).rotateX(-Math.PI / 2), ownMat(new THREE.MeshLambertMaterial({ color: warm ? '#8a3c12' : '#0e3a52', emissive: warm ? '#ff7a24' : '#0f6a7a', emissiveIntensity: warm ? 0.6 : 0.55, transparent: true, opacity: 0.92 })));
       water.position.set(p.x, 0.04, p.z);
       root.add(water);
       this.poolDisc = water;
+      // the pool lights its own corner whatever the light budget leaves it
+      const halo = glowSprite(warm ? '#ff9a40' : '#5ff0ff', p.r * 3.2, warm ? 0.32 : 0.26);
+      halo.position.set(p.x, 0.25, p.z);
+      root.add(halo);
       for (let i = 0; i < 6; i++) {
-        const s = glowSprite(layer === 'deeps' ? '#ffb070' : '#8ff8ff', 0.35, 0.8);
+        const s = glowSprite(warm ? '#ffd27a' : '#8ff8ff', 0.35, 0.8);
         const a = rr() * Math.PI * 2, d = rr() * p.r * 0.8;
         s.position.set(p.x + Math.cos(a) * d, 0.12, p.z + Math.sin(a) * d);
         s.userData.base = s.position.clone();
@@ -530,8 +537,8 @@ export class MineView {
       }
       // glow moss round the edge
       const moss = geo();
-      for (let i = 0; i < 10; i++) { const a = rr() * Math.PI * 2; moss.sphere(0.08, '#7fffd4', [Math.cos(a) * (p.r + 0.35), 0.06, Math.sin(a) * (p.r + 0.35)], 0, [1.4, 0.5, 1.4]); }
-      const mossMesh = new THREE.Mesh(moss.build(), glowMat('#4fe0b0', 0.9));
+      for (let i = 0; i < 10; i++) { const a = rr() * Math.PI * 2; moss.sphere(0.08, warm ? '#ffc070' : '#7fffd4', [Math.cos(a) * (p.r + 0.35), 0.06, Math.sin(a) * (p.r + 0.35)], 0, [1.4, 0.5, 1.4]); }
+      const mossMesh = new THREE.Mesh(moss.build(), glowMat(warm ? '#ffa64a' : '#4fe0b0', 0.9));
       mossMesh.position.set(p.x, 0, p.z);
       root.add(mossMesh);
       const pp = new THREE.Mesh(new THREE.CylinderGeometry(p.r, p.r, 0.6, 12), HIDDEN);

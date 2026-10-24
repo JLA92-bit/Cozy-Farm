@@ -43,3 +43,12 @@
 .mn-stats > div { display: flex; flex-direction: column; align-items: center; padding: 8px; border-radius: 12px; background: #f6ead2; }
 .mn-stats b { font-size: 20px; }
 .mn-stats span { font-size: 12px; opacity: 0.8; text-align: center; }
+
+/* landscape phones: a compact banner on the left so the cave stays in view, and the layer's name stays shown (the
+   square's short-screen rule hides every banner's second line) */
+@media (max-height: 640px) and (orientation: landscape) {
+  .sq-banner.mn-under { max-width: 430px; margin: 0; }
+  .sq-banner.mn-under .visit-sub { display: flex; font-size: 12px; margin-top: 0; }
+  .sq-banner.mn-under .mn-lantern { margin-top: 3px; }
+  .sq-banner.mn-under .mn-hint { font-size: 11px; margin-top: 1px; }
+}
