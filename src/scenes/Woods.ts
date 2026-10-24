@@ -302,12 +302,12 @@ function bannerText(): string {
 
 function makeBanner(): HTMLElement {
   const home = button([icon('house'), h('span', null, 'Back to the farm')], () => void leaveWoods(), 'green visit-home', { 'aria-label': 'Back to your farm' });
-  return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner wd-banner' },
+  return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner wd-banner rows' },
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, 'The Wild Woods'),
-      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon('mushroom'), bannerText())),
-      regionBar()),
-    home);
+      h('div', { class: 'visit-sub' }, h('span', { class: 'wd-progress' }, icon('mushroom'), bannerText()))),
+    home,
+    regionBar());
 }
 
 /** 1.19 a row of places to fly the camera to: the glade and each region (a lock while its trail is not restored). */
@@ -318,7 +318,7 @@ function regionBar(): HTMLElement {
     const open = woods.regionOpen(r.id);
     chips.push(h('button', { class: `wd-region${open ? '' : ' locked'}`, type: 'button', 'data-region': r.id, 'aria-label': open ? `Go to ${r.name}` : `${r.name}: restore the trail to open it`, onclick: () => go(r.id) }, icon(open ? r.icon : 'lock'), r.name));
   }
-  return h('div', { class: 'wd-regions' }, ...chips);
+  return h('div', { class: 'wd-regions row-extra' }, ...chips);
 }
 
 function updateBanner(): void {

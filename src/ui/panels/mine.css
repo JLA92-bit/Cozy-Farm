@@ -52,3 +52,7 @@
   .sq-banner.mn-under .mn-lantern { margin-top: 3px; }
   .sq-banner.mn-under .mn-hint { font-size: 11px; margin-top: 1px; }
 }
+/* the island banner on wider screens: Go down and Bram's forge share the title's row */
+@media (min-width: 521px) {
+  .mn-banner.rows .mn-actions { order: 0; flex: 0 1 auto; margin-top: 0; }
+}

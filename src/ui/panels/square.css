@@ -2,7 +2,7 @@
 
 /* In the square only the square's own banner, labels, panels and toasts show */
 #ui-root.squaring > :not(.sq-keep):not(.overlay):not(.toast-stack):not(.float-layer):not(.speech-layer):not(.world-ui):not(.visit-wipe) { display: none !important; }
-#ui-root.squaring .toast-stack { top: calc(var(--safe-top) + 112px); }
+#ui-root.squaring .toast-stack { top: var(--banner-bottom, calc(var(--safe-top) + 112px)); }
 
 .sq-layer { position: absolute; inset: 0; overflow: hidden; z-index: 30; }
 /* taps go through the labels to the lots in the 3D view */

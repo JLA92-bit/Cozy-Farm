@@ -379,11 +379,11 @@ function swingAt(i: number): void {
 function makeBanner(): HTMLElement {
   if (floorNo <= 0) {
     const home = button([icon('house'), h('span', null, 'Back to the farm')], () => void leaveMine(), 'green visit-home', { 'aria-label': 'Back to your farm' });
-    return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner mn-banner' },
+    return h('div', { class: 'visit-banner visit-keep sq-keep sq-banner mn-banner rows' },
       h('div', { class: 'visit-title' },
         h('div', { class: 'visit-name outlined' }, 'The Old Mine'),
         h('div', { class: 'visit-sub' }, h('span', { class: 'mn-desc' }, icon('pick'), mine.open ? mine.describe(0) : 'Boarded up. Help Bram open it again.')),
-        h('div', { class: 'mn-actions' },
+        h('div', { class: 'mn-actions row-extra' },
           mine.open ? button([icon('ladder'), 'Go down'], () => (mine.deepest >= MINE.liftEvery ? openLift((n) => void goDown(n)) : void goDown(1)), 'small yellow') : button([icon('pick'), 'Open the mine'], () => ui.open('square-room', { room: MINE.entrance.id }), 'small yellow'),
           button([icon('hammer'), "Bram's forge"], () => openBram(), 'small blue'))),
       home);

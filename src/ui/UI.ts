@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { watchBannerSpace } from './BannerSpace';
 import gsap from 'gsap';
 import { h, icon, itemIcon, button, fmt, priceTag, uiHooks, clear } from './dom';
 import { HUD } from './HUD';
@@ -49,6 +50,7 @@ class UIManager {
 
   init(root: HTMLElement, scene: FarmScene, interaction: Interaction): void {
     this.root = root;
+    watchBannerSpace(root);
     this.scene = scene;
     this.interaction = interaction;
     Panel.root = root;

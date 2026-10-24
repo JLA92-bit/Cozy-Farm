@@ -9,7 +9,7 @@
 .btn.visit-like.liked .icon { transform: scale(1.15); }
 .visit-help-pill { font-family: var(--font-body); font-weight: 600; font-size: 13px; background: #e6f6ff; }
 .visit-help-pill.done { background: #e4f7d6; }
-#ui-root.visiting.visiting .toast-stack { top: calc(var(--safe-top) + 150px); }
+#ui-root.visiting.visiting .toast-stack { top: var(--banner-bottom, calc(var(--safe-top) + 150px)); }
 
 /* the help button inside the info bubble (the bubble layer itself ignores taps) */
 .visit-bubble .btn.visit-help-btn { pointer-events: auto; margin-top: 6px; min-height: 44px; white-space: nowrap; }

@@ -45,6 +45,14 @@
 
 /* 1.19 the Deep Woods: places to fly the camera to */
 .wd-regions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; pointer-events: auto; }
+/* the places in one row that scrolls sideways (stacked beside the big button they filled most of a phone's screen) */
+.wd-banner .wd-regions { flex-wrap: nowrap; overflow-x: auto; margin-top: 0; padding-bottom: 2px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.wd-banner .wd-regions::-webkit-scrollbar { display: none; }
+.wd-banner .wd-region { flex: none; }
+@media (max-width: 520px) {
+  .wd-banner .wd-region { min-height: 30px; padding: 2px 8px; font-size: 12px; }
+  .wd-banner .wd-region .icon { width: 16px; height: 16px; }
+}
 .wd-region { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 3px 9px; border: 2px solid var(--outline); border-radius: 10px; background: #fff6df; font-family: var(--font-display); font-size: 13px; color: var(--ink); cursor: pointer; }
 .wd-region .icon { width: 18px; height: 18px; }
 .wd-region.locked { opacity: .7; }

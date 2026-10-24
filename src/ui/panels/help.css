@@ -111,4 +111,4 @@
 .visit-banner.has-help { flex-wrap: wrap; }
 .visit-banner.has-help .visit-title { flex: 1 1 0; }
 .visit-banner.has-help .help-visit { flex: 1 1 100%; margin-top: 4px; }
-#ui-root.visiting:has(.visit-banner.has-help) .toast-stack { top: calc(var(--safe-top) + 250px); }
+#ui-root.visiting:has(.visit-banner.has-help) .toast-stack { top: var(--banner-bottom, calc(var(--safe-top) + 250px)); }

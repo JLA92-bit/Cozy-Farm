@@ -232,7 +232,8 @@ class WoodsSystem {
     const spots = this.allForage().filter((s) => s.active && !s.picked).length;
     const sky = weatherToday();
     const extra = sky === 'rain' ? ' Rain today: mushrooms everywhere.' : sky === 'mist' ? ' Misty today: rare finds are likelier.' : ' Sunny today: plenty of berries and flowers.';
-    return `${spots} forage spots and ${this.digsLeft()} digs left today.${extra}`;
+    const digs = this.digsLeft();
+    return `${spots} forage spot${spots === 1 ? '' : 's'} and ${digs} dig${digs === 1 ? '' : 's'} left today.${extra}`;
   }
 
   // ------------------------------------------------------------------- 1.21 camping in the glade
