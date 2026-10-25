@@ -48,6 +48,19 @@
    ]
   },
   {
+   "version": "1.32.1",
+   "date": "2026-10-25",
+   "title": "Signed In",
+   "icon": "cloud",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "cloud",
+     "text": "Fixed: signing in with Google in the Android app could bring you back to the loading screen without signing you in"
+    }
+   ]
+  },
+  {
    "version": "1.32.0",
    "date": "2026-10-25",
    "title": "A Proper App",
