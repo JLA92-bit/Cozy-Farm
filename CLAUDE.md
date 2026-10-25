@@ -185,7 +185,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
 | Tester opt-in link | `https://play.google.com/apps/testing/app.joshmakesgames.cozyacres` |
 
-**Where it's up to:** internal testing works. App content, store listing and graphics are done. The closed test (bundle 4) is running; on 21 Oct it had 2 days of the 14 left (5 active players test on real phones). Next: keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
+**Production access refused (25 Oct 2026):** Google says the app "requires more testing". Plan: move to an organisation account (Australia: Pty Ltd or sole trader + D-U-N-S), see `store/organisation-account.md`; first ask Play support in writing whether converting/transferring removes the testing requirement.
+
+**Where it's up to (before 25 Oct):** internal testing works. App content, store listing and graphics are done. The closed test (bundle 4) is running; on 21 Oct it had 2 days of the 14 left (5 active players test on real phones). Next: keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
 
 **GitHub settings (Settings > Secrets and variables > Actions):**
 - Secrets: `ANDROID_KEYSTORE_BASE64`, `BUBBLEWRAP_KEYSTORE_PASSWORD`, `BUBBLEWRAP_KEY_PASSWORD`
@@ -283,6 +285,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
 - 2026-10-25: 1.31.1 pushed (deploy run 71); 1.31.2 (local): dashboard Needs tab (gift what a player is missing in one press), silver and gold items in developer gifts.
 - 2026-10-25: 1.31.1 (local): the mine jetty moved away from the fishing dock.
 - 2026-10-25: 1.31.0 pushed (deploy run 70): The Old Mine, review fixes, slimmer place banners, the Collector's Cruise; regression farmhand checks no longer fail on festival days.
@@ -292,4 +295,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-23: 1.30.2 pushed (deploy run 66); 1.30.3 (local): a friend's farmer no longer shows twice in their home after changing rooms.
 - 2026-10-23: 1.30.1 pushed (deploy run 65); 1.30.2 (local): furniture adds charm (no cap), make pieces smaller or bigger, people hidden while decorating, real previews for pieces built in code.
 - 2026-10-23: 1.30.0 pushed (deploy run 64); 1.30.1 (local): the home opens at level 15 instead of 30.
-- 2026-10-23: 1.29.2 pushed (deploy run 63); 1.30.0 (local): patterned rugs, your farmer and villagers in the home, friends step inside and come over for coffee (server change).
