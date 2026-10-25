@@ -20,7 +20,8 @@ export class MineGate {
 
   constructor(private scene: FarmScene) {
     const mat = assets.vertexMaterial;
-    const x = 4;
+    // well west of the fishing dock (x 5), whose fish stall and visitor boat berths are to its east
+    const x = -11;
     // planks are built along -z: the jetty runs north (-z) as built
     const jetty = new THREE.Mesh(jettyGeometry(), mat);
     jetty.position.set(x, 0, -HALF - 1.2);
