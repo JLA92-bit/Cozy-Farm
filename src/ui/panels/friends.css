@@ -73,3 +73,17 @@
 .cp-need { display: inline-flex; gap: 3px; align-items: center; font-weight: 700; }
 .cp-mini { width: 22px; height: 22px; }
 .cp-givers { margin-top: 6px; }
+
+/* reports and blocks (SafetyPanel.ts) */
+.segmented.report-reasons { flex-direction: column; margin-bottom: 8px; }
+.segmented.report-reasons button { text-align: left; padding: 6px 12px; }
+.segmented.report-reasons button + button { border-left: none; border-top: 3px solid var(--outline); }
+.report-block { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: 44px; font-family: var(--font-display); cursor: pointer; }
+.report-block input { width: 24px; height: 24px; accent-color: var(--btn-green); }
+.safety-row { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+.safety-row .btn .icon { width: 20px; height: 20px; }
+.gift-actions { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.gift-actions .report-btn { min-height: 36px; }
+.gift-actions .report-btn .icon { width: 20px; height: 20px; }
+.friend-item .clickable { cursor: pointer; }
+.blocked-list { margin-top: 14px; }

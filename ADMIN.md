@@ -31,6 +31,7 @@ Keep two-step verification on that Google account: it is the key to the dashboar
 | **Codes** | Make reward codes (coins and gems, for 1 or many players, with expiry) and farm codes from a link; see who used them; delete. |
 | **Backups** | Back up every farm now, download any backup as a save file, **download everything** in one file. |
 | **Feedback** | Messages from Settings > Send feedback, with level, version and device. Mark seen/done, keep notes. |
+| **Reports** | Players reporting other players (1.33). The badge counts open reports. See "Reports" below. |
 | **Market** | Open listings (take one down: the seller gets the items back as a gift) and best sellers. |
 | **Leaderboards** | All four boards with a Hide/Show switch per player. |
 | **Notifications** | Send a phone notification to everyone with notifications on, or only recent players. |
@@ -64,6 +65,16 @@ it yet (the tab says so).
 ## Locking a player
 
 On a player's page, **Lock account** (toolbar, Lock). Pick how long (1 hour to 30 days, a date and time of your choice, or no end date) and type the reason: the player sees exactly what the preview shows, a full-screen notice over the game with your reason, the end date and a live countdown. They cannot play while it shows, and the server refuses their gifts, market, help and likes, Ask a friend, Village Projects, farm sharing and reward codes. They are hidden from the leaderboards and put back when the lock ends (unless you had hidden them before). **Change lock** replaces it; **Unlock now** lifts it. The page header shows the lock with a countdown, the Support tab lists every lock they have had, and each lock and unlock is in the admin log. The game checks for a lock when it opens, every 5 minutes, and straight away when the server refuses something; the last known lock also shows offline and lifts by itself when its time runs out. Needs the `account locks` section of `supabase/schema.sql`.
+
+## Reports
+
+Players report another player from a player card, a gift in their mailbox or a farm visit (1.33, needed for the App
+Store). Each report shows the reason, the reporter's note, where it was seen, and a copy of the reported player's name,
+farm name and (for a gift) the gift's note as they were at the time. **Read every report within a day** (Apple asks
+for this). To act: open the player (the name is a link), lock the account if needed (Locking a player), then mark the
+report **Actioned**; otherwise **Dismiss** it. The player page's Support tab also lists reports about and by that
+player and how many players block them. Players can block each other without a report; blocks are enforced on the
+server. Needs the `reports and blocks` section of `supabase/schema.sql`.
 
 ## Restoring a player's farm
 

@@ -12,6 +12,8 @@ import type { LeaderboardKind, PlayerProfile } from '../../online/types';
 import {
   BOARD_LIMIT, cachedBoard, chase, fetchBoard, friendIds, isFriend, playerCardHooks, safeLook, score, weekLeftMs, type Board,
 } from '../../online/Leaderboard';
+import { blocks } from '../../systems/Blocks';
+import { safetyRow } from './SafetyPanel';
 
 /**
  * Leaders panel: who is leading by level, farm value, Charm and this week's XP, with your own rank,
@@ -133,8 +135,12 @@ function openLeaderboard(arg?: unknown): void {
     renderNote();
   };
 
-  const rowEl = (row: PlayerProfile, rank: number, b: Board, friends: Set<string>, portrait: boolean): HTMLElement => {
-    const mine = !!b.me && row.id === b.me.id;
+  const rowEl = (real: PlayerProfile, rank: number, b: Board, friends: Set<string>, portrait: boolean): HTMLElement => {
+    const mine = !!b.me && real.id === b.me.id;
+    // a blocked player keeps their place, but not their name, farm name or look (the card can still unblock them)
+    const hidden = !mine && blocks.has(real.id);
+    const row: PlayerProfile = hidden ? { ...real, name: 'Blocked farmer', farmName: undefined, look: null as unknown as PlayerProfile['look'] } : real; // safeLook(null) = no portrait
+    if (hidden) portrait = false;
     const tier = rank >= 1 && rank <= 3 ? ` top${rank}` : '';
     const rankEl = rank >= 1 && rank <= 3
       ? h('span', { class: 'lb-rank medal' }, icon(`medal${rank}`), h('span', { class: 'lb-rank-n outlined' }, String(rank)))
@@ -148,8 +154,8 @@ function openLeaderboard(arg?: unknown): void {
       class: `list-item clickable lb-row${tier}${mine ? ' me' : ''}`, role: 'button', tabindex: '0',
       'aria-label': `${rank ? `Rank ${rank}` : 'Your rank'}: ${row.name}, level ${row.level}, ${fmt(score(row, b.kind))}`,
     }, rankEl, farmerFace(row, false, portrait), h('div', { class: 'grow' }, name, sub), valueEl(row, b.kind));
-    el.addEventListener('click', () => openPlayerCard(row));
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayerCard(row); } });
+    el.addEventListener('click', () => openPlayerCard(real));
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlayerCard(real); } });
     return el;
   };
 
@@ -182,8 +188,8 @@ function openLeaderboard(arg?: unknown): void {
     let title: string;
     let sub: string;
     if (!c.target) { title = 'You are #1!'; sub = 'Top of the board - keep it up!'; }
-    else if (c.rank) { title = `You are #${c.rank}`; sub = `${unit(b.kind, c.gap)} to pass ${c.target.name}`; }
-    else { title = `Not in the top ${BOARD_LIMIT} yet`; sub = `${unit(b.kind, c.gap)} to pass ${c.target.name}`; }
+    else if (c.rank) { title = `You are #${c.rank}`; sub = `${unit(b.kind, c.gap)} to pass ${shown(c.target)}`; }
+    else { title = `Not in the top ${BOARD_LIMIT} yet`; sub = `${unit(b.kind, c.gap)} to pass ${shown(c.target)}`; }
     box.append(
       farmerFace(b.me, false, true),
       h('div', { class: 'grow' }, h('div', { class: 'lb-track-title outlined' }, title), h('div', { class: 'lb-track-sub' }, sub),
@@ -235,7 +241,10 @@ function openLeaderboard(arg?: unknown): void {
   document.addEventListener('visibilitychange', onVis);
   const offline = () => renderNote();
   window.addEventListener('offline', offline);
+  void blocks.refresh();
+  const offBlocks = blocks.onChange(() => render());
   p.onClose = () => {
+    offBlocks();
     clearInterval(timer);
     document.removeEventListener('visibilitychange', onVis);
     window.removeEventListener('offline', offline);
@@ -244,6 +253,9 @@ function openLeaderboard(arg?: unknown): void {
   };
   p.open(); // runs onTab for the first tab, which renders the cache and loads
 }
+
+/** A name as the boards show it (blocked players stay nameless). */
+const shown = (p: PlayerProfile): string => (blocks.has(p.id) ? 'a blocked farmer' : p.name || 'Farmer');
 
 /** A player's card: portrait, stats, and actions other features can hook into. */
 export function openPlayerCard(row: PlayerProfile): void {
@@ -270,7 +282,8 @@ export function openPlayerCard(row: PlayerProfile): void {
     ),
   );
   const close = () => p.close();
-  if (!mine && !isFriend(row.id)) {
+  if (!row.bot) { const safety = safetyRow(row, close); if (safety) p.body.append(safety); }
+  if (!mine && !isFriend(row.id) && !blocks.has(row.id)) {
     const add = addFriendAction(row);
     if (add) {
       const btn = button([icon('heart'), 'Add friend'], async () => {

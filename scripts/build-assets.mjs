@@ -588,7 +588,7 @@ const ICONS = {
   dog: 'dog', cat: 'cat', bee: 'honeybee', chick: 'baby-chick', trophy: 'trophy', medal: 'sports-medal', medal1: '1st-place-medal',
   medal2: '2nd-place-medal', medal3: '3rd-place-medal', calendar: 'tear-off-calendar', clipboard: 'clipboard', scroll: 'scroll',
   memo: 'memo', gear: 'gear', speaker: 'speaker-high-volume', muted: 'muted-speaker', music: 'musical-notes', bell: 'bell',
-  lock: 'locked', unlock: 'unlocked', key: 'key', map: 'world-map', hourglass: 'hourglass-not-done', timer: 'stopwatch',
+  lock: 'locked', unlock: 'unlocked', key: 'key', flag: 'triangular-flag', no_entry: 'no-entry', map: 'world-map', hourglass: 'hourglass-not-done', timer: 'stopwatch',
   check: 'check-mark-button', cross: 'cross-mark', heart: 'red-heart', sparkle_heart: 'sparkling-heart',
   hand: 'backhand-index-pointing-up', hand_down: 'backhand-index-pointing-down', farmer: 'farmer', woman_farmer: 'woman-farmer',
   man_farmer: 'man-farmer', fountain: 'fountain', sun: 'sun', moon: 'crescent-moon', cloud: 'cloud', rainbow: 'rainbow',

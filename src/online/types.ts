@@ -149,6 +149,11 @@ export type Platform = 'android' | 'pwa' | 'web' | 'ios';
 /** What a reward code gives. */
 export interface RewardCode { coins: number; gems: number; items: Record<string, number>; message: string | null }
 
+/** Why a player is reported (report_player in supabase/schema.sql, section "reports and blocks"). */
+export type ReportReason = 'name' | 'message' | 'farm' | 'cheating' | 'other';
+/** Where the reported player was seen. */
+export type ReportPlace = 'card' | 'gift' | 'visit' | 'home' | 'friends' | 'leaderboard' | 'market';
+
 /** 1.30 a player's home as friends see it (rooms only; see src/online/HomeShare.ts). */
 export interface HomeSnapshot { v: 1; name: string; rooms: Record<string, unknown>; photos?: { id: number; d: string }[] }
 
@@ -281,6 +286,18 @@ export interface OnlineBackend {
   coopCancel(id: string): Promise<CoopProject>;
   /** Hand over the caller's waiting claims, each exactly once. */
   coopClaim(): Promise<CoopClaim[]>;
+
+  /**
+   * Reports and blocks (src/online/Blocks.ts). Blocking works both ways on the server: gifts, help, likes, coffee
+   * visits and Ask a friend between the two are refused, and neither sees the other's gifts, listings, farm, home or
+   * requests. Safe to call again.
+   */
+  blockPlayer(id: string): Promise<void>;
+  unblockPlayer(id: string): Promise<void>;
+  /** The players this player blocked (their current names), newest first. */
+  myBlocks(): Promise<{ id: string; name: string }[]>;
+  /** Report a player (giftId: a gift they sent, kept with the report). False when already reported today. Rejects 'too many today'. */
+  reportPlayer(id: string, reason: ReportReason, note: string, place: ReportPlace, giftId?: string): Promise<boolean>;
 
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }

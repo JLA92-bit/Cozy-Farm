@@ -35,6 +35,12 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
   what each player gives (item, quantity, farmer name) and the rewards or refunds waiting for them (tables
   `coop_projects`, `coop_gifts`, `coop_claims`). Everyone in a project sees the host's and givers' farmer names and how
   much each gave. Deleted with the account.
+- **Reports and blocks** (from 1.33, for the App Store): a player can block another player (both stop seeing each
+  other's gifts, listings, farms, homes and requests; table `player_blocks`) and report one (reason from a list, an
+  optional note up to 300 characters, where it was seen, and a copy of the reported player's name, farm name and, for
+  a reported gift, its note; table `player_reports`). Reports are read by the developer only, never shown to the
+  reported player. Both are deleted with either account (on delete cascade). Covered by the types already declared
+  (Other user-generated content, Other actions): **the Play form answers do not change**.
 - **Game events** (from 1.8): first-party event log for the developer dashboard (`player_events`, written only by
   `log_event()`): welcome steps, gifts to villagers and their taste, hearts gained, daily villager visits, Ask a
   friend and mailbox counters. A short kind plus a small detail object, max 200 a day per player, kept 180 days.
@@ -84,8 +90,8 @@ defines as emails, SMS and other in-app messages; if a reviewer asks, the notes 
 
 | Data type | Collected | Required or optional | Purposes | What it is in the app |
 | --- | --- | --- | --- | --- |
-| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, from 1.30 the home picture friends see when they step inside (rooms, furniture, room names), guestbook notes (preset list), feedback messages (optional, Settings > Send feedback) and, for Google sign-in, the cloud save (a copy of the whole farm). |
-| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes, from 1.8 Ask a friend requests and what was sent for them, from 1.28 Village Projects hosted and goods given to them, and from 1.30 coffee visits (who visited whom, the day). |
+| **Other user-generated content** | Yes | Required | App functionality | Farm name, gift notes (max 140 characters), the farm snapshot neighbours see when visiting, from 1.30 the home picture friends see when they step inside (rooms, furniture, room names), guestbook notes (preset list), from 1.33 reports about other players (reason, an optional note), feedback messages (optional, Settings > Send feedback) and, for Google sign-in, the cloud save (a copy of the whole farm). |
+| **Other actions** | Yes | Required | App functionality | Game progress published for leaderboards and friends (level, total XP, farm value, Charm, weekly XP, farmer look), gifts sent and claimed, market listings, sales and purchases, neighbour help (water, feed, tend) and likes, from 1.8 Ask a friend requests and what was sent for them, from 1.28 Village Projects hosted and goods given to them, from 1.30 coffee visits (who visited whom, the day), and from 1.33 the players a player blocked. |
 | **App interactions** | Yes | Required | Analytics | From 1.7: the days a player plays, sessions and approximate minutes played, game version and platform. From 1.8: game events (welcome steps, gifts to villagers, hearts, daily visits, Ask a friend use), max 200 a day, kept 180 days. Kept with the account, never shared, deleted with it. |
 | In-app search history, Installed apps | No | | | The game does not record searches or other apps. |
 

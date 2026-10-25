@@ -1,7 +1,7 @@
 import type { AuthError, RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import { AUTH_RETURN, closeExternal, isNative, openExternal } from '../core/Native';
 import { cleanClaim, cleanCoop } from './Coop';
-import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot } from './types';
+import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot, ReportPlace, ReportReason } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -762,6 +762,27 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   async coopClaim(): Promise<CoopClaim[]> {
     const rows = await this.rpc<unknown[]>('coop_claim', {});
     return (Array.isArray(rows) ? rows : []).map((r) => cleanClaim(r as Record<string, unknown>)).filter((c): c is CoopClaim => !!c);
+  }
+
+  // ------------------------------------------------------------------ reports and blocks
+  async blockPlayer(id: string): Promise<void> {
+    if (!UUID.test(id)) throw new Error('unknown player');
+    await this.rpc<unknown>('block_player', { p_id: id }).catch((e: Error) => { if (e.message !== 'not found') throw e; });
+  }
+
+  async unblockPlayer(id: string): Promise<void> {
+    if (!UUID.test(id)) return;
+    await this.rpc<unknown>('unblock_player', { p_id: id }).catch((e: Error) => { if (e.message !== 'not found') throw e; });
+  }
+
+  async myBlocks(): Promise<{ id: string; name: string }[]> {
+    const rows = await this.query((sb) => sb.rpc('my_blocks') as PromiseLike<Result<{ id: string; name: string }[]>>);
+    return (rows ?? []).filter((r) => UUID.test(r.id)).map((r) => ({ id: r.id, name: String(r.name ?? 'Farmer').slice(0, 24) }));
+  }
+
+  async reportPlayer(id: string, reason: ReportReason, note: string, place: ReportPlace, giftId?: string): Promise<boolean> {
+    if (!UUID.test(id)) throw new Error('unknown player');
+    return !!(await this.rpc<boolean>('report_player', { p_id: id, p_reason: reason, p_note: note.slice(0, 300) || null, p_place: place, p_gift: giftId && UUID.test(giftId) ? giftId : null }));
   }
 
   subscribe(cb: (e: OnlineEvent) => void): () => void {

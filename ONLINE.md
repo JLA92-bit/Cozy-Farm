@@ -201,6 +201,19 @@ After pulling this update, **run the whole `schema.sql` again** in the Supabase 
 
 An admin can lock a player from the dashboard (ADMIN.md "Locking a player"). Server section `account locks` in `supabase/schema.sql`: table `account_locks` (history; on delete cascade), `assert_not_locked()` at the top of every player function that reaches other players or shared state (gifts, market, farm help and likes, Ask a friend, Village Projects, `publish_farm`, reward codes), `my_lock()` for the game, admin functions to lock, unlock and list, and `expire_account_locks()` (pg_cron every 10 minutes and on dashboard reads) to put players back on the leaderboards. The game (`src/online/Lock.ts`) shows a full-screen notice with the reason and a countdown, keeps the last known lock on the device and lifts it when the time is up.
 
+## Reports and blocks (1.33)
+
+Needed for the App Store (guideline 1.2) and good for Play too. Server section `reports and blocks` in
+`supabase/schema.sql`: tables `player_blocks` and `player_reports` (both on delete cascade from `profiles`),
+`block_player`, `unblock_player`, `my_blocks`, `report_player` (20 a day, one a day per reported player),
+`blocked_between()` (answers only for the caller's own pairs) and `assert_not_blocked()`. Blocking works both ways:
+`send_gift`, `farm_help_add` (help and likes), `fill_help` and `coffee_visit` refuse, `friend_help_requests` leaves
+them out, and the row level policies on `gifts`, `listings`, `farm_snapshots`, `farm_help` and `home_snapshots` hide
+their rows (that section replaces those policies). Dashboard: `admin_reports`, `admin_report_set`,
+`admin_reports_open`, `admin_player_reports`. Game: `src/systems/Blocks.ts` and `src/ui/panels/SafetyPanel.ts`
+(Report and Block on player cards, gifts and the visit banner, the Blocked list in Friends; blocked players are
+nameless on the leaderboards).
+
 ## Shared farms and visits (1.28.2)
 
 Visitors see the picture of a farm the owner's game last shared, so a farm that cannot be shared looks old and help misses. Until 1.28.2 `publish_farm` refused any farm over 1,200 pieces (paths, fences and decorations count), so big late-game farms were stuck for good.

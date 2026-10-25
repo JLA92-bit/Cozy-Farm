@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 25 October 2026 (game version 1.32.0 pushed and live, deploy run 73; Android versionCode 5 uploaded to the closed track). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
+Last updated: 25 October 2026 (game version 1.33.0 local on branch `ios-app`; 1.32.0 live; Android versionCode 5 uploaded to the closed track; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,13 +16,18 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.32.0** (pushed, deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.33.0** (local, needs schema.sql run); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
+| iPhone app | Capacitor iOS (`ios/`, built on the owner's Mac; `ios/README.md`, `npm run build:ios`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.33.0 (local, 25 Oct, branch `ios-app`): reports and blocks** (App Store 1.2; ONLINE.md "Reports and blocks", ADMIN.md "Reports"). Server section `reports and blocks` (`player_blocks`, `player_reports`, `block_player`/`unblock_player`/`my_blocks`/`report_player`, `blocked_between` (own pairs only), `assert_not_blocked` in `send_gift`, `farm_help_add`, `fill_help`, `coffee_visit`; it replaces the select policies on gifts, listings, farm_snapshots, farm_help, home_snapshots; admin `admin_reports`, `admin_report_set`, `admin_reports_open`, `admin_player_reports`). Tested on PGlite (Postgres 17 in Node, scratch only). Game: `systems/Blocks.ts`, `ui/panels/SafetyPanel.ts` (Report/Block on player cards, gifts, visit banner; Blocked list in Friends; blocked players nameless on boards), icons `flag`, `no_entry`. Dashboard Reports page (`admin/src/views/reports.ts`, badge) and a card on the player Support tab. Also: landscape phones wrap the side shortcuts above the dock. **Needs `schema.sql` re-run.** Regression checks on a Mac: `HEADED=1 node tests/regression.mjs` (headless Chrome 155 there cannot touch-scroll).
+
+**iPhone app (25 Oct, Mac session, branch `ios-app`):** `ios/` (Capacitor 8, Swift Package Manager, iPhone only, URL scheme for the sign-in link, `ITSAppUsesNonExemptEncryption` false), icon and splash from `scripts/ios-icons.mjs`, `npm run build:ios` (`build:app` stays Android only for the Linux CI), `Native.ts` `isIosApp`/`isAndroidApp`/`storeUrl`/`APP_STORE_URL` (empty until the App Store page exists; the newer-save screen says TestFlight). Runs in the iOS Simulator. Still to do: Sign in with Apple, word filter for names and notes (guideline 1.2), TestFlight.
 
 **1.32.0 (pushed 25 Oct, deploy run 73): the Android app moves from TWA to Capacitor** (`android/README.md`). Testers would not take a TWA. `npm run build:app` (`CAP_BUILD=1`: base `/`, `dist-app/`, PWA plugin disabled) then `cap sync`; `capacitor.config.ts` (appId `app.joshmakesgames.cozyacres`, system bars hidden, `--safe-area-inset-*` CSS vars, used by `--safe-*` in styles.css); `src/core/Native.ts` (`isNative`, `SITE_URL`, `PLAY_URL`, `AUTH_RETURN`, `openExternal`, `onDeepLink`); Google sign-in in the app goes through the system browser and the deep link `app.joshmakesgames.cozyacres://auth` (`toGoogle`/`completeRedirect` in SupabaseBackend, `onDeepLink` in CloudSave), which must be in Supabase's redirect URLs; gift links use `SITE_URL`; push reports `'app'` (not in the app yet: FCM to do; the TWA had them through Chrome); no install button or SW update pill in the app; newer-save Update opens Play. Icons/splash `scripts/app-icons.py`. Workflow `.github/workflows/android.yml` (Java 21, SDK 36, same keystore secrets, versionCode from 5). Built and signed locally (debug and release). Game updates reach app players only through new app builds.
 
@@ -289,6 +294,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: Mac session: iPhone app (`ios/`, runs in the Simulator, pushed); 1.33.0 (local): reports and blocks, landscape side-button fix.
 - 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
 - 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
 - 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
@@ -298,4 +304,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-24: 1.30.5 pushed; 1.31.0 (local): The Old Mine, 60 floors across the water from level 18, Mining skill, Smelter and Jeweller.
 - 2026-10-24: 1.30.4 pushed (deploy run 68); 1.30.5 (local): back in Photo mode only closes Photo mode (it broke the home view).
 - 2026-10-23: 1.30.3 pushed (deploy run 67); 1.30.4 (local): camera button in the home, hang your photos on picture frames (friends see them too).
-- 2026-10-23: 1.30.2 pushed (deploy run 66); 1.30.3 (local): a friend's farmer no longer shows twice in their home after changing rooms.

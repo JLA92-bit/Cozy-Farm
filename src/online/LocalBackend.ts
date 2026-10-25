@@ -1,4 +1,4 @@
-import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest, HomeSnapshot } from './types';
+import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest, HomeSnapshot, type ReportPlace, type ReportReason } from './types';
 import { ASK, HELP_REASONS, cleanFill, cleanRequest } from './AskHelp';
 import { cleanClaim, cleanCoop } from './Coop';
 import { COOP } from '../data';
@@ -27,6 +27,8 @@ interface HelpDb { rows: FarmHelp[]; seq: number; botDay: string }
 const ASK_KEY = 'cozy-acres-online-askhelp';
 /** 1.28 practice co-op projects (same rules as the server's coop_* functions) */
 const COOP_KEY = 'cozy-acres-online-coop';
+/** Reports and blocks (practice mode): the blocked players on this device. */
+const BLOCKS_KEY = 'cozy-acres-online-blocks';
 interface CoopRow { id: string; host: { id: string; name: string }; kind: string; needs: Record<string, number>; given: Record<string, number>; audience: string[]; status: CoopStatus; createdAt: number; expiresAt: number; closedAt: number; botAt: number }
 interface CoopGiftRow { project: string; giver: string; name: string; item: string; qty: number; at: number; key?: string }
 interface CoopClaimRow { project: string; member: string; done: boolean; refund: Record<string, number> | null; claimed: boolean }
@@ -145,6 +147,7 @@ export class LocalBackend implements OnlineBackend {
     if (!me) throw new Error('no profile');
     const g = this.write((db) => {
       if (!db.profiles.some((p) => p.id === to)) throw new Error('unknown player');
+      if (this.blockedIds().has(to)) throw new Error('blocked');
       const g: Gift = { id: this.nextId(db, 'g'), from: { id: me.id, name: me.name }, to, items, coins, message, sentAt: this.now(), claimed: false };
       db.gifts.push(g);
       return g;
@@ -152,7 +155,10 @@ export class LocalBackend implements OnlineBackend {
     this.emit({ type: 'gift', gift: g });
     return g;
   }
-  async inbox(): Promise<Gift[]> { return this.read().gifts.filter((g) => g.to === this.id && !g.claimed).sort((a, b) => b.sentAt - a.sentAt); }
+  async inbox(): Promise<Gift[]> {
+    const blocked = this.blockedIds();
+    return this.read().gifts.filter((g) => g.to === this.id && !g.claimed && !blocked.has(g.from.id)).sort((a, b) => b.sentAt - a.sentAt);
+  }
   async claimGift(id: string): Promise<Gift> {
     return this.write((db) => {
       const g = db.gifts.find((x) => x.id === id);
@@ -175,8 +181,9 @@ export class LocalBackend implements OnlineBackend {
     return l;
   }
   async browse(opts: { item?: string; limit?: number } = {}): Promise<Listing[]> {
+    const blocked = this.blockedIds();
     return this.read().listings
-      .filter((l) => l.status === 'open' && l.seller.id !== this.id && (!opts.item || l.item === opts.item))
+      .filter((l) => l.status === 'open' && l.seller.id !== this.id && !blocked.has(l.seller.id) && (!opts.item || l.item === opts.item))
       .sort((a, b) => b.listedAt - a.listedAt).slice(0, opts.limit ?? 60);
   }
   async myListings(): Promise<Listing[]> {
@@ -285,6 +292,7 @@ export class LocalBackend implements OnlineBackend {
 
   async getFarm(playerId: string): Promise<FarmSnapshot | null> {
     await this.init();
+    if (this.blockedIds().has(playerId)) return null;
     const bot = this.read().profiles.find((p) => p.id === playerId && p.bot);
     if (bot) return sanitizeSnapshot(botFarm(bot, this.now()), this.now());
     try {
@@ -711,6 +719,39 @@ export class LocalBackend implements OnlineBackend {
       }
       return out;
     });
+  }
+
+  // ------------------------------------------------------------------ reports and blocks (practice: kept on this device)
+  private readBlocks(): { id: string; name: string }[] {
+    try {
+      const v = JSON.parse(localStorage.getItem(BLOCKS_KEY) ?? '[]') as unknown;
+      return Array.isArray(v) ? v.filter((b): b is { id: string; name: string } => !!b && typeof b.id === 'string').map((b) => ({ id: b.id, name: String(b.name ?? 'Farmer').slice(0, 24) })) : [];
+    } catch { return []; }
+  }
+  private writeBlocks(list: { id: string; name: string }[]): void {
+    try { localStorage.setItem(BLOCKS_KEY, JSON.stringify(list.slice(0, 500))); } catch { /* storage full */ }
+  }
+
+  async blockPlayer(id: string): Promise<void> {
+    await this.init();
+    if (id === this.id) throw new Error('not yourself');
+    const list = this.readBlocks();
+    if (list.some((b) => b.id === id)) return;
+    const name = this.read().profiles.find((p) => p.id === id)?.name ?? 'Farmer';
+    this.writeBlocks([{ id, name }, ...list]);
+  }
+
+  private blockedIds(): Set<string> { return new Set(this.readBlocks().map((b) => b.id)); }
+
+  async unblockPlayer(id: string): Promise<void> { this.writeBlocks(this.readBlocks().filter((b) => b.id !== id)); }
+
+  async myBlocks(): Promise<{ id: string; name: string }[]> { return this.readBlocks(); }
+
+  // practice mode has no real players to report: say thanks and keep nothing
+  async reportPlayer(id: string, _reason: ReportReason, _note: string, _place: ReportPlace): Promise<boolean> {
+    await this.init();
+    if (id === this.id) throw new Error('not yourself');
+    return true;
   }
 
   /** Practice mode: demo neighbours drop off what they planned for this player's open requests once it is time. */

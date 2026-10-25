@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.33.0",
+   "date": "2026-10-25",
+   "title": "Safe and Sound",
+   "icon": "flag",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "flag",
+     "text": "Report a player from their card, a gift or a farm visit if something is unkind. The Cozy Acres team reads every report"
+    },
+    {
+     "icon": "no_entry",
+     "text": "Block a player and you will not see each other's gifts, farms, homes or market goods. Unblock them any time in Friends"
+    },
+    {
+     "icon": "rotate",
+     "text": "On a phone held sideways, the shortcut buttons now fit above the bottom bar instead of running off the screen"
+    }
+   ]
+  },
+  {
    "version": "1.32.0",
    "date": "2026-10-25",
    "title": "A Proper App",

@@ -11,6 +11,7 @@ import { audio, haptics } from '../systems/Audio';
 import '../ui/panels/neighbours.css';
 import { online } from '../online/Online';
 import { playerCardHooks } from '../online/Leaderboard';
+import { blocks } from '../systems/Blocks';
 import { game } from '../systems/Game';
 import { hints } from '../systems/Hints';
 import { saves } from '../systems/Save';
@@ -76,7 +77,7 @@ const tmp2 = new THREE.Vector2();
 
 /** "Visit farm" on leaderboard player cards (not on your own card). */
 playerCardHooks.buttons.push((p, close) => {
-  if (p.id === '__me' || p.id === online.me()?.id) return null;
+  if (p.id === '__me' || p.id === online.me()?.id || blocks.has(p.id)) return null;
   return button([icon('house'), 'Visit farm'], () => { close(); void visitFarm({ id: p.id, name: p.name }); }, 'blue', { 'aria-label': `Visit ${possessive(p.name || 'Farmer')} farm` });
 });
 

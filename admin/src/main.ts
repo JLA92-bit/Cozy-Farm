@@ -8,6 +8,7 @@ import { giftsView } from './views/gifts';
 import { codesView } from './views/codes';
 import { backupsView } from './views/backups';
 import { feedbackView } from './views/feedback';
+import { reportsView } from './views/reports';
 import { marketView } from './views/market';
 import { requestsView } from './views/requests';
 import { leaderboardsView } from './views/leaderboards';
@@ -26,6 +27,7 @@ const NAV: { id: string; label: string; icon: string; view: View }[] = [
   { id: 'codes', label: 'Codes', icon: '#', view: codesView },
   { id: 'backups', label: 'Backups', icon: '⤓', view: backupsView },
   { id: 'feedback', label: 'Feedback', icon: '✉', view: feedbackView },
+  { id: 'reports', label: 'Reports', icon: '⚑', view: reportsView },
   { id: 'market', label: 'Market', icon: '⚖', view: marketView },
   { id: 'requests', label: 'Requests', icon: '♡', view: requestsView },
   { id: 'leaderboards', label: 'Leaderboards', icon: '★', view: leaderboardsView },
@@ -59,13 +61,15 @@ function signInScreen(message = '', email = ''): void {
 let main: HTMLElement;
 let navEls: Record<string, HTMLElement> = {};
 let badgeFeedback: HTMLElement;
+let badgeReports: HTMLElement;
 
 function shell(email: string): void {
   clear(app);
   navEls = {};
   badgeFeedback = h('span', { class: 'nav-badge', hidden: true });
+  badgeReports = h('span', { class: 'nav-badge', hidden: true });
   const nav = h('nav', { class: 'nav', 'aria-label': 'Sections' }, NAV.map((n) => {
-    const a = h('a', { href: `#/${n.id}`, class: 'nav-item' }, h('span', { class: 'nav-icon', 'aria-hidden': 'true' }, n.icon), h('span', null, n.label), n.id === 'feedback' ? badgeFeedback : null);
+    const a = h('a', { href: `#/${n.id}`, class: 'nav-item' }, h('span', { class: 'nav-icon', 'aria-hidden': 'true' }, n.icon), h('span', null, n.label), n.id === 'feedback' ? badgeFeedback : n.id === 'reports' ? badgeReports : null);
     navEls[n.id] = a;
     return a;
   }));
@@ -105,6 +109,11 @@ export function refreshBadges(): void {
   rpc<{ feedbackNew: number }>('admin_overview', { p_days: 7 }).then((o) => {
     badgeFeedback.hidden = !o.feedbackNew;
     badgeFeedback.textContent = String(o.feedbackNew);
+  }).catch(() => { /* ignore */ });
+  // reports and blocks: open reports (a schema.sql that has not been run yet just leaves the badge off)
+  rpc<{ open: number }>('admin_reports_open').then((o) => {
+    badgeReports.hidden = !o.open;
+    badgeReports.textContent = String(o.open);
   }).catch(() => { /* ignore */ });
 }
 

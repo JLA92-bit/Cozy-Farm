@@ -215,6 +215,13 @@ class Social {
     game.incStat('gifts_received');
   }
 
+  /** A blocked player's gifts leave the mailbox (the server stops showing them too; Blocks.ts). */
+  dropFrom(id: string): void {
+    const before = this.inbox.length;
+    this.inbox = this.inbox.filter((g) => g.from.id !== id);
+    if (this.inbox.length !== before) this.changed();
+  }
+
   /** Claim a mailbox gift (atomic on the backend: a gift can only be claimed once). */
   async claim(id: string): Promise<GiftContents & { from: string }> {
     await this.connect();

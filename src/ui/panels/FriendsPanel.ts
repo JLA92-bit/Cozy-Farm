@@ -19,6 +19,9 @@ import { neighbours } from '../../systems/Neighbours';
 import { renderVisitors } from './NeighboursPanel';
 import { help } from '../../systems/Help';
 import { requestsStrip } from './HelpPanel';
+import { blocks } from '../../systems/Blocks';
+import { blockedList, openReport } from './SafetyPanel';
+import { openPlayerCard } from './LeaderboardPanel';
 
 type Tab = 'friends' | 'mail' | 'codes' | 'visitors';
 
@@ -204,6 +207,10 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
       }
       p.body.append(bl);
     }
+
+    // players you blocked (Report and Block are on each player's card)
+    const blocked = blockedList();
+    if (blocked) p.body.append(blocked);
   };
 
   const friendRow = (f: FriendEntry): HTMLElement => {
@@ -220,9 +227,14 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
       clearTimeout(armed);
       social.removeFriend(f.id);
     }, 'small grey remove-btn', { 'aria-label': `Remove ${f.name}` });
+    // their card (Report, Block) opens from the portrait and name once the profile has loaded
+    const who = h('div', { class: `grow${prof ? ' clickable' : ''}`, role: prof ? 'button' : null, tabindex: prof ? '0' : null, 'aria-label': prof ? `${f.name}'s card` : null },
+      h('div', { class: 'title' }, f.name, f.id.startsWith('bot_') ? h('span', { class: 'demo-tag' }, 'demo') : null), h('div', { class: 'sub' }, sub));
+    const face = portrait(f.name, prof?.look);
+    if (prof) { face.classList.add('clickable'); for (const el of [who, face]) el.addEventListener('click', () => openPlayerCard(prof)); }
     return h('div', { class: 'list-item friend-item' },
-      portrait(f.name, prof?.look),
-      h('div', { class: 'grow' }, h('div', { class: 'title' }, f.name, f.id.startsWith('bot_') ? h('span', { class: 'demo-tag' }, 'demo') : null), h('div', { class: 'sub' }, sub)),
+      face,
+      who,
       button([icon('house'), h('span', { class: 'fbtn-lbl' }, 'Visit')], () => void visitFarm({ id: f.id, name: f.name }), 'small blue visit-btn', { 'aria-label': `Visit ${possessive(f.name)} farm` }),
       button([icon('gift'), h('span', { class: 'fbtn-lbl' }, 'Gift')], () => openCompose(f), 'small yellow gift-btn', { 'aria-label': `Send ${f.name} a gift` }),
       remove);
@@ -259,7 +271,8 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
           h('div', { class: 'title' }, `From ${g.from.name}`, g.from.id.startsWith('bot_') ? h('span', { class: 'demo-tag' }, 'demo') : null),
           g.message ? h('div', { class: 'gift-msg' }, `"${g.message}"`) : null,
           contentsRow(c)),
-        claim));
+        h('div', { class: 'gift-actions' }, claim,
+          g.from.id.startsWith('bot_') ? null : button(icon('flag'), () => openReport(g.from, 'gift', g.id), 'small grey report-btn', { 'aria-label': `Report this gift from ${g.from.name}` }))));
     }
     p.body.append(box);
     if (gifts.length > 1) {
@@ -379,7 +392,9 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     const typing = document.activeElement instanceof HTMLInputElement && p.body.contains(document.activeElement);
     if (p.overlay.isConnected && p.tab === 'friends' && !typing) { const top = p.body.scrollTop; render(p.tab); p.body.scrollTop = top; }
   });
-  p.onClose = () => { off(); offHelp(); offAsk(); };
+  const offBlocks = blocks.onChange(() => { if (p.overlay.isConnected && p.tab !== 'codes') render(p.tab); });
+  void blocks.refresh();
+  p.onClose = () => { off(); offHelp(); offAsk(); offBlocks(); };
   p.onTab = render;
   p.tab = opts.tab ?? (social.mailCount ? 'mail' : 'friends');
   p.open();

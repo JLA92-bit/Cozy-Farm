@@ -99,6 +99,7 @@ create policy "players write only their own profile" on public.profiles
 drop policy if exists "gifts visible to sender and receiver" on public.gifts;
 create policy "gifts visible to sender and receiver" on public.gifts
   for select to authenticated using (to_id = auth.uid() or from_id = auth.uid());
+  -- (section 'reports and blocks' replaces this policy with one that also hides blocked players)
 
 drop policy if exists "receiver updates own gifts" on public.gifts;
 create policy "receiver updates own gifts" on public.gifts
@@ -107,6 +108,7 @@ create policy "receiver updates own gifts" on public.gifts
 drop policy if exists "open listings are public, own listings visible" on public.listings;
 create policy "open listings are public, own listings visible" on public.listings
   for select to authenticated using (status = 'open' or seller_id = auth.uid() or buyer_id = auth.uid());
+  -- (section 'reports and blocks' replaces this policy with one that also hides blocked players)
 
 drop policy if exists "sellers update own listings" on public.listings;
 create policy "sellers update own listings" on public.listings
@@ -328,6 +330,7 @@ begin
   if not found then raise exception 'no profile'; end if;
   if p_to is null or p_to = uid then raise exception 'cannot gift yourself'; end if;
   if not exists (select 1 from public.profiles p where p.id = p_to) then raise exception 'unknown player'; end if;
+  perform public.assert_not_blocked(uid, p_to); -- reports and blocks
   if v_coins < 0 or v_coins > 100000 then raise exception 'bad coins'; end if;
   if p_items is not null and jsonb_typeof(p_items) <> 'object' then raise exception 'bad items'; end if;
 
@@ -643,6 +646,7 @@ grant select on public.farm_snapshots to authenticated;
 drop policy if exists "farm snapshots are public to players" on public.farm_snapshots;
 create policy "farm snapshots are public to players" on public.farm_snapshots
   for select to authenticated using (true);
+  -- (section 'reports and blocks' replaces this policy with one that also hides blocked players)
 
 -- Defence in depth (clients have no write grants; publish_farm() does the writing).
 drop policy if exists "players insert only their own farm snapshot" on public.farm_snapshots;
@@ -797,6 +801,7 @@ grant select on public.farm_help to authenticated;
 drop policy if exists "farm help visible to owner and helper" on public.farm_help;
 create policy "farm help visible to owner and helper" on public.farm_help
   for select to authenticated using (owner_id = auth.uid() or helper_id = auth.uid());
+  -- (section 'reports and blocks' replaces this policy with one that also hides blocked players)
 
 -- Internal: add one help or like row with every rule checked. Only called by help_farm() and like_farm().
 create or replace function public.farm_help_add(p_helper uuid, p_owner uuid, p_kind text, p_target jsonb, p_note text)
@@ -813,6 +818,7 @@ begin
   if p_helper is null then raise exception 'not signed in'; end if;
   if p_owner is null then raise exception 'unknown player'; end if;
   if p_owner = p_helper then raise exception 'not yourself'; end if;
+  perform public.assert_not_blocked(p_helper, p_owner); -- reports and blocks
   select p.name into v_name from public.profiles p where p.id = p_helper;
   if not found then raise exception 'no profile'; end if;
   -- lock the owner's profile row so helpers of one farm take turns (keeps the daily cap exact)
@@ -2856,7 +2862,7 @@ begin
             order by r.created_at), '[]'::jsonb)
             from public.help_requests r
            where r.requester = any (v_ids) and r.status = 'open' and r.expires_at > now()
-             and r.filled < r.qty and uid = any (r.audience));
+             and r.filled < r.qty and uid = any (r.audience) and not public.blocked_between(uid, r.requester));
 end;
 $$;
 
@@ -2885,6 +2891,7 @@ begin
   select x.* into r from public.help_requests x where x.id = p_id for update;
   if not found then raise exception 'not found'; end if;
   if r.requester = uid then raise exception 'yourself'; end if;
+  if public.blocked_between(uid, r.requester) then raise exception 'not found'; end if; -- reports and blocks
   if not (uid = any (r.audience)) then raise exception 'not found'; end if;
   if r.status <> 'open' or r.expires_at <= now() or r.filled >= r.qty then raise exception 'closed'; end if;
   if (select count(*) from public.help_fills x where x.helper = uid and x.at > now() - interval '1 day') >= 30 then
@@ -4317,6 +4324,7 @@ grant select on public.home_snapshots to authenticated;
 drop policy if exists "home snapshots are public to players" on public.home_snapshots;
 create policy "home snapshots are public to players" on public.home_snapshots
   for select to authenticated using (true);
+  -- (section 'reports and blocks' replaces this policy with one that also hides blocked players)
 
 -- Store the caller's home picture. At most one publish per 10 seconds ('too soon'); returns null (stores nothing)
 -- when it is too big or the wrong shape.
@@ -4380,6 +4388,7 @@ begin
   if uid is null then raise exception 'not signed in'; end if;
   perform public.assert_not_locked(uid);
   if p_host is null or p_host = uid then raise exception 'not yourself'; end if;
+  perform public.assert_not_blocked(uid, p_host); -- reports and blocks
   select p.name into v_name from public.profiles p where p.id = uid;
   if not found then raise exception 'no profile'; end if;
   perform 1 from public.profiles p where p.id = p_host for update;
@@ -4424,3 +4433,283 @@ revoke all on function public.my_coffee_visits() from public, anon;
 grant execute on function public.publish_home(jsonb) to authenticated;
 grant execute on function public.coffee_visit(uuid) to authenticated;
 grant execute on function public.my_coffee_visits() to authenticated;
+
+-- ===== reports and blocks =====
+-- Keeping players safe (App Store guideline 1.2, Play's user-generated content policy; ios/README.md). Names, farm
+-- names, gift notes, signs and home pictures are free text or pictures from other players, so any player can:
+--   * block another player (block_player / unblock_player / my_blocks). Blocking works both ways and is enforced
+--     here, not in the game: gifts, farm help and likes, coffee visits and Ask a friend fills between the two are
+--     refused ('blocked'), and neither sees the other's gifts, market listings, farm, home or help requests (the row
+--     level policies below replace the ones further up). The game also hides blocked players on the leaderboards
+--     and drops them from the friends list.
+--   * report a player (report_player) with a reason and a short note; the report keeps a copy of their name, farm
+--     name and (for a gift) the gift's note, so it still makes sense after they change them. Reports wait on the
+--     dashboard's Reports page (admin_reports, admin_report_set); act on them within a day (lock the account from
+--     the player page if needed).
+-- Deleting either account deletes its blocks and reports (on delete cascade).
+
+create table if not exists public.player_blocks (
+  blocker     uuid not null references public.profiles (id) on delete cascade,
+  blocked     uuid not null references public.profiles (id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  primary key (blocker, blocked),
+  check (blocker <> blocked)
+);
+create index if not exists player_blocks_blocked_idx on public.player_blocks (blocked);
+alter table public.player_blocks enable row level security;
+revoke all on public.player_blocks from anon, authenticated, public;
+
+create table if not exists public.player_reports (
+  id            uuid primary key default gen_random_uuid(),
+  reporter      uuid not null references public.profiles (id) on delete cascade,
+  reported      uuid not null references public.profiles (id) on delete cascade,
+  reason        text not null check (reason in ('name', 'message', 'farm', 'cheating', 'other')),
+  note          text check (note is null or char_length(note) <= 300),
+  -- where it was seen: 'card' (a player card), 'gift', 'visit', 'home', 'friends', 'leaderboard', 'market'
+  place         text not null default 'card' check (place in ('card', 'gift', 'visit', 'home', 'friends', 'leaderboard', 'market')),
+  -- copies at report time: their name and farm name, and the gift's note for a reported gift
+  name          text,
+  farm_name     text,
+  gift_message  text,
+  created_at    timestamptz not null default now(),
+  status        text not null default 'open' check (status in ('open', 'actioned', 'dismissed')),
+  admin_note    text check (admin_note is null or char_length(admin_note) <= 500),
+  reviewed_at   timestamptz,
+  reviewed_by   text
+);
+create index if not exists player_reports_status_idx on public.player_reports (status, created_at desc);
+create index if not exists player_reports_reported_idx on public.player_reports (reported, created_at desc);
+create index if not exists player_reports_reporter_idx on public.player_reports (reporter, created_at desc);
+alter table public.player_reports enable row level security;
+revoke all on public.player_reports from anon, authenticated, public;
+
+-- Has either player blocked the other? Only answers for the caller's own pairs (anything else is false), so it never
+-- tells anyone who else blocked whom.
+create or replace function public.blocked_between(p_a uuid, p_b uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_a is not null and p_b is not null and auth.uid() in (p_a, p_b) and exists (
+    select 1 from public.player_blocks b
+     where (b.blocker = p_a and b.blocked = p_b) or (b.blocker = p_b and b.blocked = p_a));
+$$;
+
+-- Called by the player functions that reach another player (send_gift, farm_help_add, fill_help, coffee_visit).
+create or replace function public.assert_not_blocked(p_a uuid, p_b uuid)
+returns void
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if public.blocked_between(p_a, p_b) then raise exception 'blocked'; end if;
+end;
+$$;
+
+-- Block a player (at most 500 blocks). Safe to call again.
+create or replace function public.block_player(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_id is null or p_id = uid then raise exception 'not yourself'; end if;
+  if not exists (select 1 from public.profiles p where p.id = uid) then raise exception 'no profile'; end if;
+  if not exists (select 1 from public.profiles p where p.id = p_id) then raise exception 'unknown player'; end if;
+  if (select count(*) from public.player_blocks b where b.blocker = uid) >= 500 then raise exception 'too many'; end if;
+  insert into public.player_blocks (blocker, blocked) values (uid, p_id) on conflict do nothing;
+end;
+$$;
+
+create or replace function public.unblock_player(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  delete from public.player_blocks b where b.blocker = auth.uid() and b.blocked = p_id;
+end;
+$$;
+
+-- The players the caller blocked (their current names), newest first.
+create or replace function public.my_blocks()
+returns table (id uuid, name text, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.blocked, p.name, b.created_at from public.player_blocks b
+    join public.profiles p on p.id = b.blocked
+   where b.blocker = auth.uid()
+   order by b.created_at desc;
+$$;
+
+-- Report a player. p_gift: a gift they sent the caller (its note is kept with the report). At most 20 reports a day,
+-- and one a day per reported player (a second one adds nothing). Returns true when a new report was made.
+create or replace function public.report_player(p_id uuid, p_reason text, p_note text, p_place text, p_gift uuid default null)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_name text;
+  v_farm text;
+  v_msg text;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_id is null or p_id = uid then raise exception 'not yourself'; end if;
+  if p_reason is null or p_reason not in ('name', 'message', 'farm', 'cheating', 'other') then raise exception 'bad reason'; end if;
+  if not exists (select 1 from public.profiles p where p.id = uid) then raise exception 'no profile'; end if;
+  select p.name, p.farm_name into v_name, v_farm from public.profiles p where p.id = p_id;
+  if not found then raise exception 'unknown player'; end if;
+  perform 1 from public.profiles p where p.id = uid for update; -- serialises this reporter (keeps the caps exact)
+  if exists (select 1 from public.player_reports r where r.reporter = uid and r.reported = p_id and r.created_at > now() - interval '1 day') then
+    return false;
+  end if;
+  if (select count(*) from public.player_reports r where r.reporter = uid and r.created_at > now() - interval '1 day') >= 20 then
+    raise exception 'too many today';
+  end if;
+  if p_gift is not null then
+    select g.message into v_msg from public.gifts g where g.id = p_gift and g.to_id = uid and g.from_id = p_id;
+  end if;
+  insert into public.player_reports (reporter, reported, reason, note, place, name, farm_name, gift_message)
+  values (uid, p_id, p_reason, nullif(public.clean_text(p_note, 300, ''), ''),
+          case when p_place in ('card', 'gift', 'visit', 'home', 'friends', 'leaderboard', 'market') then p_place else 'card' end,
+          v_name, v_farm, v_msg);
+  return true;
+end;
+$$;
+
+-- The row level policies that hide blocked players' rows (they replace the ones of the same names further up).
+drop policy if exists "gifts visible to sender and receiver" on public.gifts;
+create policy "gifts visible to sender and receiver" on public.gifts
+  for select to authenticated using (from_id = auth.uid() or (to_id = auth.uid() and not public.blocked_between(to_id, from_id)));
+
+drop policy if exists "open listings are public, own listings visible" on public.listings;
+create policy "open listings are public, own listings visible" on public.listings
+  for select to authenticated using (seller_id = auth.uid() or buyer_id = auth.uid()
+    or (status = 'open' and not public.blocked_between(auth.uid(), seller_id)));
+
+drop policy if exists "farm snapshots are public to players" on public.farm_snapshots;
+create policy "farm snapshots are public to players" on public.farm_snapshots
+  for select to authenticated using (user_id = auth.uid() or not public.blocked_between(auth.uid(), user_id));
+
+drop policy if exists "farm help visible to owner and helper" on public.farm_help;
+create policy "farm help visible to owner and helper" on public.farm_help
+  for select to authenticated using (helper_id = auth.uid() or (owner_id = auth.uid() and not public.blocked_between(owner_id, helper_id)));
+
+drop policy if exists "home snapshots are public to players" on public.home_snapshots;
+create policy "home snapshots are public to players" on public.home_snapshots
+  for select to authenticated using (user_id = auth.uid() or not public.blocked_between(auth.uid(), user_id));
+
+-- ---- dashboard
+
+-- Reports, newest first, with both players' current names and how often the reported player was reported.
+create or replace function public.admin_reports(p_status text default 'open', p_limit integer default 300)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) from (
+    select r.*, rp.name as reporter_name, tp.name as reported_name_now, tp.farm_name as reported_farm_now,
+           (select count(*) from public.player_reports o where o.reported = r.reported) as reported_count,
+           (select count(distinct o.reporter) from public.player_reports o where o.reported = r.reported) as reporters,
+           (public.active_lock(r.reported)).id is not null as locked
+      from public.player_reports r
+      left join public.profiles rp on rp.id = r.reporter
+      left join public.profiles tp on tp.id = r.reported
+     where p_status is null or r.status = p_status
+     order by r.created_at desc
+     limit least(greatest(coalesce(p_limit, 300), 1), 2000)) x);
+end;
+$$;
+
+create or replace function public.admin_report_set(p_id uuid, p_status text, p_note text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+begin
+  if p_status is not null and p_status not in ('open', 'actioned', 'dismissed') then raise exception 'bad status'; end if;
+  update public.player_reports r
+     set status = coalesce(p_status, r.status), admin_note = coalesce(nullif(left(p_note, 500), ''), r.admin_note),
+         reviewed_at = case when p_status is not null and p_status <> 'open' then now() else r.reviewed_at end,
+         reviewed_by = case when p_status is not null and p_status <> 'open' then v_admin else r.reviewed_by end
+   where r.id = p_id;
+  if not found then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'report ' || coalesce(p_status, 'note'), (select r.reported from public.player_reports r where r.id = p_id), jsonb_build_object('report', p_id));
+end;
+$$;
+
+-- Open reports (the dashboard's Reports badge) and the oldest one's time (act within a day).
+create or replace function public.admin_reports_open()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select jsonb_build_object('open', count(*), 'oldest', min(r.created_at)) from public.player_reports r where r.status = 'open');
+end;
+$$;
+
+-- A player's reports (made about them, and made by them) and blocks, for the player page.
+create or replace function public.admin_player_reports(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'about', (select coalesce(jsonb_agg(to_jsonb(r) order by r.created_at desc), '[]'::jsonb) from public.player_reports r where r.reported = p_id),
+    'made', (select coalesce(jsonb_agg(to_jsonb(r) order by r.created_at desc), '[]'::jsonb) from public.player_reports r where r.reporter = p_id),
+    'blockedBy', (select count(*) from public.player_blocks b where b.blocked = p_id),
+    'blocks', (select count(*) from public.player_blocks b where b.blocker = p_id));
+end;
+$$;
+
+revoke all on function public.blocked_between(uuid, uuid) from public, anon;
+revoke all on function public.assert_not_blocked(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.block_player(uuid) from public, anon;
+revoke all on function public.unblock_player(uuid) from public, anon;
+revoke all on function public.my_blocks() from public, anon;
+revoke all on function public.report_player(uuid, text, text, text, uuid) from public, anon;
+revoke all on function public.admin_reports(text, integer) from public, anon;
+revoke all on function public.admin_report_set(uuid, text, text) from public, anon;
+revoke all on function public.admin_reports_open() from public, anon;
+revoke all on function public.admin_player_reports(uuid) from public, anon;
+-- blocked_between is used by the row level policies, so players need to be able to run it (only for their own pairs)
+grant execute on function public.blocked_between(uuid, uuid) to authenticated;
+grant execute on function public.block_player(uuid) to authenticated;
+grant execute on function public.unblock_player(uuid) to authenticated;
+grant execute on function public.my_blocks() to authenticated;
+grant execute on function public.report_player(uuid, text, text, text, uuid) to authenticated;
+grant execute on function public.admin_reports(text, integer) to authenticated;
+grant execute on function public.admin_report_set(uuid, text, text) to authenticated;
+grant execute on function public.admin_reports_open() to authenticated;
+grant execute on function public.admin_player_reports(uuid) to authenticated;

@@ -1,3 +1,4 @@
+import { playerReportsCard } from './reports';
 import { playerVisitsCard } from './visits';
 import { rpc, type PlayerDetail } from '../api';
 import { h, num, minutes, ago, date, loading, badge, modal, confirmAction, confirmTyped, toast, fail, download, slug, today, field, copyText, bytes, compact, pct } from '../ui';
@@ -812,6 +813,7 @@ function supportTab(c: Ctx): HTMLElement[] {
         h('td', { class: 'small' }, l.until ? date(l.until, true) : 'No end date'), h('td', null, l.reason),
         h('td', null, l.active ? h('span', null, badge('In force', 'bad'), ' ', liveCountdown(l.until)) : l.liftedBy === 'expired' ? badge('Ran out', 'good') : badge(`Lifted ${l.liftedAt ? ago(l.liftedAt) : ''}${l.liftedBy ? ` by ${l.liftedBy}` : ''}`, 'good'))))))
       : h('p', { class: 'muted small' }, 'Never locked.')),
+    playerReportsCard(d.id),
     card('What admins did for this player', deep?.adminLog.length ? h('table', { class: 'table compact' }, h('tbody', null, deep.adminLog.map((l) => h('tr', null,
       h('td', { class: 'small' }, date(l.at, true)), h('td', null, l.action), h('td', { class: 'small muted' }, l.admin), h('td', { class: 'small' }, l.detail ? Object.entries(l.detail).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(', ') : '')))))
       : h('p', { class: 'muted small' }, 'Nothing logged yet.')),
