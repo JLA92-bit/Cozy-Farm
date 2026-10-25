@@ -1,4 +1,5 @@
-import type { RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
+import type { AuthError, RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
+import { AUTH_RETURN, closeExternal, isNative, openExternal } from '../core/Native';
 import { cleanClaim, cleanCoop } from './Coop';
 import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot } from './types';
 import type {
@@ -90,8 +91,18 @@ const timedFetch: typeof fetch = (input, init) => {
   return fetch(input, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
 };
 
-/** The page address to come back to after Google: this page without query or hash. */
-const returnUrl = (): string => location.origin + location.pathname;
+/** The page address to come back to after Google: this page without query or hash (in the app: its deep link). */
+const returnUrl = (): string => (isNative() ? AUTH_RETURN : location.origin + location.pathname);
+
+/**
+ * Leave for Google. On the web the page itself goes there; in the app Google cannot sign in inside the game's own
+ * view, so the address is opened in the system browser and the deep link brings the player back (completeRedirect).
+ */
+async function toGoogle(go: (o: { redirectTo: string; skipBrowserRedirect: boolean }) => Promise<{ data: { url?: string | null } | null; error: AuthError | null }>): Promise<AuthError | null> {
+  const { data, error } = await go({ redirectTo: returnUrl(), skipBrowserRedirect: isNative() });
+  if (!error && isNative() && data?.url) await openExternal(data.url);
+  return error;
+}
 
 function readIntent(): Intent | null {
   try {
@@ -191,8 +202,9 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
    * the error. When Google is already linked to another farm account, linking is not possible, so
    * sign in to that account instead (one more trip to Google, usually instant). Cleans the address bar.
    */
-  private async handleRedirect(sb: SupabaseClient): Promise<void> {
-    const url = new URL(location.href);
+  private async handleRedirect(sb: SupabaseClient, href = location.href): Promise<void> {
+    const url = new URL(href);
+    const page = href === location.href;
     const p: Record<string, string> = {};
     try { new URLSearchParams(url.hash.slice(1)).forEach((v, k) => { p[k] = v; }); } catch { /* not params */ }
     url.searchParams.forEach((v, k) => { p[k] = v; });
@@ -202,7 +214,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     writeIntent(null);
     for (const k of AUTH_PARAMS) url.searchParams.delete(k);
     if (p.error || p.error_code || p.access_token) url.hash = '';
-    try { history.replaceState(history.state, '', url.toString()); } catch { /* sandboxed */ }
+    if (page) { try { history.replaceState(history.state, '', url.toString()); } catch { /* sandboxed */ } }
     // a ?code= we did not ask for (no sign-in was started from this game) is left alone
     if (!intent) return;
     if (code) {
@@ -218,7 +230,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     const desc = p.error_description ?? '';
     if (intent.mode === 'link' && (p.error_code === 'identity_already_exists' || /already (linked|exists|registered)/i.test(desc))) {
       writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now() });
-      const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: returnUrl() } });
+      const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
       if (!error) return; // leaving for Google again
       writeIntent(null);
       this.authResult = { kind: 'error', message: error.message };
@@ -253,7 +265,6 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   async signInWithGoogle(): Promise<void> {
     const sb = await this.ensureClient();
     await this.reachable();
-    const redirectTo = returnUrl();
     let current: User | null = null;
     if (this.uid || (await sb.auth.getSession()).data.session) {
       await this.init(); // also finishes any pending redirect and loads the profile
@@ -263,7 +274,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     // keep the online identity (friend code, listings, gifts): link Google to this account
     if (current && this.mine) {
       writeIntent({ mode: 'link', uid: current.id, at: Date.now() });
-      const { error } = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo } });
+      const error = await toGoogle((options) => sb.auth.linkIdentity({ provider: 'google', options }));
       if (!error) return; // leaving for Google
       writeIntent(null);
       if (error.code !== 'identity_already_exists' && error.code !== 'manual_linking_disabled') throw this.fail(error);
@@ -271,8 +282,17 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       console.warn('[online] could not link Google to this account, signing in instead:', error.message);
     }
     writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now() });
-    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+    const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
     if (error) { writeIntent(null); throw this.fail(error); }
+  }
+
+  /** In the app: Google sent the player back by deep link. Finish the sign-in like a page coming back would. */
+  async completeRedirect(href: string): Promise<void> {
+    const sb = await this.ensureClient();
+    await closeExternal();
+    await this.handleRedirect(sb, href);
+    this.initP = null;
+    await this.init();
   }
 
   async signOut(): Promise<void> {

@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.32.0",
+   "date": "2026-10-25",
+   "title": "A Proper App",
+   "icon": "house",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "house",
+     "text": "The Android app now carries the whole game inside it: it starts faster, works offline from the first start and no longer opens through Chrome"
+    },
+    {
+     "icon": "cloud",
+     "text": "Sign in with Google from the app opens your browser for a moment, then brings you straight back to your farm"
+    }
+   ]
+  },
+  {
    "version": "1.31.2",
    "date": "2026-10-25",
    "title": "A Helping Hand",

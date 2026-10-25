@@ -10,21 +10,12 @@ coverage/
 .env
 .asset-cache/
 
-# Android (Bubblewrap TWA): signing keys must never be committed
+# Android: signing keys must never be committed
 android/upload-keystore.jks
+android-twa/upload-keystore.jks
 *.keystore
 *.jks
-# Android project files Bubblewrap generates from android/twa-manifest.json
-android/app/
-android/gradle/
-android/.gradle/
-android/build.gradle
-android/settings.gradle
-android/gradle.properties
-android/gradlew
-android/gradlew.bat
-android/store_icon.png
-android/manifest-checksum.txt
+# 1.32 the Capacitor app (android/): android/.gitignore keeps the copied game files out
 android/*.aab
 android/*.apk
 android/*.idsig
@@ -34,3 +25,4 @@ android/local.properties
 design/art-source/out/
 design/art-source/__pycache__/
 design/art-source/.render_tmp.html
+dist-app/

@@ -1,4 +1,5 @@
 import { game } from '../systems/Game';
+import { isNative } from '../core/Native';
 import { visiting } from '../systems/Visiting';
 import { online } from '../online/Online';
 import { onlineConfigured } from '../online/Connect';
@@ -31,7 +32,9 @@ export type PushAvailability =
   /** iPhone / iPad home screen app without push: needs iOS 16.4 or newer */
   | 'ios-old'
   /** no service worker (development server, or the browser blocks it) */
-  | 'no-sw';
+  | 'no-sw'
+  /** 1.32 the Android app: web push does not reach it (app notifications come in a later update) */
+  | 'app';
 
 export interface NotifyState {
   available: PushAvailability;
@@ -105,6 +108,7 @@ let swMissing = false;
 /** Can this device get notifications at all? (Fast, no waiting.) */
 export function pushAvailability(): PushAvailability {
   if (!onlineConfigured() || !vapidKey() || !backend()) return 'not-configured';
+  if (isNative()) return 'app';
   const hasPush = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   if (isIos() && !isStandalone()) return 'ios-install';
   if (!hasPush) return isIos() ? 'ios-old' : 'unsupported';

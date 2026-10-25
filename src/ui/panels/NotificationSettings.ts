@@ -29,6 +29,7 @@ const UNAVAILABLE: Record<Exclude<NotifyState['available'], 'ok'>, string> = {
   'ios-install': 'On iPhone and iPad, add Cozy Acres to your Home Screen first (Share, then Add to Home Screen) and open it from there. Needs iOS 16.4 or newer.',
   'ios-old': 'Notifications need iOS 16.4 or newer. Update your iPhone or iPad, then open Cozy Acres from the Home Screen.',
   'no-sw': 'Notifications are not available in this window yet. Reload the game and try again.',
+  app: 'Phone notifications are coming to the Cozy Acres app in an update. Until then, the game in Chrome on cozyacres.joshmakesgames.app can send them.',
 };
 
 function toggle(on: boolean, label: string, onChange: (v: boolean) => void): HTMLElement {

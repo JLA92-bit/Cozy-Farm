@@ -3,11 +3,15 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // The game lives under /play/ next to the Cozy Acres website (https://cozyacres.joshmakesgames.app/play/).
 // deploy.yml sets BASE_PATH (e.g. /Cozy-Farm/play/ on the github.io project URL); see DOMAIN.md.
-const base = process.env.BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/play/' : '/');
+// 1.32 CAP_BUILD=1 (npm run build:app): the copy that goes inside the Android app (Capacitor serves it from the
+// root of https://localhost), without the website's service worker; see android/README.md.
+const app = process.env.CAP_BUILD === '1';
+const base = app ? '/' : process.env.BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/play/' : '/');
 
 export default defineConfig({
   base,
   build: {
+    outDir: app ? 'dist-app' : 'dist',
     target: 'es2022',
     chunkSizeWarningLimit: 1500,
     assetsInlineLimit: 0,
@@ -15,6 +19,8 @@ export default defineConfig({
   server: { host: true },
   plugins: [
     VitePWA({
+      // the app's files come with the app: no service worker there (the plugin's virtual module becomes a no-op)
+      disable: app,
       registerType: 'prompt',
       injectRegister: false,
       includeAssets: ['icons/*.png', 'favicon.svg'],

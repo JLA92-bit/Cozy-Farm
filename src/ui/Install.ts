@@ -1,6 +1,7 @@
 import { Panel } from './Panel';
 import { h, icon, button } from './dom';
 import { ui } from './UI';
+import { isNative } from '../core/Native';
 
 /**
  * "Add to home screen". Chrome/Edge/Samsung Internet fire `beforeinstallprompt`, which we keep so a button
@@ -26,7 +27,7 @@ export function watchInstallPrompt(): void {
 
 /** Running as an installed app (home screen icon, or the Play Store app). */
 export function isInstalled(): boolean {
-  if (installedNow) return true;
+  if (installedNow || isNative()) return true;
   const standalone = ['standalone', 'fullscreen', 'minimal-ui'].some((m) => matchMedia(`(display-mode: ${m})`).matches);
   return standalone || (navigator as Navigator & { standalone?: boolean }).standalone === true || document.referrer.startsWith('android-app://');
 }

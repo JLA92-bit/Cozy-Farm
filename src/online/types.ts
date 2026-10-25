@@ -322,6 +322,8 @@ export interface AccountBackend {
   account(): AccountInfo | null;
   /** Start "Sign in with Google" (leaves the page; the result is reported by takeAuthResult after the return). */
   signInWithGoogle(): Promise<void>;
+  /** 1.32 the Android app: Google sent the player back by deep link (`href`); finish the sign-in. */
+  completeRedirect?(href: string): Promise<void>;
   /** Sign out on this device. The next connect makes a fresh anonymous account. */
   signOut(): Promise<void>;
   /** Permanently delete the online account (profile, friend code, cloud save, listings, gifts), then sign out. */

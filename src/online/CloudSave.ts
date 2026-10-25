@@ -1,4 +1,5 @@
 import { LEVELS } from '../data';
+import { AUTH_RETURN, onDeepLink } from '../core/Native';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
@@ -398,6 +399,16 @@ export function startCloud(): void {
   const b = accountBackend();
   if (!b) return;
   b.onAccount(() => notify());
+  // 1.32 the Android app: Google sends the player back to the app by deep link (no page load)
+  onDeepLink((href) => {
+    if (!href.startsWith(AUTH_RETURN) || !b.completeRedirect) return;
+    holdProfile(true);
+    b.completeRedirect(href).then(() => onConnected(b.takeAuthResult()), (e) => {
+      console.warn('[cloud] could not finish signing in', e);
+      const r = b.takeAuthResult();
+      void onConnected(r ?? { kind: 'error', message: (e as Error)?.message ?? 'sign in failed' });
+    }).finally(() => holdProfile(false));
+  });
   const returning = /[?&#](code|error|error_code)=/.test(location.search + location.hash);
   if (returning || meta.signedIn) {
     // keep the public profile untouched until we know which farm this account plays

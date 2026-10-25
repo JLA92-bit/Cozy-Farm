@@ -1,12 +1,13 @@
 {
   "name": "cozy-acres",
   "private": true,
-  "version": "1.31.2",
+  "version": "1.32.0",
   "type": "module",
   "description": "Cozy Acres - a mobile-first 3D farming and village builder that runs in the browser",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:app": "tsc --noEmit && CAP_BUILD=1 vite build && cap sync android",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "fetch-assets": "bash scripts/fetch-assets.sh",
@@ -18,12 +19,17 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
     "@supabase/supabase-js": "^2.117.2",
     "gsap": "^3.15.0",
     "howler": "^2.2.4",
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@fontsource/fredoka": "^5.3.0",
     "@fontsource/lilita-one": "^5.3.0",
     "@gltf-transform/cli": "^4.5.1",

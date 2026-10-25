@@ -1,4 +1,5 @@
 import { playerCardHooks } from '../../online/Leaderboard';
+import { isNative, SITE_URL } from '../../core/Native';
 import { possessive, visitFarm } from '../../scenes/Visit';
 import gsap from 'gsap';
 import { Panel } from '../Panel';
@@ -501,7 +502,8 @@ export function openCompose(friend: FriendEntry | null): void {
 
 /** After making a gift code: share or copy it. */
 function showCode(code: string): void {
-  const link = `${location.origin}${location.pathname}?gift=${code}`;
+  // the app's own address (https://localhost) means nothing to a friend: links always point at the website there
+  const link = `${isNative() ? SITE_URL : location.origin + location.pathname}?gift=${code}`;
   const p = new Panel({ title: 'Your gift code', icon: 'gift', color: 'purple', size: 'small' });
   const ta = h('textarea', { class: 'code-box', readonly: 'true', rows: '4', 'aria-label': 'Gift link' }) as HTMLTextAreaElement;
   ta.value = link;

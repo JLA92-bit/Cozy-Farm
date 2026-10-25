@@ -107,7 +107,9 @@ tapped, and everything else keeps working.
    - **Redirect URLs** (add each one): `https://cozyacres.joshmakesgames.app/play/`,
      `https://jla92-bit.github.io/Cozy-Farm/play/` (the game is at `/play/` on the old address too, until
      the custom domain is switched on, see [DOMAIN.md](DOMAIN.md)), `https://jla92-bit.github.io/Cozy-Farm/`
-     (older builds) and `http://localhost:5173/` (for development). If the game ever moves to another address, add that
+     (older builds), `app.joshmakesgames.cozyacres://auth` (the Android app from 1.32: Google opens in the
+     phone's browser and this link brings the player back into the app, see android/README.md) and
+     `http://localhost:5173/` (for development). If the game ever moves to another address, add that
      address here too. The game sends players back to the exact page they signed in from (without
      `?` or `#`), so each address must be listed exactly, with the trailing `/`.
 4. Run the latest [`supabase/schema.sql`](supabase/schema.sql) again (step 3). It adds the `cloud_saves`
