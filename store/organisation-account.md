@@ -10,6 +10,13 @@ an organisation, or transferring `app.joshmakesgames.cozyacres` to a new organis
 testing requirement. Google has not said so clearly, and a Google Play Product Expert has said a transferred app can
 keep it. The answer decides between routes A/B and C below.
 
+**Cheapest way without testing (A$0-47):** sole trader: ABN (free), optionally the business name "Josh Makes Games"
+($47, so the name Google checks matches the website and the listing), a free D-U-N-S from Equifax as a sole trader
+(about 30 days), then convert this account (route A, free). Two unknowns: whether Google accepts an Australian sole
+trader as an organisation (reported to work elsewhere, not confirmed for Australia) and whether converting clears the
+testing requirement. Ask support both in one message first; the fallback is a Pty Ltd ($636 + $342 a year). Samsung's
+Galaxy Store is no cheaper (it also wants a registered business and a D-U-N-S).
+
 ## Steps
 
 1. **Pick the legal entity.**
