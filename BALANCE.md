@@ -884,3 +884,6 @@ lamps, lunch and 8,000 coins in wages). No danger, nothing to lose, nothing rand
   coins and 2 gems at floor 5 up to the bottom). Geodes are cracked by Bram for 25 coins (a mineral, about 1 in 4 a
   precious gem).
 - **Mining skill:** XP from rocks (2), gems (6), fossils (8), new floors (12), geodes (4) and carts (4).
+- **Every find has a use past the first:** besides the Museum and villager gifts, the Collector's Cruise (a ninth Boat
+  Visitor theme, `boatvisits.json` `collectors`) asks for gems, fossils, relics, bars and jewellery at the usual 1.9x
+  barn price. Like every theme it only comes once the farm can fill three of its wishes, so only mining farms meet it.

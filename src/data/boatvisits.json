@@ -477,6 +477,66 @@
         "flower_wreath",
         "lavender_sachet"
       ]
+    },
+    {
+      "id": "collectors",
+      "name": "Collector's Cruise",
+      "icon": "ruby",
+      "greeting": "Hello there! I collect rare stones, fossils and fine jewellery. I hear there's a mine on your island?",
+      "look": {
+        "body": "female-a",
+        "skin": "#e0ac7e",
+        "hair": "#2e2a33",
+        "top": "#3f6fb5",
+        "bottom": "#3b3b45",
+        "hat": "none",
+        "accessory": "none",
+        "pet": "none"
+      },
+      "boat": {
+        "model": "boat/wc_023",
+        "scale": 0.42,
+        "seat": [
+          0,
+          0.7,
+          -0.45
+        ]
+      },
+      "items": [
+        "quartz",
+        "amethyst",
+        "topaz",
+        "jade",
+        "ruby",
+        "emerald",
+        "sapphire",
+        "opal",
+        "diamond",
+        "cave_pearl",
+        "glow_moss",
+        "trilobite",
+        "fossil_fish",
+        "crystal_shell",
+        "cave_bear_tooth",
+        "petrified_wood",
+        "ammonite",
+        "fossil_fern",
+        "miners_lamp",
+        "old_pick_head",
+        "carved_stone",
+        "silver_bar",
+        "gold_bar",
+        "crystal_vase",
+        "gem_lantern",
+        "silver_ring",
+        "birthstone_charm",
+        "emerald_brooch",
+        "ruby_ring",
+        "sapphire_pendant",
+        "opal_pendant",
+        "gold_locket",
+        "diamond_tiara"
+      ]
     }
   ]
 }
