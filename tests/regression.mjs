@@ -20,7 +20,10 @@ for (let i = 0; i < 60; i++) {
 }
 
 const exe = process.env.CHROMIUM_PATH ?? (existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
-const browser = await chromium.launch({ executablePath: exe, channel: exe ? undefined : 'chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+// HEADED=1 (on a Mac): a visible window on the real GPU. Headless Google Chrome 155 there does not scroll on touch (the
+// lock-screen check fails), and software WebGL (SwiftShader) crashes the page after many boots.
+const headed = process.env.HEADED === '1';
+const browser = await chromium.launch({ executablePath: exe, channel: exe ? undefined : 'chrome', headless: !headed, args: headed ? [] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const page = await ctx.newPage();
 let errors = [];
