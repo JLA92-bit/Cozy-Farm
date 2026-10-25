@@ -1,7 +1,7 @@
 {
   "name": "cozy-acres",
   "private": true,
-  "version": "1.32.0",
+  "version": "1.32.1",
   "type": "module",
   "description": "Cozy Acres - a mobile-first 3D farming and village builder that runs in the browser",
   "scripts": {
@@ -23,6 +23,7 @@
     "@capacitor/app": "^8.1.2",
     "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.5.3",
+    "@capacitor/preferences": "^8.0.1",
     "@supabase/supabase-js": "^2.117.2",
     "gsap": "^3.15.0",
     "howler": "^2.2.4",

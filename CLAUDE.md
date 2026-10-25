@@ -16,13 +16,15 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.32.0** (pushed, deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.32.1** (local; 1.32.0 pushed, deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.32.1 (local, 25 Oct): app sign-in fix.** Android could close the game while Google was open, so the deep link started the app afresh and `appUrlOpen` never fired (player back on the loading screen, not signed in). `launchLink()` (`App.getLaunchUrl`) is read by the first `connect()` and by `startCloud`; the sign-in intent and Supabase auth storage (PKCE verifier, session) also go to `durable` (`@capacitor/preferences`, `src/core/Native.ts`) in the app. Needs an app build (versionCode 6). Web unchanged.
 
 **1.32.0 (pushed 25 Oct, deploy run 73): the Android app moves from TWA to Capacitor** (`android/README.md`). Testers would not take a TWA. `npm run build:app` (`CAP_BUILD=1`: base `/`, `dist-app/`, PWA plugin disabled) then `cap sync`; `capacitor.config.ts` (appId `app.joshmakesgames.cozyacres`, system bars hidden, `--safe-area-inset-*` CSS vars, used by `--safe-*` in styles.css); `src/core/Native.ts` (`isNative`, `SITE_URL`, `PLAY_URL`, `AUTH_RETURN`, `openExternal`, `onDeepLink`); Google sign-in in the app goes through the system browser and the deep link `app.joshmakesgames.cozyacres://auth` (`toGoogle`/`completeRedirect` in SupabaseBackend, `onDeepLink` in CloudSave), which must be in Supabase's redirect URLs; gift links use `SITE_URL`; push reports `'app'` (not in the app yet: FCM to do; the TWA had them through Chrome); no install button or SW update pill in the app; newer-save Update opens Play. Icons/splash `scripts/app-icons.py`. Workflow `.github/workflows/android.yml` (Java 21, SDK 36, same keystore secrets, versionCode from 5). Built and signed locally (debug and release). Game updates reach app players only through new app builds.
 
@@ -289,6 +291,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: 1.32.1 (local): Google sign-in in the Android app works when Android closed the game while the browser was open (launch link, durable sign-in storage).
 - 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
 - 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
 - 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
@@ -298,4 +301,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-24: 1.30.5 pushed; 1.31.0 (local): The Old Mine, 60 floors across the water from level 18, Mining skill, Smelter and Jeweller.
 - 2026-10-24: 1.30.4 pushed (deploy run 68); 1.30.5 (local): back in Photo mode only closes Photo mode (it broke the home view).
 - 2026-10-23: 1.30.3 pushed (deploy run 67); 1.30.4 (local): camera button in the home, hang your photos on picture frames (friends see them too).
-- 2026-10-23: 1.30.2 pushed (deploy run 66); 1.30.3 (local): a friend's farmer no longer shows twice in their home after changing rooms.

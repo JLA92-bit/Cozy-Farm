@@ -36,3 +36,37 @@ export function onDeepLink(cb: (url: string) => void): void {
   if (!isNative()) return;
   void import('@capacitor/app').then(({ App }) => App.addListener('appUrlOpen', (e) => cb(e.url)));
 }
+
+let launch: Promise<string | null> | null = null;
+/**
+ * The deep link the app was started with, or null. Android may close the game while Google is open in the browser
+ * (a 3D game is a big app); the link then starts the app afresh instead of reaching onDeepLink.
+ */
+export function launchLink(): Promise<string | null> {
+  if (!isNative()) return Promise.resolve(null);
+  launch ??= import('@capacitor/app').then(({ App }) => App.getLaunchUrl()).then((r) => r?.url ?? null, () => null);
+  return launch;
+}
+
+/**
+ * Storage that survives Android closing the app straight after a write (the app's settings store). Used for the
+ * sign-in steps only: the web view's localStorage reaches the disk a few seconds late. Null on the web.
+ */
+export const durable = isNative() ? {
+  async getItem(key: string): Promise<string | null> {
+    const { Preferences } = await import('@capacitor/preferences');
+    const { value } = await Preferences.get({ key }).catch(() => ({ value: null }));
+    if (value !== null) return value;
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  async setItem(key: string, value: string): Promise<void> {
+    try { localStorage.setItem(key, value); } catch { /* blocked */ }
+    const { Preferences } = await import('@capacitor/preferences');
+    await Preferences.set({ key, value }).catch(() => { /* localStorage still has it */ });
+  },
+  async removeItem(key: string): Promise<void> {
+    try { localStorage.removeItem(key); } catch { /* blocked */ }
+    const { Preferences } = await import('@capacitor/preferences');
+    await Preferences.remove({ key }).catch(() => { /* gone or not there */ });
+  },
+} : null;

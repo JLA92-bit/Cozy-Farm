@@ -1,5 +1,5 @@
 import type { AuthError, RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
-import { AUTH_RETURN, closeExternal, isNative, openExternal } from '../core/Native';
+import { AUTH_RETURN, closeExternal, durable, isNative, launchLink, openExternal } from '../core/Native';
 import { cleanClaim, cleanCoop } from './Coop';
 import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot } from './types';
 import type {
@@ -104,14 +104,16 @@ async function toGoogle(go: (o: { redirectTo: string; skipBrowserRedirect: boole
   return error;
 }
 
-function readIntent(): Intent | null {
+/** In the app the intent goes to durable storage too (Android may close the app while Google is open). */
+async function readIntent(): Promise<Intent | null> {
   try {
-    const raw = localStorage.getItem(INTENT_KEY);
+    const raw = durable ? await durable.getItem(INTENT_KEY) : localStorage.getItem(INTENT_KEY);
     const it = raw ? JSON.parse(raw) as Intent : null;
     return it && (it.mode === 'link' || it.mode === 'signin') && Date.now() - it.at < INTENT_MAX_AGE ? it : null;
   } catch { return null; }
 }
-function writeIntent(it: Intent | null): void {
+async function writeIntent(it: Intent | null): Promise<void> {
+  if (durable) { await (it ? durable.setItem(INTENT_KEY, JSON.stringify(it)) : durable.removeItem(INTENT_KEY)); return; }
   try { if (it) localStorage.setItem(INTENT_KEY, JSON.stringify(it)); else localStorage.removeItem(INTENT_KEY); } catch { /* blocked */ }
 }
 
@@ -162,7 +164,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       const { createClient } = await import('@supabase/supabase-js');
       this.client = createClient(this.url, this.anonKey, {
         // PKCE: Google sends the page back with ?code=..., exchanged in handleRedirect (not automatically)
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce', storageKey: 'cozy-acres-online-auth' },
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce', storageKey: 'cozy-acres-online-auth', ...(durable ? { storage: durable } : {}) },
         global: { fetch: timedFetch },
         realtime: { params: { eventsPerSecond: 2 } },
       });
@@ -178,7 +180,9 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     const sb = await this.ensureClient();
     if (!this.redirectChecked) {
       this.redirectChecked = true;
-      await this.handleRedirect(sb);
+      // the app started by Google's deep link (Android closed it while the browser was open)
+      const link = await launchLink();
+      await this.handleRedirect(sb, link?.startsWith(AUTH_RETURN) ? link : location.href);
     }
     const { data: got, error: sessErr } = await sb.auth.getSession();
     let user = got.session?.user ?? null;
@@ -210,8 +214,8 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     url.searchParams.forEach((v, k) => { p[k] = v; });
     const code = url.searchParams.get('code');
     if (!code && !p.error && !p.error_code) return;
-    const intent = readIntent();
-    writeIntent(null);
+    const intent = await readIntent();
+    await writeIntent(null);
     for (const k of AUTH_PARAMS) url.searchParams.delete(k);
     if (p.error || p.error_code || p.access_token) url.hash = '';
     if (page) { try { history.replaceState(history.state, '', url.toString()); } catch { /* sandboxed */ } }
@@ -229,10 +233,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     }
     const desc = p.error_description ?? '';
     if (intent.mode === 'link' && (p.error_code === 'identity_already_exists' || /already (linked|exists|registered)/i.test(desc))) {
-      writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now() });
+      await writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now() });
       const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
       if (!error) return; // leaving for Google again
-      writeIntent(null);
+      await writeIntent(null);
       this.authResult = { kind: 'error', message: error.message };
       return;
     }
@@ -273,17 +277,17 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (current && !current.is_anonymous) return; // already signed in with Google
     // keep the online identity (friend code, listings, gifts): link Google to this account
     if (current && this.mine) {
-      writeIntent({ mode: 'link', uid: current.id, at: Date.now() });
+      await writeIntent({ mode: 'link', uid: current.id, at: Date.now() });
       const error = await toGoogle((options) => sb.auth.linkIdentity({ provider: 'google', options }));
       if (!error) return; // leaving for Google
-      writeIntent(null);
+      await writeIntent(null);
       if (error.code !== 'identity_already_exists' && error.code !== 'manual_linking_disabled') throw this.fail(error);
       // "Manual linking" off in Supabase, or Google already used by another farm: sign in to that account instead
       console.warn('[online] could not link Google to this account, signing in instead:', error.message);
     }
-    writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now() });
+    await writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now() });
     const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
-    if (error) { writeIntent(null); throw this.fail(error); }
+    if (error) { await writeIntent(null); throw this.fail(error); }
   }
 
   /** In the app: Google sent the player back by deep link. Finish the sign-in like a page coming back would. */

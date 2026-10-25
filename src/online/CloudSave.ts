@@ -1,5 +1,5 @@
 import { LEVELS } from '../data';
-import { AUTH_RETURN, onDeepLink } from '../core/Native';
+import { AUTH_RETURN, isNative, launchLink, onDeepLink } from '../core/Native';
 import { game } from '../systems/Game';
 import { saves } from '../systems/Save';
 import { visiting } from '../systems/Visiting';
@@ -409,22 +409,27 @@ export function startCloud(): void {
       void onConnected(r ?? { kind: 'error', message: (e as Error)?.message ?? 'sign in failed' });
     }).finally(() => holdProfile(false));
   });
-  const returning = /[?&#](code|error|error_code)=/.test(location.search + location.hash);
-  if (returning || meta.signedIn) {
-    // keep the public profile untouched until we know which farm this account plays
-    if (returning) holdProfile(true);
-    online.init().then(() => onConnected(b.takeAuthResult()), (e) => {
-      console.warn('[cloud] could not connect yet', e);
-      // still tell the player how a sign-in they just made went
-      const r = b.takeAuthResult();
-      if (r) void onConnected(r);
-    })
-      .finally(() => holdProfile(false));
-  } else {
-    // connected later by online play: still notice a sign-in from another tab, etc.
-    let off = (): void => {};
-    off = b.onAccount((a) => { if (a && !a.anonymous) { off(); void onConnected(null); } });
-  }
+  const page = /[?&#](code|error|error_code)=/.test(location.search + location.hash);
+  // in the app, Google's deep link may have started the app afresh (launchLink): a return too
+  const connect = (returning: boolean): void => {
+    if (returning || meta.signedIn) {
+      // keep the public profile untouched until we know which farm this account plays
+      if (returning) holdProfile(true);
+      online.init().then(() => onConnected(b.takeAuthResult()), (e) => {
+        console.warn('[cloud] could not connect yet', e);
+        // still tell the player how a sign-in they just made went
+        const r = b.takeAuthResult();
+        if (r) void onConnected(r);
+      })
+        .finally(() => holdProfile(false));
+    } else {
+      // connected later by online play: still notice a sign-in from another tab, etc.
+      let off = (): void => {};
+      off = b.onAccount((a) => { if (a && !a.anonymous) { off(); void onConnected(null); } });
+    }
+  };
+  if (page || !isNative()) connect(page);
+  else void launchLink().then((link) => connect(!!link?.startsWith(AUTH_RETURN)));
   window.setInterval(() => {
     if (document.hidden || !signedIn() || asking || Date.now() < nextAt) return;
     if (!synced) void syncNow();
