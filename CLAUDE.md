@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 24 October 2026 (game version 1.31.0 committed locally; 1.30.5 and everything before it pushed and live). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
+Last updated: 25 October 2026 (game version 1.31.0 pushed, deploy run 70). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.31.0** (local). Live: 1.30.5; 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.31.0** (pushed 25 Oct, deploy run 70); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Trusted Web Activity built with Bubblewrap (`android/`) |
@@ -24,7 +24,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.31.0 (local, 24 Oct): The Old Mine** (`PLAN-1.31.md`, BALANCE.md "1.31"). An island across the water to the north (`MINE_AT` (0, 0, -130); floors drawn at `UNDER` (1400, 0, 0)), from level 18; Bram's restoration room `mine_entrance` opens it. `mine.json` (60 floors in 3 layers workings/caverns/deeps, rocks, drops, 4 pickaxes, carts, pools, geodes, chests on lift floors, Bram letters), `systems/Mine.ts` (floors seeded by farm seed + day + floor, 60 swings a day, ladder under a rock, lift every 5, state `mine` with `repairMine`), new skill `mining` (perks strong_arm, prospector, gem_sense, second_wind; bonus cart_luck), Smelter (18) and Jeweller (26), 35 items, Museum shelves deep/ancient/relics, wildlife set `underground` (place `mine`), 4 decor, 9 home pieces. 3D: `world/MineView.ts` (island, floors per layer palette, lantern light, `Environment.cave`), `models/mine.ts`, `MineGate.ts` (north beach), `scenes/Mine.ts` (ui `mine`, back climbs up then rows home), `MinePanel.ts` (lift, Bram's forge). Models `mine/*` (KayKit Dungeon Remastered, Kenney Tower Defense/Platformer/Graveyard; `ADD_ONLY='mine/*'`). Bram's bottom letter puts a home piece in storage (`letters.bottom.piece`). Swings save with `saves.saveSoon()` (debounced; hiding the app still saves at once). Boat theme `collectors` (Collector's Cruise) gives every mine find a repeat use. Place banners in rows (`.visit-banner.rows`, `.row-extra`: woods and mine island) and toasts sit under any banner (`ui/BannerSpace.ts` sets `--banner-bottom`). Debug `__mine`. Game only, no server change. 110 regression checks.
+**1.31.0 (pushed 25 Oct, deploy run 70): The Old Mine** (`PLAN-1.31.md`, BALANCE.md "1.31"). An island across the water to the north (`MINE_AT` (0, 0, -130); floors drawn at `UNDER` (1400, 0, 0)), from level 18; Bram's restoration room `mine_entrance` opens it. `mine.json` (60 floors in 3 layers workings/caverns/deeps, rocks, drops, 4 pickaxes, carts, pools, geodes, chests on lift floors, Bram letters), `systems/Mine.ts` (floors seeded by farm seed + day + floor, 60 swings a day, ladder under a rock, lift every 5, state `mine` with `repairMine`), new skill `mining` (perks strong_arm, prospector, gem_sense, second_wind; bonus cart_luck), Smelter (18) and Jeweller (26), 35 items, Museum shelves deep/ancient/relics, wildlife set `underground` (place `mine`), 4 decor, 9 home pieces. 3D: `world/MineView.ts` (island, floors per layer palette, lantern light, `Environment.cave`), `models/mine.ts`, `MineGate.ts` (north beach), `scenes/Mine.ts` (ui `mine`, back climbs up then rows home), `MinePanel.ts` (lift, Bram's forge). Models `mine/*` (KayKit Dungeon Remastered, Kenney Tower Defense/Platformer/Graveyard; `ADD_ONLY='mine/*'`). Bram's bottom letter puts a home piece in storage (`letters.bottom.piece`). Swings save with `saves.saveSoon()` (debounced; hiding the app still saves at once). Boat theme `collectors` (Collector's Cruise) gives every mine find a repeat use. Place banners in rows (`.visit-banner.rows`, `.row-extra`: woods and mine island) and toasts sit under any banner (`ui/BannerSpace.ts` sets `--banner-bottom`). Debug `__mine`. Game only, no server change. 110 regression checks.
 
 **1.30.5 (pushed 24 Oct):** fix: the phone's back in Photo mode left the home (or square, woods, visit) under it and kept the photo screen over nothing. Photo mode pushes its own history entry; `photoOwnsBack()` is checked first by every scene's popstate listener; closing with its button pops the entry again. 100 regression checks.
 
@@ -279,6 +279,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: 1.31.0 pushed (deploy run 70): The Old Mine, review fixes, slimmer place banners, the Collector's Cruise; regression farmhand checks no longer fail on festival days.
 - 2026-10-24: 1.30.5 pushed; 1.31.0 (local): The Old Mine, 60 floors across the water from level 18, Mining skill, Smelter and Jeweller.
 - 2026-10-24: 1.30.4 pushed (deploy run 68); 1.30.5 (local): back in Photo mode only closes Photo mode (it broke the home view).
 - 2026-10-23: 1.30.3 pushed (deploy run 67); 1.30.4 (local): camera button in the home, hang your photos on picture frames (friends see them too).
@@ -288,4 +289,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-23: 1.29.2 pushed (deploy run 63); 1.30.0 (local): patterned rugs, your farmer and villagers in the home, friends step inside and come over for coffee (server change).
 - 2026-10-23: 1.29.1 pushed (deploy run 62); 1.29.2 (local): books and small things go on wall shelves and inside bookcases, and ride with a moved shelf.
 - 2026-10-23: 1.29.0 pushed (deploy run 61); 1.29.1 (local): picked colours look the same on KayKit pieces as on every other piece.
-- 2026-10-23: 1.29.0 (local): Home Sweet Home, inside the Farmhouse (9 rooms, 257 pieces, paint and paper, per-part colours, pictures, looks, handmade and villager pieces).
