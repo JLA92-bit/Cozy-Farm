@@ -314,6 +314,14 @@ export async function signInWithGoogle(): Promise<void> {
   await b.signInWithGoogle();
 }
 
+/** "Sign in with Apple" (the iPhone app, Native.ts appleSignIn): the same as Google. */
+export async function signInWithApple(): Promise<void> {
+  const b = accountBackend();
+  if (!b) throw new Error('Online play is not switched on');
+  saves.save();
+  await b.signInWithApple();
+}
+
 /** "Save now" in Settings. Returns false when it could not save. */
 export async function saveToCloudNow(): Promise<boolean> {
   if (!signedIn()) return false;
@@ -354,13 +362,13 @@ function onConnected(result: AuthResult | null): Promise<void> {
   const b = accountBackend();
   const a = b?.account() ?? null;
   if (result) {
-    if (result.kind === 'linked' || result.kind === 'signedIn') toast('Signed in with Google', a?.email ? `Hello ${a.email}! Your farm will be backed up.` : 'Your farm will be backed up.', 'cloud', 'gold');
+    if (result.kind === 'linked' || result.kind === 'signedIn') toast(a?.provider === 'apple' ? 'Signed in with Apple' : 'Signed in with Google', a?.email ? `Hello ${a.email}! Your farm will be backed up.` : 'Your farm will be backed up.', 'cloud', 'gold');
     else if (result.kind === 'cancelled') toast('Sign in cancelled', 'Your farm is still saved on this device.', 'info');
     else toast('Could not sign in', 'Please try again in a moment.', 'cross', 'warn');
   }
   if (!a) return Promise.resolve();
   if (a.anonymous) {
-    if (meta.signedIn && !result) toast('Signed out', 'Sign in with Google in Settings to keep backing up your farm.', 'cloud');
+    if (meta.signedIn && !result) toast('Signed out', 'Sign in again in Settings to keep backing up your farm.', 'cloud');
     if (meta.signedIn || meta.uid) { meta = blankMeta(); writeMeta(); }
     notify();
     return Promise.resolve();
@@ -452,7 +460,8 @@ if (import.meta.env.DEV) {
   const fake: AccountBackend & { fail: boolean } = {
     fail: false,
     account: () => acct,
-    async signInWithGoogle() { acct = { id: 'fake-user', anonymous: false, email: 'farmer@example.com', name: 'Test Farmer' }; emit(); await onConnected({ kind: 'linked', switched: false }); },
+    async signInWithGoogle() { acct = { id: 'fake-user', anonymous: false, email: 'farmer@example.com', name: 'Test Farmer', provider: 'google' }; emit(); await onConnected({ kind: 'linked', switched: false }); },
+    async signInWithApple() { acct = { id: 'fake-user', anonymous: false, email: 'farmer@privaterelay.appleid.com', name: 'Test Farmer', provider: 'apple' }; emit(); await onConnected({ kind: 'linked', switched: false }); },
     async signOut() { acct = { id: `fake-anon-${Date.now()}`, anonymous: true, email: '', name: '' }; emit(); },
     async deleteAccount() { row = null; acct = { id: `fake-anon-${Date.now()}`, anonymous: true, email: '', name: '' }; emit(); },
     async loadCloud() { if (fake.fail) throw new Error('offline'); return row && JSON.parse(JSON.stringify(row)) as CloudRow; },

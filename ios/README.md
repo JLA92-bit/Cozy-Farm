@@ -38,6 +38,31 @@ The same as the Android app (table in `android/README.md`), plus:
 3. Once the Apple Developer membership is active: Xcode > Settings > Accounts > add the Apple ID, then in the App
    target > Signing & Capabilities pick the team (Automatically manage signing).
 
+## Sign in with Apple (App Store guideline 4.8)
+
+Google sign-in is offered, so the iPhone app must offer Sign in with Apple too. The code is ready behind a switch:
+`APPLE_SIGN_IN` in `src/core/Native.ts` (false until the steps below are done; the button only ever shows in the iPhone
+app, next to Google). It uses the same browser and deep link flow as Google (`signInVia` in `SupabaseBackend.ts`).
+
+Once the Apple Developer membership is active:
+
+1. developer.apple.com > Certificates, Identifiers & Profiles > Identifiers: the App ID
+   `app.joshmakesgames.cozyacres`, tick **Sign in with Apple**.
+2. Identifiers > + > **Services IDs**: e.g. `app.joshmakesgames.cozyacres.signin`, tick Sign in with Apple, Configure:
+   primary App ID as above, domain `<project>.supabase.co`, return URL
+   `https://<project>.supabase.co/auth/v1/callback` (the same callback Google uses; Supabase > Authentication >
+   Providers > Apple shows it).
+3. Keys > + > tick Sign in with Apple, download the `.p8` key (once only; keep it safe, never commit it). Note the Key ID
+   and the Team ID.
+4. Supabase > Authentication > Providers > **Apple**: switch on, Client IDs = the Services ID, and the secret key made
+   from the `.p8`, Key ID and Team ID (Supabase's Apple page links a generator). **The secret expires after 6 months**:
+   put a reminder in the calendar to make a new one.
+5. Set `APPLE_SIGN_IN = true`, `npm run build:ios`, try it in the Simulator or on the iPhone.
+
+Account deletion: Apple asks apps with Sign in with Apple to revoke the Apple token when a player deletes their
+account (guideline 5.1.1(v)). Settings > Delete my online account deletes everything on our side; revoking at Apple
+needs a small server function with the same key (to do before the App Store submission).
+
 ## Build and try it
 
 ```bash

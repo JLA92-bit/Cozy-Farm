@@ -5,8 +5,9 @@ import { game } from '../../systems/Game';
 import { hints } from '../../systems/Hints';
 import { audio } from '../../systems/Audio';
 import {
-  cloudHooks, cloudState, deleteOnlineAccount, signInWithGoogle, signOutOfGoogle, suggest, type FarmSummary,
+  cloudHooks, cloudState, deleteOnlineAccount, signInWithApple, signInWithGoogle, signOutOfGoogle, suggest, type FarmSummary,
 } from '../../online/CloudSave';
+import { appleSignIn } from '../../core/Native';
 import './account.css';
 
 /** The Google "G" (official colours), inline so it works offline and needs no extra request. */
@@ -39,6 +40,39 @@ export function googleButton(): HTMLButtonElement {
   return b;
 }
 
+/** The Apple logo, white, for "Sign in with Apple" (Apple's own button style: black, white logo and text). */
+const APPLE_LOGO = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M16.37 1.43c0 1.14-.49 2.27-1.18 3.08-.74.9-1.99 1.57-2.99 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-1.15.57-2.27 1.21-2.98.8-.94 2.14-1.64 3.25-1.68.03.13.05.28.05.43zm4.56 15.71c-.03.07-.46 1.58-1.52 3.12-.94 1.34-1.94 2.71-3.43 2.71-1.52 0-1.9-.88-3.63-.88-1.7 0-2.3.91-3.67.91-1.38 0-2.33-1.26-3.43-2.8-1.29-1.82-2.32-4.63-2.32-7.28 0-4.28 2.8-6.55 5.55-6.55 1.45 0 2.67.95 3.6.95.87 0 2.22-1.01 3.9-1.01.61 0 2.89.06 4.37 2.19-.13.09-2.38 1.37-2.38 4.19 0 3.26 2.85 4.42 2.96 4.45z"/></svg>';
+
+/** "Sign in with Apple" in Apple's style. Only in the iPhone app (appleSignIn), next to Google. */
+export function appleButton(): HTMLButtonElement {
+  const label = 'Sign in with Apple';
+  const b = h('button', { class: 'apple-btn', type: 'button' }, h('span', { class: 'a-logo', html: APPLE_LOGO }), h('span', { class: 'a-text' }, label));
+  if (!cloudState().available) { b.disabled = true; return b; }
+  b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (b.disabled) return;
+    b.disabled = true;
+    audio.play('tap');
+    b.querySelector('.a-text')!.textContent = 'Opening Apple...';
+    try {
+      await signInWithApple(); // leaves for Apple on success
+    } catch (err) {
+      console.warn('[account] sign in with Apple', err);
+      ui.feedback.toast('Could not reach Apple sign-in', 'Check your connection and try again. Your farm is safe on this device.', 'cloud', 'warn');
+    }
+    setTimeout(() => { b.disabled = false; b.querySelector('.a-text')!.textContent = label; }, 2500);
+  });
+  return b;
+}
+
+/** The sign-in buttons for this device: Apple and Google in the iPhone app, Google everywhere else. */
+export function signInButtons(): HTMLButtonElement[] {
+  return appleSignIn() ? [appleButton(), googleButton()] : [googleButton()];
+}
+
+/** "Sign in with Google", or just "Sign in" where Apple is offered too. */
+export const signInWords = (): string => (appleSignIn() ? 'Sign in' : 'Sign in with Google');
+
 export function ago(at: number): string {
   const m = Math.floor((Date.now() - at) / 60000);
   if (m < 1) return 'just now';
@@ -67,7 +101,7 @@ export function openCloudChoice(local: FarmSummary, cloud: FarmSummary & { devic
     const best = suggest(local, cloud);
     p.body.append(
       h('div', { class: 'center fc-intro' }, 'We found a farm in the cloud'),
-      h('div', { class: 'center', style: 'margin-bottom:10px' }, 'Your Google account already has a farm. Which one do you want to play?'),
+      h('div', { class: 'center', style: 'margin-bottom:10px' }, 'Your account already has a farm. Which one do you want to play?'),
       h('div', { class: 'farm-choices' },
         farmCard('On this device', local, 'Saved here', best === 'local'),
         farmCard('In the cloud', cloud, `Saved from ${cloud.device || 'another device'}${cloud.savedAt ? `, ${ago(cloud.savedAt)}` : ''}`, best === 'cloud')),
@@ -86,7 +120,7 @@ cloudHooks.ask = openCloudChoice;
 
 export function confirmSignOut(after: () => void): void {
   const p = new Panel({ title: 'Sign out?', size: 'small', color: 'blue', icon: 'cloud' });
-  p.body.append(h('div', { class: 'center' }, 'Your farm stays on this device, but it will not be backed up any more. Sign in with Google again any time to pick up your cloud farm.'));
+  p.body.append(h('div', { class: 'center' }, `Your farm stays on this device, but it will not be backed up any more. ${signInWords()} again any time to pick up your cloud farm.`));
   p.footer.append(button('Stay signed in', () => p.close(), 'green'), button('Sign out', async () => {
     p.close();
     try {
@@ -140,7 +174,7 @@ function maybeNudge(): void {
   const st = cloudState();
   if (!st.available || !st.account?.anonymous || game.level < NUDGE_LEVEL || !game.state.tutorial.done || Panel.isOpen) return;
   if (!hints.firstTime('cloud-backup')) return;
-  ui.feedback.toast('Back up your farm', 'Sign in with Google to keep it safe and play on other devices. Tap here.', 'cloud', 'tappable');
+  ui.feedback.toast('Back up your farm', `${signInWords()} to keep it safe and play on other devices. Tap here.`, 'cloud', 'tappable');
   const el = ui.feedback.toastStack.lastElementChild as HTMLElement | null;
   el?.addEventListener('click', () => { if (!Panel.isOpen) ui.open('settings'); }, { once: true });
 }

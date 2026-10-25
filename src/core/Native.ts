@@ -22,6 +22,14 @@ export const PLAY_URL = 'https://play.google.com/store/apps/details?id=app.joshm
 export const APP_STORE_URL = '';
 /** Where this app updates from: Google Play, the App Store (once it has a page) or nothing (the website). */
 export const storeUrl = (): string => (isIosApp() ? APP_STORE_URL : isAndroidApp() ? PLAY_URL : '');
+/**
+ * "Sign in with Apple" in the iPhone app (App Store guideline 4.8: Google sign-in is offered, so Apple must be too).
+ * Off until Apple is set up: an Apple Developer Services ID and key, and Apple switched on in Supabase (ios/README.md).
+ */
+export const APPLE_SIGN_IN = false;
+/** Show the Apple button: in the iPhone app, once it is switched on. */
+export const appleSignIn = (): boolean => APPLE_SIGN_IN && isIosApp();
+
 /** Where Google sends the player back to inside the app (also listed in Supabase > Auth > URL configuration). */
 export const AUTH_RETURN = 'app.joshmakesgames.cozyacres://auth';
 

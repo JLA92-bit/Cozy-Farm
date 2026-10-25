@@ -69,7 +69,7 @@ const INTENT_KEY = 'cozy-acres-auth-intent';
 const INTENT_MAX_AGE = 30 * 60000;
 /** URL parameters an OAuth return may carry; removed from the address bar once read. */
 const AUTH_PARAMS = ['code', 'error', 'error_code', 'error_description', 'sb_flow_id', 'state'];
-interface Intent { mode: 'link' | 'signin'; uid: string; at: number }
+interface Intent { mode: 'link' | 'signin'; uid: string; at: number; provider?: 'google' | 'apple' }
 const POLL_MS = 30000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Another player's name as the game shows it: 'Farmer' when the word filter does not like it (WordFilter.ts). */
@@ -98,10 +98,10 @@ const timedFetch: typeof fetch = (input, init) => {
 const returnUrl = (): string => (isNative() ? AUTH_RETURN : location.origin + location.pathname);
 
 /**
- * Leave for Google. On the web the page itself goes there; in the app Google cannot sign in inside the game's own
- * view, so the address is opened in the system browser and the deep link brings the player back (completeRedirect).
+ * Leave for Google (or Apple). On the web the page itself goes there; in the app they cannot sign in inside the game's
+ * own view, so the address is opened in the system browser and the deep link brings the player back (completeRedirect).
  */
-async function toGoogle(go: (o: { redirectTo: string; skipBrowserRedirect: boolean }) => Promise<{ data: { url?: string | null } | null; error: AuthError | null }>): Promise<AuthError | null> {
+async function toProvider(go: (o: { redirectTo: string; skipBrowserRedirect: boolean }) => Promise<{ data: { url?: string | null } | null; error: AuthError | null }>): Promise<AuthError | null> {
   const { data, error } = await go({ redirectTo: returnUrl(), skipBrowserRedirect: isNative() });
   if (!error && isNative() && data?.url) await openExternal(data.url);
   return error;
@@ -118,9 +118,10 @@ function writeIntent(it: Intent | null): void {
   try { if (it) localStorage.setItem(INTENT_KEY, JSON.stringify(it)); else localStorage.removeItem(INTENT_KEY); } catch { /* blocked */ }
 }
 
-/** Public account details from a supabase user (email and name come from Google). */
+/** Public account details from a supabase user (email and name come from Google or Apple). */
 function accountOf(u: User): AccountInfo {
-  const google = u.identities?.find((i) => i.provider === 'google')?.identity_data ?? {};
+  const ident = u.identities?.find((i) => i.provider === 'google') ?? u.identities?.find((i) => i.provider === 'apple');
+  const google = ident?.identity_data ?? {};
   const meta = u.user_metadata ?? {};
   const str = (...v: unknown[]) => (v.find((x) => typeof x === 'string' && x) as string | undefined) ?? '';
   return {
@@ -128,6 +129,7 @@ function accountOf(u: User): AccountInfo {
     anonymous: !!u.is_anonymous,
     email: str(u.email, google.email, meta.email),
     name: str(meta.full_name, meta.name, google.full_name, google.name),
+    provider: ident?.provider === 'apple' ? 'apple' : ident ? 'google' : undefined,
   };
 }
 
@@ -223,7 +225,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (code) {
       const { data, error } = await sb.auth.exchangeCodeForSession(code);
       if (error || !data.user) {
-        console.warn('[online] Google sign-in could not be finished', error);
+        console.warn('[online] sign-in could not be finished', error);
         this.authResult = { kind: 'error', message: error?.message ?? 'sign in failed' };
         return;
       }
@@ -232,9 +234,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     }
     const desc = p.error_description ?? '';
     if (intent.mode === 'link' && (p.error_code === 'identity_already_exists' || /already (linked|exists|registered)/i.test(desc))) {
-      writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now() });
-      const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
-      if (!error) return; // leaving for Google again
+      const provider = intent.provider ?? 'google';
+      writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now(), provider });
+      const error = await toProvider((options) => sb.auth.signInWithOAuth({ provider, options }));
+      if (!error) return; // leaving for Google (or Apple) again
       writeIntent(null);
       this.authResult = { kind: 'error', message: error.message };
       return;
@@ -265,7 +268,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     } catch (e) { throw this.fail(new OfflineError((e as Error)?.message)); }
   }
 
-  async signInWithGoogle(): Promise<void> {
+  async signInWithGoogle(): Promise<void> { await this.signInVia('google'); }
+  async signInWithApple(): Promise<void> { await this.signInVia('apple'); }
+
+  private async signInVia(provider: 'google' | 'apple'): Promise<void> {
     const sb = await this.ensureClient();
     await this.reachable();
     let current: User | null = null;
@@ -273,19 +279,19 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       await this.init(); // also finishes any pending redirect and loads the profile
       current = (await sb.auth.getSession()).data.session?.user ?? null;
     }
-    if (current && !current.is_anonymous) return; // already signed in with Google
-    // keep the online identity (friend code, listings, gifts): link Google to this account
+    if (current && !current.is_anonymous) return; // already signed in with Google or Apple
+    // keep the online identity (friend code, listings, gifts): link Google (or Apple) to this account
     if (current && this.mine) {
-      writeIntent({ mode: 'link', uid: current.id, at: Date.now() });
-      const error = await toGoogle((options) => sb.auth.linkIdentity({ provider: 'google', options }));
+      writeIntent({ mode: 'link', uid: current.id, at: Date.now(), provider });
+      const error = await toProvider((options) => sb.auth.linkIdentity({ provider, options }));
       if (!error) return; // leaving for Google
       writeIntent(null);
       if (error.code !== 'identity_already_exists' && error.code !== 'manual_linking_disabled') throw this.fail(error);
-      // "Manual linking" off in Supabase, or Google already used by another farm: sign in to that account instead
-      console.warn('[online] could not link Google to this account, signing in instead:', error.message);
+      // "Manual linking" off in Supabase, or the account already used by another farm: sign in to that account instead
+      console.warn(`[online] could not link ${provider} to this account, signing in instead:`, error.message);
     }
-    writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now() });
-    const error = await toGoogle((options) => sb.auth.signInWithOAuth({ provider: 'google', options }));
+    writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now(), provider });
+    const error = await toProvider((options) => sb.auth.signInWithOAuth({ provider, options }));
     if (error) { writeIntent(null); throw this.fail(error); }
   }
 

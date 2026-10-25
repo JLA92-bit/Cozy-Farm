@@ -34,3 +34,12 @@
 .farm-choice .fc-meta { font-size: 13px; }
 .online-settings .friend-code { color: var(--ink); font-size: 18px; letter-spacing: 1px; }
 .fc-intro { font-family: var(--font-display); font-size: 20px; margin-bottom: 4px; }
+/* Sign in with Apple (iPhone app): Apple's black button, same size as Google's */
+.apple-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #000;
+  background: #000; color: #fff; font-family: -apple-system, 'SF Pro Text', 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 500;
+  cursor: pointer; touch-action: manipulation; white-space: nowrap;
+}
+.apple-btn:disabled { cursor: default; opacity: .6; }
+.apple-btn .a-logo { display: inline-flex; width: 18px; height: 18px; margin-top: -2px; }

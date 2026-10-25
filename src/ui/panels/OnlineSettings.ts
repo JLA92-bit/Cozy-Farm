@@ -5,7 +5,7 @@ import { online } from '../../online/Online';
 import { publishProfile } from '../../online/Connect';
 import { onOnlineStatus, onlineStatus, onlineStatusLabel, type OnlineStatus } from '../../online/Status';
 import { cloudState, onCloud, saveToCloudNow, type CloudState } from '../../online/CloudSave';
-import { ago, confirmDeleteAccount, confirmSignOut, googleButton } from './AccountPanels';
+import { ago, confirmDeleteAccount, confirmSignOut, signInButtons } from './AccountPanels';
 
 const NOTES: Record<OnlineStatus, string> = {
   practice: 'Practice mode - demo neighbours. Friends, gifts and the market work on this device only, with pretend neighbours.',
@@ -59,12 +59,12 @@ function accountBox(): HTMLElement {
     box.replaceChildren();
     const deleteBtn = () => button([icon('cross'), 'Delete my online account'], () => confirmDeleteAccount(render), 'small red');
     if (!st.available) {
-      box.append(h('div', { class: 'account-row' }, googleButton()),
+      box.append(h('div', { class: 'account-row' }, ...signInButtons()),
         h('div', { class: 'muted account-note' }, 'Available when online play is switched on. Your farm is saved on this device.'));
       return;
     }
     if (!a || a.anonymous) {
-      box.append(h('div', { class: 'account-row' }, googleButton()),
+      box.append(h('div', { class: 'account-row' }, ...signInButtons()),
         h('div', { class: 'muted account-note' }, 'Back up your farm and play it on other devices, like the app. Your friend code stays the same.'));
       if (a) box.append(h('div', { class: 'account-actions' }, deleteBtn()));
       return;
@@ -80,7 +80,7 @@ function accountBox(): HTMLElement {
     }, 'small blue');
     saveBtn.disabled = st.status === 'saving' || st.status === 'newer';
     box.append(
-      h('div', { class: 'account-row' }, h('span', { class: 'account-who' }, `Signed in as ${a.email || a.name || 'your Google account'}`)),
+      h('div', { class: 'account-row' }, h('span', { class: 'account-who' }, `Signed in as ${a.email || a.name || (a.provider === 'apple' ? 'your Apple account' : 'your Google account')}`)),
       a.email && a.name ? h('div', { class: 'muted' }, a.name) : '',
       h('div', { class: 'account-row' }, line, saveBtn),
       h('div', { class: 'account-actions' }, button([icon('wave'), 'Sign out'], () => confirmSignOut(render), 'small blue'), deleteBtn()),

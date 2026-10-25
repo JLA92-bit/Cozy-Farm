@@ -310,6 +310,8 @@ export interface AccountInfo {
   anonymous: boolean;
   email: string;
   name: string;
+  /** how the player signed in (Apple only in the iPhone app; Native.ts appleSignIn) */
+  provider?: 'google' | 'apple';
 }
 
 /** One cloud save row (the player's whole farm, as exported). `updatedAt` is the server's exact timestamp text. */
@@ -339,6 +341,8 @@ export interface AccountBackend {
   account(): AccountInfo | null;
   /** Start "Sign in with Google" (leaves the page; the result is reported by takeAuthResult after the return). */
   signInWithGoogle(): Promise<void>;
+  /** "Sign in with Apple" (the iPhone app; App Store guideline 4.8): the same flow as Google. */
+  signInWithApple(): Promise<void>;
   /** 1.32 the Android app: Google sent the player back by deep link (`href`); finish the sign-in. */
   completeRedirect?(href: string): Promise<void>;
   /** Sign out on this device. The next connect makes a fresh anonymous account. */
