@@ -364,6 +364,7 @@ function onConnected(result: AuthResult | null): Promise<void> {
   if (result) {
     if (result.kind === 'linked' || result.kind === 'signedIn') toast(a?.provider === 'apple' ? 'Signed in with Apple' : 'Signed in with Google', a?.email ? `Hello ${a.email}! Your farm will be backed up.` : 'Your farm will be backed up.', 'cloud', 'gold');
     else if (result.kind === 'cancelled') toast('Sign in cancelled', 'Your farm is still saved on this device.', 'info');
+    else if (result.kind === 'error' && result.message === 'already has a farm') toast('That account already has a farm', 'Tap Sign in again to play it. The farm on this phone is kept in Settings.', 'cloud');
     else toast('Could not sign in', 'Please try again in a moment.', 'cross', 'warn');
   }
   if (!a) return Promise.resolve();

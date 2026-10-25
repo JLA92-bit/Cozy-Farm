@@ -6,6 +6,9 @@ import { publishProfile } from '../../online/Connect';
 import { onOnlineStatus, onlineStatus, onlineStatusLabel, type OnlineStatus } from '../../online/Status';
 import { cloudState, onCloud, saveToCloudNow, type CloudState } from '../../online/CloudSave';
 import { ago, confirmDeleteAccount, confirmSignOut, signInButtons } from './AccountPanels';
+import { Panel } from '../Panel';
+import { isNative } from '../../core/Native';
+import { signInSteps } from '../../online/SupabaseBackend';
 
 const NOTES: Record<OnlineStatus, string> = {
   practice: 'Practice mode - demo neighbours. Friends, gifts and the market work on this device only, with pretend neighbours.',
@@ -66,7 +69,7 @@ function accountBox(): HTMLElement {
     if (!a || a.anonymous) {
       box.append(h('div', { class: 'account-row' }, ...signInButtons()),
         h('div', { class: 'muted account-note' }, 'Back up your farm and play it on other devices, like the app. Your friend code stays the same.'));
-      if (a) box.append(h('div', { class: 'account-actions' }, deleteBtn()));
+      if (a) box.append(h('div', { class: 'account-actions' }, isNative() ? button('Sign-in steps', () => void openSignInSteps(), 'small grey') : null, deleteBtn()));
       return;
     }
     const line = h('span', { class: `cloud-line ${st.status === 'error' || st.status === 'newer' ? 'error' : ''}` }, icon('cloud'), CLOUD_TEXT[st.status](st.lastSync));
@@ -90,6 +93,20 @@ function accountBox(): HTMLElement {
   const timer = window.setInterval(render, 30000);
   render();
   return box;
+}
+
+/** 1.33.4 the app's last sign-in steps, for a screenshot when signing in goes wrong. */
+export async function openSignInSteps(): Promise<void> {
+  const steps = await signInSteps();
+  const p = new Panel({ title: 'Sign-in steps', icon: 'cloud', color: 'blue', size: 'small' });
+  p.body.append(
+    h('div', { class: 'muted', style: 'margin-bottom:8px' }, 'What happened the last times you signed in on this phone. If signing in does not work, send us a screenshot of this (Settings > Send feedback).'),
+    steps.length
+      ? h('div', { class: 'signin-steps' }, ...steps.slice().reverse().map((x) => h('div', null, h('b', null, new Date(x.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })), ` ${x.s}`)))
+      : h('div', { class: 'center muted' }, 'No sign-in tried on this phone yet.'),
+  );
+  p.footer.append(button('Close', () => p.close(), 'grey'));
+  p.open();
 }
 
 /** "Online play" section for the Settings panel: status, Google account and cloud save, friend code (with copy) and public name. */

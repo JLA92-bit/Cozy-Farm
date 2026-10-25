@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.33.4",
+   "date": "2026-10-25",
+   "title": "Signed In, Take Two",
+   "icon": "cloud",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "cloud",
+     "text": "Signing in with a Google account that already has a farm now works in the app: it tells you, and one more tap opens that farm"
+    }
+   ]
+  },
+  {
    "version": "1.33.3",
    "date": "2026-10-25",
    "title": "Fresh Off the Press",

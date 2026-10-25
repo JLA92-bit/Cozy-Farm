@@ -67,6 +67,10 @@ const REQUEST_TIMEOUT = 15000;
 /** What the player was doing when the page left for Google (so the return knows how to finish). */
 const INTENT_KEY = 'cozy-acres-auth-intent';
 const INTENT_MAX_AGE = 30 * 60000;
+/** 1.33.4 in the app: the sign-in steps of the last tries (Settings > Online play > Sign-in steps), for support */
+const TRAIL_KEY = 'cozy-acres-signin-trail';
+/** 1.33.4 in the app: this Google (or Apple) account already has its own farm, so the next tap signs in to it */
+const SWITCH_KEY = 'cozy-acres-auth-switch';
 /** URL parameters an OAuth return may carry; removed from the address bar once read. */
 const AUTH_PARAMS = ['code', 'error', 'error_code', 'error_description', 'sb_flow_id', 'state'];
 interface Intent { mode: 'link' | 'signin'; uid: string; at: number; provider?: 'google' | 'apple' }
@@ -105,6 +109,21 @@ async function toProvider(go: (o: { redirectTo: string; skipBrowserRedirect: boo
   const { data, error } = await go({ redirectTo: returnUrl(), skipBrowserRedirect: isNative() });
   if (!error && isNative() && data?.url) await openExternal(data.url);
   return error;
+}
+
+/** Note one sign-in step (kept on the device, newest last, at most 30). Never throws. */
+export function signInStep(step: string): void {
+  try {
+    const list = JSON.parse(localStorage.getItem(TRAIL_KEY) ?? '[]') as { t: number; s: string }[];
+    list.push({ t: Date.now(), s: step.slice(0, 160) });
+    const text = JSON.stringify(list.slice(-30));
+    localStorage.setItem(TRAIL_KEY, text);
+    void durable?.setItem(TRAIL_KEY, text);
+  } catch { /* storage blocked */ }
+}
+/** The sign-in steps kept on this device (Settings shows them in the app). */
+export async function signInSteps(): Promise<{ t: number; s: string }[]> {
+  try { return JSON.parse((durable ? await durable.getItem(TRAIL_KEY) : localStorage.getItem(TRAIL_KEY)) ?? '[]') as { t: number; s: string }[]; } catch { return []; }
 }
 
 /** In the app the intent goes to durable storage too (Android may close the app while Google is open). */
@@ -155,6 +174,8 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   private accountSubs = new Set<(a: AccountInfo | null) => void>();
   private redirectChecked = false;
   private authResult: AuthResult | null = null;
+  /** returns already handled (a code or an error), so a second copy of the same link does nothing */
+  private handled = new Set<string>();
 
   constructor(private url: string, private anonKey: string) {}
 
@@ -187,6 +208,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       this.redirectChecked = true;
       // the app started by Google's deep link (Android closed it while the browser was open)
       const link = await launchLink();
+      if (link?.startsWith(AUTH_RETURN)) signInStep('app started by the sign-in link');
       await this.handleRedirect(sb, link?.startsWith(AUTH_RETURN) ? link : location.href);
     }
     const { data: got, error: sessErr } = await sb.auth.getSession();
@@ -219,8 +241,13 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     url.searchParams.forEach((v, k) => { p[k] = v; });
     const code = url.searchParams.get('code');
     if (!code && !p.error && !p.error_code) return;
+    // the same return can arrive twice in the app (the launch link and the deep link event): handle it once
+    const key = code ?? `${p.error_code ?? p.error}`;
+    if (this.handled.has(key)) { signInStep('return seen twice, ignored'); return; }
+    this.handled.add(key);
     const intent = await readIntent();
     await writeIntent(null);
+    signInStep(`back from sign-in: ${code ? 'code' : `error ${p.error_code ?? p.error}`}, ${intent ? `intent ${intent.mode}` : 'no intent'}${page ? '' : ' (app link)'}`);
     for (const k of AUTH_PARAMS) url.searchParams.delete(k);
     if (p.error || p.error_code || p.access_token) url.hash = '';
     if (page) { try { history.replaceState(history.state, '', url.toString()); } catch { /* sandboxed */ } }
@@ -228,6 +255,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     if (!intent) return;
     if (code) {
       const { data, error } = await sb.auth.exchangeCodeForSession(code);
+      signInStep(error || !data.user ? `code exchange failed: ${error?.message ?? 'no user'}` : `signed in (${data.user.is_anonymous ? 'still anonymous' : 'account'})`);
       if (error || !data.user) {
         console.warn('[online] sign-in could not be finished', error);
         this.authResult = { kind: 'error', message: error?.message ?? 'sign in failed' };
@@ -239,6 +267,14 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     const desc = p.error_description ?? '';
     if (intent.mode === 'link' && (p.error_code === 'identity_already_exists' || /already (linked|exists|registered)/i.test(desc))) {
       const provider = intent.provider ?? 'google';
+      // in the app a second trip started without a tap can be stopped by the browser on its way back: ask for a tap
+      if (isNative()) {
+        try { localStorage.setItem(SWITCH_KEY, provider); } catch { /* blocked */ }
+        await durable?.setItem(SWITCH_KEY, provider);
+        signInStep('account already has a farm: asking for one more tap');
+        this.authResult = { kind: 'error', message: 'already has a farm' };
+        return;
+      }
       await writeIntent({ mode: 'signin', uid: intent.uid, at: Date.now(), provider });
       const error = await toProvider((options) => sb.auth.signInWithOAuth({ provider, options }));
       if (!error) return; // leaving for Google (or Apple) again
@@ -283,24 +319,30 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
       await this.init(); // also finishes any pending redirect and loads the profile
       current = (await sb.auth.getSession()).data.session?.user ?? null;
     }
-    if (current && !current.is_anonymous) return; // already signed in with Google or Apple
+    if (current && !current.is_anonymous) { signInStep('already signed in'); return; } // already signed in with Google or Apple
+    // in the app, after "this account already has a farm": sign in to that farm's account straight away
+    const switching = (durable ? await durable.getItem(SWITCH_KEY) : null) === provider;
+    if (switching) await durable?.removeItem(SWITCH_KEY);
+    signInStep(`start ${provider}: ${switching ? 'sign in to its farm' : current && this.mine ? 'link to this farm' : 'sign in'}`);
     // keep the online identity (friend code, listings, gifts): link Google (or Apple) to this account
-    if (current && this.mine) {
+    if (current && this.mine && !switching) {
       await writeIntent({ mode: 'link', uid: current.id, at: Date.now(), provider });
       const error = await toProvider((options) => sb.auth.linkIdentity({ provider, options }));
       if (!error) return; // leaving for Google
       await writeIntent(null);
+      signInStep(`link refused at once: ${error.code ?? error.message}`);
       if (error.code !== 'identity_already_exists' && error.code !== 'manual_linking_disabled') throw this.fail(error);
       // "Manual linking" off in Supabase, or the account already used by another farm: sign in to that account instead
       console.warn(`[online] could not link ${provider} to this account, signing in instead:`, error.message);
     }
     await writeIntent({ mode: 'signin', uid: current?.id ?? '', at: Date.now(), provider });
     const error = await toProvider((options) => sb.auth.signInWithOAuth({ provider, options }));
-    if (error) { await writeIntent(null); throw this.fail(error); }
+    if (error) { await writeIntent(null); signInStep(`could not start: ${error.message}`); throw this.fail(error); }
   }
 
   /** In the app: Google sent the player back by deep link. Finish the sign-in like a page coming back would. */
   async completeRedirect(href: string): Promise<void> {
+    signInStep('app link received');
     const sb = await this.ensureClient();
     await closeExternal();
     await this.handleRedirect(sb, href);
