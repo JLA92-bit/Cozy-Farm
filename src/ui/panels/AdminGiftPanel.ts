@@ -4,7 +4,8 @@ import { ui } from '../UI';
 import { audio } from '../../systems/Audio';
 import { adminGiftHooks } from '../../online/Activity';
 import type { AdminGift } from '../../online/types';
-import { ITEMS } from '../../data';
+import { giftItemKey } from '../../systems/AdminGifts';
+import { starIcon } from '../QualityUI';
 import './friends.css';
 
 /** "A gift from Cozy Acres": a developer gift that has already been added to the farm. Resolves when closed. */
@@ -14,7 +15,10 @@ function showAdminGift(g: AdminGift): Promise<void> {
     const row = h('div', { class: 'gift-contents', style: 'justify-content:center;margin:10px 0' });
     if (g.coins) row.append(h('span', { class: 'gift-chip' }, icon('coin'), fmt(g.coins)));
     if (g.gems) row.append(h('span', { class: 'gift-chip' }, icon('gem'), fmt(g.gems)));
-    for (const [k, n] of Object.entries(g.items ?? {})) if (ITEMS[k]) row.append(h('span', { class: 'gift-chip' }, itemIcon(k), `x${fmt(n)}`));
+    for (const [k, n] of Object.entries(g.items ?? {})) {
+      const key = giftItemKey(k);
+      if (key) row.append(h('span', { class: 'gift-chip' }, itemIcon(key.item), key.quality ? starIcon(key.quality) : null, `x${fmt(n)}`));
+    }
     if (g.land) row.append(h('span', { class: 'gift-chip' }, icon('map'), `${g.land} land ${g.land === 1 ? 'plot' : 'plots'}`));
     p.body.append(h('div', { class: 'center', style: 'font-size:18px' }, 'From the Cozy Acres team'));
     if (g.message) p.body.append(h('div', { class: 'gift-msg center', style: 'margin-top:8px' }, `"${g.message}"`));

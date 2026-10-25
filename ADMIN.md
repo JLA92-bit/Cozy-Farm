@@ -41,6 +41,26 @@ Keep two-step verification on that Google account: it is the key to the dashboar
 | **Requests** | Ask a friend (1.8): open and filled requests, what friends sent and when Hazel stepped in. |
 | **System & log** | Database size against the free plan, table sizes, scheduled jobs and failures, removing old empty accounts, and the admin log. |
 
+## Needs: gifting what a player is missing
+
+Player page > **Needs** (`admin/src/views/needs.ts`) reads the player's cloud save (Google players only) and lists
+what they are working towards, each with progress and what is still missing:
+
+- **Today's requests:** the order board, the delivery truck, the boat visitor, Help Wanted and Wren's field note.
+- **Building projects:** every square room, Manor wing, Estate stage, woods trail, Elder Oak stage, treehouse piece
+  and the Old Mine entrance not finished yet, bundle by bundle (wanted, put in, what they hold that counts, missing).
+  Open ones come first; locked ones are folded under "Locked for now", with why (level, the Village Festival, or the
+  stage before).
+- **Next pickaxe** (Bram, the Old Mine), **Upgrades** (coins only: Farmhouse and buildings) and **Quests** (shown
+  for status only: they count what the player does, so they cannot be gifted).
+
+Missing items in open projects and today's requests start ticked; coins never do. Change numbers, tick or untick,
+then **Gift selected**: one developer gift (`admin_give`), so it shows under Developer gifts on the Support tab and
+on the Gifts page, and arrives the next time they open the game. Bundles that want silver or gold send starred items
+(`silver__<item>` / `gold__<item>` keys, game 1.31.2 and later; older games cannot take them, so those rows are
+greyed out). The save can be a little behind what they have on their phone, and an unopened developer gift is not in
+it yet (the tab says so).
+
 ## Locking a player
 
 On a player's page, **Lock account** (toolbar, Lock). Pick how long (1 hour to 30 days, a date and time of your choice, or no end date) and type the reason: the player sees exactly what the preview shows, a full-screen notice over the game with your reason, the end date and a live countdown. They cannot play while it shows, and the server refuses their gifts, market, help and likes, Ask a friend, Village Projects, farm sharing and reward codes. They are hidden from the leaderboards and put back when the lock ends (unless you had hidden them before). **Change lock** replaces it; **Unlock now** lifts it. The page header shows the lock with a countdown, the Support tab lists every lock they have had, and each lock and unlock is in the admin log. The game checks for a lock when it opens, every 5 minutes, and straight away when the server refuses something; the last known lock also shows offline and lifts by itself when its time runs out. Needs the `account locks` section of `supabase/schema.sql`.

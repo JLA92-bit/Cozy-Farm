@@ -3,6 +3,7 @@ import { rpc, type PlayerDetail } from '../api';
 import { h, num, minutes, ago, date, loading, badge, modal, confirmAction, confirmTyped, toast, fail, download, slug, today, field, copyText, bytes, compact, pct } from '../ui';
 import { calendar, bars, chartCard, type Point } from '../charts';
 import { giftForm, describeGift } from '../giftForm';
+import { needsTab, type NeedsSave } from './needs';
 import { saveFromSnapshot, suggestedMoney, farmLinkData, farmMap } from '../restore';
 import { refreshBadges } from '../main';
 import {
@@ -18,7 +19,7 @@ import {
 
 const PLATFORM: Record<string, string> = { android: 'Play app', pwa: 'Web app', web: 'Browser', ios: 'iOS' };
 const TABS = [
-  ['overview', 'Overview'], ['farm', 'Farm'], ['barn', 'Barn and items'], ['progress', 'Progress'], ['stats', 'Lifetime stats'],
+  ['overview', 'Overview'], ['farm', 'Farm'], ['barn', 'Barn and items'], ['progress', 'Progress'], ['needs', 'Needs'], ['stats', 'Lifetime stats'],
   ['activity', 'Activity'], ['social', 'Friends and social'], ['support', 'Support'], ['raw', 'Raw data'],
 ] as const;
 type Tab = typeof TABS[number][0];
@@ -181,6 +182,7 @@ function tabContent(t: Tab, c: Ctx): HTMLElement[] {
       case 'farm': return farmTab(c);
       case 'barn': return barnTab(c);
       case 'progress': return progressTab(c);
+      case 'needs': return needsFor(c);
       case 'stats': return statsTab(c);
       case 'activity': return activityTab(c);
       case 'social': return socialTab(c);
@@ -525,6 +527,28 @@ function barnTab(c: Ctx): HTMLElement[] {
 }
 
 // ------------------------------------------------------------------------------------------- progress
+
+/** The Needs tab (views/needs.ts): what the player is working towards, gifted in one press as a developer gift. */
+function needsFor(c: Ctx): HTMLElement[] {
+  const { d } = c;
+  const days = [...d.days].sort((a, b) => (a.last_at < b.last_at ? 1 : -1));
+  return needsTab(c.save as NeedsSave | null, {
+    name: nameOfPlayer(c),
+    savedAt: d.cloud?.updated_at ?? null,
+    // the version their game reported when they last played (lastSeenVersion only moves when What's new is read)
+    version: days[0]?.version ?? c.save?.lastSeenVersion ?? null,
+    pendingGifts: d.adminGifts.filter((g) => !g.claimed_at).length,
+    give: async (items, coins, message) => {
+      try {
+        await rpc('admin_give', { p_ids: [d.id], p_audience: null, p_coins: coins, p_gems: 0, p_items: items, p_land: 0, p_message: message || null });
+        toast(`Gift on its way: ${describeGift({ coins, gems: 0, land: 0, items })}`);
+        await c.redraw();
+        refreshBadges();
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
+  });
+}
 
 function progressTab(c: Ctx): HTMLElement[] {
   const s = c.save;

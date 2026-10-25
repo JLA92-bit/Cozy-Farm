@@ -74,6 +74,7 @@ import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
 import { watchAccountLock } from '../online/Lock';
 import { startActivity } from '../online/Activity';
+import { applyAdminGift } from '../systems/AdminGifts';
 import { startCloud } from '../online/CloudSave';
 import { startNotifications } from '../notify/Push';
 import { wireAccountNudge } from '../ui/panels/AccountPanels';
@@ -266,7 +267,7 @@ export async function boot(): Promise<void> {
   setTimeout(() => festivals.announce(), 4000);
   if (saves.recoveredFromBackup) setTimeout(() => ui.feedback.toast('Farm restored', 'Your last save could not be read, so we loaded the backup.', 'heart'), 1200);
   if (saves.unreadableKept) setTimeout(() => ui.feedback.toast('Your old save could not be read', 'A copy is kept safely on this device. Send us a note from Settings > Feedback and we will help.', 'info'), 1200);
-  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills, __master: master, __restoration: restoration, __boat: boatvisit, __buildings: buildings, __village: { village, rewards: villageRewards }, __farmhands: farmhands, __mastery: mastery, __coop: coop, __online: online });
+  Object.assign(window as unknown as Record<string, unknown>, { __scene: scene, __game: game, __ui: ui, __interaction: interaction, __player: player, __villagers: villagers, __skills: skills, __master: master, __restoration: restoration, __boat: boatvisit, __buildings: buildings, __village: { village, rewards: villageRewards }, __farmhands: farmhands, __mastery: mastery, __coop: coop, __online: online, __adminGift: applyAdminGift });
   setTimeout(() => { document.getElementById('boot-screen')?.classList.add('hidden'); stopHints(); }, 150);
 }
 

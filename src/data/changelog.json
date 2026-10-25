@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.31.2",
+   "date": "2026-10-25",
+   "title": "A Helping Hand",
+   "icon": "gift",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "gift",
+     "text": "Gifts from the Cozy Acres team can now include silver and gold items, so we can help with projects that ask for the best goods"
+    }
+   ]
+  },
+  {
    "version": "1.31.1",
    "date": "2026-10-25",
    "title": "A Little Elbow Room",

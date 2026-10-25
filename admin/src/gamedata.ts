@@ -20,12 +20,20 @@ import farmhandsJson from '../../src/data/farmhands.json';
 import recipesJson from '../../src/data/recipes.json';
 import levelsJson from '../../src/data/levels.json';
 import changelogJson from '../../src/data/changelog.json';
+import mineJson from '../../src/data/mine.json';
+import upkeepJson from '../../src/data/upkeep.json';
 
 type Named = { id: string; name: string };
-interface Room extends Named { icon?: string; villager?: string; opensAt?: number; bundles?: { id: string; name: string; wants: Record<string, number> }[] }
+export interface Room extends Named { icon?: string; villager?: string; opensAt?: number; bundles?: { id: string; name: string; wants: Record<string, number>; minStar?: number }[] }
 
 export const ITEMS = (itemsJson as unknown as { items: Record<string, { name: string; cat?: string; sell?: number; icon?: string }> }).items;
-export const BUILDINGS = (buildingsJson as unknown as { buildings: (Named & { cat: string; level: number; cost: number; size: number[]; icon?: string; animal?: string; tree?: string; path?: boolean })[] }).buildings;
+export const BUILDINGS = (buildingsJson as unknown as { buildings: (Named & { cat: string; level: number; cost: number; size: number[]; icon?: string; animal?: string; tree?: string; path?: boolean; upgradeMult?: number })[] }).buildings;
+/** Farmhouse levels and building upgrade costs (coins only), as in Buildings.upgradeInfo in the game */
+export const FARMHOUSE_LEVELS = (buildingsJson as unknown as { farmhouse: { levels: { level: number; playerLevel: number; cost: number }[] } }).farmhouse.levels;
+export const UPGRADE_LEVELS = (buildingsJson as unknown as { upgrades: { production: { levels: { cost: number }[] }; animal: { levels: { cost: number }[] } } }).upgrades;
+export const CARE_LEVELS = (upkeepJson as unknown as { care: { levels: { cost: number; playerLevel: number }[] } }).care.levels;
+/** 1.31 the Old Mine: the entrance room and Bram's pickaxes */
+export const MINE = mineJson as unknown as { level: number; entrance: Room; pickaxes: { id: string; name: string; coins: number; needs: Record<string, number> }[] };
 export const BUILDING = new Map(BUILDINGS.map((b) => [b.id, b]));
 export const CROPS = (cropsJson as unknown as { crops: (Named & { level: number })[]; trees: (Named & { item: string })[] });
 export const ANIMALS = (animalsJson as unknown as { animals: (Named & { house: string; product: string })[] }).animals;
@@ -49,7 +57,19 @@ export const PROJECT_GROUPS: { id: string; name: string; rooms: Room[] }[] = [
   { id: 'trails', name: 'Wild Woods trails', rooms: woods.trails },
   { id: 'grove', name: 'The Elder Oak', rooms: woods.grove.stages },
   { id: 'treehouse', name: 'The Treehouse', rooms: [...woods.treehouse.stages, ...woods.treehouse.furnishings] },
+  { id: 'mine', name: 'The Old Mine', rooms: [MINE.entrance] },
 ];
+/** the room each room waits for: wings, estate stages, oak stages and treehouse stages open one after another, and the
+ * treehouse furnishings once its roof is on */
+export const WAITS_FOR = new Map<string, string>();
+for (const g of PROJECT_GROUPS) {
+  if (!['manor', 'clock', 'lighthouse', 'grove'].includes(g.id)) continue;
+  g.rooms.forEach((r, i) => { if (i) WAITS_FOR.set(r.id, g.rooms[i - 1].id); });
+}
+woods.treehouse.stages.forEach((r, i) => { if (i) WAITS_FOR.set(r.id, woods.treehouse.stages[i - 1].id); });
+for (const r of woods.treehouse.furnishings) WAITS_FOR.set(r.id, woods.treehouse.stages[woods.treehouse.stages.length - 1].id);
+/** groups that wait for the Village Festival (all six square rooms) */
+export const AFTER_FESTIVAL = new Set(['manor', 'clock', 'lighthouse']);
 
 const NAMES = new Map<string, string>();
 const add = (id: string | undefined, name: string | undefined) => { if (id && name && !NAMES.has(id)) NAMES.set(id, name); };

@@ -1103,6 +1103,15 @@ try {
     await page.waitForTimeout(3500);
     const home = await page.evaluate(() => window.__mine.active);
     check('down to floor 1 and back up to the island, then home', on1.floor === 1 && on1.rocks >= 12 && on1.banner && up.active && up.floor === 0 && !home, JSON.stringify({ on1, up, home }));
+    // 1.31.2 a developer gift can carry silver and gold items (the dashboard's Needs tab sends them for star bundles)
+    const gift = await page.evaluate(() => {
+      const g = window.__game;
+      const q0 = g.qualityCounts('strawberry');
+      const got = window.__adminGift({ id: 'x', coins: 0, gems: 0, land: 0, message: 'test', items: { strawberry: 3, silver__strawberry: 2, gold__strawberry: 4, gold__not_an_item: 9, silver__: 1 } });
+      const q1 = g.qualityCounts('strawberry');
+      return { added: [q1[0] - q0[0], q1[1] - q0[1], q1[2] - q0[2]], listed: got.items };
+    });
+    check('a developer gift adds silver and gold items, and skips unknown ones', gift.added.join() === '3,2,4' && JSON.stringify(gift.listed) === JSON.stringify({ strawberry: 9 }), JSON.stringify(gift));
     check('the mine has no errors', errors.length === 0, errors.join(' | '));
   }
 

@@ -50,6 +50,10 @@ export function describeGift(g: { coins: number; gems: number; land: number; ite
   if (g.coins) parts.push(`${num(g.coins)} coins`);
   if (g.gems) parts.push(`${num(g.gems)} gems`);
   if (g.land) parts.push(`${g.land} land ${g.land === 1 ? 'plot' : 'plots'}`);
-  for (const [k, v] of Object.entries(g.items ?? {})) parts.push(`${num(v)} ${ITEMS[k]?.name ?? k}`);
+  for (const [k, v] of Object.entries(g.items ?? {})) {
+    // 1.31.2 silver__<id> / gold__<id>: a starred item (sent by the player page's Needs tab)
+    const m = /^(silver|gold)__(.+)$/.exec(k);
+    parts.push(`${num(v)} ${m ? `${m[1] === 'gold' ? 'gold' : 'silver'} ${ITEMS[m[2]]?.name ?? m[2]}` : ITEMS[k]?.name ?? k}`);
+  }
   return parts.join(', ') || 'nothing';
 }

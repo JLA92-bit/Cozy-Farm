@@ -5,6 +5,17 @@ import { saves } from './Save';
 import { mail } from './Mail';
 import type { AdminGift } from '../online/types';
 
+/**
+ * 1.31.2 a gift's item key may ask for a quality: `silver__<item>` or `gold__<item>` (the dashboard's Needs tab sends
+ * these for bundles that want starred goods). Plain ids are normal quality. Null for anything not a real item.
+ */
+export function giftItemKey(key: string): { item: string; quality: 0 | 1 | 2 } | null {
+  const m = /^(silver|gold)__(.+)$/.exec(key);
+  const item = m ? m[2] : key;
+  if (!ITEMS[item]) return null;
+  return { item, quality: m ? (m[1] === 'gold' ? 2 : 1) : 0 };
+}
+
 /** What a developer gift actually added (unknown items are skipped; land stops when the map is full). */
 export interface AppliedGift { coins: number; gems: number; items: Record<string, number>; land: number }
 
@@ -13,10 +24,15 @@ export interface AppliedGift { coins: number; gems: number; items: Record<string
  * them (later plots cost the same as if they had been bought), but free and without the expansion XP.
  */
 export function applyAdminGift(g: AdminGift): AppliedGift {
+  // `items` is what the letter lists (plain ids, all qualities together)
   const items: Record<string, number> = {};
-  for (const [k, n] of Object.entries(g.items ?? {})) if (ITEMS[k] && n > 0) items[k] = Math.floor(n);
+  for (const [k, raw] of Object.entries(g.items ?? {})) {
+    const key = giftItemKey(k), n = Math.floor(raw);
+    if (!key || !(n > 0)) continue;
+    game.addItem(key.item, n, undefined, key.quality);
+    items[key.item] = (items[key.item] ?? 0) + n;
+  }
   const coins = Math.max(0, Math.floor(g.coins) || 0), gems = Math.max(0, Math.floor(g.gems) || 0);
-  for (const [k, n] of Object.entries(items)) game.addItem(k, n);
   if (coins) game.addCoins(coins);
   if (gems) game.addGems(gems);
   let plots = 0;

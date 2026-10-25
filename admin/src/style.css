@@ -269,3 +269,31 @@ pre.json { font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; backg
 .lock-preview-reason { background: #fff; border: 1px solid #f7e6bd; border-radius: 10px; padding: 8px 10px; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; }
 .lock-preview-count { font-family: var(--display); font-size: 22px; color: #b1302d; }
 .lock-preview .muted { color: #6b4f35; }
+
+/* player page, Needs tab (views/needs.ts) */
+.needs-group h4 { margin: 14px 0 6px; }
+.needs-block { border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; background: var(--surface-1); }
+.needs-block > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0; }
+.needs-block .progress { margin: 6px 0 8px; }
+.needs-bundle { margin: 6px 0 10px; }
+.needs-bundle-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.needs-table td, .needs-table th { vertical-align: middle; }
+.needs-table .qty { width: 92px; text-align: right; padding: 4px 6px; }
+.needs-table input[type=checkbox] { width: 18px; height: 18px; }
+.needs-actions { display: flex; gap: 6px; margin: 4px 0 2px; }
+.needs-bar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 12px 16px; margin: 0 -4px 16px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.needs-bar .field { flex: 1 1 260px; margin: 0; }
+.needs-sum { font-weight: 800; align-self: center; }
+.needs-block, .needs-later { overflow-x: auto; }
+.needs-table .badge { white-space: nowrap; }
+@media (max-width: 640px) {
+  .needs-block { padding: 8px; }
+  .needs-table .qty { width: 58px; }
+  .needs-table .item-ico { display: none; }
+  /* the status badge says how many are missing: wants and put in can go */
+  .needs-table th:nth-child(3), .needs-table td:nth-child(3), .needs-table th:nth-child(4), .needs-table td:nth-child(4) { display: none; }
+  .needs-table td, .needs-table th { padding-left: 4px; padding-right: 4px; }
+}
+.needs-later { margin-top: 12px; }
+.needs-later > summary { cursor: pointer; padding: 6px 0; }
+@media (max-width: 640px) { .needs-table th { white-space: normal; } .needs-table { font-size: 13px; } }
