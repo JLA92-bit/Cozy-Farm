@@ -1072,3 +1072,6 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .lock-count { font-size: 26px; }
   .lock-help { margin-top: 4px; }
 }
+/* 1.33.3 update prompt (UpdatePrompt.ts): the gentle card; the must-update notice reuses the lock screen look */
+.update-card .update-title { font-family: var(--font-display); font-size: 22px; color: #fff; margin-bottom: 6px; }
+.update-screen .btn { margin-top: 6px; }

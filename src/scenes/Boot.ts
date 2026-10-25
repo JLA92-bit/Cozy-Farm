@@ -70,6 +70,7 @@ import { tutorial } from '../ui/Tutorial';
 import { ECONOMY } from '../data';
 import { festivals } from '../systems/Festivals';
 import { loadGameConfig } from '../online/GameConfig';
+import { startUpdateChecks } from '../ui/UpdatePrompt';
 import { openCharacter } from '../ui/panels/CharacterPanel';
 import { configureOnline, startOnlineSync } from '../online/Connect';
 import { watchAccountLock } from '../online/Lock';
@@ -262,6 +263,8 @@ export async function boot(): Promise<void> {
   refreshWhatsNewDot();
   // the dial can have changed since the cached copy used above: look again once the latest settings arrive
   void loadGameConfig().then(() => upkeep.check());
+  // 1.33.3 the store apps: an update is ready, or this version is too old to keep playing
+  startUpdateChecks();
   syncCollection19();
   game.bus.on('collection:new', ({ kind }) => { if (kind === 'item') syncCollection19(); });
   setTimeout(() => festivals.announce(), 4000);

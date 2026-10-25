@@ -4,7 +4,7 @@ import { h, num, ago, loading, toast, fail, field } from '../ui';
 /** admin_v19_overview, get_game_config and admin_set_game_config (supabase/schema.sql, "1.9 a year in the valley"). */
 interface V19 {
   generatedAt: string; days: number;
-  config: { upkeep?: number; market_day?: number; weather?: { date: string; kind: string }; coop?: boolean };
+  config: { upkeep?: number; market_day?: number; weather?: { date: string; kind: string }; coop?: boolean; app_min?: { android?: string; ios?: string } };
   festivals: { festival: string; plays: number; players: number; collected: number; threeStar: number }[];
   woods: { visitors: number; foragers: number; forages: number; diggers: number; digs: number; expeditions: number; expeditionsDone: number };
   museum: { givers: number; pieces: number; curators: number; shelves: { shelf: string; players: number }[] };
@@ -34,6 +34,18 @@ export async function year19View(host: HTMLElement): Promise<void> {
     const coopSel = h('select', null, h('option', { value: '', selected: o.config.coop !== false }, 'On (default)'), h('option', { value: 'off', selected: o.config.coop === false }, 'Off (resting)'));
     const wDate = h('input', { type: 'date', value: o.config.weather?.date ?? '' });
     const wKind = h('select', null, ['sunny', 'rain', 'mist'].map((k) => h('option', { value: k, selected: o.config.weather?.kind === k }, k)));
+    const minAndroid = h('input', { class: 'input', placeholder: 'e.g. 1.33.3', value: o.config.app_min?.android ?? '', 'aria-label': 'Android minimum version', style: 'width:110px' }) as HTMLInputElement;
+    const minIos = h('input', { class: 'input', placeholder: 'e.g. 1.33.3', value: o.config.app_min?.ios ?? '', 'aria-label': 'iPhone minimum version', style: 'width:110px' }) as HTMLInputElement;
+    const saveMin = () => {
+      const v: Record<string, string> = {};
+      for (const [k, el] of [['android', minAndroid], ['ios', minIos]] as const) {
+        const t = el.value.trim();
+        if (!t) continue;
+        if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(t)) { fail(new Error('Versions look like 1.33.3')); return; }
+        v[k] = t;
+      }
+      void set('app_min', Object.keys(v).length ? v : null);
+    };
     stats.replaceChildren(
       h('div', { class: 'page-head' },
         h('div', null, h('h1', null, '1.9 A Year in the Valley'), h('div', { class: 'muted small' }, `Updated ${ago(o.generatedAt)} - from game events (version 1.9 and later)`)),
@@ -50,7 +62,12 @@ export async function year19View(host: HTMLElement): Promise<void> {
           h('div', null, field('Weather for one day', h('div', { class: 'row' }, wDate, wKind), 'Forces the weather on that date for every player. Clear it to go back to normal.'),
             h('div', { class: 'row' },
               h('button', { class: 'btn', onclick: () => { if (!wDate.value) { fail(new Error('Pick a date first')); return; } void set('weather', { date: wDate.value, kind: wKind.value }); } }, 'Save weather'),
-              h('button', { class: 'btn', onclick: () => void set('weather', null) }, 'Clear'))))),
+              h('button', { class: 'btn', onclick: () => void set('weather', null) }, 'Clear'))),
+          h('div', null, field('Minimum app version (1.33.3)', h('div', { class: 'row' }, h('span', { class: 'small' }, 'Android'), minAndroid, h('span', { class: 'small' }, 'iPhone'), minIos),
+            'App players below this see a full-screen "Time to update" until they update (store apps only; the website updates itself). Only raise it once that build is live in the store. Newer versions already prompt players by themselves.'),
+            h('div', { class: 'row' },
+              h('button', { class: 'btn', onclick: saveMin }, 'Save minimum'),
+              h('button', { class: 'btn', onclick: () => void set('app_min', null) }, 'Clear'))))),
       h('div', { class: 'tiles' },
         tile('New woods visitors', num(o.woods.visitors), `${days} days`),
         tile('Forage picked', num(o.woods.forages), `${num(o.woods.foragers)} players`),

@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.33.3",
+   "date": "2026-10-25",
+   "title": "Fresh Off the Press",
+   "icon": "sparkles",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "sparkles",
+     "text": "The Cozy Acres app now tells you when a new version is ready in Google Play or the App Store, with one tap to update"
+    }
+   ]
+  },
+  {
    "version": "1.33.2",
    "date": "2026-10-25",
    "title": "Find It Fast",

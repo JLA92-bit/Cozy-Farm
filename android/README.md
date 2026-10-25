@@ -49,4 +49,5 @@ cd android && ./gradlew assembleDebug -PversionCode=5 -PversionName=1.32.0
 
 Icons and splash screens come from `public/icons` (`python3 scripts/app-icons.py`, needs Pillow). Plugins: App
 (deep links, and `getLaunchUrl` when Google's link starts the app afresh), Browser (Google sign-in) and Preferences
-(sign-in steps kept safe if Android closes the app meanwhile); after adding another, run `npm run build:app` so `cap sync` wires it in.
+(sign-in steps kept safe if Android closes the app meanwhile), and App Update (`@capawesome/capacitor-app-update`,
+1.33.3: "Update ready" from Google Play, `src/ui/UpdatePrompt.ts`); after adding another, run `npm run build:app` so `cap sync` wires it in.

@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 25 October 2026 (game version 1.33.2 local on branch `ios-app`, with the cloud session's 1.32.1 merged; 1.33.1 pushed; Android versionCode 5 uploaded to the closed track; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
+Last updated: 25 October 2026 (game version 1.33.3 local on branch `ios-app`; 1.33.2 pushed (with the cloud session's 1.32.1); Android versionCode 6 uploaded, next build 7; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.33.2** (local; needs schema.sql run for 1.33.0 and 1.33.1); 1.33.1 and 1.33.0 pushed; 1.32.1 (Android sign-in fix, from the cloud session, merged here; needs an app build, versionCode 6); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.33.3** (local, needs schema.sql run); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -25,7 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.33.2 (local, 25 Oct):** the Furniture Catalogue search no longer closes the phone keyboard after each letter (the search box stays in the page; only the hint redraws).
+**1.33.3 (local, 25 Oct): update prompt in the store apps** (`src/ui/UpdatePrompt.ts`, plugin `@capawesome/capacitor-app-update`): when the store has a newer version, a card offers Update or Later (once a day per version; Android uses Google's in-app update screen when allowed; iPhone needs `APP_STORE_URL` with the app id). Dashboard 1.9 page "Minimum app version" sets game_config `app_min` ({android, ios}; schema.sql `admin_set_game_config` accepts it): below it a full-screen "Time to update". Raise it only once the build is live in that store. Debug `__update.card()`, `__update.must()`. Needs `schema.sql` re-run and an app build.
+
+**1.33.2 (pushed 25 Oct):** the Furniture Catalogue search no longer closes the phone keyboard after each letter (the search box stays in the page; only the hint redraws).
 
 **1.33.1 (pushed 25 Oct): word filter** (ONLINE.md "Word filter"): `src/data/wordfilter.json`, `systems/WordFilter.ts` (Decor's sign filter moved here), server section `word filter` (`is_friendly()` in `upsert_profile` and `send_gift`; validate-data checks the lists match). Refused when typed (name, gift notes and codes, room names, signs); other players' unkind names show as "Farmer" (SupabaseBackend `nm()`, FarmSnapshot, HomeShare, Coop). Needs `schema.sql` re-run.
 
@@ -192,7 +194,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Item | Value |
 | --- | --- |
 | Package name (permanent) | `app.joshmakesgames.cozyacres` |
-| Latest versionCode uploaded | **5** (Capacitor app, 1.32.0, closed track "Alpha", 25 Oct). Next build must use **6+**. |
+| Latest versionCode uploaded | **6** (Capacitor app, closed track "Alpha", 25 Oct). Next build must use **7+**. |
 | minSdkVersion | 24 (needed for Play automatic protection) |
 | Play app signing SHA-256 | `65:7E:42:04:98:23:2C:E0:E9:CE:5E:FD:5F:72:45:92:6D:DE:DB:4A:40:76:E5:51:F9:3E:2E:09:73:DA:4F:10` |
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
@@ -300,6 +302,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: 1.33.2 pushed (with 1.32.1 merged); versionCode 6 uploaded; 1.33.3 (local): update prompt in the store apps and a minimum app version on the dashboard.
 - 2026-10-25: 1.33.2 (local): catalogue search keeps the keyboard; merged the cloud session's 1.32.1 (Android sign-in survives Android closing the game); Sign in with Apple behind a switch; App Store listing pack and screenshots.
 - 2026-10-25: Mac session: iPhone app (`ios/`, runs in the Simulator); 1.33.0 pushed: reports and blocks, landscape side-button fix; 1.33.1 pushed: word filter.
 - 2026-10-25: 1.32.1 (local): Google sign-in in the Android app works when Android closed the game while the browser was open (launch link, durable sign-in storage).
@@ -309,4 +312,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-25: 1.31.1 pushed (deploy run 71); 1.31.2 (local): dashboard Needs tab (gift what a player is missing in one press), silver and gold items in developer gifts.
 - 2026-10-25: 1.31.1 (local): the mine jetty moved away from the fishing dock.
 - 2026-10-25: 1.31.0 pushed (deploy run 70): The Old Mine, review fixes, slimmer place banners, the Collector's Cruise; regression farmhand checks no longer fail on festival days.
-- 2026-10-24: 1.30.5 pushed; 1.31.0 (local): The Old Mine, 60 floors across the water from level 18, Mining skill, Smelter and Jeweller.
