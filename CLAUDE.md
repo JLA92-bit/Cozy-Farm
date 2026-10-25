@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 25 October 2026 (game version 1.32.0 committed locally; 1.31.2 and everything before it pushed and live, deploy run 72). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-21.md` (state, risks, next steps and a ready prompt).
+Last updated: 25 October 2026 (game version 1.32.0 pushed and live, deploy run 73; Android versionCode 5 uploaded to the closed track). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.32.0** (local). Live: 1.31.2 (deploy run 72); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.32.0** (pushed, deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -24,7 +24,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.32.0 (local, 25 Oct): the Android app moves from TWA to Capacitor** (`android/README.md`). Testers would not take a TWA. `npm run build:app` (`CAP_BUILD=1`: base `/`, `dist-app/`, PWA plugin disabled) then `cap sync`; `capacitor.config.ts` (appId `app.joshmakesgames.cozyacres`, system bars hidden, `--safe-area-inset-*` CSS vars, used by `--safe-*` in styles.css); `src/core/Native.ts` (`isNative`, `SITE_URL`, `PLAY_URL`, `AUTH_RETURN`, `openExternal`, `onDeepLink`); Google sign-in in the app goes through the system browser and the deep link `app.joshmakesgames.cozyacres://auth` (`toGoogle`/`completeRedirect` in SupabaseBackend, `onDeepLink` in CloudSave), which must be in Supabase's redirect URLs; gift links use `SITE_URL`; push reports `'app'` (not in the app yet: FCM to do; the TWA had them through Chrome); no install button or SW update pill in the app; newer-save Update opens Play. Icons/splash `scripts/app-icons.py`. Workflow `.github/workflows/android.yml` (Java 21, SDK 36, same keystore secrets, versionCode from 5). Built and signed locally (debug and release). Game updates reach app players only through new app builds.
+**1.32.0 (pushed 25 Oct, deploy run 73): the Android app moves from TWA to Capacitor** (`android/README.md`). Testers would not take a TWA. `npm run build:app` (`CAP_BUILD=1`: base `/`, `dist-app/`, PWA plugin disabled) then `cap sync`; `capacitor.config.ts` (appId `app.joshmakesgames.cozyacres`, system bars hidden, `--safe-area-inset-*` CSS vars, used by `--safe-*` in styles.css); `src/core/Native.ts` (`isNative`, `SITE_URL`, `PLAY_URL`, `AUTH_RETURN`, `openExternal`, `onDeepLink`); Google sign-in in the app goes through the system browser and the deep link `app.joshmakesgames.cozyacres://auth` (`toGoogle`/`completeRedirect` in SupabaseBackend, `onDeepLink` in CloudSave), which must be in Supabase's redirect URLs; gift links use `SITE_URL`; push reports `'app'` (not in the app yet: FCM to do; the TWA had them through Chrome); no install button or SW update pill in the app; newer-save Update opens Play. Icons/splash `scripts/app-icons.py`. Workflow `.github/workflows/android.yml` (Java 21, SDK 36, same keystore secrets, versionCode from 5). Built and signed locally (debug and release). Game updates reach app players only through new app builds.
 
 **1.31.2 (pushed 25 Oct, deploy run 72): dashboard Needs tab.** Player page tab Needs (`admin/src/views/needs.ts`, ADMIN.md "Needs"): today's requests, every unfinished project bundle by bundle (incl. the Old Mine entrance, now in `PROJECT_GROUPS`; `WAITS_FOR`/`AFTER_FESTIVAL` in `admin/src/gamedata.ts` for locks), next pickaxe, upgrades (coins), quests (status only); tick and gift in one press via `admin_give`. Game: developer gift items may be `silver__<id>`/`gold__<id>` (`giftItemKey` in `systems/AdminGifts.ts`, shown with a star in the gift popup); debug `__adminGift`. No server change. 111 regression checks.
 
@@ -181,7 +181,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Item | Value |
 | --- | --- |
 | Package name (permanent) | `app.joshmakesgames.cozyacres` |
-| Latest versionCode uploaded | **4** (TWA, version name 1.6.0). Next build (the first Capacitor app, 1.32) must use **5+**. |
+| Latest versionCode uploaded | **5** (Capacitor app, 1.32.0, closed track "Alpha", 25 Oct). Next build must use **6+**. |
 | minSdkVersion | 24 (needed for Play automatic protection) |
 | Play app signing SHA-256 | `65:7E:42:04:98:23:2C:E0:E9:CE:5E:FD:5F:72:45:92:6D:DE:DB:4A:40:76:E5:51:F9:3E:2E:09:73:DA:4F:10` |
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
@@ -266,7 +266,9 @@ When bumping the game version, update **both** `package.json` and the newest ent
 - [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
 - [ ] After 14 days: apply for production, add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
-- [ ] Later: iOS. A plain web wrapper risks App Store guideline 4.2 rejection. Capacitor with native features (push, offline bundle, Sign in with Apple) is the likely route. Meanwhile iPhone players can **Add to Home Screen** from Safari.
+- [ ] **iPhone app (next, on the owner's Mac):** Capacitor iOS, Sign in with Apple, report and block players (server), TestFlight. Plan in `HANDOVER-2026-10-25.md` section 5; the owner is enrolling in the Apple Developer Program (A$149 a year). The Mac session owns `ios/`; pull before starting, never edit the same files from both sessions at once.
+- [ ] App testers who never signed in start a fresh farm in the Capacitor app (the TWA's save stays in Chrome). Offered: a first-start "Played before? Sign in" prompt.
+- [ ] Notifications in the app: Firebase (Android) and APNs (iPhone), plus `send-push`.
 
 ---
 
@@ -287,6 +289,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
 - 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
 - 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
 - 2026-10-25: 1.31.1 pushed (deploy run 71); 1.31.2 (local): dashboard Needs tab (gift what a player is missing in one press), silver and gold items in developer gifts.
@@ -296,4 +299,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-24: 1.30.4 pushed (deploy run 68); 1.30.5 (local): back in Photo mode only closes Photo mode (it broke the home view).
 - 2026-10-23: 1.30.3 pushed (deploy run 67); 1.30.4 (local): camera button in the home, hang your photos on picture frames (friends see them too).
 - 2026-10-23: 1.30.2 pushed (deploy run 66); 1.30.3 (local): a friend's farmer no longer shows twice in their home after changing rooms.
-- 2026-10-23: 1.30.1 pushed (deploy run 65); 1.30.2 (local): furniture adds charm (no cap), make pieces smaller or bigger, people hidden while decorating, real previews for pieces built in code.
