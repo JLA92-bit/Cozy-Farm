@@ -1,18 +1,27 @@
 import { Capacitor } from '@capacitor/core';
 
 /**
- * The Android app (Capacitor, from 1.32): the game's files are inside the app and served from https://localhost, so
- * anything that needs the public web address, the store page or the system browser comes from here. In a browser
- * (the website and the installed web app) everything works as before. The plugins load only inside the app.
+ * The Android app (Capacitor, from 1.32) and the iPhone app (ios/): the game's files are inside the app and served
+ * from https://localhost (capacitor://localhost on iPhone), so anything that needs the public web address, the store
+ * page or the system browser comes from here. In a browser (the website and the installed web app) everything works
+ * as before. The plugins load only inside the app.
  */
 
-/** True inside the Android app. */
+/** True inside the Android or iPhone app. */
 export const isNative = (): boolean => Capacitor.isNativePlatform();
+/** True inside the iPhone app (ios/README.md). */
+export const isIosApp = (): boolean => Capacitor.getPlatform() === 'ios';
+/** True inside the Android app. */
+export const isAndroidApp = (): boolean => Capacitor.getPlatform() === 'android';
 
 /** The public game address (gift links and anything shared with other people point here, never at the app). */
 export const SITE_URL = 'https://cozyacres.joshmakesgames.app/play/';
 /** The app's Google Play page (to update the app). */
 export const PLAY_URL = 'https://play.google.com/store/apps/details?id=app.joshmakesgames.cozyacres';
+/** The app's App Store page. Empty until the app is in App Store Connect: then the id goes here (apps.apple.com/app/id...). */
+export const APP_STORE_URL = '';
+/** Where this app updates from: Google Play, the App Store (once it has a page) or nothing (the website). */
+export const storeUrl = (): string => (isIosApp() ? APP_STORE_URL : isAndroidApp() ? PLAY_URL : '');
 /** Where Google sends the player back to inside the app (also listed in Supabase > Auth > URL configuration). */
 export const AUTH_RETURN = 'app.joshmakesgames.cozyacres://auth';
 

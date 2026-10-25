@@ -4,7 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { boot } from './scenes/Boot';
 import { watchInstallPrompt } from './ui/Install';
 import { saves, hasBackup, restoreBackup, NewerSaveError } from './systems/Save';
-import { isNative, openExternal, PLAY_URL } from './core/Native';
+import { isIosApp, isNative, openExternal, storeUrl } from './core/Native';
 
 /** Fetch the newest version of the game (service worker), then reload. */
 async function updateAndReload(): Promise<void> {
@@ -41,8 +41,13 @@ function showBootError(newer = false): void {
     b.addEventListener('click', fn);
     row.append(b);
   };
-  // the app updates from Google Play; the website from its service worker
-  if (newer) { btn('Update now', 'green', () => { void (isNative() ? openExternal(PLAY_URL) : updateAndReload()); }); screen.append(row); return; }
+  // the apps update from their store; the website from its service worker. The iPhone app before it has an App Store
+  // page (TestFlight) has no button: the hint says where to update.
+  if (newer && isIosApp() && !storeUrl()) {
+    if (hint) hint.textContent = 'It was saved by a newer version of the game. Update Cozy Acres in TestFlight to keep playing. Your farm is safe and has not been changed.';
+    return;
+  }
+  if (newer) { btn('Update now', 'green', () => { void (isNative() ? openExternal(storeUrl()) : updateAndReload()); }); screen.append(row); return; }
   btn('Try again', 'green', () => location.reload());
   if (saves.loadAttempted && hasBackup()) btn('Load backup save', 'blue', () => { saves.locked = true; if (restoreBackup()) location.reload(); });
   screen.append(row);
@@ -60,8 +65,8 @@ boot().catch((e) => {
 
 /**
  * PWA updates: a new version is installed in the background, then applied the next time the game
- * goes to the background (after saving), or right away if the player taps the update pill. Not in the Android app:
- * its files come with the app and update from Google Play.
+ * goes to the background (after saving), or right away if the player taps the update pill. Not in the Android or
+ * iPhone app: its files come with the app and update from the store.
  */
 if (import.meta.env.PROD && !isNative()) {
   let pill: HTMLElement | null = null;

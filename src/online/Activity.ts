@@ -12,6 +12,7 @@ import { game } from '../systems/Game';
 import { visiting } from '../systems/Visiting';
 import { applyAdminGift } from '../systems/AdminGifts';
 import { APP_VERSION } from '../systems/Version';
+import { isAndroidApp, isIosApp } from '../core/Native';
 import { mail } from '../systems/Mail';
 import type { AdminGift, AdminLetter, Platform } from './types';
 
@@ -19,8 +20,10 @@ const TICK_MS = 60000;
 const BEAT_MINUTES = 5;
 const GIFT_CHECK_MS = 5 * 60000;
 
-/** Where the game runs: the Play Store app (TWA), an installed web app, or a browser tab. */
+/** Where the game runs: the Android app, the iPhone app or an iPhone Home Screen web app, an installed web app, or a browser tab. */
 export function platform(): Platform {
+  if (isAndroidApp()) return 'android';
+  if (isIosApp()) return 'ios';
   let p: string | null = null;
   try { p = sessionStorage.getItem('cozy-platform'); } catch { /* blocked */ }
   if (p === 'android' || p === 'pwa' || p === 'web' || p === 'ios') return p;
