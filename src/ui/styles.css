@@ -721,6 +721,12 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .hud-menu .hud-btn.primary .icon { width: calc(var(--dock) * .72); height: calc(var(--dock) * .72); }
 }
 
+/* landscape phones (an iPhone is 402px tall): the side shortcuts stop above the dock and wrap into a second column
+   to their left instead of running under it and off the screen */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hud-side { bottom: calc(var(--safe-bottom) + var(--hud-btn) + 26px); flex-wrap: wrap-reverse; align-content: flex-start; gap: 8px; }
+}
+
 /* panels: bigger close target, scroll hint, compact tabs on small phones */
 .close-btn::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; }
 .panel-wallet { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; }
