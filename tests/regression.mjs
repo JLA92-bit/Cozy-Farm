@@ -2,7 +2,7 @@
 // usage: npm run test:regression   (builds, then runs this file; or `node tests/regression.mjs` after `vite build`)
 // Chromium: CHROMIUM_PATH, else the cloud image's /opt/pw-browsers copy, else an installed Google Chrome.
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const PORT = Number(process.env.TEST_PORT ?? 4317);
@@ -462,6 +462,13 @@ try {
   {
     const w = copy(); w.player.level = 95; w.player.coins = 100000; w.upkeep = undefined;
     w.inventory = { ...w.inventory, chicken_feed: 10, wheat: 40, corn: 20 };
+    // farmhands rest on festival days (every 7th day of the 28-day cycle from cycle.json's epoch): on one, play the
+    // next day instead, so this check does not fail one day a week
+    const dayNo = (ms) => { const [y, m, d] = localDay(ms).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
+    const cyc = JSON.parse(readFileSync(new URL('../src/data/cycle.json', import.meta.url), 'utf8'));
+    const [ey, em, ed] = cyc.epoch.split('-').map(Number);
+    const since = dayNo(Date.now()) - Math.round(Date.UTC(ey, em - 1, ed) / 86400000);
+    if ((((since % cyc.festivalEvery) + cyc.festivalEvery) % cyc.festivalEvery) === cyc.festivalEvery - 1) w.debugTimeOffset = 86400000;
     await setStorage({ [KEY]: JSON.stringify(w) });
     await boot();
     const r = await page.evaluate(async () => {
