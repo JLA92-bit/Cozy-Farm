@@ -1,5 +1,6 @@
 import { BUILDING, type BuildingDef } from '../data';
 import type { PlacedBuilding } from './State';
+import { isFriendlyText } from './WordFilter';
 
 /**
  * Personal touches on placed decor: a paint colour for paintable pieces (`paint` in buildings.json names the
@@ -46,29 +47,8 @@ export function cleanSignText(v: unknown): string {
     .trim();
 }
 
-// A small, deliberately strict word list for a 13+ game. Whole words only (so "Grassy Acres" or "Hoe Down"
-// stay fine), plus a few roots that are caught even inside other words.
-const BAD_WORDS = new Set([
-  'ass', 'arse', 'asshole', 'arsehole', 'bastard', 'bitch', 'bitches', 'bollocks', 'boob', 'boobs', 'butthole', 'cock', 'cocks',
-  'crap', 'cum', 'damn', 'dick', 'dicks', 'dildo', 'douche', 'fag', 'fags', 'hell', 'homo', 'jizz', 'kkk',
-  'nazi', 'nazis', 'piss', 'porn', 'prick', 'pussy', 'rape', 'raped', 'rapist', 'retard', 'retarded', 'sex', 'sexy', 'shag',
-  'slag', 'slut', 'sluts', 'spunk', 'tit', 'tits', 'titties', 'turd', 'twat', 'wank', 'wanker', 'whore', 'hitler',
-  'penis', 'vagina', 'anal', 'anus', 'nude', 'nudes', 'naked', 'horny', 'milf', 'thot', 'simp', 'stfu', 'wtf', 'omfg', 'kys',
-]);
-const BAD_ROOTS = ['fuck', 'fuk', 'fck', 'shit', 'cunt', 'nigg', 'nigga', 'faggot', 'bitch', 'whore', 'slut', 'twat', 'porn', 'dildo', 'penis', 'vagin', 'motherf', 'bullsh', 'asshole', 'jizz'];
-const LEET: Record<string, string> = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i' };
-
-/** True when the text is fine to show on a farm other players can visit. */
-export function isFriendlyText(text: string): boolean {
-  const lower = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const unleet = [...lower].map((c) => LEET[c] ?? c).join('');
-  const words = unleet.split(/[^a-z]+/).filter(Boolean);
-  if (words.some((w) => BAD_WORDS.has(w) || BAD_WORDS.has(w.replace(/(.)\1+/g, '$1')))) return false;
-  // squashed together ("f.u.c.k", "sh1t head"), with repeated letters collapsed ("fuuuck")
-  const squashed = unleet.replace(/[^a-z]/g, '');
-  const collapsed = squashed.replace(/(.)\1+/g, '$1');
-  return !BAD_ROOTS.some((r) => squashed.includes(r) || collapsed.includes(r));
-}
+// the word filter lives in WordFilter.ts (shared with names, gift notes and room names)
+export { isFriendlyText };
 
 /** What a sign shows: its own text when set and friendly, otherwise a default made from the farmer's name. */
 export function signText(b: Pick<PlacedBuilding, 'text'>, farmerName: string): string {

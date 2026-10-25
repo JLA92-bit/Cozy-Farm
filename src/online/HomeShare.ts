@@ -5,6 +5,7 @@ import { visiting } from '../systems/Visiting';
 import type { HomeRoom, HomeState } from '../systems/State';
 import { online } from './Online';
 import type { HomeSnapshot } from './types';
+import { friendlyOr, isFriendlyText } from '../systems/WordFilter';
 
 /**
  * 1.30 sharing your home: friends visiting your farm can step inside your Farmhouse. The shared picture holds the
@@ -50,7 +51,9 @@ export function sanitizeHome(raw: unknown): { name: string; home: HomeState } | 
   const r = raw as { name?: unknown; rooms?: unknown; photos?: unknown };
   const st = repairHome({ rooms: r.rooms, storage: {}, known: [], uid: 1, photos: r.photos });
   if (!st || !Object.keys(st.rooms).length) return null;
-  return { name: typeof r.name === 'string' ? r.name.slice(0, 24) : 'Farmer', home: st };
+  // the word filter: an unkind room name falls back to the room's own name
+  for (const room of Object.values(st.rooms)) if (room.name && !isFriendlyText(room.name)) delete room.name;
+  return { name: typeof r.name === 'string' ? friendlyOr(r.name.slice(0, 24), 'Farmer') : 'Farmer', home: st };
 }
 
 /** Share the home if it changed: at most every 5 minutes unless forced (leaving the home). Never throws. */

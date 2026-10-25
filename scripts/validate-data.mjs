@@ -609,6 +609,16 @@ releases?.forEach((r, i) => {
   if (!m || m[1] !== cum.join(',')) err('supabase/schema.sql level_for_xp: the XP table does not match levels.json (regenerate it)');
   if (!step || Number(step[1]) !== lv.levels[lv.levels.length - 1].xpToNext || lv.endless.xpPerLevel !== 0) err('supabase/schema.sql level_for_xp: the XP per level past the table does not match levels.json (it assumes endless.xpPerLevel 0)');
 }
+// 1.33 the server's word filter: supabase/schema.sql is_friendly must have the lists in wordfilter.json
+{
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  const wf = read('wordfilter.json');
+  const list = (name) => { const m = sql.match(new RegExp(`is_friendly[\\s\\S]*?${name} text\\[\\] := array\\[([^\\]]*)\\]`)); return m ? [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]) : null; };
+  for (const [name, want] of [['v_words', wf.words], ['v_roots', wf.roots]]) {
+    if (JSON.stringify(list(name)) !== JSON.stringify(want)) err(`supabase/schema.sql is_friendly ${name}: does not match src/data/wordfilter.json (regenerate it)`);
+  }
+  for (const w of [...wf.words, ...wf.roots]) if (!/^[a-z]+$/.test(w)) err(`wordfilter: "${w}" must be plain lower-case letters`);
+}
 // 1.9 schedules: known villagers and places
 {
   const sc = read('schedules.json'), vIds = read('villagers.json').villagers.map((v) => v.id);

@@ -10,6 +10,7 @@ import { audio } from '../../systems/Audio';
 import { renderSkills } from './SkillsPanel';
 import { renderMastery } from './MasteryPanel';
 import { restoration } from '../../systems/Restoration';
+import { isFriendlyText, UNFRIENDLY } from '../../systems/WordFilter';
 
 /** Is a cosmetic unlocked for the player? */
 export function cosmeticUnlocked(id: string, unlock: Unlock): boolean {
@@ -240,6 +241,8 @@ export function openCharacter(firstTime = false, startTab?: string): void {
     pickAvatar(a);
   }, 'small purple', { 'aria-label': 'Random farmer' });
   p.footer.append(random, button(firstTime ? "Let's farm!" : 'Save', () => {
+    // friends, visitors and the leaderboards see this name (the server also turns an unkind one into 'Farmer')
+    if (!isFriendlyText(name)) { ui.feedback.toast('Pick another name', UNFRIENDLY, 'info'); return; }
     game.state.player.look = { ...look };
     game.state.player.name = (name.trim() || 'Farmer').slice(0, 16);
     const changed = game.state.player.created;

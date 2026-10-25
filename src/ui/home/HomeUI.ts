@@ -9,6 +9,7 @@ import { patternPreview } from '../../world/home/HomeStyle';
 import { button, clear, fmt, h, icon, priceTag, setIcon } from '../dom';
 import { thumbs } from '../../world/Thumbs';
 import { ui } from '../UI';
+import { UNFRIENDLY } from '../../systems/WordFilter';
 import { openCatalogue } from './Catalogue';
 
 /**
@@ -450,7 +451,10 @@ export class HomeUI {
     if (next) list.append(h('div', { class: 'hm-room locked' }, icon('lock'), h('span', null, `${next.name}: Farmhouse level ${next.fh}`)));
     this.sheetBody.append(list);
     // this room: its name, size and a few big tools
-    const name = h('input', { type: 'text', class: 'hm-input', maxlength: '24', value: home.roomName(cur), 'aria-label': 'Room name', onchange: (e: Event) => home.rename(cur, (e.target as HTMLInputElement).value) });
+    const name = h('input', { type: 'text', class: 'hm-input', maxlength: '24', value: home.roomName(cur), 'aria-label': 'Room name', onchange: (e: Event) => {
+      const el = e.target as HTMLInputElement;
+      if (!home.rename(cur, el.value)) { el.value = home.roomName(cur); ui.feedback.toast('Pick another name', UNFRIENDLY, 'info'); }
+    } });
     this.sheetBody.append(h('div', { class: 'hm-label' }, 'This room'), h('div', { class: 'hm-row' }, h('span', { class: 'hm-label' }, 'Name'), name));
     const cost = home.enlargeCost(cur);
     const room = home.room(cur);

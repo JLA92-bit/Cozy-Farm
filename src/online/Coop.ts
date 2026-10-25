@@ -4,11 +4,12 @@
  */
 import { COOP, ITEMS } from '../data';
 import type { CoopClaim, CoopProject, CoopStatus } from './types';
+import { isFriendlyText } from '../systems/WordFilter';
 
 const STATUS: CoopStatus[] = ['open', 'done', 'expired', 'cancelled'];
 const int = (v: unknown, max: number): number => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.max(0, Math.min(max, n)) : 0; };
 const ms = (v: unknown): number => (typeof v === 'number' ? v : typeof v === 'string' ? Date.parse(v) || 0 : 0);
-const name = (v: unknown): string => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 24) : 'Farmer');
+const name = (v: unknown): string => (typeof v === 'string' && v.trim() && isFriendlyText(v) ? v.trim().slice(0, 24) : 'Farmer');
 function counts(v: unknown): Record<string, number> {
   const out: Record<string, number> = {};
   if (v && typeof v === 'object') for (const [k, n] of Object.entries(v)) if (ITEMS[k]) { const c = int(n, 100000); if (c > 0) out[k] = c; }

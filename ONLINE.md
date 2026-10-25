@@ -214,6 +214,16 @@ their rows (that section replaces those policies). Dashboard: `admin_reports`, `
 (Report and Block on player cards, gifts and the visit banner, the Blocked list in Friends; blocked players are
 nameless on the leaderboards).
 
+## Word filter (1.33.1)
+
+Text other players see goes through one word filter: `src/data/wordfilter.json` (whole `words` and `roots` found
+anywhere, also squashed and with repeated letters collapsed, after look-alike digits), used by the game
+(`src/systems/WordFilter.ts`: refuses unkind names, gift notes, signs and room names when typed, and shows other
+players' unkind names as "Farmer" and hides unkind notes, signs and room names) and by the server (section
+`word filter`, `is_friendly()`: `upsert_profile` turns an unkind name into 'Farmer' and drops an unkind farm name,
+`send_gift` refuses an unkind note with 'unfriendly'). `validate-data` checks the server's lists match the JSON. To
+change the lists: edit the JSON, copy them into `is_friendly()`, run `validate-data`, then run `schema.sql`.
+
 ## Shared farms and visits (1.28.2)
 
 Visitors see the picture of a farm the owner's game last shared, so a farm that cannot be shared looks old and help misses. Until 1.28.2 `publish_farm` refused any farm over 1,200 pieces (paths, fences and decorations count), so big late-game farms were stuck for good.

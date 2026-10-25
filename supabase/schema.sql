@@ -263,8 +263,9 @@ begin
       values (
         uid,
         public.gen_friend_code(),
-        public.clean_text(p_name, 24, 'Farmer'),
-        nullif(public.clean_text(p_farm_name, 32, ''), ''),
+        -- word filter: an unkind name becomes 'Farmer', an unkind farm name is dropped
+        case when public.is_friendly(p_name) then public.clean_text(p_name, 24, 'Farmer') else 'Farmer' end,
+        case when public.is_friendly(p_farm_name) then nullif(public.clean_text(p_farm_name, 32, ''), '') end,
         v_level, v_xp, v_value, v_charm, v_weekly,
         v_week,
         v_look,
@@ -331,6 +332,7 @@ begin
   if p_to is null or p_to = uid then raise exception 'cannot gift yourself'; end if;
   if not exists (select 1 from public.profiles p where p.id = p_to) then raise exception 'unknown player'; end if;
   perform public.assert_not_blocked(uid, p_to); -- reports and blocks
+  if not public.is_friendly(v_message) then raise exception 'unfriendly'; end if; -- word filter
   if v_coins < 0 or v_coins > 100000 then raise exception 'bad coins'; end if;
   if p_items is not null and jsonb_typeof(p_items) <> 'object' then raise exception 'bad items'; end if;
 
@@ -4713,3 +4715,42 @@ grant execute on function public.admin_reports(text, integer) to authenticated;
 grant execute on function public.admin_report_set(uuid, text, text) to authenticated;
 grant execute on function public.admin_reports_open() to authenticated;
 grant execute on function public.admin_player_reports(uuid) to authenticated;
+
+-- ===== word filter =====
+-- The word filter for text other players see (App Store guideline 1.2). The same lists and rules as the game's
+-- src/systems/WordFilter.ts (from src/data/wordfilter.json; validate-data checks the lists here match): whole words
+-- from v_words, and v_roots anywhere, also with everything but letters taken out and repeated letters collapsed, after
+-- lower case, common accents and look-alike digits (0 o, 1 i, 3 e, 4 a, 5 s, 7 t, 8 b, @ a, $ s, ! i). Used by
+-- upsert_profile (an unkind name becomes 'Farmer', an unkind farm name is dropped) and send_gift ('unfriendly').
+
+create or replace function public.is_friendly(t text)
+returns boolean
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  v_words text[] := array['ass', 'arse', 'asshole', 'arsehole', 'bastard', 'bitch', 'bitches', 'bollocks', 'boob', 'boobs', 'butthole', 'cock', 'cocks', 'crap', 'cum', 'damn', 'dick', 'dicks', 'dildo', 'douche', 'fag', 'fags', 'hell', 'homo', 'jizz', 'kkk', 'nazi', 'nazis', 'piss', 'porn', 'prick', 'pussy', 'rape', 'raped', 'rapist', 'retard', 'retarded', 'retards', 'sex', 'sexy', 'shag', 'slag', 'slut', 'sluts', 'spunk', 'tit', 'tits', 'titties', 'turd', 'twat', 'wank', 'wanker', 'whore', 'hitler', 'penis', 'vagina', 'anal', 'anus', 'nude', 'nudes', 'naked', 'horny', 'milf', 'thot', 'simp', 'stfu', 'wtf', 'omfg', 'kys', 'chink', 'chinks', 'spic', 'spics', 'kike', 'kikes', 'gook', 'gooks', 'coon', 'coons', 'paki', 'pakis', 'jap', 'japs', 'dyke', 'dykes', 'tranny', 'trannies', 'beaner', 'beaners', 'negro', 'pedo', 'pedos', 'paedo', 'paedos', 'molest', 'incest']::text[];
+  v_roots text[] := array['fuck', 'fuk', 'fck', 'shit', 'cunt', 'nigg', 'faggot', 'bitch', 'whore', 'slut', 'twat', 'porn', 'dildo', 'penis', 'vagin', 'motherf', 'bullsh', 'asshole', 'jizz', 'wetback', 'towelhead', 'raghead', 'pedophil', 'paedophil', 'killyourself', 'kilyourself']::text[];
+  s text;
+  sq text;
+  col text;
+  w text;
+  r text;
+begin
+  if t is null or t = '' then return true; end if;
+  s := translate(lower(t), 'àáâãäåèéêëìíîïòóôõöùúûüýÿñç0134578@$!', 'aaaaaaeeeeiiiiooooouuuuyyncoieastbasi');
+  foreach w in array regexp_split_to_array(s, '[^a-z]+') loop
+    if w <> '' and (w = any (v_words) or regexp_replace(w, '(.)\1+', '\1', 'g') = any (v_words)) then return false; end if;
+  end loop;
+  sq := regexp_replace(s, '[^a-z]', '', 'g');
+  col := regexp_replace(sq, '(.)\1+', '\1', 'g');
+  foreach r in array v_roots loop
+    if position(r in sq) > 0 or position(r in col) > 0 then return false; end if;
+  end loop;
+  return true;
+end;
+$$;
+
+revoke all on function public.is_friendly(text) from public, anon;
+grant execute on function public.is_friendly(text) to authenticated;

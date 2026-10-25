@@ -167,7 +167,7 @@ export function cleanLook(v: unknown): CharacterLook {
 /** Printable, short player name (no control characters). */
 function cleanName(v: unknown): string {
   const s = typeof v === 'string' ? [...v].filter((ch) => { const c = ch.charCodeAt(0); return c >= 32 && !(c >= 0x7f && c <= 0x9f) && c !== 0x2028 && c !== 0x2029; }).join('').trim().slice(0, 24) : '';
-  return s || 'Farmer';
+  return s && isFriendlyText(s) ? s : 'Farmer';
 }
 
 /**

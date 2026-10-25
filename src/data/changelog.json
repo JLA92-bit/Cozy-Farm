@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.33.1",
+   "date": "2026-10-25",
+   "title": "Kinder Words",
+   "icon": "sparkle_heart",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "sparkle_heart",
+     "text": "Names, farm names, gift notes, signs and room names now skip unkind words, so everything other farmers see stays friendly"
+    }
+   ]
+  },
+  {
    "version": "1.33.0",
    "date": "2026-10-25",
    "title": "Safe and Sound",

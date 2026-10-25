@@ -12,6 +12,7 @@ import { cleanFill, cleanRequest } from './AskHelp';
 import { setOnlineStatus } from './Status';
 import { sanitizeSnapshot, shareBytes, SHARE_LIMITS, type FarmSnapshot } from './FarmSnapshot';
 import { weekKey } from './Weekly';
+import { friendlyOr } from '../systems/WordFilter';
 
 /**
  * Real online play on Supabase (see supabase/schema.sql and ONLINE.md).
@@ -71,6 +72,8 @@ const AUTH_PARAMS = ['code', 'error', 'error_code', 'error_description', 'sb_flo
 interface Intent { mode: 'link' | 'signin'; uid: string; at: number }
 const POLL_MS = 30000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Another player's name as the game shows it: 'Farmer' when the word filter does not like it (WordFilter.ts). */
+const nm = (s: string | null | undefined): string => friendlyOr(String(s ?? 'Farmer'), 'Farmer');
 const ms = (t: string | null | undefined): number => (t ? Date.parse(t) || 0 : 0);
 const int = (n: number, max: number): number => Math.max(0, Math.min(max, Math.floor(Number.isFinite(n) ? n : 0)));
 
@@ -385,7 +388,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   private mapProfile(r: ProfileRow): PlayerProfile {
     const l = r.look ?? {};
     return {
-      id: r.id, code: r.code, name: r.name, farmName: r.farm_name ?? undefined, level: r.level, totalXp: Number(r.total_xp) || 0,
+      id: r.id, code: r.code, name: nm(r.name), farmName: r.farm_name ? friendlyOr(r.farm_name, undefined) : undefined, level: r.level, totalXp: Number(r.total_xp) || 0,
       farmValue: Number(r.farm_value) || 0, charm: r.charm,
       // a profile last published in an earlier week has no XP this week
       weeklyXp: r.week_start === weekKey() ? r.weekly_xp : 0,
@@ -394,12 +397,12 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     };
   }
   private mapGift(r: GiftRow): Gift {
-    return { id: r.id, from: { id: r.from_id, name: r.from_name }, to: r.to_id, items: r.items ?? {}, coins: r.coins, message: r.message ?? undefined, sentAt: ms(r.sent_at), claimed: r.claimed };
+    return { id: r.id, from: { id: r.from_id, name: nm(r.from_name) }, to: r.to_id, items: r.items ?? {}, coins: r.coins, message: r.message ? friendlyOr(r.message, undefined) : undefined, sentAt: ms(r.sent_at), claimed: r.claimed };
   }
   private mapListing(r: ListingRow): Listing {
     return {
-      id: r.id, seller: { id: r.seller_id, name: r.seller_name }, item: r.item, qty: r.qty, price: r.price, listedAt: ms(r.listed_at), status: r.status,
-      buyer: r.buyer_id ? { id: r.buyer_id, name: r.buyer_name ?? 'Farmer' } : undefined, soldAt: r.sold_at ? ms(r.sold_at) : undefined, collected: r.collected,
+      id: r.id, seller: { id: r.seller_id, name: nm(r.seller_name) }, item: r.item, qty: r.qty, price: r.price, listedAt: ms(r.listed_at), status: r.status,
+      buyer: r.buyer_id ? { id: r.buyer_id, name: nm(r.buyer_name) } : undefined, soldAt: r.sold_at ? ms(r.sold_at) : undefined, collected: r.collected,
     };
   }
 
@@ -598,7 +601,7 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   // ------------------------------------------------------------------ helping neighbours
   private mapHelp(r: FarmHelpRow): FarmHelp | null {
-    return cleanHelp({ id: r.id, owner: r.owner_id, helper: { id: r.helper_id, name: r.helper_name }, kind: r.kind, target: r.target, note: r.note, at: ms(r.created_at), claimed: !!r.claimed_at });
+    return cleanHelp({ id: r.id, owner: r.owner_id, helper: { id: r.helper_id, name: nm(r.helper_name) }, kind: r.kind, target: r.target, note: r.note, at: ms(r.created_at), claimed: !!r.claimed_at });
   }
   /** Server refusals ('already today', 'not yourself', ...) as the short codes of the contract. */
   private helpError(e: unknown): Error {
@@ -672,15 +675,15 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
 
   async myCoffeeVisits(): Promise<{ id: string; guestId: string; guestName: string; at: number }[]> {
     const rows = await this.rpc<{ id: string; guest_id: string; guest_name: string; created_at: string }[]>('my_coffee_visits', {});
-    return (rows ?? []).filter((r) => UUID.test(r.id)).map((r) => ({ id: r.id, guestId: r.guest_id, guestName: String(r.guest_name ?? 'Farmer').slice(0, 24), at: ms(r.created_at) }));
+    return (rows ?? []).filter((r) => UUID.test(r.id)).map((r) => ({ id: r.id, guestId: r.guest_id, guestName: nm(r.guest_name).slice(0, 24), at: ms(r.created_at) }));
   }
 
   // ------------------------------------------------------------------ ask a friend (1.8)
   private mapRequest(r: HelpRequestRow): HelpRequest | null {
-    return cleanRequest({ id: r.id, requester: { id: r.requester, name: r.requester_name }, item: r.item, qty: r.qty, filled: r.filled, reason: r.reason, createdAt: ms(r.created_at), expiresAt: ms(r.expires_at), status: r.status ?? 'open' });
+    return cleanRequest({ id: r.id, requester: { id: r.requester, name: nm(r.requester_name) }, item: r.item, qty: r.qty, filled: r.filled, reason: r.reason, createdAt: ms(r.created_at), expiresAt: ms(r.expires_at), status: r.status ?? 'open' });
   }
   private mapFill(r: HelpFillRow): HelpFill | null {
-    return cleanFill({ id: r.id, request: r.request, item: r.item, helper: { id: r.helper, name: r.helper_name }, qty: r.qty, auto: r.auto, at: ms(r.at) });
+    return cleanFill({ id: r.id, request: r.request, item: r.item, helper: { id: r.helper, name: nm(r.helper_name) }, qty: r.qty, auto: r.auto, at: ms(r.at) });
   }
   private friendIds(ids: string[]): string[] { return [...new Set(ids.filter((id) => UUID.test(id)))].slice(0, 30); }
 

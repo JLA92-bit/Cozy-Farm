@@ -7,6 +7,7 @@ import { online } from '../online/Online';
 import { ensureOnline } from '../online/Profile';
 import type { Gift, PlayerProfile } from '../online/types';
 import { decodeGift, encodeGift, newNonce, type GiftCodeData } from './GiftCode';
+import { isFriendlyText, UNFRIENDLY } from './WordFilter';
 
 export const SOCIAL = ECONOMY.social;
 
@@ -166,6 +167,7 @@ class Social {
   async send(friend: FriendEntry, items: Record<string, number>, coins: number, message: string): Promise<void> {
     const why = this.check(items, coins);
     if (why) throw new Error(why);
+    if (!isFriendlyText(message)) throw new Error(UNFRIENDLY);
     const msg = message.trim().slice(0, SOCIAL.messageMax) || undefined;
     this.escrow(items, coins);
     try {
@@ -185,6 +187,7 @@ class Social {
   makeCode(items: Record<string, number>, coins: number, message: string): string {
     const why = this.check(items, coins);
     if (why) throw new Error(why);
+    if (!isFriendlyText(message)) throw new Error(UNFRIENDLY);
     const nonce = newNonce();
     const code = encodeGift({ from: game.state.player.name, items: { ...items }, coins, message: message.trim().slice(0, SOCIAL.messageMax) || undefined, nonce, at: game.now() });
     this.escrow(items, coins);

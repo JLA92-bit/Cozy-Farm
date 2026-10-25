@@ -1,0 +1,16 @@
+{
+ "_about": "The word filter for text other players see (names, farm names, gift notes, signs, room names). 'words' match whole words only (so 'Grassy Acres' or 'Hoe Down' stay fine); 'roots' are caught anywhere, also squashed together and with repeated letters collapsed. Kept strict for a 13+ game. supabase/schema.sql is_friendly() has the same lists: validate-data checks they match.",
+ "words": [
+  "ass", "arse", "asshole", "arsehole", "bastard", "bitch", "bitches", "bollocks", "boob", "boobs", "butthole", "cock", "cocks",
+  "crap", "cum", "damn", "dick", "dicks", "dildo", "douche", "fag", "fags", "hell", "homo", "jizz", "kkk",
+  "nazi", "nazis", "piss", "porn", "prick", "pussy", "rape", "raped", "rapist", "retard", "retarded", "retards", "sex", "sexy", "shag",
+  "slag", "slut", "sluts", "spunk", "tit", "tits", "titties", "turd", "twat", "wank", "wanker", "whore", "hitler",
+  "penis", "vagina", "anal", "anus", "nude", "nudes", "naked", "horny", "milf", "thot", "simp", "stfu", "wtf", "omfg", "kys",
+  "chink", "chinks", "spic", "spics", "kike", "kikes", "gook", "gooks", "coon", "coons", "paki", "pakis", "jap", "japs",
+  "dyke", "dykes", "tranny", "trannies", "beaner", "beaners", "negro", "pedo", "pedos", "paedo", "paedos", "molest", "incest"
+ ],
+ "roots": [
+  "fuck", "fuk", "fck", "shit", "cunt", "nigg", "faggot", "bitch", "whore", "slut", "twat", "porn", "dildo", "penis", "vagin",
+  "motherf", "bullsh", "asshole", "jizz", "wetback", "towelhead", "raghead", "pedophil", "paedophil", "killyourself", "kilyourself"
+ ]
+}

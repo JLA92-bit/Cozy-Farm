@@ -12,6 +12,7 @@ import { village } from './Village';
 import { game } from './Game';
 import { localDay } from './Progression';
 import type { HomeItem, HomeLook, HomePhoto, HomeRoom, HomeState, WallStyle } from './State';
+import { isFriendlyText } from './WordFilter';
 
 const UNDO_MAX = 30;
 /** positions are kept to the millimetre: small saves */
@@ -310,9 +311,12 @@ class Home {
   setTrim(roomId: string, colour: string, remember = true): void { this.setRoomField(roomId, (r) => { r.trim = colour; }, remember); }
   setCeiling(roomId: string, colour: string, remember = true): void { this.setRoomField(roomId, (r) => { r.ceiling = colour; }, remember); }
   setBeams(roomId: string, on: boolean): void { this.setRoomField(roomId, (r) => { if (on) r.beams = true; else delete r.beams; }, true); }
-  rename(roomId: string, name: string): void {
+  /** False when the name was refused (friends see room names, so the word filter applies). */
+  rename(roomId: string, name: string): boolean {
     const clean = name.replace(/\s+/g, ' ').trim().slice(0, 24);
+    if (!isFriendlyText(clean)) return false;
     this.setRoomField(roomId, (r) => { if (clean && clean !== HOME_ROOM[roomId]?.name) r.name = clean; else delete r.name; }, false);
+    return true;
   }
   private setRoomField(roomId: string, fn: (r: HomeRoom) => void, remember: boolean): void {
     const r = this.room(roomId);
