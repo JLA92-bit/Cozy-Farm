@@ -23,7 +23,10 @@ export function openCatalogue(c: HomeControls): void {
   let query = '';
   const search = h('input', { type: 'search', class: 'hm-input hm-search', placeholder: 'Find a piece', 'aria-label': 'Find a piece', oninput: (e: Event) => { query = (e.target as HTMLInputElement).value.trim().toLowerCase(); render(); } });
   const list = h('div', { class: 'hm-grid hm-cat-grid' });
-  const head = h('div', { class: 'hm-cat-head' });
+  // the search box stays in the page while typing (taking it out and back on each letter closed the phone keyboard);
+  // only the hint under it changes
+  const hint = h('div', { class: 'hm-cat-hint' });
+  const head = h('div', { class: 'hm-cat-head' }, search, hint);
   p.body.append(head, list);
 
   const owned = (id: string) => home.stored(id) + Object.values(home.state.rooms).reduce((n, r) => n + r.items.filter((i) => i.f === id).length, 0);
@@ -85,23 +88,22 @@ export function openCatalogue(c: HomeControls): void {
   };
 
   const render = () => {
-    clear(head);
+    clear(hint);
     clear(list);
     const tab = p.tab;
-    head.append(search);
     let defs: PieceDef[];
     if (tab === 'picks') {
-      head.append(h('div', { class: 'hm-hint' }, `Six pieces are ${Math.round(HOME.discount * 100)}% off today. Everything else is always on sale too.`));
+      hint.append(h('div', { class: 'hm-hint' }, `Six pieces are ${Math.round(HOME.discount * 100)}% off today. Everything else is always on sale too.`));
       defs = home.picks().map((id) => PIECE[id]).filter(Boolean);
     } else if (tab === 'handmade') {
-      head.append(h('div', { class: 'hm-hint' }, "Made at the Carpenter's Workshop from things you gather, grow and find."));
+      hint.append(h('div', { class: 'hm-hint' }, "Made at the Carpenter's Workshop from things you gather, grow and find."));
       defs = FURNITURE.filter((d) => d.craft);
     } else if (tab === 'gifts') {
-      head.append(h('div', { class: 'hm-hint' }, 'Each villager makes you a set of three as your friendship grows.'));
+      hint.append(h('div', { class: 'hm-hint' }, 'Each villager makes you a set of three as your friendship grows.'));
       defs = FURNITURE.filter((d) => d.gift);
     } else if (tab === 'known') {
       defs = home.state.known.map((id) => PIECE[id]).filter(Boolean);
-      if (!defs.length) head.append(h('div', { class: 'hm-hint' }, 'Pieces you buy show here, ready to buy again.'));
+      if (!defs.length) hint.append(h('div', { class: 'hm-hint' }, 'Pieces you buy show here, ready to buy again.'));
     } else defs = FURNITURE.filter((d) => !d.craft && !d.gift && (tab === 'all' || d.cat === tab));
     if (query) defs = (tab === 'picks' ? FURNITURE : defs).filter((d) => d.name.toLowerCase().includes(query));
     if (!defs.length && query) list.append(h('div', { class: 'hm-empty' }, 'Nothing by that name.'));

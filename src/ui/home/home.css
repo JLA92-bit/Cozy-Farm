@@ -95,6 +95,7 @@
 .hm-card-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: auto; }
 .hm-cat-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
 .hm-cat-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.hm-cat-hint:empty { display: none; }
 .hm-empty { padding: 18px 8px; text-align: center; color: var(--ink-soft); display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .hm-hint { font-size: 13px; color: var(--ink-soft); margin: 2px 0 8px; }
 .hm-label { font-weight: 700; font-size: 14px; margin: 8px 0 4px; }

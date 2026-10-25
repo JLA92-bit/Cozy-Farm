@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.33.2",
+   "date": "2026-10-25",
+   "title": "Find It Fast",
+   "icon": "couch",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "couch",
+     "text": "Searching the Furniture Catalogue no longer closes your phone's keyboard after every letter"
+    }
+   ]
+  },
+  {
    "version": "1.33.1",
    "date": "2026-10-25",
    "title": "Kinder Words",
