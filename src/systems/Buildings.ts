@@ -1,4 +1,4 @@
-import { ANIMAL, BUILDING, ECONOMY, ROOM, FARMHOUSE, TREE, UPGRADES, UPKEEP, type BuildingDef } from '../data';
+import { ANIMAL, BUILDING, ECONOMY, MINE, ROOM, FARMHOUSE, TREE, UPGRADES, UPKEEP, type BuildingDef } from '../data';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { farmCharm, isBuilt, isUpgrading, settleProduction } from './Timers';
@@ -7,6 +7,13 @@ import { breederSpaces, headChefSlots } from './SkillEffects';
 import { roomDone } from './RestorationEffects';
 
 export type BuyCheck = { ok: true } | { ok: false; reason: string };
+
+/** Where a workshop's room is restored, for the Shop: the village square, a woods trail or the Old Mine's entrance. */
+export function roomLock(room: string): { reason: string; tag: string } {
+  if (room.startsWith('trail_')) return { reason: `Restore ${ROOM[room]?.name ?? 'its trail'} in the Wild Woods`, tag: 'Woods' };
+  if (room === MINE.entrance.id) return { reason: 'Restore the Mine Entrance: row over from the jetty on the north beach', tag: 'Mine' };
+  return { reason: 'Rebuild it in the village square', tag: 'Village' };
+}
 
 /** Gem cost to finish a timer now. */
 export function speedupCost(msLeft: number): number {
@@ -30,7 +37,7 @@ export class BuildingSystem {
       if (game.state.event?.id !== def.event) return { ok: false, reason: 'Event item' };
       if (game.state.event.tokens < eventCostOf(def)) return { ok: false, reason: 'Not enough tokens' };
     } else if (game.level < def.level) return { ok: false, reason: `Unlocks at level ${def.level}` };
-    if (def.room && !roomDone(def.room)) return { ok: false, reason: def.room.startsWith('trail_') ? `Restore ${ROOM[def.room]?.name ?? 'its trail'} in the Wild Woods` : 'Rebuild it in the village square' };
+    if (def.room && !roomDone(def.room)) return { ok: false, reason: roomLock(def.room).reason };
     if (game.capUsage(def) >= game.capFor(def)) {
       if (def.max) return { ok: false, reason: 'Already built' };
       const raise = nextCapRaise(def.cap as CapKey);

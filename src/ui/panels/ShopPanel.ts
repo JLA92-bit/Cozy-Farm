@@ -4,11 +4,11 @@ import { h, icon, priceTag, clear } from '../dom';
 import { ui } from '../UI';
 import { BUILDINGS, type BuildingDef, ANIMALS } from '../../data';
 import { game } from '../../systems/Game';
-import { buildings, eventCostOf } from '../../systems/Buildings';
+import { buildings, eventCostOf, roomLock } from '../../systems/Buildings';
 import { audio } from '../../systems/Audio';
 import { animals } from '../../systems/Animals';
 import { eventTokenItem } from '../../systems/Farming';
-import { ITEMS, ROOM } from '../../data';
+import { ITEMS } from '../../data';
 import { capCardHint, moreRoomHint, nextCapRaise, type CapKey } from '../../systems/Caps';
 
 const TABS = [
@@ -117,13 +117,13 @@ function card(p: Panel, def: BuildingDef): HTMLElement {
   // full, but a bigger Farmhouse makes room: point the way instead of a dead end
   const growable = full && !def.max && !!def.cap && !!nextCapRaise(def.cap as CapKey);
   const sub: (HTMLElement | string)[] = [];
-  // 1.21 the Woodcraft Lodge opens with a woods trail instead of a village room
-  if (needsRoom) sub.push(def.room!.startsWith('trail_') ? `Restore ${ROOM[def.room!]?.name ?? 'its trail'} in the Wild Woods` : 'Rebuild it in the village square');
+  // 1.21 the Woodcraft Lodge opens with a woods trail, 1.31 the Smelter and Jeweller with the Old Mine's entrance
+  if (needsRoom) sub.push(roomLock(def.room!).reason);
   else if (locked) sub.push(`Level ${def.level}`);
   else if (cap !== Infinity) sub.push(`${used} / ${cap}`);
   if (def.charm && def.cat === 'decor') sub.push(`+${def.charm} charm`);
   const el = h('div', { class: `card clickable shop-card ${locked ? 'locked' : ''} ${full && !stored ? 'maxed' : ''}` },
-    locked ? h('div', { class: 'lock-tag' }, icon('lock'), needsRoom ? (def.room!.startsWith('trail_') ? 'Woods' : 'Village') : `Lv ${def.level}`) : null,
+    locked ? h('div', { class: 'lock-tag' }, icon('lock'), needsRoom ? roomLock(def.room!).tag : `Lv ${def.level}`) : null,
     !locked && isNew(def) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
     thumb,
     h('div', { class: 'card-title' }, def.name),

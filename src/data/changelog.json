@@ -10,6 +10,10 @@
     {
      "icon": "cloud",
      "text": "Signing in with a Google account that already has a farm now works in the app: it tells you, and one more tap opens that farm"
+    },
+    {
+     "icon": "pick",
+     "text": "The Shop now says where the Smelter and Jeweller's Bench come from: restore the Mine Entrance across the water from the north beach"
     }
    ]
   },
