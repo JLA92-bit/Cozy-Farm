@@ -4942,3 +4942,30 @@ $$;
 
 revoke all on function public.save_device_copy(jsonb, integer, integer, text) from public, anon;
 grant execute on function public.save_device_copy(jsonb, integer, integer, text) to authenticated;
+
+-- ===== gem spending =====
+-- 1.33.6 What a player spent gems on, for the dashboard's player page (Support tab, "Gems spent"). The game logs every
+-- spend as a game event 'gems_spent' {n, on, left, level} (log_event; kept 180 days like other events). `on` says
+-- what for: finish:<workshop>, build:<building>, upgrade:<building>, grow:<crop>, boutique:<piece>, stall_slot.
+
+create or replace function public.admin_player_gems(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'spends', (select coalesce(jsonb_agg(jsonb_build_object('at', e.at, 'n', (e.detail ->> 'n')::integer, 'on', e.detail ->> 'on', 'left', (e.detail ->> 'left')::integer) order by e.at desc), '[]'::jsonb)
+                 from (select * from public.player_events x where x.user_id = p_id and x.kind = 'gems_spent' order by x.at desc limit 300) e),
+    'byKind', (select coalesce(jsonb_object_agg(k, n), '{}'::jsonb) from (
+                 select split_part(x.detail ->> 'on', ':', 1) as k, sum((x.detail ->> 'n')::integer) as n
+                   from public.player_events x where x.user_id = p_id and x.kind = 'gems_spent' group by 1) t),
+    'total', (select coalesce(sum((x.detail ->> 'n')::integer), 0) from public.player_events x where x.user_id = p_id and x.kind = 'gems_spent'));
+end;
+$$;
+
+revoke all on function public.admin_player_gems(uuid) from public, anon;
+grant execute on function public.admin_player_gems(uuid) to authenticated;

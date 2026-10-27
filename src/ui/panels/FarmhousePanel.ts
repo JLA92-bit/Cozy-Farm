@@ -1,6 +1,6 @@
 import { Panel } from '../Panel';
 import { farmhands } from '../../systems/Farmhands';
-import { h, icon, button, priceTag, clear, fmt } from '../dom';
+import { h, icon, button, priceTag, clear, fmt, gemButton } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, FARMHOUSE, HOME } from '../../data';
 import { homeUnlocked, openRooms } from '../../systems/Home';
@@ -107,7 +107,7 @@ export function openFarmhouse(): void {
           if (left() <= 0) { clearInterval(iv); render(); return; }
           timer.textContent = formatTime(left());
         }, 1000);
-        p.footer.append(button([priceTag(0, speedupCost(left())), 'Finish now'], () => {
+        p.footer.append(gemButton(speedupCost(left()), 'Finish now', () => {
           if (!buildings.speedup(fh)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); return; }
           render();
         }, 'purple wide'));

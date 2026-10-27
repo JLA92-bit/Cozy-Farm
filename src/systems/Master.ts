@@ -127,7 +127,7 @@ class BoutiqueSystem {
 
   buy(id: string): boolean {
     const o = this.offers().find((x) => x.id === id);
-    if (!o || this.owned(id) || !game.spend(0, o.price)) return false;
+    if (!o || this.owned(id) || !game.spend(0, o.price, `boutique:${id}`)) return false;
     const st = (game.state.boutique ??= { owned: [] });
     const wk = weekKey(Date.now());
     if (st.week !== wk) { st.week = wk; st.weekBought = []; }

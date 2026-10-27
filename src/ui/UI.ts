@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { watchBannerSpace } from './BannerSpace';
 import gsap from 'gsap';
-import { h, icon, itemIcon, button, fmt, priceTag, uiHooks, clear } from './dom';
+import { h, icon, itemIcon, button, fmt, priceTag, uiHooks, clear, gemButton } from './dom';
 import { HUD } from './HUD';
 import { Feedback } from './Feedback';
 import { WorldUI } from './WorldUI';
@@ -541,11 +541,11 @@ class UIManager {
     if (isBuilt(b, now)) rows.push(...decorPopupRows(b));
     const btns = h('div', { class: 'chip-row' });
     if (speedFn && speedCost) {
-      btns.append(button([priceTag(0, speedCost), 'Finish'], () => {
+      btns.append(gemButton(speedCost, 'Finish', () => {
         if (!speedFn!()) { this.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); return; }
         this.world.hidePopup();
         this.effects.sparkle(this.scene.farm.anchor(b.uid), '#9ff7ee', 14);
-      }, 'small purple'));
+      }));
     }
     const up = buildings.upgradeInfo(b);
     if (up && isBuilt(b, now) && !isUpgrading(b, now)) {

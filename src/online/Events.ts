@@ -52,6 +52,10 @@ let wired = false;
 export function wireEventLog(isBirthday: (id: string) => boolean): void {
   if (wired) return;
   wired = true;
+  // 1.33.6 every gem spent and what on, for the dashboard's gem history (admin_player_gems)
+  game.bus.on('gems', ({ delta, total, on }) => {
+    if (delta < 0) logEvent('gems_spent', { n: -delta, on: on ?? 'other', left: total, level: game.level });
+  });
   game.bus.on('village:points', ({ id, delta, points, hearts, reason }) => {
     if (reason === 'gift') logEvent('gift', { villager: id, taste: tasteFromPoints(delta, isBirthday(id)), points: delta, birthday: isBirthday(id) });
     else if (reason === 'visit') logEvent('visit', { villager: id });

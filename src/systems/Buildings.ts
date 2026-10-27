@@ -199,7 +199,7 @@ export class BuildingSystem {
     const end = b.upgradeEnd && b.upgradeEnd > now ? b.upgradeEnd : b.buildEnd && b.buildEnd > now ? b.buildEnd : 0;
     if (!end) return false;
     const cost = speedupCost(end - now);
-    if (!game.spend(0, cost)) return false;
+    if (!game.spend(0, cost, `${b.upgradeEnd && b.upgradeEnd > now ? 'upgrade' : 'build'}:${b.type}`)) return false;
     if (b.upgradeEnd && b.upgradeEnd > now) b.upgradeEnd = now;
     if (b.buildEnd && b.buildEnd > now) {
       // keep trees' growth relative to completion

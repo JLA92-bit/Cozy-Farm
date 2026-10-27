@@ -88,6 +88,47 @@ export function button(label: Child | Child[], onClick: () => void, cls = '', at
   return b;
 }
 
+/**
+ * 1.33.6 ghost taps: after a tap on the farm opens a card or a screen right under the finger, some phones (a Samsung
+ * S23 Ultra) send a second, late "click" for the same tap, which pressed whatever button had just appeared there
+ * (a gem Finish button). Real taps on something that appeared less than this long ago are ignored.
+ */
+const FRESH_MS = 450;
+/** Mark a card or screen as just shown (Panel.open, WorldUI.showPopup). */
+export function markFresh(el: HTMLElement): void { el.dataset.born = String(performance.now()); }
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
+    const fresh = (e.target as Element | null)?.closest?.('[data-born]') as HTMLElement | null;
+    if (fresh && performance.now() - Number(fresh.dataset.born) < FRESH_MS) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
+}
+
+/**
+ * 1.33.6 a button that spends gems: the first tap asks "Tap again", the second (within 3 seconds) spends. Gems are
+ * bought with real money one day, so a stray tap must never spend them.
+ */
+export function gemButton(cost: number, label: string, onSpend: () => void, cls = 'small purple'): HTMLButtonElement {
+  let armed = 0;
+  const show = (on: boolean) => {
+    b.classList.toggle('gem-armed', on);
+    b.replaceChildren(priceTag(0, cost), on ? 'Tap again' : label);
+  };
+  const b = button([], () => {
+    if (!armed) {
+      show(true);
+      armed = window.setTimeout(() => { armed = 0; show(false); }, 3000);
+      return;
+    }
+    clearTimeout(armed);
+    armed = 0;
+    show(false);
+    onSpend();
+  }, cls, { 'aria-label': `${label} for ${cost} gems` });
+  show(false);
+  return b;
+}
+
 export function priceTag(coins: number, gems = 0, tokens?: { n: number; icon: string }): HTMLElement {
   const span = h('span', { class: 'price' });
   if (tokens) span.append(icon(tokens.icon), String(tokens.n));

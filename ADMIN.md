@@ -76,6 +76,13 @@ report **Actioned**; otherwise **Dismiss** it. The player page's Support tab als
 player and how many players block them. Players can block each other without a report; blocks are enforced on the
 server. Needs the `reports and blocks` section of `supabase/schema.sql`.
 
+## Gems spent
+
+From 1.33.6 the player page's Support tab has a **Gems spent** card: every gem spend (when, how many, what on, and how
+many were left), with totals by kind. On: finishing a workshop job, a building or an upgrade, growing a crop or tree at
+once, the Master Boutique, an extra stall slot. From the game events (kept 180 days, `admin_player_gems`). Older
+spends were not recorded. Lifetime coin totals (coins earned and spent) are in the save's stats on the player page.
+
 ## Restoring a player's farm
 
 1. Players > find them > open their page.

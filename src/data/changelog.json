@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.33.6",
+   "date": "2026-10-27",
+   "title": "Steady Hands",
+   "icon": "gem",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "gem",
+     "text": "Buttons that spend gems now ask for a second tap, so a stray tap never spends them"
+    },
+    {
+     "icon": "hand",
+     "text": "Fixed: on some phones, tapping a building could also press the button that popped up under your finger"
+    }
+   ]
+  },
+  {
    "version": "1.33.5",
    "date": "2026-10-27",
    "title": "Safe Keeping",

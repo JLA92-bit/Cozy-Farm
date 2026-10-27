@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, append, icon, itemIcon, button, clear, priceTag, stableRefresh } from '../dom';
+import { h, append, icon, itemIcon, button, clear, stableRefresh, gemButton } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, RECIPE, ANIMALS, TREES, itemSource } from '../../data';
 import { fishing } from '../../systems/Fishing';
@@ -124,7 +124,7 @@ export function openProduction(b: PlacedBuilding): void {
     const cost = production.speedupCost(b);
     const btns = h('div', { class: 'col prod-actions' });
     if (ready.size) btns.append(button('Collect all', () => collect(), 'small'));
-    if (cost) btns.append(button([priceTag(0, cost), 'Finish'], () => { if (!production.speedup(b)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } renderQueue(); }, 'small purple'));
+    if (cost) btns.append(gemButton(cost, 'Finish', () => { if (!production.speedup(b)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } renderQueue(); }));
     if (btns.childElementCount) queueEl.append(btns);
     // live hint line: queue full, or building not ready yet
     if (!isBuilt(b, now)) detail.textContent = 'Still under construction.';

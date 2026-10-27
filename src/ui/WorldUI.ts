@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { h } from './dom';
+import { h, markFresh } from './dom';
 
 /** A DOM element pinned to a world position (re-projected every frame while the camera moves). */
 interface Anchor { el: HTMLElement; pos: THREE.Vector3; dy: number; visible: boolean; px: number; py: number }
@@ -39,6 +39,7 @@ export class WorldUI {
     this.hidePopup();
     this.popup = this.add(content, pos, -6);
     this.popup.el.style.zIndex = '5';
+    markFresh(this.popup.el); // the tap that opened it must not also press a button in it (dom.ts)
     gsap.fromTo(content, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)' });
   }
 

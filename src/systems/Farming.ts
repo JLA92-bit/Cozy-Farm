@@ -137,7 +137,7 @@ export class FarmingSystem {
 
   speedup(b: PlacedBuilding): boolean {
     const cost = this.speedupCost(b);
-    if (!cost || !game.spend(0, cost)) return false;
+    if (!cost || !game.spend(0, cost, `grow:${b.plot?.crop ?? b.type}`)) return false;
     if (b.plot) b.plot.plantedAt = game.now() - b.plot.growSec * 1000;
     else if (b.tree) b.tree.readyAt = game.now();
     game.bus.emit('building:changed', { b });

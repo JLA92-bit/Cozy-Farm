@@ -815,6 +815,7 @@ function supportTab(c: Ctx): HTMLElement[] {
       : h('p', { class: 'muted small' }, 'Never locked.')),
     playerReportsCard(d.id),
     cloudCopiesCard(d.id, name),
+    gemsCard(d.id),
     card('What admins did for this player', deep?.adminLog.length ? h('table', { class: 'table compact' }, h('tbody', null, deep.adminLog.map((l) => h('tr', null,
       h('td', { class: 'small' }, date(l.at, true)), h('td', null, l.action), h('td', { class: 'small muted' }, l.admin), h('td', { class: 'small' }, l.detail ? Object.entries(l.detail).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(', ') : '')))))
       : h('p', { class: 'muted small' }, 'Nothing logged yet.')),
@@ -851,6 +852,24 @@ function cloudCopiesCard(id: string, name: string): HTMLElement {
       h('td', { class: 'small' }, date(r.saved_at, true)), h('td', null, `${r.name ?? 'Farmer'}, level ${r.level}`), h('td', { class: 'small muted' }, `replaced ${ago(r.kept_at)} (${r.reason})`),
       h('td', { class: 'r' }, h('button', { class: 'btn small', onclick: () => get(r.id, r.saved_at) }, 'Download'))))))
       : h('p', { class: 'muted small' }, 'None: their cloud farm has never been replaced.'));
+  });
+  return box;
+}
+
+/** 1.33.6 the Support tab: every gem spent and what on (game events 'gems_spent', kept 180 days; admin_player_gems). */
+const GEM_ON: Record<string, string> = { finish: 'Finish a workshop job', build: 'Finish building', upgrade: 'Finish an upgrade', grow: 'Grow a crop or tree at once', boutique: 'Master Boutique', stall_slot: 'Extra stall slot', other: 'Other' };
+function gemsCard(id: string): HTMLElement {
+  const body = h('div');
+  const box = card('Gems spent', body);
+  void loading(body, async () => {
+    const g = await rpc<{ spends: { at: string; n: number; on: string | null; left: number | null }[]; byKind: Record<string, number>; total: number }>('admin_player_gems', { p_id: id });
+    const what = (on: string | null) => { const [k, x] = (on ?? 'other').split(':'); return `${GEM_ON[k] ?? k}${x ? ` (${x.replace(/_/g, ' ')})` : ''}`; };
+    body.replaceChildren(
+      h('p', { class: 'small' }, g.total ? `${num(g.total)} gems spent in the last 180 days: ${Object.entries(g.byKind).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${GEM_ON[k] ?? k} ${num(n)}`).join(', ')}.` : 'No gems spent (recorded from game version 1.33.6).'),
+      g.spends.length ? h('div', { class: 'table-wrap' }, h('table', { class: 'table compact' },
+        h('thead', null, h('tr', null, h('th', null, 'When'), h('th', { class: 'r' }, 'Gems'), h('th', null, 'On'), h('th', { class: 'r' }, 'Left after'))),
+        h('tbody', null, g.spends.map((x) => h('tr', null, h('td', { class: 'small' }, date(x.at, true)), h('td', { class: 'r' }, num(x.n)), h('td', null, what(x.on)), h('td', { class: 'r' }, x.left === null ? '-' : num(x.left)))))))
+        : '');
   });
   return box;
 }

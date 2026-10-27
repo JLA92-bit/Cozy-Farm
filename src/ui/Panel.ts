@@ -1,5 +1,5 @@
 import gsap from 'gsap';
-import { h, button, icon, fmt } from './dom';
+import { h, button, icon, fmt, markFresh } from './dom';
 import { audio } from '../systems/Audio';
 import { game } from '../systems/Game';
 
@@ -115,6 +115,7 @@ export class Panel {
 
   open(): this {
     Panel.root.append(this.overlay);
+    markFresh(this.overlay); // a late second click from the tap that opened it is ignored (dom.ts)
     Panel.stack.push(this);
     if (this.tabsEl) this.setTab(this.tab, true);
     if (!this.footer.childElementCount) this.footer.style.display = 'none';

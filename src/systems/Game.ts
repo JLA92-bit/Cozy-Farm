@@ -12,7 +12,8 @@ export const QUALITY_MULT = [1, 1.25, 1.5] as const;
 
 export interface GameEvents extends Record<string, unknown> {
   coins: { delta: number; total: number; at?: Vec };
-  gems: { delta: number; total: number; at?: Vec };
+  /** `on`: what gems were spent on (1.33.6, for the dashboard's gem history) */
+  gems: { delta: number; total: number; at?: Vec; on?: string };
   xp: { delta: number; total: number; at?: Vec };
   levelup: { level: number };
   item: { item: string; delta: number; total: number; at?: Vec; quality?: 0 | 1 | 2 };
@@ -208,18 +209,18 @@ export class Game {
     else this.incStat('coins_spent', -n);
     this.bus.emit('coins', { delta: n, total: this.state.player.coins, at });
   }
-  addGems(n: number, at?: Vec): void {
+  addGems(n: number, at?: Vec, on?: string): void {
     if (!n) return;
     this.state.player.gems = Math.max(0, this.state.player.gems + n);
     if (n > 0) this.incStat('gems_earned', n);
-    this.bus.emit('gems', { delta: n, total: this.state.player.gems, at });
+    this.bus.emit('gems', { delta: n, total: this.state.player.gems, at, on });
   }
   canAfford(coins: number, gems = 0): boolean { return this.coins >= coins && this.gems >= gems; }
-  /** Spend coins/gems if affordable. */
-  spend(coins: number, gems = 0): boolean {
+  /** Spend coins/gems if affordable. `on`: what gems went on (e.g. 'finish:bakery'), kept for the dashboard. */
+  spend(coins: number, gems = 0, on?: string): boolean {
     if (!this.canAfford(coins, gems)) return false;
     if (coins) this.addCoins(-coins);
-    if (gems) this.addGems(-gems);
+    if (gems) this.addGems(-gems, undefined, on);
     return true;
   }
 

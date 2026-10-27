@@ -291,7 +291,7 @@ export class StallSystem {
 
   buySlot(): boolean {
     const s = this.ensureSlots();
-    if (s.length >= ECONOMY.stall.maxSlots || !game.spend(0, ECONOMY.stall.slotCostGems)) return false;
+    if (s.length >= ECONOMY.stall.maxSlots || !game.spend(0, ECONOMY.stall.slotCostGems, 'stall_slot')) return false;
     s.push({ item: null, qty: 0, price: 0, listedAt: 0, soldAt: null, buyDelay: 0 });
     game.bus.emit('stall:changed', {});
     return true;

@@ -129,7 +129,7 @@ export class ProductionSystem {
     const q = b.queue ?? [];
     const idx = q.findIndex((e) => e.start <= now && e.end > now);
     if (idx < 0) return false;
-    if (!game.spend(0, this.speedupCost(b))) return false;
+    if (!game.spend(0, this.speedupCost(b), `finish:${b.type}`)) return false;
     const shift = q[idx].end - now;
     for (let i = idx; i < q.length; i++) { q[i].end -= shift; if (i > idx) q[i].start -= shift; }
     settleProduction(b, now);

@@ -241,7 +241,18 @@ export function openStall(): void {
             h('button', { class: 'opt-btn', style: 'min-width:36px;min-height:36px;padding:0', title: 'Take back', onclick: (e: MouseEvent) => { e.stopPropagation(); stall.cancel(i); render(); } }, icon('cross'))));
       grid.append(card);
     });
-    if (slots.length < ECONOMY.stall.maxSlots) grid.append(h('div', { class: 'card clickable stall-empty', style: 'opacity:.8', onclick: () => { if (!stall.buySlot()) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } render(); } }, icon('plus', 'icon'), h('div', { class: 'card-sub' }, 'Extra slot'), h('span', { class: 'pill' }, priceTag(0, ECONOMY.stall.slotCostGems))));
+    if (slots.length < ECONOMY.stall.maxSlots) {
+      // 1.33.6 gems: the first tap asks "Tap again", the second (within 3 seconds) buys
+      const sub = h('div', { class: 'card-sub' }, 'Extra slot');
+      let armed = 0;
+      const slot = h('div', { class: 'card clickable stall-empty', style: 'opacity:.8', onclick: () => {
+        if (!armed) { sub.textContent = 'Tap again'; slot.classList.add('selected'); armed = window.setTimeout(() => { armed = 0; sub.textContent = 'Extra slot'; slot.classList.remove('selected'); }, 3000); return; }
+        clearTimeout(armed); armed = 0;
+        if (!stall.buySlot()) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); }
+        render();
+      } }, icon('plus', 'icon'), sub, h('span', { class: 'pill' }, priceTag(0, ECONOMY.stall.slotCostGems)));
+      grid.append(slot);
+    }
     p.body.append(grid);
   };
   const renderPicker = (slot: number) => {

@@ -1075,3 +1075,5 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 /* 1.33.3 update prompt (UpdatePrompt.ts): the gentle card; the must-update notice reuses the lock screen look */
 .update-card .update-title { font-family: var(--font-display); font-size: 22px; color: #fff; margin-bottom: 6px; }
 .update-screen .btn { margin-top: 6px; }
+/* 1.33.6 a gem button after the first tap: "Tap again" (dom.ts gemButton) */
+.btn.gem-armed { --c: var(--btn-red); --d: var(--btn-red-dark); animation: pulse .6s ease-in-out infinite; }
