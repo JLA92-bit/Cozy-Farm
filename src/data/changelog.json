@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.33.5",
+   "date": "2026-10-27",
+   "title": "Safe Keeping",
+   "icon": "cloud",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "cloud",
+     "text": "Your cloud farm is safer: if it is ever replaced by another farm, it is kept for 180 days and Settings > Your farm > Earlier cloud farms brings it back"
+    },
+    {
+     "icon": "info",
+     "text": "Choosing a farm with less progress over a bigger one now asks you to confirm first"
+    },
+    {
+     "icon": "farmer",
+     "text": "Fixed: signing in on a new device could show your farmer's name as Farmer to friends until you played again"
+    }
+   ]
+  },
+  {
    "version": "1.33.4",
    "date": "2026-10-25",
    "title": "Signed In, Take Two",

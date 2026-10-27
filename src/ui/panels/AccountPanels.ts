@@ -5,7 +5,7 @@ import { game } from '../../systems/Game';
 import { hints } from '../../systems/Hints';
 import { audio } from '../../systems/Audio';
 import {
-  cloudHooks, cloudState, deleteOnlineAccount, signInWithApple, signInWithGoogle, signOutOfGoogle, suggest, type FarmSummary,
+  cloudHooks, cloudState, deleteOnlineAccount, listCloudCopies, restoreCloudCopy, signInWithApple, signInWithGoogle, signOutOfGoogle, suggest, type FarmSummary,
 } from '../../online/CloudSave';
 import { appleSignIn } from '../../core/Native';
 import './account.css';
@@ -93,6 +93,52 @@ function farmCard(title: string, f: FarmSummary, where: string, best: boolean): 
     h('div', { class: 'fc-meta muted' }, where));
 }
 
+/** 1.33.5 Settings > Your farm > Earlier cloud farms: farms the server kept when the cloud farm was replaced. */
+export async function openEarlierCloudFarms(): Promise<void> {
+  const p = new Panel({ title: 'Earlier cloud farms', size: 'medium', color: 'blue', icon: 'cloud' });
+  const list = h('div', { class: 'list' }, h('div', { class: 'center muted' }, 'Looking in the cloud...'));
+  p.body.append(h('div', { class: 'muted', style: 'margin-bottom:8px' }, 'When your cloud farm is replaced by a different farm or a smaller one, we keep the old one here for 180 days (the last 5).'), list);
+  p.footer.append(button('Close', () => p.close(), 'grey'));
+  p.open();
+  let copies;
+  try { copies = await listCloudCopies(); } catch { list.replaceChildren(h('div', { class: 'center muted' }, 'Could not reach the cloud. Try again in a moment.')); return; }
+  if (!copies.length) { list.replaceChildren(h('div', { class: 'center muted' }, 'Nothing here: your cloud farm has never been replaced.')); return; }
+  list.replaceChildren(...copies.map((c) => h('div', { class: 'list-item' },
+    icon('house', 'icon big'),
+    h('div', { class: 'grow' },
+      h('div', { class: 'title' }, `${c.name}'s farm - level ${c.level}`),
+      h('div', { class: 'sub' }, `Saved ${ago(c.savedAt)}${c.device ? ` from ${c.device}` : ''}. Replaced ${ago(c.keptAt)} by ${c.reason === 'smaller' ? 'a smaller save' : 'another farm'}.`)),
+    button('Bring back', () => {
+      const ok = new Panel({ title: 'Bring this farm back?', size: 'small', color: 'blue', icon: 'cloud' });
+      ok.body.append(h('div', { class: 'center' }, `${c.name}'s level ${c.level} farm replaces the farm you are playing now, on this device and in the cloud. The farm you are playing now is kept in Settings > Your farm > Previous farm, and in this list.`));
+      ok.footer.append(button('Go back', () => ok.close(), 'grey'), button('Bring it back', async () => {
+        ok.close();
+        const err = await restoreCloudCopy(c.id).catch(() => 'Could not reach the cloud. Try again in a moment.');
+        if (err) ui.feedback.toast('Could not bring it back', err, 'cloud', 'warn');
+      }, 'green'));
+      ok.open();
+    }, 'small green'))));
+}
+
+/** "Are you sure?" before the farm with less progress replaces a bigger one. */
+function confirmSmaller(v: 'local' | 'cloud', keep: FarmSummary, lose: FarmSummary, yes: () => void): void {
+  const p = new Panel({ title: 'Are you sure?', size: 'small', color: 'pink', icon: 'info', closable: false });
+  p.body.append(
+    h('div', { class: 'center fc-intro' }, v === 'local' ? `Replace your level ${lose.level} cloud farm?` : `Swap this level ${lose.level} farm away?`),
+    h('div', { class: 'center' }, v === 'local'
+      ? `${lose.name}'s farm in the cloud is level ${lose.level}. Keeping the level ${keep.level} farm on this device replaces it in the cloud.`
+      : `The farm on this device is level ${lose.level}. Loading the level ${keep.level} cloud farm puts it aside.`),
+    h('div', { class: 'center muted', style: 'margin-top:8px' }, v === 'local'
+      ? 'A copy is kept for 180 days: Settings > Your farm > Earlier cloud farms brings it back.'
+      : 'It is kept on this device: Settings > Your farm > Previous farm brings it back.'),
+  );
+  p.footer.append(
+    button('Go back', () => p.close(), 'green'),
+    button(v === 'local' ? 'Yes, replace it' : 'Yes, load the cloud farm', () => { p.close(); yes(); }, 'red'),
+  );
+  p.open();
+}
+
 /** "We found a farm in the cloud": the player picks which farm to keep playing. */
 export function openCloudChoice(local: FarmSummary, cloud: FarmSummary & { device: string; savedAt: number }): Promise<'local' | 'cloud'> {
   return new Promise((resolve) => {
@@ -105,10 +151,17 @@ export function openCloudChoice(local: FarmSummary, cloud: FarmSummary & { devic
       h('div', { class: 'farm-choices' },
         farmCard('On this device', local, 'Saved here', best === 'local'),
         farmCard('In the cloud', cloud, `Saved from ${cloud.device || 'another device'}${cloud.savedAt ? `, ${ago(cloud.savedAt)}` : ''}`, best === 'cloud')),
-      h('div', { class: 'center muted', style: 'margin-top:10px' }, 'The farm you do not pick is kept on this device (Settings > Your farm), so nothing is lost.'),
+      h('div', { class: 'center muted', style: 'margin-top:10px' }, 'The farm you do not pick is kept on this device (Settings > Your farm), and a replaced cloud farm is kept in Settings > Your farm > Earlier cloud farms, so nothing is lost.'),
     );
     let done = false;
-    const pick = (v: 'local' | 'cloud') => { if (done) return; done = true; p.close(); resolve(v); };
+    const finish = (v: 'local' | 'cloud') => { if (done) return; done = true; p.close(); resolve(v); };
+    // 1.33.5 picking the farm with less progress takes a second, clear yes (one wrong tap must not swap a big farm away)
+    const pick = (v: 'local' | 'cloud') => {
+      const keep = v === 'local' ? local : cloud;
+      const lose = v === 'local' ? cloud : local;
+      if (lose.totalXp > keep.totalXp) confirmSmaller(v, keep, lose, () => finish(v));
+      else finish(v);
+    };
     p.footer.append(
       button([icon('house'), 'Keep this farm'], () => pick('local'), best === 'local' ? 'green' : 'blue'),
       button([icon('cloud'), 'Load cloud farm'], () => pick('cloud'), best === 'cloud' ? 'green' : 'blue'),

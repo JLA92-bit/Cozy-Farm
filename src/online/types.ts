@@ -299,6 +299,9 @@ export interface OnlineBackend {
   /** Report a player (giftId: a gift they sent, kept with the report). False when already reported today. Rejects 'too many today'. */
   reportPlayer(id: string, reason: ReportReason, note: string, place: ReportPlace, giftId?: string): Promise<boolean>;
 
+  /** 1.33.5 a whole copy of this farm for the developer's daily backup (false: one was kept in the last 20 hours). */
+  saveDeviceCopy(data: object, saveVersion: number, level: number, device: string): Promise<boolean>;
+
   subscribe(cb: (e: OnlineEvent) => void): () => void;
 }
 
@@ -313,6 +316,9 @@ export interface AccountInfo {
   /** how the player signed in (Apple only in the iPhone app; Native.ts appleSignIn) */
   provider?: 'google' | 'apple';
 }
+
+/** 1.33.5 a cloud farm kept by the server when it was replaced by another farm or a smaller one. */
+export interface CloudCopy { id: number; name: string; level: number; coins: number; device: string; savedAt: number; keptAt: number; reason: 'other farm' | 'smaller' }
 
 /** One cloud save row (the player's whole farm, as exported). `updatedAt` is the server's exact timestamp text. */
 export interface CloudRow {
@@ -345,6 +351,10 @@ export interface AccountBackend {
   signInWithApple(): Promise<void>;
   /** 1.32 the Android app: Google sent the player back by deep link (`href`); finish the sign-in. */
   completeRedirect?(href: string): Promise<void>;
+  /** 1.33.5 the cloud farms this account replaced lately (kept by the server for 180 days), newest first. */
+  cloudCopies(): Promise<CloudCopy[]>;
+  /** 1.33.5 one of them, to bring back; null when it is gone. */
+  cloudCopy(id: number): Promise<{ data: unknown; saveVersion: number } | null>;
   /** Sign out on this device. The next connect makes a fresh anonymous account. */
   signOut(): Promise<void>;
   /** Permanently delete the online account (profile, friend code, cloud save, listings, gifts), then sign out. */

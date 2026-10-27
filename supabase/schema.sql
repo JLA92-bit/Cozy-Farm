@@ -1737,12 +1737,19 @@ declare
   n integer := 0;
   m integer := 0;
 begin
+  -- the whole farm where we have it (a cloud save, or from 1.33.5 the daily copy every online game sends), otherwise
+  -- the farm layout
   with src as (
     select c.user_id, 'cloud'::text as source, c.data, c.level, md5(c.data::text) as hash from public.cloud_saves c
+    union all
+    select d.user_id, 'device', d.data, d.level, md5(d.data::text)
+      from public.device_saves d
+     where not exists (select 1 from public.cloud_saves c where c.user_id = d.user_id)
     union all
     select f.user_id, 'snapshot', f.data, coalesce((f.data ->> 'level')::integer, null), md5(f.data::text)
       from public.farm_snapshots f
      where not exists (select 1 from public.cloud_saves c where c.user_id = f.user_id)
+       and not exists (select 1 from public.device_saves d where d.user_id = f.user_id)
   ), fresh as (
     select s.* from src s
      where not exists (select 1 from public.farm_backups b
@@ -1758,6 +1765,12 @@ begin
    where b.taken_at < now() - interval '60 days'
      and b.taken_at < (select max(b2.taken_at) from public.farm_backups b2 where b2.user_id = b.user_id);
   get diagnostics m = row_count;
+  -- 1.33.5 whole farms are big: after 14 days keep one a week (the newest of each week) per player
+  delete from public.farm_backups b
+   where b.taken_at < now() - interval '14 days'
+     and exists (select 1 from public.farm_backups b2
+                  where b2.user_id = b.user_id and b2.source = b.source and b2.taken_at > b.taken_at
+                    and date_trunc('week', b2.taken_at) = date_trunc('week', b.taken_at));
   return n;
 end;
 $$;
@@ -4759,3 +4772,173 @@ $$;
 
 revoke all on function public.is_friendly(text) from public, anon;
 grant execute on function public.is_friendly(text) to authenticated;
+
+-- ===== cloud save history =====
+-- 1.33.5 A safety net for cloud farms (ONLINE.md "Cloud farm history"). When a cloud save is replaced by a different
+-- farm (another start date, e.g. a new phone's farm or an imported one) or by a smaller one (a lower level), the old
+-- copy is kept here first, by a trigger on cloud_saves, so one wrong tap can never lose a farm. The newest 5 copies
+-- per account are kept for 180 days. Players see and bring back their own copies in Settings > Your farm > Earlier
+-- cloud farms (my_cloud_copies, cloud_copy); the dashboard's player page lists them too (admin_cloud_copies,
+-- admin_cloud_copy). Deleting the account deletes them (on delete cascade).
+
+create table if not exists public.cloud_save_history (
+  id           bigint generated always as identity primary key,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  data         jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 524288),
+  save_version integer not null default 1,
+  level        integer not null default 1,
+  coins        bigint not null default 0,
+  name         text,
+  device       text,
+  -- when the kept farm was saved, and when (and why) it was replaced
+  saved_at     timestamptz not null,
+  kept_at      timestamptz not null default now(),
+  reason       text not null check (reason in ('other farm', 'smaller'))
+);
+create index if not exists cloud_save_history_user_idx on public.cloud_save_history (user_id, kept_at desc);
+alter table public.cloud_save_history enable row level security;
+revoke all on public.cloud_save_history from anon, authenticated, public;
+
+create or replace function public.cloud_save_keep()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_reason text;
+begin
+  if (old.data ->> 'createdAt') is distinct from (new.data ->> 'createdAt') then v_reason := 'other farm';
+  elsif new.level < old.level then v_reason := 'smaller';
+  else return new;
+  end if;
+  insert into public.cloud_save_history (user_id, data, save_version, level, coins, name, device, saved_at, reason)
+  values (old.user_id, old.data, old.save_version, old.level, old.coins, left(old.data -> 'player' ->> 'name', 24), old.device, old.updated_at, v_reason);
+  delete from public.cloud_save_history h
+   where h.user_id = old.user_id
+     and (h.kept_at < now() - interval '180 days'
+          or h.id not in (select x.id from public.cloud_save_history x where x.user_id = old.user_id order by x.kept_at desc, x.id desc limit 5));
+  return new;
+end;
+$$;
+
+drop trigger if exists cloud_save_keep on public.cloud_saves;
+create trigger cloud_save_keep before update on public.cloud_saves for each row execute function public.cloud_save_keep();
+
+-- The caller's kept cloud farms, newest first (no farm data: cloud_copy fetches one).
+create or replace function public.my_cloud_copies()
+returns table (id bigint, name text, level integer, coins bigint, device text, saved_at timestamptz, kept_at timestamptz, reason text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select h.id, h.name, h.level, h.coins, h.device, h.saved_at, h.kept_at, h.reason
+    from public.cloud_save_history h
+   where h.user_id = auth.uid()
+   order by h.kept_at desc, h.id desc;
+$$;
+
+-- One of the caller's kept cloud farms, to bring back (the game loads it, then saves it to the cloud as usual).
+create or replace function public.cloud_copy(p_id bigint)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object('data', h.data, 'save_version', h.save_version, 'saved_at', h.saved_at)
+    from public.cloud_save_history h
+   where h.id = p_id and h.user_id = auth.uid();
+$$;
+
+-- Dashboard: a player's kept cloud farms, and one of them to download.
+create or replace function public.admin_cloud_copies(p_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform public.admin_guard();
+  return (select coalesce(jsonb_agg(jsonb_build_object('id', h.id, 'name', h.name, 'level', h.level, 'coins', h.coins, 'device', h.device,
+            'saved_at', h.saved_at, 'kept_at', h.kept_at, 'reason', h.reason) order by h.kept_at desc), '[]'::jsonb)
+            from public.cloud_save_history h where h.user_id = p_id);
+end;
+$$;
+
+create or replace function public.admin_cloud_copy(p_copy bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_admin text := public.admin_guard();
+  r public.cloud_save_history;
+begin
+  select * into r from public.cloud_save_history h where h.id = p_copy;
+  if not found then raise exception 'not found'; end if;
+  perform public.admin_note_log(v_admin, 'download cloud copy', r.user_id, jsonb_build_object('copy', p_copy));
+  return jsonb_build_object('data', r.data, 'saved_at', r.saved_at, 'level', r.level);
+end;
+$$;
+
+revoke all on function public.cloud_save_keep() from public, anon, authenticated;
+revoke all on function public.my_cloud_copies() from public, anon;
+revoke all on function public.cloud_copy(bigint) from public, anon;
+revoke all on function public.admin_cloud_copies(uuid) from public, anon;
+revoke all on function public.admin_cloud_copy(bigint) from public, anon;
+grant execute on function public.my_cloud_copies() to authenticated;
+grant execute on function public.cloud_copy(bigint) to authenticated;
+grant execute on function public.admin_cloud_copies(uuid) to authenticated;
+grant execute on function public.admin_cloud_copy(bigint) to authenticated;
+
+-- ===== daily farm copies =====
+-- 1.33.5 A whole copy of every farm, every day (ADMIN.md "Backups"). Players who never signed in with Google have no
+-- cloud save, so until now the daily backup only had their farm layout. Now every online game sends its whole save
+-- once a day (save_device_copy; the newest only, at most every 20 hours) and backup_all_farms keeps it like a cloud
+-- save (source 'device'), so any farm can be brought back in full from the dashboard. Only the developer can read
+-- these copies; deleting the account deletes them (on delete cascade).
+
+alter table public.farm_backups drop constraint if exists farm_backups_source_check;
+alter table public.farm_backups add constraint farm_backups_source_check check (source in ('cloud', 'snapshot', 'device'));
+
+create table if not exists public.device_saves (
+  user_id      uuid primary key references auth.users (id) on delete cascade,
+  data         jsonb not null check (jsonb_typeof(data) = 'object' and octet_length(data::text) <= 524288),
+  save_version integer not null default 1,
+  level        integer not null default 1,
+  updated_at   timestamptz not null default now(),
+  device       text check (device is null or char_length(device) <= 60)
+);
+alter table public.device_saves enable row level security;
+revoke all on public.device_saves from anon, authenticated, public;
+
+-- The caller's whole farm, for the developer's daily backup. Returns false (and keeps nothing) when the last copy is
+-- less than 20 hours old, so a game can call it on every start.
+create or replace function public.save_device_copy(p_data jsonb, p_save_version integer, p_level integer, p_device text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_data is null or jsonb_typeof(p_data) <> 'object' then raise exception 'bad save'; end if;
+  if octet_length(p_data::text) > 524288 then raise exception 'save too big'; end if;
+  if exists (select 1 from public.device_saves d where d.user_id = uid and d.updated_at > now() - interval '20 hours') then return false; end if;
+  insert into public.device_saves as d (user_id, data, save_version, level, updated_at, device)
+  values (uid, p_data, least(greatest(coalesce(p_save_version, 1), 0), 1000000), least(greatest(coalesce(p_level, 1), 1), 999), now(),
+          nullif(public.clean_text(p_device, 60, ''), ''))
+  on conflict (user_id) do update set data = excluded.data, save_version = excluded.save_version, level = excluded.level,
+    updated_at = excluded.updated_at, device = excluded.device;
+  return true;
+end;
+$$;
+
+revoke all on function public.save_device_copy(jsonb, integer, integer, text) from public, anon;
+grant execute on function public.save_device_copy(jsonb, integer, integer, text) to authenticated;

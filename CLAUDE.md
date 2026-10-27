@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.33.4** (local); 1.33.3 pushed (needs schema.sql run); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.33.5** (local, needs schema.sql run); 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -25,7 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.33.4 (local, 25 Oct): app sign-in, second try.** In the app, linking Google to the new anonymous account fails when that Google account already has a farm; the automatic second browser trip (no tap) could be stopped on its way back, leaving the player on Settings, not signed in. Now the app says "That account already has a farm" and the next tap signs straight in (`SWITCH_KEY`); a return handled twice is ignored (`handled`). Sign-in steps are kept on the device (`signInStep`, Settings > Online play > Sign-in steps, app only) for support screenshots. Needs an app build.
+**1.33.5 (local, 27 Oct): farm safety** (ONLINE.md "Farm safety", ADMIN.md backups). A player who lost their phone's farm and signed in again had their account's profile overwritten by the new phone's fresh farm (name Farmer, low stats; level kept by the server): `holdProfile` is now counted and also covers `ensureOnline`'s first publish, the app holds until its launch link is known, signed-in devices until the first cloud check. Choosing the smaller farm needs a second yes. Server: `cloud save history` (a replaced cloud farm is kept 180 days, last 5; Settings > Your farm > Earlier cloud farms; Support tab card) and `daily farm copies` (every online game sends its whole save once a day, `device_saves`; backups now daily 14 days then weekly to 60, source `device`). Privacy page and data-safety updated. **Needs `schema.sql` re-run.**
+
+**1.33.4 (pushed 26 Oct): app sign-in, second try.** In the app, linking Google to the new anonymous account fails when that Google account already has a farm; the automatic second browser trip (no tap) could be stopped on its way back, leaving the player on Settings, not signed in. Now the app says "That account already has a farm" and the next tap signs straight in (`SWITCH_KEY`); a return handled twice is ignored (`handled`). Sign-in steps are kept on the device (`signInStep`, Settings > Online play > Sign-in steps, app only) for support screenshots. Needs an app build.
 
 **1.33.3 (pushed 25 Oct): update prompt in the store apps** (`src/ui/UpdatePrompt.ts`, plugin `@capawesome/capacitor-app-update`): when the store has a newer version, a card offers Update or Later (once a day per version; Android uses Google's in-app update screen when allowed; iPhone needs `APP_STORE_URL` with the app id). Dashboard 1.9 page "Minimum app version" sets game_config `app_min` ({android, ios}; schema.sql `admin_set_game_config` accepts it): below it a full-screen "Time to update". Raise it only once the build is live in that store. Debug `__update.card()`, `__update.must()`. Needs `schema.sql` re-run and an app build.
 
@@ -304,6 +306,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-27: 1.33.5 (local): farm safety (profile hold fix, confirm before keeping the smaller farm, earlier cloud farms kept 180 days, a whole copy of every farm daily); 1.33.4 pushed 26 Oct.
 - 2026-10-25: 1.33.2 pushed (with 1.32.1 merged); versionCode 6 uploaded; 1.33.3 (local): update prompt in the store apps and a minimum app version on the dashboard.
 - 2026-10-25: 1.33.2 (local): catalogue search keeps the keyboard; merged the cloud session's 1.32.1 (Android sign-in survives Android closing the game); Sign in with Apple behind a switch; App Store listing pack and screenshots.
 - 2026-10-25: Mac session: iPhone app (`ios/`, runs in the Simulator); 1.33.0 pushed: reports and blocks, landscape side-button fix; 1.33.1 pushed: word filter.
@@ -313,4 +316,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
 - 2026-10-25: 1.31.1 pushed (deploy run 71); 1.31.2 (local): dashboard Needs tab (gift what a player is missing in one press), silver and gold items in developer gifts.
 - 2026-10-25: 1.31.1 (local): the mine jetty moved away from the fishing dock.
-- 2026-10-25: 1.31.0 pushed (deploy run 70): The Old Mine, review fixes, slimmer place banners, the Collector's Cruise; regression farmhand checks no longer fail on festival days.

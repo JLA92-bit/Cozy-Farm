@@ -1,7 +1,7 @@
 import type { AuthError, RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import { AUTH_RETURN, closeExternal, durable, isNative, launchLink, openExternal } from '../core/Native';
 import { cleanClaim, cleanCoop } from './Coop';
-import type { AccountLock, CoopClaim, CoopProject, HomeSnapshot, ReportPlace, ReportReason } from './types';
+import type { AccountLock, CloudCopy, CoopClaim, CoopProject, HomeSnapshot, ReportPlace, ReportReason } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -817,6 +817,21 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   async coopClaim(): Promise<CoopClaim[]> {
     const rows = await this.rpc<unknown[]>('coop_claim', {});
     return (Array.isArray(rows) ? rows : []).map((r) => cleanClaim(r as Record<string, unknown>)).filter((c): c is CoopClaim => !!c);
+  }
+
+  // ------------------------------------------------------------------ 1.33.5 farm safety
+  async saveDeviceCopy(data: object, saveVersion: number, level: number, device: string): Promise<boolean> {
+    return !!(await this.rpc<boolean>('save_device_copy', { p_data: data, p_save_version: int(saveVersion, 1000000), p_level: int(level, 999), p_device: device.slice(0, 60) }));
+  }
+
+  async cloudCopies(): Promise<CloudCopy[]> {
+    const rows = await this.query((sb) => sb.rpc('my_cloud_copies') as PromiseLike<Result<{ id: number; name: string | null; level: number; coins: number; device: string | null; saved_at: string; kept_at: string; reason: CloudCopy['reason'] }[]>>);
+    return (rows ?? []).map((r) => ({ id: Number(r.id), name: String(r.name ?? 'Farmer').slice(0, 24), level: Number(r.level) || 1, coins: Number(r.coins) || 0, device: r.device ?? '', savedAt: ms(r.saved_at), keptAt: ms(r.kept_at), reason: r.reason }));
+  }
+
+  async cloudCopy(id: number): Promise<{ data: unknown; saveVersion: number } | null> {
+    const r = await this.query((sb) => sb.rpc('cloud_copy', { p_id: id }) as PromiseLike<Result<{ data: unknown; save_version: number } | null>>);
+    return r && r.data ? { data: r.data, saveVersion: Number(r.save_version) || 0 } : null;
   }
 
   // ------------------------------------------------------------------ reports and blocks

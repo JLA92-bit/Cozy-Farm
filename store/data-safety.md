@@ -27,7 +27,12 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
   installed web app or browser), stored with the player's account for the developer dashboard (ADMIN.md). First-party,
   no analytics SDK; never shown to other players.
 - **Feedback** (from 1.7, optional): message, category, farmer name, level, version and the browser user agent.
-- **Farm backups** (from 1.7): daily copies of cloud saves / farm snapshots kept up to 60 days for restoring farms.
+- **Farm backups** (from 1.7): daily copies of cloud saves / farm snapshots kept up to 60 days for restoring farms. From 1.33.5 every
+  online game sends a whole copy of its save once a day (`device_saves`, also for players who never signed in), so the
+  daily backup holds every farm in full (daily for 14 days, then weekly to 60 days); and a cloud save replaced by a
+  different or smaller farm is kept for 180 days (`cloud_save_history`, the last 5, players can bring one back).
+  Developer and owner only; deleted with the account. Covered by Other user-generated content (the save):
+  **the Play form answers do not change**.
 - **Ask a friend** (from 1.8): requests a player posts (item, quantity, reason, farmer name), what friends send to fill
   them, and whether the player wants to be told when a friend asks (tables `help_requests`, `help_fills`,
   `help_watch`; push kind `help`). Requests are visible to the player's friends.

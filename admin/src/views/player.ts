@@ -747,7 +747,7 @@ function supportTab(c: Ctx): HTMLElement[] {
   const backupFile = async (bid: number, source: string) => {
     try {
       const b = await rpc<{ data: unknown; taken_at: string }>('admin_backup_data', { p_backup: bid });
-      const json = source === 'cloud' ? JSON.stringify(b.data, null, 1) : JSON.stringify(saveFromSnapshot(b.data, suggestedMoney(p?.level ?? 1)));
+      const json = source !== 'snapshot' ? JSON.stringify(b.data, null, 1) : JSON.stringify(saveFromSnapshot(b.data, suggestedMoney(p?.level ?? 1)));
       download(`cozy-acres-${slug(name)}-backup-${b.taken_at.slice(0, 10)}.json`, json);
     } catch (e) { fail(e); }
   };
@@ -769,7 +769,7 @@ function supportTab(c: Ctx): HTMLElement[] {
           : h('span', null, badge('No cloud save', 'bad'), ' They have not signed in with Google, so only their farm layout is on the server.')),
         h('p', { class: 'small' }, d.snapshot ? `Farm layout shared ${ago(d.snapshot.updated_at)}.` : 'No farm layout shared yet.'),
         s ? h('p', { class: 'small' }, `In the save: version ${s.version ?? '?'}, last game version ${s.lastSeenVersion ?? '?'}, last played ${ago(ms(s.lastSeen))}.`) : null,
-        d.backups.length ? h('table', { class: 'table compact' }, h('tbody', null, d.backups.map((b) => h('tr', null, h('td', null, date(b.taken_at, true)), h('td', null, b.source === 'cloud' ? 'Cloud save' : 'Layout'),
+        d.backups.length ? h('table', { class: 'table compact' }, h('tbody', null, d.backups.map((b) => h('tr', null, h('td', null, date(b.taken_at, true)), h('td', null, b.source === 'cloud' ? 'Cloud save' : b.source === 'device' ? 'Daily copy' : 'Layout'),
           h('td', { class: 'r' }, b.level ? `Level ${b.level}` : ''), h('td', { class: 'r' }, bytes(b.bytes)), h('td', { class: 'r' }, h('button', { class: 'btn small', onclick: () => backupFile(b.id, b.source) }, 'Download'))))))
           : h('p', { class: 'muted small' }, 'No backups yet (see Backups).'),
         h('p', { class: 'muted small' }, 'Save files load in the game with Settings > Import save. Farm codes are typed in Settings > Load a farm.'))),
@@ -814,6 +814,7 @@ function supportTab(c: Ctx): HTMLElement[] {
         h('td', null, l.active ? h('span', null, badge('In force', 'bad'), ' ', liveCountdown(l.until)) : l.liftedBy === 'expired' ? badge('Ran out', 'good') : badge(`Lifted ${l.liftedAt ? ago(l.liftedAt) : ''}${l.liftedBy ? ` by ${l.liftedBy}` : ''}`, 'good'))))))
       : h('p', { class: 'muted small' }, 'Never locked.')),
     playerReportsCard(d.id),
+    cloudCopiesCard(d.id, name),
     card('What admins did for this player', deep?.adminLog.length ? h('table', { class: 'table compact' }, h('tbody', null, deep.adminLog.map((l) => h('tr', null,
       h('td', { class: 'small' }, date(l.at, true)), h('td', null, l.action), h('td', { class: 'small muted' }, l.admin), h('td', { class: 'small' }, l.detail ? Object.entries(l.detail).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(', ') : '')))))
       : h('p', { class: 'muted small' }, 'Nothing logged yet.')),
@@ -835,4 +836,21 @@ function rawTab(c: Ctx): HTMLElement[] {
   return [h('section', { class: 'card' }, h('div', { class: 'card-head' }, h('h3', null, 'Raw data'),
     h('input', { class: 'input', style: { maxWidth: '300px' }, type: 'search', placeholder: 'Search keys and values', oninput: (e: Event) => { q = (e.target as HTMLInputElement).value.toLowerCase().trim(); draw(); } })),
   h('p', { class: 'muted small' }, 'Everything the server holds for this player, as stored. For support only: never share it.'), host)];
+}
+
+/** 1.33.5 the Support tab: cloud farms the server kept when this player's cloud farm was replaced (cloud_save_history). */
+function cloudCopiesCard(id: string, name: string): HTMLElement {
+  const body = h('div');
+  const box = card('Earlier cloud farms', h('p', { class: 'muted small' }, 'Kept when their cloud farm was replaced by another farm or a smaller one (last 5, 180 days). They can bring one back themselves in Settings > Your farm > Earlier cloud farms.'), body);
+  void loading(body, async () => {
+    const rows = await rpc<{ id: number; name: string | null; level: number; device: string | null; saved_at: string; kept_at: string; reason: string }[]>('admin_cloud_copies', { p_id: id });
+    const get = async (cid: number, at: string) => {
+      try { const x = await rpc<{ data: unknown }>('admin_cloud_copy', { p_copy: cid }); download(`cozy-acres-${slug(name)}-earlier-${at.slice(0, 10)}.json`, JSON.stringify(x.data, null, 1)); } catch (e) { fail(e); }
+    };
+    body.replaceChildren(rows.length ? h('table', { class: 'table compact' }, h('tbody', null, rows.map((r) => h('tr', null,
+      h('td', { class: 'small' }, date(r.saved_at, true)), h('td', null, `${r.name ?? 'Farmer'}, level ${r.level}`), h('td', { class: 'small muted' }, `replaced ${ago(r.kept_at)} (${r.reason})`),
+      h('td', { class: 'r' }, h('button', { class: 'btn small', onclick: () => get(r.id, r.saved_at) }, 'Download'))))))
+      : h('p', { class: 'muted small' }, 'None: their cloud farm has never been replaced.'));
+  });
+  return box;
 }

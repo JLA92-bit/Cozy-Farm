@@ -201,6 +201,18 @@ After pulling this update, **run the whole `schema.sql` again** in the Supabase 
 
 An admin can lock a player from the dashboard (ADMIN.md "Locking a player"). Server section `account locks` in `supabase/schema.sql`: table `account_locks` (history; on delete cascade), `assert_not_locked()` at the top of every player function that reaches other players or shared state (gifts, market, farm help and likes, Ask a friend, Village Projects, `publish_farm`, reward codes), `my_lock()` for the game, admin functions to lock, unlock and list, and `expire_account_locks()` (pg_cron every 10 minutes and on dashboard reads) to put players back on the leaderboards. The game (`src/online/Lock.ts`) shows a full-screen notice with the reason and a countdown, keeps the last known lock on the device and lifts it when the time is up.
 
+## Farm safety (1.33.5)
+
+- **Profile hold:** the public profile is never published while it is not known which farm the account plays (a
+  sign-in coming back, the first cloud check, the farm choice): `holdProfile` in `Profile.ts` is counted, and
+  `ensureOnline` no longer publishes over an existing profile while held. Before, a new phone's fresh farm could
+  overwrite a returning player's name and stats.
+- **Choosing the smaller farm** takes a second confirmation (`confirmSmaller` in `AccountPanels.ts`).
+- **Cloud farm history:** section `cloud save history` (`cloud_save_history`, trigger `cloud_save_keep` on
+  `cloud_saves`; `my_cloud_copies`, `cloud_copy`, `admin_cloud_copies`, `admin_cloud_copy`).
+- **Daily whole-farm copies:** section `daily farm copies` (`device_saves`, `save_device_copy`; `backup_all_farms` keeps
+  them as source `device`). The game sends one a day when online and not signed in (`sendDailyCopy` in CloudSave).
+
 ## Reports and blocks (1.33)
 
 Needed for the App Store (guideline 1.2) and good for Play too. Server section `reports and blocks` in

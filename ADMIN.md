@@ -111,7 +111,12 @@ server. Needs the `reports and blocks` section of `supabase/schema.sql`.
   `gpu_info`, `gpu_fallback`, `gpu_context_lost`, `gpu_context_back` and `gpu_blank_low` (1.8.1) when a phone's
   graphics need a fallback.
 - **Daily backups** run at 03:17 UTC when pg_cron is enabled (System & log shows the job). Unchanged farms are skipped,
-  backups are kept 60 days (the newest per player always).
+  backups are kept every day for 14 days, then one a week up to 60 days (the newest per player always). From 1.33.5
+  every online game sends its whole save once a day (Daily copy), so every farm can be restored in full: download it
+  on the player's Support tab or the Backups page and send it to them (Settings > Import save).
+- **Earlier cloud farms** (1.33.5): when a cloud farm is replaced by a different or smaller farm, the old one is kept for
+  180 days (last 5). Players bring one back in Settings > Your farm > Earlier cloud farms; the Support tab lists and
+  downloads them too.
 
 ## Privacy
 

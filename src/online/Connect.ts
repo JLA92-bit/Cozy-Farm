@@ -2,7 +2,8 @@ import { ITEMS } from '../data';
 import { game } from '../systems/Game';
 import { LocalBackend } from './LocalBackend';
 import { online, setOnlineBackend } from './Online';
-import { ensureOnline, profileStats } from './Profile';
+import { ensureOnline, profileHeld, profileStats } from './Profile';
+export { holdProfile } from './Profile';
 import { setOnlineStatus } from './Status';
 import { SupabaseBackend } from './SupabaseBackend';
 import { trackWeeklyXp } from './Weekly';
@@ -53,17 +54,9 @@ let started = false;
 let busy = false;
 let failures = 0;
 let nextAt = 0;
-let held = false;
-
-/**
- * Pause profile publishing (while the player chooses between this farm and a cloud farm, so the
- * account's public profile is not overwritten with the farm they may be about to replace).
- */
-export function holdProfile(on: boolean): void { held = on; }
-
 /** Publish this player's profile now (if they have made their farmer). Never throws. */
 export async function publishProfile(force = false): Promise<void> {
-  if (busy || held || !game.state?.player.created) return;
+  if (busy || profileHeld() || !game.state?.player.created) return;
   if (!force && Date.now() < nextAt) return;
   busy = true;
   try {
@@ -100,7 +93,7 @@ let farmFailLogged = false;
  * every 5 minutes unless `force` (tab hidden, farmer just made). Never throws; failures back off.
  */
 export async function publishFarm(force = false): Promise<void> {
-  if (farmBusy || held || visiting.active || !game.state?.player.created) return;
+  if (farmBusy || profileHeld() || visiting.active || !game.state?.player.created) return;
   const now = Date.now();
   if (now < farmNextAt && !(force && farmFailures === 0)) return;
   let snap, dropped = 0, bytes = 0;

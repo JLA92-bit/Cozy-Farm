@@ -82,6 +82,8 @@ function render(): void {
     window.clearInterval(tick);
     el?.remove();
     el = null;
+    // a lock that ran out while the game was closed is forgotten too (it was kept on the device)
+    if (current) { current = null; remember(null); }
     return;
   }
   const l = current;

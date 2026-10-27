@@ -21,6 +21,14 @@ TWA files are in `android-twa/` for reference only.
 | "Your save is from a newer version" | Update now reloads | Update now opens the Play Store page |
 | Safe areas (notch, rounded corners) | `env(safe-area-inset-*)` | Capacitor's `--safe-area-inset-*` (system bars hidden, `capacitor.config.ts`) |
 
+## Staying signed in across updates
+
+Store updates keep the app's data: the farm (the web view's storage) and the sign-in (the app's settings store,
+`durable` in `src/core/Native.ts`). Both belong to the app's internal address, pinned in `capacitor.config.ts`
+(`server`: https://localhost on Android, capacitor://localhost on iPhone). **Never change it**: every player would
+open an empty farm, signed out. Checked on the iPhone Simulator (27 Oct): 1.33.5 installed over an older build kept
+the farm and the settings store.
+
 ## One-time setup (owner)
 
 1. **Supabase > Authentication > URL Configuration > Redirect URLs:** add `app.joshmakesgames.cozyacres://auth`

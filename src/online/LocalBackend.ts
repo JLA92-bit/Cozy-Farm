@@ -747,6 +747,9 @@ export class LocalBackend implements OnlineBackend {
 
   async myBlocks(): Promise<{ id: string; name: string }[]> { return this.readBlocks(); }
 
+  // 1.33.5 practice mode keeps no copies on a server
+  async saveDeviceCopy(): Promise<boolean> { return false; }
+
   // practice mode has no real players to report: say thanks and keep nothing
   async reportPlayer(id: string, _reason: ReportReason, _note: string, _place: ReportPlace): Promise<boolean> {
     await this.init();

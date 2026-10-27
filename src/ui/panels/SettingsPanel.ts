@@ -22,6 +22,8 @@ import { openFeedback } from './FeedbackPanel';
 import { notificationSettingsSection } from './NotificationSettings';
 import { openPhotoMode } from '../PhotoMode';
 import { autoHelpSection } from './HelpPanel';
+import { openEarlierCloudFarms } from './AccountPanels';
+import { cloudState } from '../../online/CloudSave';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -113,6 +115,7 @@ export function openSettings(): void {
     button([icon('unlock'), 'Load a farm'], () => { p.close(); openLoadFarm(); }, 'small blue'),
     onOldAddress() ? button([icon('truck'), `Move my farm to ${NEW_HOST}`], () => void openMoveFarm(), 'small green') : null,
     saves.replacedFarm() ? button([icon('house'), 'Previous farm'], () => { p.close(); openReplacedFarm(); }, 'small blue') : null,
+    cloudState().account && !cloudState().account!.anonymous ? button([icon('cloud'), 'Earlier cloud farms'], () => { p.close(); void openEarlierCloudFarms(); }, 'small blue') : null,
     whatsNewButton(),
     button([icon('light_bulb'), 'Send feedback'], () => { p.close(); openFeedback(); }, 'small blue'),
     button([icon('info'), 'Replay tips'], () => { p.close(); tutorial.replay(); }, 'small green'),

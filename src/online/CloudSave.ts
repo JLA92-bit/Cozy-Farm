@@ -7,7 +7,7 @@ import { SAVE_VERSION, type SaveData } from '../systems/State';
 import { holdProfile, publishProfile } from './Connect';
 import { online } from './Online';
 import { resetOnlineProfile } from './Profile';
-import type { AccountBackend, AccountInfo, AuthResult, CloudRow } from './types';
+import type { AccountBackend, AccountInfo, AuthResult, CloudCopy, CloudRow } from './types';
 
 /**
  * "Sign in with Google" and cloud saves.
@@ -322,6 +322,42 @@ export async function signInWithApple(): Promise<void> {
   await b.signInWithApple();
 }
 
+/** 1.33.5 the cloud farms this account replaced lately (Settings > Your farm > Earlier cloud farms). */
+export async function listCloudCopies(): Promise<CloudCopy[]> {
+  const b = accountBackend();
+  if (!b || !signedIn()) return [];
+  return b.cloudCopies();
+}
+
+/** 1.33.5 bring back an earlier cloud farm: it replaces this one (kept in Settings > Previous farm) and goes to the cloud. */
+export async function restoreCloudCopy(id: number): Promise<string | null> {
+  const b = accountBackend();
+  if (!b || !signedIn()) return 'Sign in first.';
+  const c = await b.cloudCopy(id);
+  if (!c) return 'That farm is no longer kept.';
+  if (c.saveVersion > SAVE_VERSION) return 'That farm was saved by a newer version of the game. Update Cozy Acres first.';
+  const parsed = saves.parse(c.data);
+  if ('error' in parsed) return 'That farm could not be read.';
+  return saves.applyImport(parsed.data, 'Replaced by an earlier cloud farm', true);
+}
+
+/**
+ * 1.33.5 once a day, a whole copy of this farm for the developer's daily backup (ADMIN.md "Backups"), so any farm can be
+ * brought back in full, also for players who never signed in (their farm otherwise lives only on this device).
+ * Signed-in players are covered by their cloud save. Never throws.
+ */
+const COPY_DAY_KEY = 'cozy-acres-device-copy-day';
+async function sendDailyCopy(): Promise<void> {
+  if (online.kind !== 'supabase' || signedIn() || !game.state?.player.created || saves.locked || visiting.active) return;
+  const day = new Date().toISOString().slice(0, 10);
+  try { if (localStorage.getItem(COPY_DAY_KEY) === day) return; } catch { return; }
+  try {
+    await online.init();
+    await online.saveDeviceCopy(JSON.parse(JSON.stringify(game.state)) as object, SAVE_VERSION, game.state.player.level, deviceLabel());
+    try { localStorage.setItem(COPY_DAY_KEY, day); } catch { /* blocked */ }
+  } catch { /* offline or too big: try again later */ }
+}
+
 /** "Save now" in Settings. Returns false when it could not save. */
 export async function saveToCloudNow(): Promise<boolean> {
   if (!signedIn()) return false;
@@ -422,8 +458,9 @@ export function startCloud(): void {
   // in the app, Google's deep link may have started the app afresh (launchLink): a return too
   const connect = (returning: boolean): void => {
     if (returning || meta.signedIn) {
-      // keep the public profile untouched until we know which farm this account plays
-      if (returning) holdProfile(true);
+      // keep the public profile untouched until we know which farm this account plays (a sign-in coming back, or the
+      // cloud may hold a newer farm): released once onConnected has decided (1.33.5: for signed-in devices too)
+      holdProfile(true);
       online.init().then(() => onConnected(b.takeAuthResult()), (e) => {
         console.warn('[cloud] could not connect yet', e);
         // still tell the player how a sign-in they just made went
@@ -438,7 +475,15 @@ export function startCloud(): void {
     }
   };
   if (page || !isNative()) connect(page);
-  else void launchLink().then((link) => connect(!!link?.startsWith(AUTH_RETURN)));
+  else {
+    // the app may have been started by Google's link: hold the profile until that is known (startOnlineSync, called
+    // right after this, publishes at once otherwise), then connect() takes its own hold if needed
+    holdProfile(true);
+    void launchLink().then((link) => connect(!!link?.startsWith(AUTH_RETURN))).finally(() => holdProfile(false));
+  }
+  // 1.33.5 the daily whole-farm copy: a minute after start, then checked every hour
+  setTimeout(() => void sendDailyCopy(), 60000);
+  window.setInterval(() => { if (!document.hidden) void sendDailyCopy(); }, 3600000);
   window.setInterval(() => {
     if (document.hidden || !signedIn() || asking || Date.now() < nextAt) return;
     if (!synced) void syncNow();
@@ -467,6 +512,8 @@ if (import.meta.env.DEV) {
     fail: false,
     account: () => acct,
     async signInWithGoogle() { acct = { id: 'fake-user', anonymous: false, email: 'farmer@example.com', name: 'Test Farmer', provider: 'google' }; emit(); await onConnected({ kind: 'linked', switched: false }); },
+    async cloudCopies() { return []; },
+    async cloudCopy() { return null; },
     async signInWithApple() { acct = { id: 'fake-user', anonymous: false, email: 'farmer@privaterelay.appleid.com', name: 'Test Farmer', provider: 'apple' }; emit(); await onConnected({ kind: 'linked', switched: false }); },
     async signOut() { acct = { id: `fake-anon-${Date.now()}`, anonymous: true, email: '', name: '' }; emit(); },
     async deleteAccount() { row = null; acct = { id: `fake-anon-${Date.now()}`, anonymous: true, email: '', name: '' }; emit(); },

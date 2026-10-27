@@ -83,6 +83,6 @@ export interface PlayerDetail {
   push: { devices: number; last_ok_at: string | null };
   feedback: Feedback[];
   adminGifts: AdminGift[];
-  backups: { id: number; taken_at: string; source: 'cloud' | 'snapshot'; level: number | null; bytes: number }[];
+  backups: { id: number; taken_at: string; source: 'cloud' | 'snapshot' | 'device'; level: number | null; bytes: number }[];
   notes: { id: number; at: string; admin: string; note: string }[];
 }
