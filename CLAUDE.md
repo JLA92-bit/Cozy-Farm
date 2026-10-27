@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 25 October 2026 (game version 1.33.3 local on branch `ios-app`; 1.33.2 pushed (with the cloud session's 1.32.1); Android versionCode 6 uploaded, next build 7; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
+Last updated: 27 October 2026 (game version 1.33.6 pushed; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-25.md` (state, risks, the iPhone plan for the Mac session and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.33.6** (local, needs schema.sql run); 1.33.5 local; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.33.6** (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -25,9 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.33.6 (local, 27 Oct): ghost taps and gem history.** A Samsung S23 Ultra sent a late second click after a tap on a building, pressing the gem Finish button that had just popped up under the finger: `markFresh` in `ui/dom.ts` (Panel.open, WorldUI.showPopup) ignores real clicks on anything shown less than 450 ms ago, and `gemButton` (dom.ts) needs a second tap ("Tap again") for every gem spend (popup, workshop, Farmhouse; the stall slot too; the Boutique already had two taps). `game.spend(coins, gems, on)` names what gems went on; Events.ts logs `gems_spent`; dashboard Support tab "Gems spent" (`admin_player_gems`, schema section `gem spending`). Needs `schema.sql` re-run.
+**1.33.6 (pushed 27 Oct, Android versionCode 9): ghost taps and gem history.** A Samsung S23 Ultra sent a late second click after a tap on a building, pressing the gem Finish button that had just popped up under the finger: `markFresh` in `ui/dom.ts` (Panel.open, WorldUI.showPopup) ignores real clicks on anything shown less than 450 ms ago, and `gemButton` (dom.ts) needs a second tap ("Tap again") for every gem spend (popup, workshop, Farmhouse; the stall slot too; the Boutique already had two taps). `game.spend(coins, gems, on)` names what gems went on; Events.ts logs `gems_spent`; dashboard Support tab "Gems spent" (`admin_player_gems`, schema section `gem spending`). Needs `schema.sql` re-run.
 
-**1.33.5 (local, 27 Oct): farm safety** (ONLINE.md "Farm safety", ADMIN.md backups). A player who lost their phone's farm and signed in again had their account's profile overwritten by the new phone's fresh farm (name Farmer, low stats; level kept by the server): `holdProfile` is now counted and also covers `ensureOnline`'s first publish, the app holds until its launch link is known, signed-in devices until the first cloud check. Choosing the smaller farm needs a second yes. Server: `cloud save history` (a replaced cloud farm is kept 180 days, last 5; Settings > Your farm > Earlier cloud farms; Support tab card) and `daily farm copies` (every online game sends its whole save once a day, `device_saves`; backups now daily 14 days then weekly to 60, source `device`). Privacy page and data-safety updated. **Needs `schema.sql` re-run.**
+**1.33.5 (pushed 27 Oct): farm safety** (ONLINE.md "Farm safety", ADMIN.md backups). A player who lost their phone's farm and signed in again had their account's profile overwritten by the new phone's fresh farm (name Farmer, low stats; level kept by the server): `holdProfile` is now counted and also covers `ensureOnline`'s first publish, the app holds until its launch link is known, signed-in devices until the first cloud check. Choosing the smaller farm needs a second yes. Server: `cloud save history` (a replaced cloud farm is kept 180 days, last 5; Settings > Your farm > Earlier cloud farms; Support tab card) and `daily farm copies` (every online game sends its whole save once a day, `device_saves`; backups now daily 14 days then weekly to 60, source `device`). Privacy page and data-safety updated. **Needs `schema.sql` re-run.**
 
 **1.33.4 (pushed 26 Oct): app sign-in, second try.** In the app, linking Google to the new anonymous account fails when that Google account already has a farm; the automatic second browser trip (no tap) could be stopped on its way back, leaving the player on Settings, not signed in. Now the app says "That account already has a farm" and the next tap signs straight in (`SWITCH_KEY`); a return handled twice is ignored (`handled`). Sign-in steps are kept on the device (`signInStep`, Settings > Online play > Sign-in steps, app only) for support screenshots. Needs an app build.
 
@@ -200,7 +200,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Item | Value |
 | --- | --- |
 | Package name (permanent) | `app.joshmakesgames.cozyacres` |
-| Latest versionCode uploaded | **6** (Capacitor app, closed track "Alpha", 25 Oct). Next build must use **7+**. |
+| Latest versionCode uploaded | **9** (Capacitor app, game 1.33.6, 27 Oct). Next build must use **10+**. |
 | minSdkVersion | 24 (needed for Play automatic protection) |
 | Play app signing SHA-256 | `65:7E:42:04:98:23:2C:E0:E9:CE:5E:FD:5F:72:45:92:6D:DE:DB:4A:40:76:E5:51:F9:3E:2E:09:73:DA:4F:10` |
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
@@ -308,6 +308,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-27: 1.33.5 and 1.33.6 pushed; Android versionCode 9 uploaded (next 10).
 - 2026-10-27: 1.33.6 (local): ghost taps on Samsung (late second click) ignored, gem spends need a second tap, dashboard Gems spent card.
 - 2026-10-27: 1.33.5 (local): farm safety (profile hold fix, confirm before keeping the smaller farm, earlier cloud farms kept 180 days, a whole copy of every farm daily); 1.33.4 pushed 26 Oct.
 - 2026-10-25: 1.33.2 pushed (with 1.32.1 merged); versionCode 6 uploaded; 1.33.3 (local): update prompt in the store apps and a minimum app version on the dashboard.
@@ -317,4 +318,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
 - 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
 - 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
-- 2026-10-25: 1.31.1 pushed (deploy run 71); 1.31.2 (local): dashboard Needs tab (gift what a player is missing in one press), silver and gold items in developer gifts.
