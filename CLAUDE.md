@@ -25,7 +25,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.33.7 (local, 27 Oct): gem "Tap again" lasts.** Screens that redraw every second (workshops, the stall) swapped the armed button for a fresh one, and a phone's late double click confirmed at once: `gemButton` (dom.ts) keeps the armed state by `key` (`finish:<uid>`) for 5 s (`GEM_MS`) and ignores a second tap within 450 ms (`GEM_GAP`); the stall slot and Boutique do the same. Game only. 112 regression checks.
+**1.33.7 (local, 27 Oct): gem "Tap again" lasts.** Screens that redraw every second (workshops, the stall) swapped the armed button for a fresh one, and a phone's late double click confirmed at once: `gemButton` (dom.ts) keeps the armed state by `key` (`finish:<uid>`) for 5 s (`GEM_MS`) and ignores a second tap within 450 ms (`GEM_GAP`); the stall slot and Boutique do the same. Tapping the Farmhouse shows a Farmhands button from level 50 (`CharacterPanel.ts`; players never found them behind the grey Upgrade). Game only. 112 regression checks.
 
 **1.33.6 (pushed 27 Oct, Android versionCode 9): ghost taps and gem history.** A Samsung S23 Ultra sent a late second click after a tap on a building, pressing the gem Finish button that had just popped up under the finger: `markFresh` in `ui/dom.ts` (Panel.open, WorldUI.showPopup) ignores real clicks on anything shown less than 450 ms ago, and `gemButton` (dom.ts) needs a second tap ("Tap again") for every gem spend (popup, workshop, Farmhouse; the stall slot too; the Boutique already had two taps). `game.spend(coins, gems, on)` names what gems went on; Events.ts logs `gems_spent`; dashboard Support tab "Gems spent" (`admin_player_gems`, schema section `gem spending`). Needs `schema.sql` re-run.
 
@@ -310,7 +310,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-10-27: 1.33.7 (local): gem "Tap again" survives redraws and double clicks, waits 5 seconds.
+- 2026-10-27: 1.33.7 (local): gem "Tap again" survives redraws and double clicks, waits 5 seconds; Farmhands button on the Farmhouse card.
 - 2026-10-27: 1.33.5 and 1.33.6 pushed; Android versionCode 9 uploaded (next 10).
 - 2026-10-27: 1.33.6 (local): ghost taps on Samsung (late second click) ignored, gem spends need a second tap, dashboard Gems spent card.
 - 2026-10-27: 1.33.5 (local): farm safety (profile hold fix, confirm before keeping the smaller farm, earlier cloud farms kept 180 days, a whole copy of every farm daily); 1.33.4 pushed 26 Oct.

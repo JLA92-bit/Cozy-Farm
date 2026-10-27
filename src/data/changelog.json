@@ -14,6 +14,10 @@
     {
      "icon": "hand",
      "text": "Fixed: on some phones one tap counted as both taps on a gem button"
+    },
+    {
+     "icon": "seedling",
+     "text": "Farmhands now have their own button when you tap the Farmhouse (from level 50)"
     }
    ]
   },

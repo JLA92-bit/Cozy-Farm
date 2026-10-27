@@ -11,6 +11,7 @@ import { renderSkills } from './SkillsPanel';
 import { renderMastery } from './MasteryPanel';
 import { restoration } from '../../systems/Restoration';
 import { isFriendlyText, UNFRIENDLY } from '../../systems/WordFilter';
+import { farmhands } from '../../systems/Farmhands';
 
 /** Is a cosmetic unlocked for the player? */
 export function cosmeticUnlocked(id: string, unlock: Unlock): boolean {
@@ -266,6 +267,10 @@ ui.register('character', () => openCharacter(false));
 ui.register('skills', () => openCharacter(false, 'skills'));
 ui.onBuildingTap((b) => {
   if (b.type !== 'farmhouse') return false;
-  ui.buildingPopup(b, [button(['Change look', icon('farmer')], () => { ui.world.hidePopup(); openCharacter(false); }, 'small blue')]);
+  // 1.33.7 farmhands get their own button: the Farmhouse screen (where their card is) was only reached through
+  // Upgrade, which looks switched off while the next level is out of reach, so players never found them
+  const row = h('div', { class: 'chip-row' }, button(['Change look', icon('farmer')], () => { ui.world.hidePopup(); openCharacter(false); }, 'small blue'));
+  if (farmhands.isOpen()) row.append(button(['Farmhands', icon('seedling')], () => { ui.world.hidePopup(); ui.open('farmhands'); }, 'small green'));
+  ui.buildingPopup(b, [row]);
   return true;
 });
