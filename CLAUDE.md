@@ -320,4 +320,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-25: 1.32.1 (local): Google sign-in in the Android app works when Android closed the game while the browser was open (launch link, durable sign-in storage).
 - 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
 - 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
-- 2026-10-25: Google refused production access (more testing); organisation account plan for Australia in `store/organisation-account.md`.
