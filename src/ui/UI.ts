@@ -545,7 +545,7 @@ class UIManager {
         if (!speedFn!()) { this.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); return; }
         this.world.hidePopup();
         this.effects.sparkle(this.scene.farm.anchor(b.uid), '#9ff7ee', 14);
-      }));
+      }, undefined, `finish:${b.uid}`));
     }
     const up = buildings.upgradeInfo(b);
     if (up && isBuilt(b, now) && !isUpgrading(b, now)) {

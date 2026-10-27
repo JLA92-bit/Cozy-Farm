@@ -105,27 +105,34 @@ if (typeof document !== 'undefined') {
 }
 
 /**
- * 1.33.6 a button that spends gems: the first tap asks "Tap again", the second (within 3 seconds) spends. Gems are
+ * 1.33.6 a button that spends gems: the first tap asks "Tap again", the second (within 5 seconds) spends. Gems are
  * bought with real money one day, so a stray tap must never spend them.
+ * 1.33.7 the armed state is kept here by `key`, not on the button: screens that redraw every second (workshops)
+ * replaced the armed button with a fresh one, so "Tap again" vanished before it could be pressed. A second tap
+ * sooner than GEM_GAP after the first is the phone's late double click (see FRESH_MS), not the player: ignored.
  */
-export function gemButton(cost: number, label: string, onSpend: () => void, cls = 'small purple'): HTMLButtonElement {
-  let armed = 0;
-  const show = (on: boolean) => {
+const GEM_MS = 5000, GEM_GAP = 450;
+let armedKey = '';
+let armedAt = 0;
+let armedUntil = 0;
+export function gemButton(cost: number, label: string, onSpend: () => void, cls = 'small purple', key = label): HTMLButtonElement {
+  let timer = 0;
+  const isArmed = () => armedKey === key && performance.now() < armedUntil;
+  const show = () => {
+    const on = isArmed();
     b.classList.toggle('gem-armed', on);
     b.replaceChildren(priceTag(0, cost), on ? 'Tap again' : label);
+    clearTimeout(timer);
+    if (on) timer = window.setTimeout(show, armedUntil - performance.now() + 20);
   };
   const b = button([], () => {
-    if (!armed) {
-      show(true);
-      armed = window.setTimeout(() => { armed = 0; show(false); }, 3000);
-      return;
-    }
-    clearTimeout(armed);
-    armed = 0;
-    show(false);
+    if (!isArmed()) { armedKey = key; armedAt = performance.now(); armedUntil = armedAt + GEM_MS; show(); return; }
+    if (performance.now() - armedAt < GEM_GAP) return;
+    armedKey = '';
+    show();
     onSpend();
   }, cls, { 'aria-label': `${label} for ${cost} gems` });
-  show(false);
+  show();
   return b;
 }
 

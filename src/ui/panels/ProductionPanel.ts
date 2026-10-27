@@ -124,7 +124,7 @@ export function openProduction(b: PlacedBuilding): void {
     const cost = production.speedupCost(b);
     const btns = h('div', { class: 'col prod-actions' });
     if (ready.size) btns.append(button('Collect all', () => collect(), 'small'));
-    if (cost) btns.append(gemButton(cost, 'Finish', () => { if (!production.speedup(b)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } renderQueue(); }));
+    if (cost) btns.append(gemButton(cost, 'Finish', () => { if (!production.speedup(b)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); } renderQueue(); }, undefined, `finish:${b.uid}`));
     if (btns.childElementCount) queueEl.append(btns);
     // live hint line: queue full, or building not ready yet
     if (!isBuilt(b, now)) detail.textContent = 'Still under construction.';

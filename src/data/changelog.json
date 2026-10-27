@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.33.7",
+   "date": "2026-10-27",
+   "title": "Time to Think",
+   "icon": "gem",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "gem",
+     "text": "Fixed: \"Tap again\" on gem buttons vanished before you could press it. It now waits 5 seconds"
+    },
+    {
+     "icon": "hand",
+     "text": "Fixed: on some phones one tap counted as both taps on a gem button"
+    }
+   ]
+  },
+  {
    "version": "1.33.6",
    "date": "2026-10-27",
    "title": "Steady Hands",

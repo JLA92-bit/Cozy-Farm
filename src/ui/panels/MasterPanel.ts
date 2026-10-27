@@ -21,6 +21,7 @@ function openMaster(arg?: unknown): void {
   const p = new Panel({ title: 'Master Board', size: 'medium', color: 'purple', icon: 'crown', tabs: TABS, wallet: true });
   if (typeof arg === 'string' && TABS.some((t) => t.id === arg)) p.tab = arg;
   let selected = '';
+  let selectedAt = 0;
   let timer = 0;
 
   const challenges = () => {
@@ -73,7 +74,8 @@ function openMaster(arg?: unknown): void {
       const card = h('div', { class: `card merchant-offer ${owned ? 'done' : 'clickable'} ${sel ? 'selected' : ''}` });
       card.addEventListener('click', () => {
         if (owned) return;
-        if (!sel) { selected = o.id; audio.play('select'); render(); return; }
+        if (!sel) { selected = o.id; selectedAt = performance.now(); audio.play('select'); render(); return; }
+        if (performance.now() - selectedAt < 450) return; // 1.33.7 the phone's late double click, not a second tap
         buy(o.id, o.price);
       });
       append(card, [

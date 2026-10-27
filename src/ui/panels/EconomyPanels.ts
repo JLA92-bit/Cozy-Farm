@@ -203,6 +203,7 @@ export function openStall(): void {
   let timer = 0;
   const explainStall = hints.explain('stall_panel', 'stall');
   let picking: number | null = null;
+  let slotArmedUntil = 0;
   const render = () => {
     clear(p.body);
     clear(p.footer);
@@ -242,12 +243,14 @@ export function openStall(): void {
       grid.append(card);
     });
     if (slots.length < ECONOMY.stall.maxSlots) {
-      // 1.33.6 gems: the first tap asks "Tap again", the second (within 3 seconds) buys
-      const sub = h('div', { class: 'card-sub' }, 'Extra slot');
-      let armed = 0;
-      const slot = h('div', { class: 'card clickable stall-empty', style: 'opacity:.8', onclick: () => {
-        if (!armed) { sub.textContent = 'Tap again'; slot.classList.add('selected'); armed = window.setTimeout(() => { armed = 0; sub.textContent = 'Extra slot'; slot.classList.remove('selected'); }, 3000); return; }
-        clearTimeout(armed); armed = 0;
+      // 1.33.6 gems: the first tap asks "Tap again", the second (within 5 seconds) buys; 1.33.7 the armed time lives
+      // outside render, which runs every second and used to drop it
+      const armed = () => performance.now() < slotArmedUntil;
+      const sub = h('div', { class: 'card-sub' }, armed() ? 'Tap again' : 'Extra slot');
+      const slot = h('div', { class: `card clickable stall-empty ${armed() ? 'selected' : ''}`, style: 'opacity:.8', onclick: () => {
+        if (!armed()) { slotArmedUntil = performance.now() + 5000; window.setTimeout(() => { if (p.overlay.isConnected && picking === null) render(); }, 5020); render(); return; }
+        if (slotArmedUntil - performance.now() > 5000 - 450) return; // the phone's late double click, not a second tap
+        slotArmedUntil = 0;
         if (!stall.buySlot()) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); }
         render();
       } }, icon('plus', 'icon'), sub, h('span', { class: 'pill' }, priceTag(0, ECONOMY.stall.slotCostGems)));

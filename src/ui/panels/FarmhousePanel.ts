@@ -110,7 +110,7 @@ export function openFarmhouse(): void {
         p.footer.append(gemButton(speedupCost(left()), 'Finish now', () => {
           if (!buildings.speedup(fh)) { ui.feedback.toast('Not enough gems', undefined, 'gem'); audio.play('error'); return; }
           render();
-        }, 'purple wide'));
+        }, 'purple wide', `finish:${fh.uid}`));
       } else {
         const check = buildings.canUpgrade(fh);
         const needLevel = game.level < up.needLevel;

@@ -1177,6 +1177,30 @@ try {
       return { placed: true, pooled: !!v?.pool, drawn };
     });
     check('decor placed later is drawn when the camera looks at it', seen.placed && seen.pooled && seen.drawn.every(Boolean), JSON.stringify(seen));
+    // 1.33.7: a workshop screen redraws every second; the armed gem button ("Tap again") must survive it and a phone's late double click
+    const mill = await page.evaluate(async () => {
+      const g = window.__game;
+      let at = null;
+      for (let z = 10; z < 44 && !at; z++) for (let x = 10; x < 44 && !at; x++) if (g.canPlace('feed_mill', x, z, 0)) at = [x, z];
+      const b = { uid: g.newUid(), type: 'feed_mill', x: at[0], z: at[1], rot: 0, level: 1, queue: [{ recipe: 'chicken_feed', start: g.now() - 1000, end: g.now() + 3600000 }] };
+      g.state.buildings.push(b); g.markBuilding(b, b.uid);
+      await window.__ui.scene.farm.addBuilding(b);
+      g.state.player.gems = 500;
+      window.__ui.tapBuilding(b, {});
+      return b.uid;
+    });
+    await page.waitForTimeout(700);
+    const finish = page.locator('.prod-actions .btn', { hasText: 'Finish' });
+    await finish.click({ force: true });
+    // a phone's late double click (well under half a second) must not confirm
+    await page.locator('.prod-actions .btn.gem-armed').first().click({ force: true }).catch(() => {});
+    const ghost = await page.evaluate(() => window.__game.state.player.gems);
+    await page.waitForTimeout(1600);
+    const armedText = await page.locator('.prod-actions .btn.gem-armed').first().textContent().catch(() => '');
+    await page.locator('.prod-actions .btn.gem-armed').first().click({ force: true }).catch(() => {});
+    await page.waitForTimeout(300);
+    const done = await page.evaluate((uid) => { const g = window.__game, b = g.state.buildings.find((x) => x.uid === uid); return { gems: g.state.player.gems, running: (b.queue ?? []).filter((q) => q.end > g.now()).length }; }, mill);
+    check('the gem "Tap again" survives a workshop redraw and a double click, and the second tap spends', ghost === 500 && (armedText ?? '').includes('Tap again') && done.running === 0 && done.gems < 500, JSON.stringify({ ghost, armedText, ...done }));
   }
 } finally {
   await browser.close();
