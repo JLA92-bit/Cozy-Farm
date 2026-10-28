@@ -1201,6 +1201,18 @@ try {
     await page.waitForTimeout(300);
     const done = await page.evaluate((uid) => { const g = window.__game, b = g.state.buildings.find((x) => x.uid === uid); return { gems: g.state.player.gems, running: (b.queue ?? []).filter((q) => q.end > g.now()).length }; }, mill);
     check('the gem "Tap again" survives a workshop redraw and a double click, and the second tap spends', ghost === 500 && (armedText ?? '').includes('Tap again') && done.running === 0 && done.gems < 500, JSON.stringify({ ghost, armedText, ...done }));
+    // 1.33.9: skipping an order takes two taps, and a phone's late double click is not the second
+    await page.evaluate(() => { document.querySelectorAll('.overlay').forEach((o) => o.remove()); window.__ui.open('orders'); });
+    await page.waitForTimeout(600);
+    const before = await page.evaluate(() => window.__game.state.orders.list.map((o) => o.id).join());
+    const skip = page.locator('.order-skip').first();
+    await skip.click({ force: true });
+    await page.locator('.order-skip.confirm').first().click({ force: true }).catch(() => {});
+    const afterGhost = await page.evaluate(() => window.__game.state.orders.list.map((o) => o.id).join());
+    await page.waitForTimeout(700);
+    await page.locator('.order-skip.confirm').first().click({ force: true }).catch(() => {});
+    const afterSkip = await page.evaluate(() => window.__game.state.orders.list.map((o) => o.id).join());
+    check('skipping an order ignores a double click and takes a real second tap', afterGhost === before && afterSkip !== before, JSON.stringify({ before, afterGhost, afterSkip }));
   }
 } finally {
   await browser.close();

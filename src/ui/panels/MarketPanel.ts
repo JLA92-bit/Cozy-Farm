@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, priceTag, fmt } from '../dom';
+import { h, icon, itemIcon, button, clear, priceTag, fmt, tooSoon, CONFIRM_MS } from '../dom';
 import { ui } from '../UI';
 import { ITEMS } from '../../data';
 import { game } from '../../systems/Game';
@@ -71,13 +71,15 @@ export function openMarket(tab?: string): void {
   let selling: { item: string } | null = null;
   let confirmId = '';
   let confirmTimer = 0;
+  let confirmAt = 0;
   let busy = false;
   let browseList: HTMLElement | null = null;
 
   const armConfirm = (id: string) => {
     confirmId = id;
+    confirmAt = performance.now();
     clearTimeout(confirmTimer);
-    confirmTimer = window.setTimeout(() => { confirmId = ''; rerender(); }, 3000);
+    confirmTimer = window.setTimeout(() => { confirmId = ''; rerender(); }, CONFIRM_MS);
   };
 
   const tabBadge = () => {
@@ -138,6 +140,7 @@ export function openMarket(tab?: string): void {
         if (busy) return;
         if (!afford) { ui.feedback.toast('Not enough coins', `You need ${fmt(l.price - game.coins)} more`, 'coin'); audio.play('error'); return; }
         if (!asking) { armConfirm(l.id); audio.play('select', { volume: 0.6 }); renderBrowseList(); return; }
+        if (tooSoon(confirmAt)) return;
         confirmId = '';
         void doBuy(l, row);
       }, `small market-buy ${asking ? 'yellow' : afford ? '' : 'disabled'}`, { 'aria-label': `Buy ${l.qty} ${ITEMS[l.item].name} for ${l.price} coins` });
@@ -341,6 +344,7 @@ export function openMarket(tab?: string): void {
             e.stopPropagation();
             if (busy) return;
             if (!asking) { armConfirm(l.id); rerender(); return; }
+            if (tooSoon(confirmAt)) return;
             confirmId = '';
             busy = true;
             const r = await market.cancel(l);

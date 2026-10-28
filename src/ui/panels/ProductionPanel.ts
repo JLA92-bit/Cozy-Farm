@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, append, icon, itemIcon, button, clear, stableRefresh, gemButton } from '../dom';
+import { h, append, icon, itemIcon, button, clear, stableRefresh, gemButton, tooSoon, CONFIRM_MS } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, RECIPE, ANIMALS, TREES, itemSource } from '../../data';
 import { fishing } from '../../systems/Fishing';
@@ -76,6 +76,7 @@ export function openProduction(b: PlacedBuilding): void {
   let timer = 0;
   let lastSig = '';
   let cancelAt = -1;
+  let cancelArmedAt = 0;
   let cancelTimer = 0;
   /** 1.8: "Use star ingredients" per recipe for the next job (off unless the player picks it, off again after) */
   const starPick = new Map<string, Quality>();
@@ -113,7 +114,8 @@ export function openProduction(b: PlacedBuilding): void {
           : h('div', { class: 'progress', style: 'width:100%' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, running ? formatTime(e.end - now) : 'Next')));
       if (!running) {
         slot.addEventListener('click', () => {
-          if (!confirming) { cancelAt = i; clearTimeout(cancelTimer); cancelTimer = window.setTimeout(() => { cancelAt = -1; if (p.overlay.isConnected) renderQueue(); }, 3000); renderQueue(); return; }
+          if (!confirming) { cancelAt = i; cancelArmedAt = performance.now(); clearTimeout(cancelTimer); cancelTimer = window.setTimeout(() => { cancelAt = -1; if (p.overlay.isConnected) renderQueue(); }, CONFIRM_MS); renderQueue(); return; }
+          if (tooSoon(cancelArmedAt)) return;
           cancelAt = -1;
           if (production.cancel(b, i)) ui.feedback.toast('Job cancelled', 'Ingredients are back in your barn', ITEMS[r.item].icon);
           renderQueue();

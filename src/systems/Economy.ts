@@ -317,7 +317,9 @@ export class MerchantSystem {
   }
 
   stock(index = this.visit().index): MerchantOffer[] {
-    const r = rng(hashString(`${game.state.seed}:merchant:${index}`));
+    // one seed per offer, so buying one (or a level-up) never reshuffles the others in front of you
+    const seed = `${game.state.seed}:merchant:${index}`;
+    const r = rng(hashString(seed)), rc = rng(hashString(`${seed}:c`)), ri = rng(hashString(`${seed}:i`));
     const offers: MerchantOffer[] = [];
     // a decoration from a few levels ahead, at a discount
     const decor = BUILDINGS.filter((b) => b.cat === 'decor' && !b.event && !b.path && b.level <= game.level + 8 && b.level > 2);
@@ -326,16 +328,18 @@ export class MerchantSystem {
       offers.push({ key: `d:${d.id}`, kind: 'decor', id: d.id, price: Math.round(d.cost * ECONOMY.merchant.discount), was: d.cost });
     }
     // a crate-only cosmetic
-    const cos = [...COSMETICS.hats, ...COSMETICS.accessories].filter((c) => c.unlock.crate && !game.state.cosmetics.includes(c.id));
+    // (one bought on this visit stays on the list, shown as sold, instead of making room for another)
+    const cos = [...COSMETICS.hats, ...COSMETICS.accessories].filter((c) => c.unlock.crate
+      && (!game.state.cosmetics.includes(c.id) || game.state.merchant.bought[`${index}:c:${c.id}`]));
     if (cos.length) {
-      const c = cos[Math.floor(r() * cos.length)];
+      const c = cos[Math.floor(rc() * cos.length)];
       offers.push({ key: `c:${c.id}`, kind: 'cosmetic', id: c.id, name: c.name, price: 1500 + game.level * 60 });
     }
     // bulk goods, ready right now
     const pool = obtainableItems();
     for (let k = 0; k < 1 && pool.length; k++) {
-      const item = pool[Math.floor(r() * pool.length)];
-      const qty = 5 + Math.floor(r() * 6);
+      const item = pool[Math.floor(ri() * pool.length)];
+      const qty = 5 + Math.floor(ri() * 6);
       // priced a little over barn value so they cannot be flipped for profit; they save time on orders
       offers.push({ key: `i:${item}`, kind: 'items', id: item, qty, price: Math.round(ITEMS[item].sell * qty * ECONOMY.merchant.bulkPriceMult), was: 0 });
     }

@@ -1,5 +1,5 @@
 import { Panel } from '../Panel';
-import { h, append, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh } from '../dom';
+import { h, append, icon, itemIcon, button, clear, priceTag, fmt, stableRefresh, tooSoon, CONFIRM_MS } from '../dom';
 import { ui } from '../UI';
 import { BUILDING, ITEMS, ECONOMY, FRIENDSHIP, VILLAGER } from '../../data';
 import { game } from '../../systems/Game';
@@ -61,6 +61,7 @@ export function openOrders(): void {
   const explain = hints.explain('orders_panel', 'orders');
   let timer = 0;
   let confirmSkip = -1;
+  let skipAt = 0;
   let skipTimer = 0;
   const render = () => {
     clear(p.body);
@@ -93,11 +94,13 @@ export function openOrders(): void {
           e.stopPropagation();
           if (!skipping) {
             confirmSkip = o.id;
+            skipAt = performance.now();
             clearTimeout(skipTimer);
-            skipTimer = window.setTimeout(() => { confirmSkip = -1; if (p.overlay.isConnected) render(); }, 3000);
+            skipTimer = window.setTimeout(() => { confirmSkip = -1; if (p.overlay.isConnected) render(); }, CONFIRM_MS);
             render();
             return;
           }
+          if (tooSoon(skipAt)) return;
           confirmSkip = -1;
           orders.discard(o.id);
           audio.play('close');

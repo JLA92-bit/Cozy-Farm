@@ -3,7 +3,7 @@ import { isNative, SITE_URL } from '../../core/Native';
 import { possessive, visitFarm } from '../../scenes/Visit';
 import gsap from 'gsap';
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, fmt, clear } from '../dom';
+import { h, icon, itemIcon, button, fmt, clear, tooSoon, CONFIRM_MS } from '../dom';
 import { ui } from '../UI';
 import { sideEntries } from '../SideBar';
 import { tutorial } from '../Tutorial';
@@ -216,14 +216,16 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
   const friendRow = (f: FriendEntry): HTMLElement => {
     const prof = profiles.get(f.id);
     const sub = prof ? `Level ${prof.level} · ${seen(prof.updatedAt)}` : loading ? 'Loading...' : 'Not seen lately';
-    let armed = 0;
+    let armed = 0, armedAt = 0;
     const remove = button(icon('cross'), () => {
       if (!armed) {
         remove.classList.replace('grey', 'red');
         remove.replaceChildren('Remove?');
-        armed = window.setTimeout(() => { armed = 0; remove.classList.replace('red', 'grey'); remove.replaceChildren(icon('cross')); }, 3000);
+        armedAt = performance.now();
+        armed = window.setTimeout(() => { armed = 0; remove.classList.replace('red', 'grey'); remove.replaceChildren(icon('cross')); }, CONFIRM_MS);
         return;
       }
+      if (tooSoon(armedAt)) return;
       clearTimeout(armed);
       social.removeFriend(f.id);
     }, 'small grey remove-btn', { 'aria-label': `Remove ${f.name}` });

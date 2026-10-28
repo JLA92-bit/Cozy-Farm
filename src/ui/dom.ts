@@ -112,6 +112,10 @@ if (typeof document !== 'undefined') {
  * sooner than GEM_GAP after the first is the phone's late double click (see FRESH_MS), not the player: ignored.
  */
 const GEM_MS = 5000, GEM_GAP = 450;
+/** How long a tap-twice confirm (skip an order, cancel a job) waits for the second tap. */
+export const CONFIRM_MS = GEM_MS;
+/** A second tap this soon after the first is the phone's late double click, not the player (see gemButton). */
+export const tooSoon = (firstAt: number): boolean => performance.now() - firstAt < GEM_GAP;
 let armedKey = '';
 let armedAt = 0;
 let armedUntil = 0;

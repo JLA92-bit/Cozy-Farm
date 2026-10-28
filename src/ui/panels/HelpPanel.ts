@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { Panel } from '../Panel';
-import { h, icon, itemIcon, button, clear, fmt, priceTag } from '../dom';
+import { h, icon, itemIcon, button, clear, fmt, priceTag, tooSoon, CONFIRM_MS } from '../dom';
 import { ui } from '../UI';
 import { tutorial } from '../Tutorial';
 import { ITEMS } from '../../data';
@@ -77,7 +77,7 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
   let want = Math.max(1, Math.min(ASK.maxQty, Math.floor(qty) || 1));
   let why: HelpReason = (['order', 'recipe', 'truck', 'visit', 'bundle', 'other'] as string[]).includes(reason) ? reason as HelpReason : 'other';
   let sending = false;
-  let armed = 0;
+  let armed = 0, armedAt = 0;
   /** the request this sheet showed as open (it then also shows it once filled) */
   let shown = '';
 
@@ -153,6 +153,9 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
 
   const renderProgress = (r: HelpRequest) => {
     shown = r.id;
+    // a redraw makes a fresh "Take back" button, so a half-done take-back starts again (one tap never takes back)
+    clearTimeout(armed);
+    armed = 0;
     p.body.append(head());
     const now = game.now();
     const open = isOpen(r, now);
@@ -168,9 +171,11 @@ export function openAskFriends(item: string, qty = 1, reason: HelpReason | strin
         if (!armed) {
           take.replaceChildren('Take back?');
           take.classList.replace('grey', 'red');
-          armed = window.setTimeout(() => { armed = 0; take.replaceChildren('Take back'); take.classList.replace('red', 'grey'); }, 3000);
+          armedAt = performance.now();
+          armed = window.setTimeout(() => { armed = 0; take.replaceChildren('Take back'); take.classList.replace('red', 'grey'); }, CONFIRM_MS);
           return;
         }
+        if (tooSoon(armedAt)) return;
         clearTimeout(armed);
         armed = 0;
         void help.cancel(r.id).then(() => { ui.feedback.toast('Request taken back', 'Anything already sent still arrives.', 'hug'); if (p.overlay.isConnected) render(); })

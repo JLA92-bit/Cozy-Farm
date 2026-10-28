@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.33.9",
+   "date": "2026-10-28",
+   "title": "Steady Hands",
+   "icon": "hand",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "hand",
+     "text": "Fixed: on some phones one tap could skip an order, cancel a job, remove a friend or confirm a market buy. They now always need a second tap"
+    },
+    {
+     "icon": "hourglass",
+     "text": "Those \"Are you sure?\" taps now wait 5 seconds, like the gem buttons"
+    },
+    {
+     "icon": "coin",
+     "text": "Fixed: the travelling merchant swapped in a different hat or bundle after you bought one"
+    }
+   ]
+  },
+  {
    "version": "1.33.8",
    "date": "2026-10-28",
    "title": "Still You",
