@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.34.0",
+   "date": "2026-10-29",
+   "title": "Cast Wide",
+   "icon": "fish_net",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fish_net",
+     "text": "A fishing net by the dock from Fishing skill 3. Set it with 3 bait, and fish you have caught before swim in over the next hours"
+    },
+    {
+     "icon": "fish",
+     "text": "Haul it any time and pick which fish to keep. A better net comes with each Fishing skill step, up to the Master Net"
+    },
+    {
+     "icon": "fishing_pole",
+     "text": "Rare fish, records and big catches are still for the rod"
+    }
+   ]
+  },
+  {
    "version": "1.33.9",
    "date": "2026-10-28",
    "title": "Steady Hands",

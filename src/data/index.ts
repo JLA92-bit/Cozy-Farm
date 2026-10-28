@@ -134,6 +134,8 @@ export type FishTime = 'morning' | 'day' | 'dusk' | 'night';
 export type FishRarity = 'common' | 'uncommon' | 'rare' | 'legendary' | 'mythic';
 export interface FishDef { id: string; rarity: FishRarity; level: number; times: FishTime[]; difficulty: number; size: [number, number]; xp: number; /** where it bites: the dock (default) or Old Tom's Pier (1.8.5) */ spot?: 'dock' | 'pier'; /** 1.9: an extra kind of fish that shares a small separate chance per cast */ extra?: boolean }
 export interface JunkDef { id: string; weight: number; xp: number; size?: [number, number]; lines?: string[]; coinsBase?: number; coinsPerLevel?: number; gemChance?: number }
+/** 1.34 a fishing net tier: unlocked at a Fishing skill level, holds fish, keep at most, full after hours, rare chance per fish. */
+export interface FishNetTier { name: string; skill: number; holds: number; keep: number; hours: number; rare: number }
 /** Fishing at the dock (fish.json). */
 export const FISHING = fishJson as unknown as {
   level: number; freeCastsPerDay: number; baitItem: string; baitShop: { qty: number; coins: number }; junkChance: number;
@@ -147,6 +149,8 @@ export const FISHING = fishJson as unknown as {
   bite: { waitSec: [number, number]; windowSec: number[]; triesPerCast: number };
   reel: { zone: number[]; fishSpeed: number[]; fillPerSec: number; drainPerSec: number; start: number; assistZone: number };
   recordXpBonus: number; species: FishDef[]; junk: JunkDef[]; notes: string[];
+  /** 1.34 the fishing net (FishNet.ts) */
+  net: { bait: number; tiers: FishNetTier[] };
 };
 export const FISH = Object.fromEntries(FISHING.species.map((f) => [f.id, f])) as Record<string, FishDef>;
 

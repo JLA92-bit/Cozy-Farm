@@ -46,6 +46,8 @@ import { orders, truck, merchant } from '../systems/Economy';
 import { Visitors } from '../world/Visitors';
 import { PikeStall } from '../world/PikeStall';
 import '../ui/panels/FishStallPanel';
+import '../ui/panels/FishNetPanel';
+import { DockNet } from '../world/DockNet';
 import '../ui/panels/CarePanel';
 import '../ui/panels/BoatVisitPanel';
 import '../ui/panels/MasterPanel';
@@ -209,12 +211,13 @@ export async function boot(): Promise<void> {
   visitors.onMerchantArrive = (pos) => player.makeRoom(pos);
   void visitors.sync();
   const pike = new PikeStall(scene);
+  const dockNet = new DockNet(scene);
   const boatVisitor = new BoatVisitor(scene);
   Object.assign(window as unknown as Record<string, unknown>, { __pike: pike, __visitors: visitors });
   const squarePick = ui.extraPick; // the way to the village square (set by initSquare)
   ui.extraPick = (ray) => {
     if (visitors.merchantHit(ray) && merchant.visit().present) return () => { visitors.greetMerchant(); ui.open('merchant'); };
-    return pike.pick(ray) ?? boatVisitor.pick(ray) ?? villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
+    return pike.pick(ray) ?? dockNet.pick(ray) ?? boatVisitor.pick(ray) ?? villagers.pick(ray) ?? player.pick(ray) ?? squarePick?.(ray) ?? null;
   };
   scene.onTick((now) => { buildings.tick(now); crafting.tick(now); truck.tick(now); scene.farm.tick(now); updateBubbles(now); updateSideBar(now); });
 

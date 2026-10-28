@@ -887,3 +887,18 @@ lamps, lunch and 8,000 coins in wages). No danger, nothing to lose, nothing rand
 - **Every find has a use past the first:** besides the Museum and villager gifts, the Collector's Cruise (a ninth Boat
   Visitor theme, `boatvisits.json` `collectors`) asks for gems, fossils, relics, bars and jewellery at the usual 1.9x
   barn price. Like every theme it only comes once the farm can fill three of its wishes, so only mining farms meet it.
+
+## 1.34 The Fishing Net (`fish.json` `net`, `src/systems/FishNet.ts`)
+
+The net saves time; it does not make more fish. Rod comparison: 5 free casts a day (7 with Old Tom's perk), then 5 coins of bait a cast, with every species, records, stars and XP.
+
+| Net | Fishing skill | Holds | Keep | Full in | Rare per fish |
+| --- | --- | --- | --- | --- | --- |
+| Old Net | 3 | 4 | 2 | 6 h | 0 |
+| Mended Net | 5 | 6 | 3 | 7 h | 0 |
+| Sturdy Net | 7 | 8 | 4 | 8 h | 2% |
+| Master Net | 10 | 10 | 5 | 8 h | 4% |
+
+- Setting costs 3 bait (15 coins). Only dock fish already caught with the rod, not the extra kinds; common and uncommon, each weighted by the share of the day it bites; rare only at the tier's chance and only rare kinds already caught.
+- Net fish are always plain (no stars), give no XP (player or Fishing skill), set no records, do not count as `fish_caught` (Master, awards, Derby). Stats `nets_set`, `net_hauls`, `net_fish`.
+- Two hauls a day with a Master Net keep at most 10 fish. Commons sell 8-24 and uncommons 26-62, so with the best fish picked that is about 250-300 coins a day after 30 coins of bait: small next to orders and workshops at Fishing 10. The rod's 5 free casts alone are worth about the same, plus XP, stars and the chance of legendary fish.

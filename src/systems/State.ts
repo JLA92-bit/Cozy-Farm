@@ -333,7 +333,11 @@ export interface Welcome18State {
   later?: number;
 }
 
-export interface FishingState { caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number }
+export interface FishingState {
+  caught: Record<string, number>; records: Record<string, number>; freeDay: string; freeUsed: number; casts: number;
+  /** 1.34 the net while it is set: when, which tier, and the fish that will swim in, in order (rolled when set) */
+  net?: { setAt: number; tier: number; fish: string[] };
+}
 
 export interface FriendEntry { id: string; name: string; code: string; addedAt: number }
 export interface SocialState {

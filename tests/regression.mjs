@@ -1213,6 +1213,30 @@ try {
     await page.locator('.order-skip.confirm').first().click({ force: true }).catch(() => {});
     const afterSkip = await page.evaluate(() => window.__game.state.orders.list.map((o) => o.id).join());
     check('skipping an order ignores a double click and takes a real second tap', afterGhost === before && afterSkip !== before, JSON.stringify({ before, afterGhost, afterSkip }));
+    // 1.34: the fishing net fills over its hours, keeps at most `keep`, and its fish are plain with no XP, records or catches
+    const net = await page.evaluate(() => {
+      const g = window.__game, n = window.__net, s = g.state;
+      document.querySelectorAll('.overlay').forEach((o) => o.remove());
+      s.player.level = 50;
+      (s.skills ??= { xp: {}, perks: {} }).xp.fishing = 1e9;
+      s.fishing.caught = { sardine: 1, shrimp: 1, crab: 1, clownfish: 1, kraken: 1, smelt: 1 };
+      s.fishing.records = {};
+      delete s.fishing.net;
+      s.inventory.bait = 10;
+      const ok = n.setNet();
+      const fish = [...s.fishing.net.fish];
+      const allowed = fish.every((f) => ['sardine', 'shrimp', 'crab', 'clownfish'].includes(f));
+      const atStart = n.count();
+      s.debugTimeOffset = (s.debugTimeOffset ?? 0) + 8 * 3600000 + 1000;
+      const full = n.full(), inNet = n.inNet().length;
+      const xp = s.player.xp, caught = g.stat('fish_caught'), inv = Object.values(s.inventory).reduce((a, b) => a + b, 0), q = JSON.stringify(s.quality);
+      const kept = n.haul([0, 1, 2, 3, 4, 5, 6, 7]);
+      const inv2 = Object.values(s.inventory).reduce((a, b) => a + b, 0);
+      s.debugTimeOffset -= 8 * 3600000 + 1000;
+      return { ok, bait: s.inventory.bait, holds: fish.length, allowed, atStart, full, inNet, kept: kept.length, added: inv2 - inv, xpSame: s.player.xp === xp, caughtSame: g.stat('fish_caught') === caught, qSame: JSON.stringify(s.quality) === q, noRecords: !Object.keys(s.fishing.records).length, cleared: !s.fishing.net };
+    });
+    check('the fishing net fills, keeps at most 5 and gives plain fish with no XP or records', net.ok && net.bait === 7 && net.holds === 10 && net.allowed && net.atStart === 0 && net.full && net.inNet === 10
+      && net.kept === 5 && net.added === 5 && net.xpSame && net.caughtSame && net.qSame && net.noRecords && net.cleared, JSON.stringify(net));
   }
 } finally {
   await browser.close();

@@ -20,6 +20,16 @@
     "assistZone": 0.08
   },
   "recordXpBonus": 0.5,
+  "net": {
+    "_comment": "1.34 the fishing net at the dock: set it with bait, fish swim in one at a time until it is full, then pick which to keep (up to keep). Only dock fish already caught with the rod, common and uncommon (rare at the rare chance), always plain, no XP or records.",
+    "bait": 3,
+    "tiers": [
+      { "name": "Old Net", "skill": 3, "holds": 4, "keep": 2, "hours": 6, "rare": 0 },
+      { "name": "Mended Net", "skill": 5, "holds": 6, "keep": 3, "hours": 7, "rare": 0 },
+      { "name": "Sturdy Net", "skill": 7, "holds": 8, "keep": 4, "hours": 8, "rare": 0.02 },
+      { "name": "Master Net", "skill": 10, "holds": 10, "keep": 5, "hours": 8, "rare": 0.04 }
+    ]
+  },
   "species": [
     { "id": "sardine", "rarity": "common", "level": 7, "times": ["morning", "day", "dusk", "night"], "difficulty": 1, "size": [10, 22], "xp": 3 },
     { "id": "shrimp", "rarity": "common", "level": 7, "times": ["morning", "day", "dusk", "night"], "difficulty": 1, "size": [4, 10], "xp": 3 },

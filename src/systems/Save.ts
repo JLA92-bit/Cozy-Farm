@@ -5,7 +5,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, MINE, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, FISH, FISHING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, MINE, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -339,6 +339,15 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   if (typeof fi.freeDay !== 'string') fi.freeDay = '';
   fi.freeUsed = Math.floor(finite(fi.freeUsed, 0, 0));
   fi.casts = Math.floor(finite(fi.casts, 0, 0));
+  // 1.34 the net: dropped if it does not make sense (the bait is not refunded: it was a bad save, not a choice)
+  const net = fi.net as unknown;
+  if (net !== undefined) {
+    const n = isObj(net) ? net as Record<string, unknown> : {};
+    const tier = Math.floor(finite(n.tier, -1));
+    const fish = Array.isArray(n.fish) ? n.fish.filter((f): f is string => typeof f === 'string' && !!FISH[f]) : [];
+    if (FISHING.net.tiers[tier] && Number.isFinite(n.setAt) && fish.length) fi.net = { setAt: n.setAt as number, tier, fish: fish.slice(0, FISHING.net.tiers[tier].holds) };
+    else delete fi.net;
+  }
   // 1.8: friendships, quality, mail, help
   const vf: SaveData['village']['friends'] = {};
   for (const [k, f] of Object.entries(isObj(out.village.friends) ? out.village.friends : {})) {

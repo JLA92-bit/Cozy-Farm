@@ -12,6 +12,7 @@ import { hints } from '../../systems/Hints';
 import { extraUnlocks } from '../../systems/Progression';
 import { extraObtainable } from '../../systems/Economy';
 import { visiting } from '../../systems/Visiting';
+import { fishNet } from '../../systems/FishNet';
 import { fishing, isRareTier, sizeText, RARITY_LABEL, TIME_ICON, TIME_LABEL, type Catch, type CatchResult } from '../../systems/Fishing';
 import { FishingView } from '../../world/FishingView';
 import { DOCK } from '../../world/Terrain';
@@ -42,6 +43,8 @@ class FishingController {
   private luckyArmed = false;
   private luckyUsed = false;
   private luckyEl!: HTMLElement;
+  /** 1.34 the net: a chip that opens it, glowing when it is full */
+  private netEl!: HTMLElement;
   private catch: Catch | null = null;
   private tries = 0;
   private nibbles: number[] = [];
@@ -203,9 +206,10 @@ class FishingController {
     this.timeEl = h('div', { class: 'fish-chip' });
     this.bitingEl = h('div', { class: 'fish-biting', 'aria-label': 'Biting now' });
     this.luckyEl = h('button', { class: 'fish-chip fish-lucky', type: 'button', onclick: () => this.tapLucky() });
+    this.netEl = h('button', { class: 'fish-chip fish-lucky fish-net', type: 'button', onclick: () => ui.open('net') });
     const close = button('✕', () => this.close(), 'red round fish-close', { 'aria-label': 'Stop fishing' });
     const buy = button([h('span', { class: 'fish-buy-plus outlined' }, '+'), icon('worm'), priceTag(FISHING.baitShop.coins)], () => this.buyBait(), 'small yellow fish-buy', { 'aria-label': `Buy ${FISHING.baitShop.qty} bait`, title: `Buy ${FISHING.baitShop.qty} bait` });
-    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, this.timeEl, this.castsEl, this.luckyEl, buy, close), this.bitingEl);
+    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, this.timeEl, this.castsEl, this.luckyEl, this.netEl, buy, close), this.bitingEl);
     this.prompt = h('div', { class: 'fish-prompt outlined' });
     this.sub = h('div', { class: 'fish-sub outlined' });
     this.zoneEl = h('div', { class: 'fr-zone' });
@@ -251,6 +255,15 @@ class FishingController {
       if (free) this.castsEl.append(h('span', { class: 'fc-free' }, `${free} free`));
       this.castsEl.append(icon('worm'), h('span', null, `x${fmt(bait)}`));
       this.castsEl.setAttribute('aria-label', `${free} free casts left today, ${bait} bait`);
+    }
+    const nk = `${fishNet.unlocked}|${fishNet.set ? fishNet.count() : -1}|${fishNet.full()}`;
+    if (this.netEl.dataset.key !== nk) {
+      this.netEl.dataset.key = nk;
+      this.netEl.style.display = fishNet.unlocked ? '' : 'none';
+      const s = fishNet.set;
+      clear(this.netEl).append(icon('fish_net'), h('span', null, s ? `${fishNet.count()}/${s.fish.length}` : 'Set'));
+      this.netEl.classList.toggle('armed', fishNet.full());
+      this.netEl.setAttribute('aria-label', s ? `Fishing net, ${fishNet.count()} of ${s.fish.length} fish` : 'Fishing net, not set');
     }
     const lucky = fishing.lucky, wanted = fishing.wantedBiting;
     const lk = `${lucky}|${this.luckyArmed}|${wanted}`;
@@ -639,7 +652,7 @@ export const fishingUI = new FishingController();
 ui.register('fishing', () => fishingUI.open());
 extraUnlocks.push((level) => (level === FISHING.level ? [{ kind: 'Feature', id: 'fishing', name: 'Fishing at the dock', icon: 'fishing_pole', level }] : []));
 extraObtainable.push(() => fishing.orderable());
-sideEntries.push(() => (fishing.unlocked && game.state.tutorial.done && !fishingUI.active ? { id: 'fishing', icon: 'fishing_pole', label: 'Fish', color: 'blue', badge: fishing.freeLeft > 0 } : null));
+sideEntries.push(() => (fishing.unlocked && game.state.tutorial.done && !fishingUI.active ? { id: 'fishing', icon: 'fishing_pole', label: 'Fish', color: 'blue', badge: fishing.freeLeft > 0 || fishNet.full() } : null));
 ui.onTick(() => { if (!fishingUI.view && ui.scene) fishingUI.init(); });
 
 Object.assign(window as unknown as Record<string, unknown>, { __fishing: fishingUI, __fishSys: fishing, __FISHDATA: FISHING });
