@@ -171,6 +171,18 @@ export function openCloudChoice(local: FarmSummary, cloud: FarmSummary & { devic
 }
 cloudHooks.ask = openCloudChoice;
 
+/** 1.33.7 the sign-in was lost without the player signing out (CloudSave): say so plainly, with the button right here. */
+cloudHooks.signedOut = (email) => {
+  const p = new Panel({ title: 'Signed out', size: 'small', color: 'blue', icon: 'cloud' });
+  const row = h('div', { class: 'center', style: 'display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px' });
+  for (const b of signInButtons()) { b.addEventListener('click', () => p.close()); row.append(b); }
+  p.body.append(
+    h('div', { class: 'center' }, `This device was signed out${email ? ` of ${email}` : ''}. Your farm is safe here. ${signInWords()} again to keep backing it up and see your friends.`),
+    row);
+  p.footer.append(button('Later', () => p.close(), 'grey'));
+  p.open();
+};
+
 export function confirmSignOut(after: () => void): void {
   const p = new Panel({ title: 'Sign out?', size: 'small', color: 'blue', icon: 'cloud' });
   p.body.append(h('div', { class: 'center' }, `Your farm stays on this device, but it will not be backed up any more. ${signInWords()} again any time to pick up your cloud farm.`));

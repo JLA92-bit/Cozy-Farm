@@ -71,6 +71,8 @@ const INTENT_MAX_AGE = 30 * 60000;
 const TRAIL_KEY = 'cozy-acres-signin-trail';
 /** 1.33.4 in the app: this Google (or Apple) account already has its own farm, so the next tap signs in to it */
 const SWITCH_KEY = 'cozy-acres-auth-switch';
+/** 1.33.7 a signed-in session that was gone at start, and why (CloudSave reads it, logs it once signed in again) */
+export const DROP_KEY = 'cozy-acres-auth-drop';
 /** URL parameters an OAuth return may carry; removed from the address bar once read. */
 const AUTH_PARAMS = ['code', 'error', 'error_code', 'error_description', 'sb_flow_id', 'state'];
 interface Intent { mode: 'link' | 'signin'; uid: string; at: number; provider?: 'google' | 'apple' }
@@ -109,6 +111,27 @@ async function toProvider(go: (o: { redirectTo: string; skipBrowserRedirect: boo
   const { data, error } = await go({ redirectTo: returnUrl(), skipBrowserRedirect: isNative() });
   if (!error && isNative() && data?.url) await openExternal(data.url);
   return error;
+}
+
+/**
+ * 1.33.7 why supabase-js dropped a session: it says so only in its debug log (the server refusing the refresh token,
+ * or a stored session it cannot use). Only the error code, status and message are kept, never a token.
+ */
+let authTrouble = '';
+function noteAuth(_prefix: string, ...args: unknown[]): void {
+  const what = args[1];
+  if (what !== 'error' && what !== 'refresh failed' && what !== 'session is not valid') return;
+  const e = args[2] as { code?: string; status?: number; message?: string } | undefined;
+  authTrouble = [what === 'error' ? '' : what, e?.code, e?.status, e?.message].filter(Boolean).join(' ').slice(0, 120);
+}
+/** The stored session before supabase-js reads it: was it a real (not guest) account, and when did its access expire. */
+async function storedSession(): Promise<{ real: boolean; exp: number } | null> {
+  try {
+    const raw = durable ? await durable.getItem('cozy-acres-online-auth') : localStorage.getItem('cozy-acres-online-auth');
+    if (!raw) return null;
+    const v = JSON.parse(raw) as { expires_at?: number; user?: { is_anonymous?: boolean } };
+    return { real: !!v.user && v.user.is_anonymous === false, exp: (v.expires_at ?? 0) * 1000 };
+  } catch { return null; }
 }
 
 /** Note one sign-in step (kept on the device, newest last, at most 30). Never throws. */
@@ -176,6 +199,8 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   private authResult: AuthResult | null = null;
   /** returns already handled (a code or an error), so a second copy of the same link does nothing */
   private handled = new Set<string>();
+  /** the stored session as it was before the client started (1.33.7, to tell a dropped sign-in) */
+  private before: { real: boolean; exp: number } | null = null;
 
   constructor(private url: string, private anonKey: string) {}
 
@@ -188,9 +213,10 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   private async ensureClient(): Promise<SupabaseClient> {
     if (!this.client) {
       const { createClient } = await import('@supabase/supabase-js');
+      this.before = await storedSession();
       this.client = createClient(this.url, this.anonKey, {
         // PKCE: Google sends the page back with ?code=..., exchanged in handleRedirect (not automatically)
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce', storageKey: 'cozy-acres-online-auth', ...(durable ? { storage: durable } : {}) },
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, flowType: 'pkce', storageKey: 'cozy-acres-online-auth', debug: noteAuth, ...(durable ? { storage: durable } : {}) },
         global: { fetch: timedFetch },
         realtime: { params: { eventsPerSecond: 2 } },
       });
@@ -215,6 +241,14 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     let user = got.session?.user ?? null;
     // a failed session read (offline, server trouble) must not replace the stored account with a new one
     if (sessErr) throw new OfflineError(sessErr.message);
+    if (!user && this.before?.real) {
+      // a signed-in player is now signed out without asking: keep why, for support and the dashboard
+      const hours = this.before.exp ? Math.round((Date.now() - this.before.exp) / 3600000) : -1;
+      const reason = authTrouble || 'session gone';
+      signInStep(`sign-in dropped at start: ${reason} (access ended ${hours} h ago)`);
+      try { localStorage.setItem(DROP_KEY, JSON.stringify({ at: Date.now(), reason, hours })); } catch { /* blocked */ }
+      this.before = null;
+    }
     if (!user) {
       const { data, error } = await sb.auth.signInAnonymously();
       if (error || !data.user) throw error ?? new Error('sign in failed');

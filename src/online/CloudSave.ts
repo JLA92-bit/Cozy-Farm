@@ -6,6 +6,8 @@ import { visiting } from '../systems/Visiting';
 import { SAVE_VERSION, type SaveData } from '../systems/State';
 import { holdProfile, publishProfile } from './Connect';
 import { online } from './Online';
+import { logEvent } from './Events';
+import { DROP_KEY } from './SupabaseBackend';
 import { resetOnlineProfile } from './Profile';
 import type { AccountBackend, AccountInfo, AuthResult, CloudCopy, CloudRow } from './types';
 
@@ -52,6 +54,10 @@ interface Meta {
 }
 
 const blankMeta = (): Meta => ({ uid: '', signedIn: false, email: '', base: null, hash: '', at: 0 });
+interface Drop { at: number; reason: string; hours: number; pending?: boolean }
+function readDrop(): Drop | null {
+  try { const v = JSON.parse(localStorage.getItem(DROP_KEY) ?? 'null') as Drop | null; return v && typeof v.at === 'number' ? v : null; } catch { return null; }
+}
 function readMeta(): Meta {
   try {
     const m = JSON.parse(localStorage.getItem(META_KEY) ?? 'null') as Partial<Meta> | null;
@@ -146,7 +152,11 @@ export interface CloudState {
 }
 
 /** The farm-choice panel, provided by the UI: resolves with the farm the player keeps. */
-export const cloudHooks: { ask?: (local: FarmSummary, cloud: FarmSummary & { device: string; savedAt: number }) => Promise<'local' | 'cloud'> } = {};
+export const cloudHooks: {
+  ask?: (local: FarmSummary, cloud: FarmSummary & { device: string; savedAt: number }) => Promise<'local' | 'cloud'>;
+  /** 1.33.7 the sign-in was lost without the player signing out: a card to sign in again (UI) */
+  signedOut?: (email: string) => void;
+} = {};
 
 let override: AccountBackend | null = null;
 /** The account features of the active backend (null in practice mode). */
@@ -405,7 +415,14 @@ function onConnected(result: AuthResult | null): Promise<void> {
   }
   if (!a) return Promise.resolve();
   if (a.anonymous) {
-    if (meta.signedIn && !result) toast('Signed out', 'Sign in again in Settings to keep backing up your farm.', 'cloud');
+    if (meta.signedIn && !result) {
+      // 1.33.7 note it (SupabaseBackend has the reason when the server refused the session; none: the stored
+      // sign-in itself was gone) and log it once the player is signed in again
+      const drop = readDrop() ?? { at: Date.now(), reason: 'no stored sign-in', hours: -1 };
+      try { localStorage.setItem(DROP_KEY, JSON.stringify({ ...drop, pending: true })); } catch { /* blocked */ }
+      if (cloudHooks.signedOut) cloudHooks.signedOut(meta.email);
+      else toast('Signed out', 'Sign in again in Settings to keep backing up your farm.', 'cloud');
+    }
     if (meta.signedIn || meta.uid) { meta = blankMeta(); writeMeta(); }
     notify();
     return Promise.resolve();
@@ -413,6 +430,11 @@ function onConnected(result: AuthResult | null): Promise<void> {
   meta.signedIn = true;
   meta.email = a.email;
   writeMeta();
+  const drop = readDrop();
+  if (drop?.pending) {
+    logEvent('signed_out', { reason: drop.reason, hours: drop.hours, away_min: Math.round((Date.now() - drop.at) / 60000), app: isNative() });
+    try { localStorage.removeItem(DROP_KEY); } catch { /* blocked */ }
+  }
   return syncNow();
 }
 
@@ -530,6 +552,8 @@ if (import.meta.env.DEV) {
   (window as unknown as Record<string, unknown>).__cloudTest = {
     fake() { override = fake; started = false; startCloud(); notify(); return 'fake account backend on'; },
     signIn: () => fake.signInWithGoogle(),
+    /** 1.33.7 the server dropped the sign-in: back as a guest without signing out */
+    async drop() { acct = { id: `fake-anon-${Date.now()}`, anonymous: true, email: '', name: '' }; emit(); await onConnected(null); },
     setCloud(data: SaveData, device = 'Android phone', ago = 3600000) {
       row = { data, saveVersion: data.version, level: data.player.level, coins: data.player.coins, device, updatedAt: new Date(Date.now() - ago).toISOString() };
     },

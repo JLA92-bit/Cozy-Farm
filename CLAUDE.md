@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 27 October 2026 (game version 1.33.7 local, 1.33.6 pushed; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 27 October 2026 (game version 1.33.8 local, 1.33.7 pushed 27 Oct; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -25,7 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.33.7 (local, 27 Oct): gem "Tap again" lasts.** Screens that redraw every second (workshops, the stall) swapped the armed button for a fresh one, and a phone's late double click confirmed at once: `gemButton` (dom.ts) keeps the armed state by `key` (`finish:<uid>`) for 5 s (`GEM_MS`) and ignores a second tap within 450 ms (`GEM_GAP`); the stall slot and Boutique do the same. Tapping the Farmhouse shows a Farmhands button from level 50 (`CharacterPanel.ts`; players never found them behind the grey Upgrade). Game only. 112 regression checks.
+**1.33.8 (local, 28 Oct): why players get signed out.** Players on web and app found themselves signed out (signing in again fixed it). supabase-js drops a session silently when the server refuses its refresh token; its debug log is the only place that says why. `SupabaseBackend` reads the stored session before the client starts and keeps the reason (`noteAuth`, `DROP_KEY` `cozy-acres-auth-drop`, a Sign-in step); CloudSave shows a Signed out card with the sign-in button (`cloudHooks.signedOut`, AccountPanels) and logs event `signed_out` {reason, hours, away_min, app} once signed in again. Check the dashboard events, and Supabase Auth logs/Sessions settings. Game only.
+
+**1.33.7 (pushed 27 Oct): gem "Tap again" lasts.** Screens that redraw every second (workshops, the stall) swapped the armed button for a fresh one, and a phone's late double click confirmed at once: `gemButton` (dom.ts) keeps the armed state by `key` (`finish:<uid>`) for 5 s (`GEM_MS`) and ignores a second tap within 450 ms (`GEM_GAP`); the stall slot and Boutique do the same. Tapping the Farmhouse shows a Farmhands button from level 50 (`CharacterPanel.ts`; players never found them behind the grey Upgrade). Game only. 112 regression checks.
 
 **1.33.6 (pushed 27 Oct, Android versionCode 9): ghost taps and gem history.** A Samsung S23 Ultra sent a late second click after a tap on a building, pressing the gem Finish button that had just popped up under the finger: `markFresh` in `ui/dom.ts` (Panel.open, WorldUI.showPopup) ignores real clicks on anything shown less than 450 ms ago, and `gemButton` (dom.ts) needs a second tap ("Tap again") for every gem spend (popup, workshop, Farmhouse; the stall slot too; the Boutique already had two taps). `game.spend(coins, gems, on)` names what gems went on; Events.ts logs `gems_spent`; dashboard Support tab "Gems spent" (`admin_player_gems`, schema section `gem spending`). Needs `schema.sql` re-run.
 
@@ -310,6 +312,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-10-28: 1.33.7 pushed; 1.33.8 (local): reason for unasked sign-outs kept and logged, Signed out card.
 - 2026-10-27: 1.33.7 (local): gem "Tap again" survives redraws and double clicks, waits 5 seconds; Farmhands button on the Farmhouse card.
 - 2026-10-27: 1.33.5 and 1.33.6 pushed; Android versionCode 9 uploaded (next 10).
 - 2026-10-27: 1.33.6 (local): ghost taps on Samsung (late second click) ignored, gem spends need a second tap, dashboard Gems spent card.
@@ -319,4 +322,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-25: Mac session: iPhone app (`ios/`, runs in the Simulator); 1.33.0 pushed: reports and blocks, landscape side-button fix; 1.33.1 pushed: word filter.
 - 2026-10-25: 1.32.1 (local): Google sign-in in the Android app works when Android closed the game while the browser was open (launch link, durable sign-in storage).
 - 2026-10-25: 1.32.0 pushed (deploy run 73), versionCode 5 uploaded to Play's closed track; `HANDOVER-2026-10-25.md` hands the iPhone app to a session on the owner's Mac.
-- 2026-10-25: 1.31.2 pushed (deploy run 72); 1.32.0 (local): the Android app moves from TWA to Capacitor (game inside the app; sign-in via browser + deep link; notifications not in the app yet).
