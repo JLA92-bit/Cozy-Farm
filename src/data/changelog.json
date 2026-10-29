@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.34.1",
+   "date": "2026-10-29",
+   "title": "Which One Am I?",
+   "icon": "info",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "info",
+     "text": "The bottom of Settings now shows your game version and where you play: the Android app, the iPhone app, an installed web app or a web browser"
+    }
+   ]
+  },
+  {
    "version": "1.34.0",
    "date": "2026-10-29",
    "title": "Cast Wide",

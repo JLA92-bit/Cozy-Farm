@@ -24,6 +24,9 @@ import { openPhotoMode } from '../PhotoMode';
 import { autoHelpSection } from './HelpPanel';
 import { openEarlierCloudFarms } from './AccountPanels';
 import { cloudState } from '../../online/CloudSave';
+import { platform } from '../../online/Activity';
+import { isIosApp } from '../../core/Native';
+import { APP_VERSION } from '../../systems/Version';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -122,8 +125,17 @@ export function openSettings(): void {
     game.state.player.created && game.state.tutorial.done ? button([icon('sparkle_heart'), 'Replay 1.8 welcome'], () => { p.close(); setTimeout(() => openWelcome18({ replay: true }), 250); }, 'small pink-btn') : null,
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
-  ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave.'));
+  ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave.'),
+    h('div', { class: 'muted center settings-version', style: 'margin-top:12px;font-size:12px' }, `Cozy Acres ${APP_VERSION} - ${whereLabel()}`));
   p.open();
+}
+
+/** Where this copy of the game runs, for the version line (and support screenshots). */
+function whereLabel(): string {
+  const where = platform();
+  if (where === 'android') return 'Android app';
+  if (where === 'ios') return isIosApp() ? 'iPhone app' : 'iPhone Home Screen';
+  return where === 'pwa' ? 'Installed web app' : 'Web browser';
 }
 
 /** "What's new" with a little New dot until the latest release notes have been read. */
