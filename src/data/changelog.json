@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.34.2",
+   "date": "2026-10-30",
+   "title": "Room at the Dock",
+   "icon": "fish_net",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "fish_net",
+     "text": "Fix: with the fishing net, the buttons at the top of the fishing screen ran off narrow phones. They now go onto a second line, so Close and Buy bait are always there"
+    }
+   ]
+  },
+  {
    "version": "1.34.1",
    "date": "2026-10-29",
    "title": "Which One Am I?",

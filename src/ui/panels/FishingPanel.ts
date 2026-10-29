@@ -209,7 +209,7 @@ class FishingController {
     this.netEl = h('button', { class: 'fish-chip fish-lucky fish-net', type: 'button', onclick: () => ui.open('net') });
     const close = button('✕', () => this.close(), 'red round fish-close', { 'aria-label': 'Stop fishing' });
     const buy = button([h('span', { class: 'fish-buy-plus outlined' }, '+'), icon('worm'), priceTag(FISHING.baitShop.coins)], () => this.buyBait(), 'small yellow fish-buy', { 'aria-label': `Buy ${FISHING.baitShop.qty} bait`, title: `Buy ${FISHING.baitShop.qty} bait` });
-    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, this.timeEl, this.castsEl, this.luckyEl, this.netEl, buy, close), this.bitingEl);
+    const top = h('div', { class: 'fish-top' }, h('div', { class: 'fish-top-row' }, h('div', { class: 'fish-chips' }, this.timeEl, this.castsEl, this.luckyEl, this.netEl, buy), close), this.bitingEl);
     this.prompt = h('div', { class: 'fish-prompt outlined' });
     this.sub = h('div', { class: 'fish-sub outlined' });
     this.zoneEl = h('div', { class: 'fr-zone' });
