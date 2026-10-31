@@ -55,4 +55,40 @@ export const COOP_PROC: Record<string, () => THREE.BufferGeometry> = {
     b.sphere(0.16, PAL.gold, [0.85, 1.55, 0.45], 0, [1, 1, 0.4]);
     return b.build();
   },
+  /** 1.44 the Village Bandstand: a round white bandstand with a green roof, steps and a little flag. */
+  coop_bandstand: () => {
+    const b = geo();
+    b.cyl(1.35, 1.4, 0.35, '#e6dccb', [0, 0, 0], 8);
+    b.block(0.6, 0.18, 0.4, '#d9cbb3', [0, 0, 1.45]);
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; b.cyl(0.06, 0.06, 1.3, '#ffffff', [Math.cos(a) * 1.2, 0.35, Math.sin(a) * 1.2], 6); }
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; b.block(0.9, 0.06, 0.05, '#ffffff', [Math.cos(a) * 1.15, 0.75, Math.sin(a) * 1.15], [0, -a + Math.PI / 2, 0]); }
+    b.cone(1.6, 0.8, '#5f9a3a', [0, 1.65, 0], 8);
+    b.cyl(0.02, 0.02, 0.6, '#5a3a22', [0, 2.4, 0], 4);
+    b.block(0.3, 0.18, 0.02, '#e2537a', [0.16, 2.85, 0]);
+    return b.build();
+  },
+  /** 1.44 a corner of the Boating Lake: water in a stone rim, a little jetty and a red rowing boat. */
+  coop_boating_lake: () => {
+    const b = geo();
+    b.cyl(1.45, 1.5, 0.1, '#bfb6a3', [0, 0, 0], 16);
+    b.cyl(1.3, 1.3, 0.12, '#5fb6e2', [0, 0.02, 0], 16);
+    b.block(0.4, 0.08, 1.0, PAL.wood, [0.9, 0.12, 0.6]);
+    for (const [x, z] of [[0.75, 1.05], [1.05, 1.05], [0.75, 0.2], [1.05, 0.2]] as const) b.cyl(0.04, 0.04, 0.3, PAL.woodDark, [x, 0, z], 5);
+    b.sphere(0.32, '#d9473a', [-0.3, 0.12, -0.1], 1, [1.6, 0.5, 0.8]);
+    b.block(0.5, 0.04, 0.3, '#f2efe6', [-0.3, 0.2, -0.1]);
+    for (const [x, z] of [[-1.1, 0.6], [-0.9, 0.9], [0.2, -1.2]] as const) b.cyl(0.02, 0.02, 0.4, PAL.green, [x, 0.05, z], 4);
+    return b.build();
+  },
+  /** 1.44 Village Fair rosettes on a little stand: blue first prize, red second, yellow third. */
+  ...Object.fromEntries((['blue', 'red', 'yellow'] as const).map((c) => [`fair_ribbon_${c}`, () => {
+    const col = { blue: '#3f6fd8', red: '#d9473a', yellow: '#f2c14e' }[c];
+    const b = geo();
+    b.block(0.08, 0.7, 0.08, PAL.woodDark, [0, 0, 0]);
+    b.block(0.4, 0.06, 0.4, PAL.woodDark, [0, 0, 0]);
+    for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; b.sphere(0.1, col, [Math.cos(a) * 0.2, 0.9 + Math.sin(a) * 0.2, 0.06], 0, [1, 1, 0.3]); }
+    b.cyl(0.14, 0.14, 0.06, '#fff3c4', [0, 0.9, 0.1], 12, [Math.PI / 2, 0, 0]);
+    b.block(0.1, 0.35, 0.02, col, [-0.08, 0.5, 0.06], [0, 0, 0.2]);
+    b.block(0.1, 0.35, 0.02, col, [0.08, 0.5, 0.06], [0, 0, -0.2]);
+    return b.build();
+  }])),
 };

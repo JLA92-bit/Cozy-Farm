@@ -15,6 +15,8 @@
     "needs": { "strawberry": 150, "carrot": 250, "apple": 100, "honey": 30, "fertiliser": 20 } },
   { "id": "fireworks", "name": "Fireworks Night", "icon": "sparkles", "level": 35, "decor": "coop_fireworks",
     "about": "One big night of lanterns and fireworks over the water. Everyone who helps gets a fireworks stand that lights up after dark.",
-    "needs": { "sugar": 120, "beeswax_candle": 40, "berry_juice": 50, "cookie": 60, "copper_ore": 20 } }
+    "needs": { "sugar": 120, "beeswax_candle": 40, "berry_juice": 50, "cookie": 60, "copper_ore": 20 } },
+    {"id": "bandstand", "name": "The Village Bandstand", "icon": "sparkles", "level": 100, "decor": "coop_bandstand", "about": "A white bandstand with a green roof for summer evenings of music. A big one: best with a few friends. Everyone who helps gets a bandstand of their own.", "needs": {"stone_brick": 120, "silver_bar": 40, "resin_varnish": 80, "honey_cake": 60, "gem_lantern": 20}},
+    {"id": "boating_lake", "name": "The Boating Lake", "icon": "water_wave", "level": 110, "decor": "coop_boating_lake", "about": "A little lake with a jetty and rowing boats, dug and filled by everyone together. The biggest project yet. Everyone who helps gets a corner of lake with a boat.", "needs": {"stone_brick": 200, "iron_bar": 80, "resin_varnish": 120, "woodland_feast": 40, "chai": 60}}
  ]
 }

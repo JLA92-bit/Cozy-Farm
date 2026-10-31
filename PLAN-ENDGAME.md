@@ -10,6 +10,24 @@ levels 80 and 180. It follows the roadmap guardrails:
 
 Nothing here is built yet. The numbers are starting points. I'll run `simulate-economy` and show you the before and after tables before anything ships.
 
+
+## Status (1 Nov 2026): built as 1.34.3-1.44.0, local, not pushed
+
+The owner said "build it all". Where the plan's questions had no answer, these defaults were used:
+- **1.35 first:** yes.
+- **Skills:** top out at 20.
+- **Land:** no shore expansion. The second plot (3.15) is still for 2.x and is not built.
+- **Titles and records:** private (Me > Records only). Nothing new is sent to the server for them.
+
+Differences from the text below:
+- Workshop upgrades are game levels 6-8 and animal homes 5-7: the plan's "Workshop 5-7" counted the upgrades, not the level shown.
+- Workshop 8 and Animal home 7 cost bars, Lodge resin varnish and gems ("planks" do not exist in the game).
+- The Windmill Mill makes Feed Mill and Bakery jobs 15% quicker. There is no flour item to grind.
+- The Observatory's star is a button on the Estate Projects screen (8 pm to 5 am), not a star to tap in the sky.
+- Rare guest gifts reuse existing models: the cabinet, the column and the large ship.
+- Museum gold shelves were not added. The Museum already has a Gold Star Case.
+- 1.44 changes the server's co-op catalogue, so it needs the whole `schema.sql` run.
+
 ## 1. What is maxed today, and when
 
 The pace past level 60 is about 2.4 days a level (BALANCE.md 1.17). An engaged player reaches level 80 around day 140,

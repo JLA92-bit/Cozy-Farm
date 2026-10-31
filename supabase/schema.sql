@@ -3502,7 +3502,7 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select '{"footbridge":{"level":20,"needs":{"wheat":400,"bread":80,"yarn":30,"cheese":30,"iron_ore":20}},"garden":{"level":25,"needs":{"strawberry":150,"carrot":250,"apple":100,"honey":30,"fertiliser":20}},"fireworks":{"level":35,"needs":{"sugar":120,"beeswax_candle":40,"berry_juice":50,"cookie":60,"copper_ore":20}}}'::jsonb;
+  select '{"footbridge":{"level":20,"needs":{"wheat":400,"bread":80,"yarn":30,"cheese":30,"iron_ore":20}},"garden":{"level":25,"needs":{"strawberry":150,"carrot":250,"apple":100,"honey":30,"fertiliser":20}},"fireworks":{"level":35,"needs":{"sugar":120,"beeswax_candle":40,"berry_juice":50,"cookie":60,"copper_ore":20}},"bandstand":{"level":100,"needs":{"stone_brick":120,"silver_bar":40,"resin_varnish":80,"honey_cake":60,"gem_lantern":20}},"boating_lake":{"level":110,"needs":{"stone_brick":200,"iron_bar":80,"resin_varnish":120,"woodland_feast":40,"chai":60}}}'::jsonb;
 $$;
 
 -- Switched on unless game_config 'coop' is false.

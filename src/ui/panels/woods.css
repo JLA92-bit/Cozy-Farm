@@ -19,7 +19,9 @@
 .ex-trip, .ex-villager { margin-bottom: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
 .ex-trip { flex-direction: row; align-items: center; }
 .ex-trip.ready { background: #fff3c4; }
-.ex-btns { display: flex; gap: 6px; }
+.ex-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 1.41 four trips: keep each button a comfortable tap on narrow phones */
+.ex-btns .btn { min-width: 44px; min-height: 36px; }
 .ex-loot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .ex-loot-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .ex-piece { display: flex; flex-direction: column; align-items: center; font-size: 12px; }

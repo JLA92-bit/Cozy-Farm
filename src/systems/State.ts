@@ -84,6 +84,8 @@ export interface SaveData {
     created: boolean;
   };
   inventory: Record<string, number>;
+  /** 1.44 today's Village Fair entries (local day) */
+  fair?: { day: string; bake?: 'blue' | 'red' | 'yellow'; show?: 'blue' | 'red' | 'yellow' };
   /** 1.43 Collection Book pages whose gold column reward was taken */
   goldPages?: string[];
   /** 1.43 the title shown under the farmer's name (an id from titles.json) */

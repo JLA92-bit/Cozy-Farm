@@ -30,6 +30,7 @@ export const TITLES: TitleDef[] = [
   { id: 'stargazer', name: 'Stargazer', how: 'Build the Observatory', earned: () => projectDone('observatory') },
   { id: 'miller', name: "Miller's Friend", how: 'Build the Windmill Mill', earned: () => projectDone('windmill') },
   { id: 'keeper', name: 'Keeper of Willowmere', how: 'Restore Willowmere Manor', earned: () => !!game.state.restoration?.manor },
+  { id: 'fair', name: 'Fair Champion', how: 'Three first prizes at the Village Fair', earned: () => game.stat('fair_blue') >= 3 },
   { id: 'boss', name: 'Old Hand', how: 'A farmhand at level 5', earned: () => Object.values(game.state.farmhands?.days ?? {}).some((d) => d >= 40) },
 ];
 

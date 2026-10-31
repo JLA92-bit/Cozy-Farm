@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 29 October 2026 (game version 1.34.2 local, 1.34.1 pushed 29 Oct (with 1.33.8-1.33.9); Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 1 November 2026 (game version 1.44.0 local: 1.34.3-1.44 built from `PLAN-ENDGAME.md`, not pushed; 1.34.2 pushed 30 Oct; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.34.2** (local); 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.44.0** (local, 1.34.3-1.44.0 not pushed; 1.44 needs the whole schema.sql run for the new co-op projects); 1.34.2 pushed 30 Oct; 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -25,7 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.34.2 (local, 30 Oct):** fix: the fishing screen's top chips (with the net chip) ran off narrow phones and hid Close; they sit in `.fish-chips`, which wraps, with Close outside it. The phone sweep checks panels only, not the fishing overlay. Game only.
+**1.34.3-1.44.0 (local, 1 Nov): the end-game plan built** (`PLAN-ENDGAME.md`, BALANCE.md "1.35" to "1.44"; commits 79823f5, bd4a257 and the 1.44 one). 1.34.3 QOL: `ui/panels/CollectAll.ts` (side Collect, `__qol`), workshop Fill/Again (`fillCount`, `againJobs` in ProductionPanel), barn search/sort/Used for/Keep/Sell extras (`systems/ItemUses.ts`, state `keep`), truck Load all, Plant all (`interaction.plantAllEmpty`), shop search, `WorkshopsPanel.ts`, Welcome back actions, app notifications on the phone (`notify/LocalPush.ts`, `@capacitor/local-notifications`; needs `cap sync` and an app build), decor group move (`buildings.moveGroup`). 1.35: skills to 20 (`bonusSteps` half bonus past 10, perks 15/20, bonuses 12/18), Grand Net, workshop levels 6-8 / animal 5-7 with goods (`upgrades.*.top`, `systems/UpgradeEffects.ts`), Vet/Carpenter 4-5. 1.36: mine floors 61-100 (layers `sunken`, `vault`, `skill`, `deep`; pickaxes Starsteel/Heartstone). 1.37: Grand Mastery (`mastery.json` `grand`), farmhand levels (`farmhands.json` `levels`). 1.38: goose, alpaca, highland cow (recoloured, `recolourMaterial`), Smokehouse, Preserves Cellar (`models/stock.ts`), `authoredMax` 140. 1.39: Farmhouse 16-20, Library and Gallery rooms. 1.40: favours and Friendship Tokens (`systems/Favours.ts`, golden keepsakes `keepsake_<v>_gold`), critter hearts 10. 1.41: Fern Falls (region `falls`, per-region pans `pannedAt`, otters), Far Reaches expedition, rare boat guests (`boatvisits.json` `rare`), Treehouse Lookout, Grove Heartwood. 1.42: Observatory and Windmill Mill (estate, `observatoryGeometry`/`windmillGeometry` in the square). 1.43: Collection Book gold column, `systems/Titles.ts` (titles, records, milestone gifts), Me > Records (`RecordsPanel.ts`). 1.44: `systems/VillageFair.ts` + `FairPanel.ts`, co-op Bandstand and Boating Lake (coop_catalog changed: **schema.sql re-run**). validate-data now catches keys written twice and woods rooms asking for items that unlock later. Debug `__qol`, `__favours`, `__titles`, `__fair`, `__expeditions`.
+
+**1.34.2 (pushed 30 Oct):** fix: the fishing screen's top chips (with the net chip) ran off narrow phones and hid Close; they sit in `.fish-chips`, which wraps, with Close outside it. The phone sweep checks panels only, not the fishing overlay. Game only.
 
 **1.34.1 (pushed 29 Oct):** the bottom of Settings shows `Cozy Acres <version> - <where>` (Android app, iPhone app, iPhone Home Screen, Installed web app, Web browser; `whereLabel()` in SettingsPanel.ts from `platform()` in online/Activity.ts). Game only.
 
@@ -320,6 +322,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-01: 1.34.3-1.44.0 (local, not pushed): QOL batch and the whole end-game plan (skills 20, upgrades, Sunken Halls, Grand Mastery, New Stock, Farmhouse 20, favours, Far Reaches, Stargazing, Gold Collection, Village Fair).
 - 2026-10-30: 1.34.1 pushed; 1.34.2 (local): fishing top bar wraps on narrow phones (the net chip pushed Close off).
 - 2026-10-29: 1.34.1 (local): version and where you play shown at the bottom of Settings.
 - 2026-10-29: 1.34.0 pushed with 1.33.8 and 1.33.9: the Fishing Net (dock, Fishing skill 3, 8-hour fill, keep limit, bait to set).
@@ -329,6 +332,4 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-27: 1.33.5 and 1.33.6 pushed; Android versionCode 9 uploaded (next 10).
 - 2026-10-27: 1.33.6 (local): ghost taps on Samsung (late second click) ignored, gem spends need a second tap, dashboard Gems spent card.
 - 2026-10-27: 1.33.5 (local): farm safety (profile hold fix, confirm before keeping the smaller farm, earlier cloud farms kept 180 days, a whole copy of every farm daily); 1.33.4 pushed 26 Oct.
-- 2026-10-25: 1.33.2 pushed (with 1.32.1 merged); versionCode 6 uploaded; 1.33.3 (local): update prompt in the store apps and a minimum app version on the dashboard.
-- 2026-10-25: 1.33.2 (local): catalogue search keeps the keyboard; merged the cloud session's 1.32.1 (Android sign-in survives Android closing the game); Sign in with Apple behind a switch; App Store listing pack and screenshots.
-- 2026-10-25: Mac session: iPhone app (`ios/`, runs in the Simulator); 1.33.0 pushed: reports and blocks, landscape side-button fix; 1.33.1 pushed: word filter.
+

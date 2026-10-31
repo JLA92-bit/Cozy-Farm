@@ -221,3 +221,8 @@
 .v-favour-items { flex-wrap: wrap; gap: 4px; }
 .v-token-shop { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .v-token-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 10px; background: #fbf6ec; }
+
+/* 1.44 Village Fair rosettes */
+.pill.fair-blue { background: #dbe6ff; }
+.pill.fair-red { background: #ffdcd6; }
+.pill.fair-yellow { background: #fff1c4; }

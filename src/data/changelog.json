@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.44.0",
+   "date": "2026-11-01",
+   "title": "Village Fair",
+   "icon": "medal",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "medal",
+     "text": "From level 100 the Harvest Fair brings the Village Fair: enter a gold-star good in the bake-off and an animal home in the best-animal show for rosettes and gems. Three first prizes make you Fair Champion"
+    },
+    {
+     "icon": "sparkles",
+     "text": "Two bigger Village Projects to build with friends: the Village Bandstand (level 100) and the Boating Lake (level 110)"
+    }
+   ]
+  },
+  {
    "version": "1.43.0",
    "date": "2026-11-01",
    "title": "Gold Collection",

@@ -985,3 +985,11 @@ Critters: hearts 6-10 at the same 3 visits a heart (15 more visits, about two to
 ## 1.42 Stargazing
 
 Two Estate Projects of four stages each. The Observatory (110-116): about 1.75M coins plus goods; then a star gift once a night (8 pm to 5 am): 1 gem and 2 moonflowers, or a star crystal (12%). The Windmill Mill (130-136): about 2.15M coins plus goods; Feed Mill and Bakery jobs take 0.85 of the time (multiplies with skills and upgrades).
+
+## 1.43 Gold Collection
+
+Gold column from level 80: 15 gems per Collection Book page with every rollable entry seen in gold (stat `gold_<item>` or one held). Milestone gifts at 80, 90, 100...: 25 gems, a decoration from level 40+, or a home piece; one a milestone, the oldest first. Titles and records are looks only.
+
+## 1.44 Village Fair
+
+On the Harvest Fair day (one day in 28) from level 100. Bake-off: one gold-star good, judged by its barn price (4,000+ first, 1,500+ second, else third). Show: one animal home, judged by its animals' average hearts (90%+ of the top first, 60%+ second). Prizes: a rosette (30/20/12 charm, inside the trophy cap) and 10/5/2 gems. Co-op tier 2: the Village Bandstand (100) and the Boating Lake (110), about 4-5x the goods of the first projects, best with 3-5 friends. **Needs `schema.sql` re-run (coop_catalog).**

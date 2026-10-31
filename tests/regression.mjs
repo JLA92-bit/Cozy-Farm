@@ -1413,6 +1413,26 @@ try {
       return { none, first, ok, next, twice, gems, bad };
     });
     check('milestone gifts from level 80, one each, chosen once; a title only when earned', ms.none === null && ms.first === 80 && ms.ok && ms.next === 90 && !ms.twice && ms.gems >= 25 && !ms.bad, JSON.stringify(ms));
+    // 1.44 the Village Fair: only on the Harvest Fair day from level 100, one bake-off entry, a gold good only
+    const fair = await page.evaluate(() => {
+      const g = window.__game, F = window.__fair, s = g.state;
+      const was = { lvl: s.player.level, off: s.debugTimeOffset ?? 0, inv: JSON.stringify(s.inventory), q: JSON.stringify(s.quality), store: JSON.stringify(s.storage) };
+      s.player.level = 120;
+      let found = -1;
+      for (let d = 0; d < 28; d++) { s.debugTimeOffset = was.off + d * 86400000; if (F.isFairDay()) { found = d; break; } }
+      const out = { found };
+      if (found >= 0) {
+        delete s.fair;
+        s.inventory.bread = (s.inventory.bread ?? 0) + 1; s.quality.bread = [0, (s.quality.bread?.[1] ?? 0) + 1];
+        out.bakes = F.bakes().includes('bread');
+        out.r1 = F.enterBake('bread'); out.r2 = F.enterBake('bread');
+        out.rosette = (s.storage[`fair_ribbon_${out.r1}`] ?? 0) > 0;
+        s.debugTimeOffset = was.off + (found + 1) * 86400000; out.next = F.isFairDay();
+      }
+      s.player.level = was.lvl; s.debugTimeOffset = was.off; s.inventory = JSON.parse(was.inv); s.quality = JSON.parse(was.q); s.storage = JSON.parse(was.store); delete s.fair;
+      return out;
+    });
+    check('the Village Fair: one Harvest Fair day a cycle, one bake-off entry with a gold good, a rosette', fair.found >= 0 && fair.bakes && fair.r1 === 'yellow' && fair.r2 === null && fair.rosette && !fair.next, JSON.stringify(fair));
   }
 } finally {
   await browser.close();

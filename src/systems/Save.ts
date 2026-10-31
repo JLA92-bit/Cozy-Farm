@@ -307,6 +307,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
 
   out.inventory = countMap(out.inventory, (k) => !!ITEMS[k]);
   if (out.starDay !== undefined && typeof out.starDay !== 'string') delete out.starDay;
+  if (out.fair !== undefined) { const f = out.fair as unknown; const ok = (r: unknown) => r === 'blue' || r === 'red' || r === 'yellow'; out.fair = isObj(f) && typeof f.day === 'string' ? { day: f.day, ...(ok(f.bake) ? { bake: f.bake as 'blue' } : {}), ...(ok(f.show) ? { show: f.show as 'blue' } : {}) } : undefined; }
   for (const k of ['goldPages', 'milestones'] as const) if (out[k] !== undefined && !Array.isArray(out[k])) delete out[k];
   if (out.goldPages) out.goldPages = [...new Set(out.goldPages.filter((x): x is string => typeof x === 'string'))];
   if (out.milestones) out.milestones = [...new Set(out.milestones.filter((x): x is number => Number.isInteger(x)))];
