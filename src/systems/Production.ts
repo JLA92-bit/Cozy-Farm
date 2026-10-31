@@ -2,6 +2,7 @@ import { BUILDING, RECIPE, RECIPES, type RecipeDef } from '../data';
 import { buildings, speedupCost } from './Buildings';
 import { game, type Vec } from './Game';
 import { fromBuilding } from './UpgradeEffects';
+import { windmillTimeMult } from './Estate';
 import type { PlacedBuilding } from './State';
 import { isBuilt, settleProduction } from './Timers';
 import { addRolled, countStars, rollsQuality, type Quality } from './Quality';
@@ -21,7 +22,7 @@ export class ProductionSystem {
 
   /** How long one batch takes, in ms (Bram's 6-heart perk makes every workshop 5% faster). */
   duration(r: RecipeDef, b?: PlacedBuilding): number {
-    return Math.round(r.sec * 1000 * (hasPerk('bram_workshops') ? BRAM_TIME_MULT : 1) * cookTimeMult() * workshopTimeMultFor(r.building) * (b && upkeep.on ? upkeep.slow(b) : 1));
+    return Math.round(r.sec * 1000 * (hasPerk('bram_workshops') ? BRAM_TIME_MULT : 1) * cookTimeMult() * workshopTimeMultFor(r.building) * windmillTimeMult(r.building) * (b && upkeep.on ? upkeep.slow(b) : 1));
   }
 
   queued(b: PlacedBuilding): number { return (b.queue ?? []).filter((q) => q.end > game.now()).length; }

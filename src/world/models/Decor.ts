@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { geo, PAL, rng, type GeoBuilder } from '../Procedural';
 import { assets } from '../../core/Assets';
 import { elderOakGeometry } from './woods';
-import { clockTowerGeometry, lighthouseGeometry } from './estate';
+import { clockTowerGeometry, lighthouseGeometry, observatoryGeometry, windmillGeometry } from './estate';
 
 /**
  * "Pretty farm" decor: the cosy campfire and small personal pieces (farm sign, bench, bunting, fairy lights,
@@ -304,6 +304,9 @@ export const DECOR_PROC: Record<string, () => THREE.BufferGeometry> = {
   // 1.26 models of the Estate Projects for the farm (the finished look; the clock says ten past ten)
   clock_tower_model: () => clockTowerGeometry(4, true),
   lighthouse_model: () => lighthouseGeometry(4),
+  // 1.42 the Observatory and the Windmill Mill
+  observatory_model: () => observatoryGeometry(4),
+  windmill_model: () => windmillGeometry(4),
   // 1.23 a sapling of the Elder Oak (the grove's finale): the same tree, small
   elder_oak_sapling: () => {
     const g = elderOakGeometry(5);

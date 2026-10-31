@@ -306,6 +306,12 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   });
 
   out.inventory = countMap(out.inventory, (k) => !!ITEMS[k]);
+  if (out.starDay !== undefined && typeof out.starDay !== 'string') delete out.starDay;
+  for (const k of ['goldPages', 'milestones'] as const) if (out[k] !== undefined && !Array.isArray(out[k])) delete out[k];
+  if (out.goldPages) out.goldPages = [...new Set(out.goldPages.filter((x): x is string => typeof x === 'string'))];
+  if (out.milestones) out.milestones = [...new Set(out.milestones.filter((x): x is number => Number.isInteger(x)))];
+  if (out.title !== undefined && typeof out.title !== 'string') delete out.title;
+  if (out.guestGifts !== undefined) out.guestGifts = Array.isArray(out.guestGifts) ? [...new Set(out.guestGifts.filter((k): k is string => typeof k === 'string'))] : undefined;
   if (out.keep !== undefined) out.keep = Array.isArray(out.keep) ? [...new Set(out.keep.filter((k): k is string => typeof k === 'string' && !!ITEMS[k]))].slice(0, 500) : undefined;
   if (isObj(out.storage) && Number.isFinite((out.storage as Record<string, unknown>).glass_frame)) glassRefund += Math.max(0, Math.floor((out.storage as Record<string, number>).glass_frame));
   if (glassRefund) p.coins += glassRefund * 900;

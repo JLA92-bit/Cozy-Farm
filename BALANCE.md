@@ -974,3 +974,14 @@ The map is 48 x 48 tiles and is already full long before every cap is used (6 of
 Favours: one a week per villager at 10 hearts (six best friends is six a week), three of their loves or likes the farm can already make (6 of something under 60 coins, 3 under 300, 2 under 1,500, else 1), open 3 days. Each pays 5 Friendship Tokens and 2,500 coins. A golden keepsake is 30 tokens (six weeks of one villager's favours), another gift piece for the home 12. Tokens buy only looks; nothing they buy earns money.
 
 Critters: hearts 6-10 at the same 3 visits a heart (15 more visits, about two to three weeks of daily visits per family). The rare-gift chance stops growing at 5 hearts (29%), so trust does not flood the Museum shelf; from 6 hearts each visit leaves a second common gift, and the 10th heart pays 10 gems once per family.
+
+## 1.41 Far Reaches
+
+- Expeditions: from level 90 a third slot and the Far Reaches (18 h, 12 finds plus 1-3 iron bars, 0-2 silver bars, 1-3 resin varnish, 0-2 star ore). One far trip is roughly 1,500-2,500 coins of bars and varnish, the goods the 1.35 upgrades ask for.
+- Fern Falls (level 95, trail with Hazel, 250k coins and goods): 9 forage spots (fern 60, mistberry 75, river orchid 140, stone mushroom 90), 6 pans a day of its own (Crystal Creek keeps its 6), otters at the plunge pool (rare: Otter Pebble for the Woodland shelf).
+- Rare guests (level 100): on a boat day a 15% chance one of three guests comes instead (about once in three weeks). They ask for 5 gold-star goods of 2 kinds, pay 1.9x the gold price (1.5x normal) plus 13 gems, and leave their decoration once (Collector's Cabinet, the Painter's Column, the Admiral's Ship).
+- The Lookout (treehouse, level 95) and the Heartwood (Elder Oak, level 100, 28 days after the Crown, about 600k coins and goods): forage star boost doubled and one more dig a day.
+
+## 1.42 Stargazing
+
+Two Estate Projects of four stages each. The Observatory (110-116): about 1.75M coins plus goods; then a star gift once a night (8 pm to 5 am): 1 gem and 2 moonflowers, or a star crystal (12%). The Windmill Mill (130-136): about 2.15M coins plus goods; Feed Mill and Bakery jobs take 0.85 of the time (multiplies with skills and upgrades).

@@ -35,3 +35,8 @@ export const estateOpen = (id: string): boolean => !roomDone(id) && estateLock(i
 export const clockTowerBuilt = (): boolean => projectDone('clock');
 /** The Lighthouse: Boat Visitors call one more day a week. */
 export const lighthouseBoatDays = (): number => (projectDone('lighthouse') ? 1 : 0);
+/** 1.42 The Observatory: a small gift from the stars once a clear night (8 pm to 5 am). */
+export const observatoryBuilt = (): boolean => projectDone('observatory');
+export const starNight = (now = game.now()): boolean => { const h = new Date(now).getHours(); return h >= 20 || h < 5; };
+/** 1.42 The Windmill Mill: Feed Mill and Bakery jobs take less time. */
+export const windmillTimeMult = (building: string): number => (projectDone('windmill') && (building === 'feed_mill' || building === 'bakery') ? 0.85 : 1);

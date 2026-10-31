@@ -34,7 +34,7 @@ export function openExpeditions(): void {
       const fav = EXPEDITIONS.favour[v.id];
       p.body.append(h('div', { class: 'card ex-villager' },
         h('div', { class: 'row' }, icon(v.icon, 'ex-face'), h('div', { class: 'grow' }, h('div', { class: 'card-title' }, v.name), h('div', { class: 'muted' }, fav?.text ?? ''), h('div', { class: 'muted' }, `${village.hearts(v.id)} hearts`))),
-        h('div', { class: 'ex-btns' }, ...EXPEDITIONS.trips.map((t) =>
+        h('div', { class: 'ex-btns' }, ...expeditions.trips().map((t) =>
           h('button', { class: `btn small ${expeditions.freeSlots() > 0 ? 'green' : 'disabled'}`, type: 'button', onclick: () => send(v.id, t.id) }, `${hoursText(expeditions.hours(v.id, t.id))}`)))));
     }
   };

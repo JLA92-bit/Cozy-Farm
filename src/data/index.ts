@@ -225,7 +225,7 @@ export const CYCLE = cycleJson as unknown as { epoch: string; festivalEvery: num
 export const FISHSTALL = fishstallJson;
 
 /** 1.10 Boat Visitors (boatvisits.json): a themed boat ties up at the dock on two days a week with a wish list. */
-export interface BoatTheme { id: string; name: string; icon: string; greeting: string; look: Record<string, string>; items: string[]; boat?: { model: string; scale: number; seat: [number, number, number] } }
+export interface BoatTheme { id: string; name: string; icon: string; greeting: string; look: Record<string, string>; items: string[]; /** 1.41 rare guests: come now and then from rare.level, want gold-star goods, give `decor` once */ rare?: boolean; gold?: boolean; decor?: string; boat?: { model: string; scale: number; seat: [number, number, number] } }
 export const BOATVISITS = boatvisitsJson as unknown as { level: number; daysPerWeek: number; hours: [number, number]; coinMult: number; gems: number; themes: BoatTheme[] };
 
 /** 1.15 Upkeep: animal sickness and building wear (upkeep.json). */

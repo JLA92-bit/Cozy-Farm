@@ -1,6 +1,69 @@
 {
  "releases": [
   {
+   "version": "1.43.0",
+   "date": "2026-11-01",
+   "title": "Gold Collection",
+   "icon": "medal",
+   "color": "yellow",
+   "highlights": [
+    {
+     "icon": "books",
+     "text": "From level 80 the Collection Book has a gold column: a gold star on everything you have made, grown or found in gold, and 15 gems for each page filled in gold"
+    },
+    {
+     "icon": "medal",
+     "text": "Me > Records: earn titles from the late-game tracks (Master Angler, Deep Delver, Stargazer and more) and pick one to show, and see your farm's records"
+    },
+    {
+     "icon": "gift",
+     "text": "From level 80, every 10th level brings a present from the village: choose gems, a decoration or a piece for your home"
+    }
+   ]
+  },
+  {
+   "version": "1.42.0",
+   "date": "2026-11-01",
+   "title": "Stargazing",
+   "icon": "glowing_star",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "glowing_star",
+     "text": "Two new Estate Projects in the village square. The Observatory (level 110, with Juniper): once it is built, look at your own star every night for a small gift"
+    },
+    {
+     "icon": "wheat",
+     "text": "The Windmill Mill (level 130, with Rosa): once its sails turn, Feed Mill and Bakery jobs take 15% less time. Each project leaves a model for your farm"
+    }
+   ]
+  },
+  {
+   "version": "1.41.0",
+   "date": "2026-11-01",
+   "title": "Far Reaches",
+   "icon": "water_wave",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "water_wave",
+     "text": "A fifth region in the Wild Woods from level 95: Fern Falls, with waterfall ferns, mistberries, river orchids and stone mushrooms, six pans a day in the plunge pool and a family of otters"
+    },
+    {
+     "icon": "pick",
+     "text": "The Far Reaches from level 90: a third expedition slot and an 18-hour trip that also brings back bars, varnish and star ore"
+    },
+    {
+     "icon": "crown",
+     "text": "Rare guests from level 100: now and then the Collector, the Painter or the Admiral sails in instead of a boat visitor. They want gold-star goods, pay well, and leave a gift for your farm the first time"
+    },
+    {
+     "icon": "oak",
+     "text": "The Treehouse gets a Lookout high in the pine, and the Elder Oak a sixth stage, the Heartwood: more stars on woods forage and another dig a day"
+    }
+   ]
+  },
+  {
    "version": "1.40.0",
    "date": "2026-11-01",
    "title": "Favours and Trust",

@@ -1,3 +1,5 @@
+import { starBadge, starIcon } from '../QualityUI';
+import { rollsQuality } from '../../systems/Quality';
 import gsap from 'gsap';
 import { Panel } from '../Panel';
 import { h, icon, button, clear, fmt, itemIcon } from '../dom';
@@ -517,6 +519,12 @@ export function newDiscoveries(): number {
   return n;
 }
 
+/** 1.43 the gold column of the Collection Book opens at this level; each page filled in gold pays gems once. */
+const GOLD_BOOK_LEVEL = 80, GOLD_PAGE_GEMS = 15;
+const goldEntries = <T extends { kind: string; id: string }>(list: T[]): T[] => list.filter((e) => e.kind === 'item' && rollsQuality(e.id));
+/** Ever had this item in gold (made, grown or found). */
+const hasGold = (id: string): boolean => game.stat(`gold_${id}`) > 0 || game.qualityCounts(id)[2] > 0;
+
 export function openCollection(tab?: string): void {
   const groups = [...BOOK_PAGES];
   // 1.8: Calendar, Letters and the Village Guide follow the collection pages (BookPages18.ts)
@@ -560,12 +568,28 @@ export function openCollection(tab?: string): void {
         gsap.to(banner, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 1, onComplete: () => render(g) });
       }, 'small yellow') : null);
     p.body.append(banner);
+    // 1.43 the gold column (from level 80): a gold star on every entry made or found in gold, and a reward per page
+    const golds = goldEntries(list);
+    if (game.level >= GOLD_BOOK_LEVEL && golds.length) {
+      const have = golds.filter((e) => hasGold(e.id)).length, done = (game.state.goldPages ?? []).includes(g);
+      p.body.append(h('div', { class: `quest-bonus book-reward gold-page ${done ? 'done' : have >= golds.length ? 'ready' : ''}` }, starIcon(2),
+        h('div', { class: 'grow' }, h('div', { class: 'title' }, done ? 'Gold page - reward collected!' : have >= golds.length ? 'Every entry here in gold!' : `Gold column: ${have}/${golds.length} in gold`),
+          done ? null : h('span', { class: 'pill' }, icon('gem'), String(GOLD_PAGE_GEMS))),
+        !done && have >= golds.length ? button('Claim', () => {
+          (game.state.goldPages ??= []).push(g);
+          game.addGems(GOLD_PAGE_GEMS);
+          confetti(40, ['#ffc93c', '#ffe066', '#fff3c4']);
+          render(g);
+        }, 'small yellow') : null));
+    }
     const grid = h('div', { class: 'grid tight' });
     for (const e of list) {
       const seen = !!game.state.collection[e.key];
+      const gold = game.level >= GOLD_BOOK_LEVEL && e.kind === 'item' && hasGold(e.id);
       const fishTier = e.group === 'Fish' && isRareTier(FISH[e.id]?.rarity) ? ` fish-card r-${FISH[e.id].rarity}` : '';
       grid.append(h('div', { class: `card ${seen ? '' : 'locked'}${fishTier}` },
         seen && isNew(e.key) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
+        gold ? starBadge(2) : null,
         icon(e.icon, 'card-icon'), h('div', { class: 'card-sub' }, seen ? e.name : '???'),
         seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:11px' }, `sells ${ITEMS[e.id].sell}`) : null,
         e.group === 'Fish' ? h('div', { class: 'fish-book-line' }, fishBookLine(e.id, seen)) : null));

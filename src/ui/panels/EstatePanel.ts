@@ -4,13 +4,15 @@ import { ui } from '../UI';
 import { ESTATE } from '../../data';
 import { restoration } from '../../systems/Restoration';
 import { game } from '../../systems/Game';
-import { currentStageOf, estateLock, estateStarted, stagesDoneOf } from '../../systems/Estate';
+import { currentStageOf, estateLock, estateStarted, observatoryBuilt, stagesDoneOf, starNight } from '../../systems/Estate';
+import { localDay } from '../../systems/Progression';
+import { audio } from '../../systems/Audio';
 import { openRoom } from './SquarePanel';
 import { senderBadge } from './MailPanel';
 import './square.css';
 
 /**
- * 1.26 Estate Projects: the Clock Tower and the Lighthouse. One section per project with a card per stage (built,
+ * 1.26 Estate Projects: the Clock Tower and the Lighthouse (and from 1.42 the Observatory and the Windmill Mill). One section per project with a card per stage (built,
  * being built, or why it is locked), like the Manor screen. Tapping a stage opens its bundles in the room screen.
  */
 export function openEstate(): void {
@@ -34,6 +36,19 @@ export function openEstate(): void {
       });
     }
     clear(p.footer);
+    // 1.42 the Observatory's star: a small gift once a night
+    if (observatoryBuilt()) {
+      const today = localDay(game.now()), took = game.state.starDay === today, night = starNight();
+      p.footer.append(button([icon('glowing_star'), took ? 'Star seen tonight' : night ? 'Look at your star' : 'Your star (after 8 pm)'], () => {
+        if (took || !starNight()) { audio.play('error'); return; }
+        game.state.starDay = today;
+        const gift = Math.random() < 0.12 ? 'star_crystal' : 'moonflower';
+        game.addItem(gift, gift === 'moonflower' ? 2 : 1);
+        game.addGems(1);
+        ui.feedback.toast('Your star is shining', `It left you ${gift === 'moonflower' ? '2 moonflowers' : 'a star crystal'} and a gem`, 'glowing_star');
+        render();
+      }, `small ${!took && night ? 'yellow' : 'disabled'}`));
+    }
     p.footer.append(button([icon('house'), 'Back'], () => p.close(), 'green'));
   };
   render();

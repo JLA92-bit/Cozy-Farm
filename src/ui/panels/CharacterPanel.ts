@@ -9,6 +9,7 @@ import { Character } from '../../world/Character';
 import { audio } from '../../systems/Audio';
 import { renderSkills } from './SkillsPanel';
 import { renderMastery } from './MasteryPanel';
+import { renderRecords } from './RecordsPanel';
 import { restoration } from '../../systems/Restoration';
 import { isFriendlyText, UNFRIENDLY } from '../../systems/WordFilter';
 import { farmhands } from '../../systems/Farmhands';
@@ -119,7 +120,7 @@ export function openCharacter(firstTime = false, startTab?: string): void {
     tabs: [
       { id: 'avatar', label: 'Avatar', icon: 'farmer' },
       { id: 'colours', label: 'Colours', icon: 'sparkles' },
-      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }, { id: 'skills', label: 'Skills', icon: 'sparkles' }, { id: 'mastery', label: 'Mastery', icon: 'trophy' }]),
+      ...(firstTime ? [] : [{ id: 'extras', label: 'Extras', icon: 'hat' }, { id: 'skills', label: 'Skills', icon: 'sparkles' }, { id: 'mastery', label: 'Mastery', icon: 'trophy' }, ...(game.level >= 60 ? [{ id: 'records', label: 'Records', icon: 'medal' }] : [])]),
     ],
   });
   const canvas = h('canvas');
@@ -171,8 +172,8 @@ export function openCharacter(firstTime = false, startTab?: string): void {
   const render = (tab: string) => {
     clear(options);
     // the Skills tab needs the room: no farmer preview or Save button there
-    previewBox.style.display = tab === 'skills' ? 'none' : '';
-    p.footer.style.display = tab === 'skills' ? 'none' : '';
+    previewBox.style.display = tab === 'skills' || tab === 'records' ? 'none' : '';
+    p.footer.style.display = tab === 'skills' || tab === 'records' ? 'none' : '';
     if (tab === 'avatar') {
       const input = h('input', { class: 'name-input', maxlength: '16', value: name, placeholder: 'Your name', 'aria-label': 'Your name', enterkeyhint: 'done', autocomplete: 'off', spellcheck: 'false' }) as HTMLInputElement;
       input.addEventListener('input', () => { name = input.value; });
@@ -226,6 +227,8 @@ export function openCharacter(firstTime = false, startTab?: string): void {
       renderSkills(options, () => render('skills'));
     } else if (tab === 'mastery') {
       renderMastery(options);
+    } else if (tab === 'records') {
+      renderRecords(options, () => render('records'));
     } else {
       section('Hat');
       choices(COSMETICS.hats, 'hat');

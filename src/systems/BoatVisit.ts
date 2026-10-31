@@ -11,7 +11,10 @@ import { lateXp } from './Endless';
 import { localDay } from './Progression';
 import { obtainableItems } from './Economy';
 import { hashString, rng } from '../world/Procedural';
-import type { Vec } from './Game';
+import { QUALITY_MULT, type Vec } from './Game';
+
+/** 1.41 rare guests (boatvisits.json `rare`). */
+const RARE = (BOATVISITS as unknown as { rare: { level: number; chance: number; gems: number } }).rare;
 
 /**
  * 1.20 What a boat visitor may ask for: what the farm can make now, plus anything it has caught, found or made before
@@ -60,10 +63,14 @@ class BoatVisitSystem {
     const saved = game.state.boatvisit;
     if (saved && saved.day === day) { const t = BOATVISITS.themes.find((x) => x.id === saved.theme); if (t) return t; }
     const r = rng(hashString(`${game.state.seed}:boattheme:${day}`));
-    // 1.20 only themes the farm can fill at least three wishes from (a young farm never meets the Craft Fair boat)
     const have = canSupply();
-    const fit = BOATVISITS.themes.filter((t) => t.items.filter((i) => have.has(i)).length >= 3);
-    const pool = fit.length ? fit : BOATVISITS.themes;
+    // 1.41 now and then a rare guest instead, from their level, if the farm makes at least two of their goods
+    const rare = BOATVISITS.themes.filter((t) => t.rare && t.items.filter((i) => have.has(i)).length >= 2);
+    if (game.level >= RARE.level && rare.length && rng(hashString(`${game.state.seed}:boatrare:${day}`))() < RARE.chance) return rare[Math.floor(r() * rare.length)];
+    // 1.20 only themes the farm can fill at least three wishes from (a young farm never meets the Craft Fair boat)
+    const plain = BOATVISITS.themes.filter((t) => !t.rare);
+    const fit = plain.filter((t) => t.items.filter((i) => have.has(i)).length >= 3);
+    const pool = fit.length ? fit : plain;
     return pool[Math.floor(r() * pool.length)];
   }
 
@@ -77,6 +84,12 @@ class BoatVisitSystem {
     const pool = theme.items.filter((i) => ITEMS[i] && have.has(i));
     const r = rng(hashString(`${game.state.seed}:boatwant:${day}`));
     const want: Record<string, number> = {};
+    if (theme.gold) {
+      // a rare guest: two kinds, five gold-star goods in all
+      for (const k of [3, 2]) if (pool.length) want[pool.splice(Math.floor(r() * pool.length), 1)[0]] = k;
+      game.state.boatvisit = { day, theme: theme.id, want, done: false };
+      return want;
+    }
     for (let n = 0; n < 3 && pool.length; n++) {
       const id = pool.splice(Math.floor(r() * pool.length), 1)[0];
       // cheap goods are asked for in bigger numbers, dear ones in ones and twos
@@ -92,16 +105,29 @@ class BoatVisitSystem {
   reward(want = this.want()): { coins: number; gems: number } {
     let v = 0;
     for (const [id, n] of Object.entries(want)) v += ITEMS[id].sell * n;
-    return { coins: Math.round(v * BOATVISITS.coinMult), gems: Object.keys(want).length ? BOATVISITS.gems : 0 };
+    const gold = this.theme().gold;
+    return { coins: Math.round(v * BOATVISITS.coinMult * (gold ? QUALITY_MULT[2] : 1)), gems: Object.keys(want).length ? BOATVISITS.gems + (gold ? RARE.gems : 0) : 0 };
   }
-  canDeliver(): boolean { const w = this.want(); return this.here() && !this.done && Object.keys(w).length > 0 && game.has(w); }
+  /** 1.41 a rare guest's gift decoration, given once (null when already given or a normal boat). */
+  guestGift(): string | null { const d = this.theme().decor; return d && !game.state.guestGifts?.includes(d) ? d : null; }
+  /** Enough of everything (of gold quality for a rare guest). */
+  private hasWant(w: Record<string, number>): boolean { return this.theme().gold ? Object.entries(w).every(([k, n]) => game.qualityCounts(k)[2] >= n) : game.has(w); }
+  canDeliver(): boolean { const w = this.want(); return this.here() && !this.done && Object.keys(w).length > 0 && this.hasWant(w); }
 
   /** Hand over the goods. Returns false when away, done or short. */
   deliver(at?: Vec): boolean {
     if (!this.canDeliver()) return false;
     const w = this.want();
-    if (!game.take(w)) return false;
+    if (this.theme().gold) { for (const [k, n] of Object.entries(w)) if (!game.removeQuality(k, 2, n)) return false; }
+    else if (!game.take(w)) return false;
     const r = this.reward(w);
+    const gift = this.guestGift();
+    if (gift) {
+      (game.state.guestGifts ??= []).push(gift);
+      game.state.storage[gift] = (game.state.storage[gift] ?? 0) + 1;
+      game.discover(gift, 'building');
+      game.bus.emit('toast', { title: 'A gift from the boat!', sub: 'It is waiting in your storage.', icon: 'gift' });
+    }
     game.addCoins(r.coins, at);
     if (r.gems) game.addGems(r.gems, at);
     const xp = lateXp('boat');

@@ -1,8 +1,9 @@
+import { starBadge, starIcon } from '../QualityUI';
 import { Panel } from '../Panel';
 import { h, append, itemIcon, clear, priceTag, fmt, stableRefresh, icon } from '../dom';
 import { ui } from '../UI';
 import { sideEntries } from '../SideBar';
-import { ITEMS } from '../../data';
+import { BUILDING, ITEMS } from '../../data';
 import { game } from '../../systems/Game';
 import { boatvisit } from '../../systems/BoatVisit';
 import { formatTime } from '../../systems/Timers';
@@ -23,11 +24,13 @@ export function openBoatVisit(): void {
     const want = boatvisit.want();
     const ids = Object.keys(want);
     if (!ids.length) { p.body.append(h('div', { class: 'center muted', style: 'padding:20px' }, 'They are after goods you cannot make yet. Come back when your farm grows.')); return; }
+    // 1.41 a rare guest wants gold-star goods only, and gives a decoration the first time
+    if (theme.gold) p.body.append(h('div', { class: 'v-favour', style: 'margin-bottom:8px' }, h('div', null, starIcon(2), h('b', null, ' Gold-star goods only.'), boatvisit.guestGift() ? ` The first time, ${theme.name.replace(/^The /, 'the ')} also leaves you ${BUILDING[boatvisit.guestGift()!]?.name ?? 'a gift'}.` : '')));
     const grid = h('div', { class: 'grid' });
     for (const id of ids) {
-      const have = game.count(id), need = want[id];
-      const card = h('div', { class: `card ${have >= need ? 'done' : ''}` });
-      append(card, [itemIcon(id, 'card-icon'), h('div', { class: 'card-title' }, ITEMS[id].name), h('div', { class: `pill ${have >= need ? 'enough' : 'short'}` }, `${have} / ${need}`)]);
+      const have = theme.gold ? game.qualityCounts(id)[2] : game.count(id), need = want[id];
+      const card = h('div', { class: `card ${have >= need ? 'done' : ''} ${theme.gold ? 'q-gold' : ''}` });
+      append(card, [theme.gold ? starBadge(2) : null, itemIcon(id, 'card-icon'), h('div', { class: 'card-title' }, ITEMS[id].name), h('div', { class: `pill ${have >= need ? 'enough' : 'short'}` }, `${have} / ${need}`)]);
       grid.append(card);
     }
     p.body.append(grid);

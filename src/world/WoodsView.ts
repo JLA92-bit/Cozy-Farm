@@ -74,7 +74,7 @@ export class WoodsView {
   /** 1.19 the regions: bridges (whole and broken), trail signs, fireflies, pans and taps */
   private regionParts = new Map<string, { whole: THREE.Mesh; broken: THREE.Mesh; signDot: THREE.Mesh; sign: THREE.Vector3; centre: THREE.Vector3 }>();
   private fireflyNodes = new Map<number, { mesh: THREE.Mesh; pick: THREE.Mesh; base: THREE.Vector3 }>();
-  private panNodes: { i: number; glint: THREE.Mesh; at: THREE.Vector3 }[] = [];
+  private panNodes: { i: number; reg: string; glint: THREE.Mesh; at: THREE.Vector3 }[] = [];
   private tapNodes = new Map<string, { glint: THREE.Mesh; at: THREE.Vector3 }>();
   private fireflyMat = new THREE.MeshBasicMaterial({ color: '#fff27a', transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false });
   private digNodes: DigNode[] = [];
@@ -369,7 +369,7 @@ export class WoodsView {
           pick.userData = { kind: 'pan', i, id: reg.id };
           this.group.add(pick);
           this.pickers.push(pick);
-          this.panNodes.push({ i, glint, at: new THREE.Vector3(at.x, 0.5, at.y) });
+          this.panNodes.push({ i, reg: reg.id, glint, at: new THREE.Vector3(at.x, 0.5, at.y) });
         }
         for (let i = 0; i < 10; i++) {
           const [x, z] = pts[i % pts.length];
@@ -823,7 +823,8 @@ export class WoodsView {
           if (n) { n.mesh.visible = night && !f.caught; n.pick.visible = n.mesh.visible; }
         }
       }
-      if (reg.feature === 'panning') { const left = open && woods.pansLeft(reg.id) > 0; for (const n of this.panNodes) n.glint.visible = left; }
+      // 1.41 each panning region (Crystal Creek, Fern Falls) lights its own pools
+      if (reg.feature === 'panning') { const left = open && woods.pansLeft(reg.id) > 0; for (const n of this.panNodes) if (n.reg === reg.id) n.glint.visible = left; }
       if (reg.feature === 'taps') for (const t of woods.taps(reg.id)) { const n = this.tapNodes.get(t.id); if (n) n.glint.visible = open && t.ready; }
     }
   }
@@ -924,7 +925,7 @@ export class WoodsView {
     if (hit.kind === 'board') return this.world(BOARD_AT.x, 1.5, BOARD_AT.z);
     if (hit.kind === 'trail') { const p = this.regionParts.get(hit.id ?? ''); return p ? this.world(p.sign.x, 1.5, p.sign.z) : null; }
     if (hit.kind === 'firefly') { const f = this.fireflyNodes.get(hit.i); return f ? this.world(f.mesh.position.x, f.mesh.position.y, f.mesh.position.z) : null; }
-    if (hit.kind === 'pan') { const p = this.panNodes[hit.i]; return p ? this.world(p.at.x, 0.6, p.at.z) : null; }
+    if (hit.kind === 'pan') { const p = this.panNodes.find((n) => n.i === hit.i && n.reg === (hit.id ?? 'creek')); return p ? this.world(p.at.x, 0.6, p.at.z) : null; }
     if (hit.kind === 'stump' || hit.kind === 'critter') { const st = this.stumps.get(hit.id ?? ''); if (!st) return null; const at = hit.kind === 'critter' ? st.critter.position : st.at; return this.world(at.x, 1, at.z); }
     if (hit.kind === 'camp') return this.world(CAMP_AT.x, 1.2, CAMP_AT.z);
     if (hit.kind === 'treehouse') return this.treehouse ? this.world(this.treehouse.at.x, 2, this.treehouse.at.z) : null;

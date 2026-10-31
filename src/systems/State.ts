@@ -84,6 +84,16 @@ export interface SaveData {
     created: boolean;
   };
   inventory: Record<string, number>;
+  /** 1.43 Collection Book pages whose gold column reward was taken */
+  goldPages?: string[];
+  /** 1.43 the title shown under the farmer's name (an id from titles.json) */
+  title?: string;
+  /** 1.43 milestone levels (80, 90...) whose gift was chosen */
+  milestones?: number[];
+  /** 1.42 local day the Observatory's star gift was last taken */
+  starDay?: string;
+  /** 1.41 rare boat guests' gift decorations already given (once each) */
+  guestGifts?: string[];
   /** 1.34.3 items kept for later in the barn: Sell extras leaves them alone */
   keep?: string[];
   storage: Record<string, number>;

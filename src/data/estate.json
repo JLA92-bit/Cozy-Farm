@@ -436,6 +436,428 @@
      ]
     }
    ]
-  }
+  },
+    {
+     "id": "observatory",
+     "name": "The Observatory",
+     "icon": "glowing_star",
+     "villager": "juniper",
+     "opensAt": 110,
+     "about": "On the hill behind the manor stand the stones of an old observatory. Juniper wants to paint the night sky through a real telescope.",
+     "finale": {
+      "decor": "observatory_model",
+      "coins": 120000,
+      "gems": 120,
+      "title": "A star for you",
+      "body": "Dear {farmer},\n\nLast night I looked through the telescope until my neck ached. There's a little star just above the Elder Oak that nobody has named, so I named it after you.\n\nCome up on any clear night and look for it. There's a model of the observatory in your storage.\n\nJuniper"
+     },
+     "stages": [
+      {
+       "id": "estate_observatory_stones",
+       "name": "The Old Stones",
+       "icon": "glowing_star",
+       "color": "purple",
+       "villager": "juniper",
+       "opensAt": 110,
+       "about": "The old footings are cracked and overgrown. Clear them and lay a new base.",
+       "rebuilds": "the observatory footings",
+       "reward": {
+        "id": "estate_observatory_stones",
+        "text": "The base is laid on the hill."
+       },
+       "letter": {
+        "title": "On the hill",
+        "body": "Dear {farmer},\n\nThe base is down! I sat on it at sunset with my sketchbook. Next, the tower.\n\nJuniper"
+       },
+       "bundles": [
+        {
+         "id": "stone",
+         "name": "Stone and Mortar",
+         "icon": "hammer",
+         "wants": {
+          "stone_brick": 40,
+          "iron_bar": 10,
+          "quartz": 15
+         }
+        },
+        {
+         "id": "lunch",
+         "name": "Lunch on the Hill",
+         "icon": "basket",
+         "wants": {
+          "woodland_pie": 10,
+          "mint_tea": 15
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Masons' Wages",
+         "icon": "coin",
+         "wants": {
+          "coins": 200000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_observatory_tower",
+       "name": "The Round Tower",
+       "icon": "glowing_star",
+       "color": "purple",
+       "villager": "juniper",
+       "opensAt": 112,
+       "about": "A round stone tower with a winding stair, tall enough to see over the trees.",
+       "rebuilds": "the observatory tower",
+       "reward": {
+        "id": "estate_observatory_tower",
+        "text": "The round tower stands on the hill."
+       },
+       "letter": {
+        "title": "Up and up",
+        "body": "Dear {farmer},\n\nThe tower is up and the stair winds all the way round. My knees will be very fit.\n\nJuniper"
+       },
+       "bundles": [
+        {
+         "id": "stone",
+         "name": "More Stone",
+         "icon": "hammer",
+         "wants": {
+          "stone_brick": 60,
+          "silver_bar": 8
+         }
+        },
+        {
+         "id": "stair",
+         "name": "The Winding Stair",
+         "icon": "axe",
+         "wants": {
+          "resin_varnish": 20,
+          "petrified_wood": 4
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Builders' Wages",
+         "icon": "coin",
+         "wants": {
+          "coins": 350000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_observatory_dome",
+       "name": "The Copper Dome",
+       "icon": "glowing_star",
+       "color": "purple",
+       "villager": "juniper",
+       "opensAt": 114,
+       "about": "A dome that turns, with a slit that opens to the sky.",
+       "rebuilds": "the observatory dome",
+       "reward": {
+        "id": "estate_observatory_dome",
+        "text": "The copper dome turns on its rail."
+       },
+       "letter": {
+        "title": "It turns!",
+        "body": "Dear {farmer},\n\nThe dome turns! Bram greased the rail himself and it spins with one finger.\n\nJuniper"
+       },
+       "bundles": [
+        {
+         "id": "copper",
+         "name": "Copper Sheets",
+         "icon": "gem",
+         "wants": {
+          "copper_bar": 30,
+          "gold_bar": 6
+         }
+        },
+        {
+         "id": "glass",
+         "name": "Glass and Brass",
+         "icon": "sparkles",
+         "wants": {
+          "crystal_vase": 4,
+          "gem_lantern": 4
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Coppersmith's Fee",
+         "icon": "coin",
+         "wants": {
+          "coins": 500000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_observatory_telescope",
+       "name": "The Great Telescope",
+       "icon": "glowing_star",
+       "color": "purple",
+       "villager": "juniper",
+       "opensAt": 116,
+       "about": "The telescope itself: brass, glass ground by hand, and star crystals to fine-tune the lens.",
+       "rebuilds": "the great telescope",
+       "reward": {
+        "id": "estate_observatory_telescope",
+        "text": "The observatory is finished: look through the telescope on any clear night for a small gift from the stars."
+       },
+       "letter": {
+        "title": "",
+        "body": ""
+       },
+       "bundles": [
+        {
+         "id": "lens",
+         "name": "The Lens",
+         "icon": "sparkles",
+         "wants": {
+          "star_crystal": 4,
+          "diamond": 2,
+          "aquamarine": 4
+         }
+        },
+        {
+         "id": "brass",
+         "name": "Brass Tube",
+         "icon": "hammer",
+         "wants": {
+          "gold_bar": 8,
+          "starsteel_bar": 4
+         }
+        },
+        {
+         "id": "party",
+         "name": "Stargazing Party",
+         "icon": "basket",
+         "wants": {
+          "hot_chocolate": 20,
+          "moonflower_tea": 20
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Opening Night",
+         "icon": "coin",
+         "wants": {
+          "coins": 700000
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "windmill",
+     "name": "The Windmill Mill",
+     "icon": "wheat",
+     "villager": "rosa",
+     "opensAt": 130,
+     "about": "The old mill on the west point lost its sails in a storm long ago. Rosa wants it turning again for her bakery.",
+     "finale": {
+      "decor": "windmill_model",
+      "coins": 150000,
+      "gems": 120,
+      "title": "The sails are turning",
+      "body": "Dear {farmer},\n\nThe sails turned for the first time this morning and I cried into my apron. Flour from our own mill, after all these years!\n\nYour Feed Mill and your bakery will be quicker from now on. There's a model of the mill in your storage.\n\nRosa"
+     },
+     "stages": [
+      {
+       "id": "estate_windmill_base",
+       "name": "The Mill Base",
+       "icon": "wheat",
+       "color": "yellow",
+       "villager": "rosa",
+       "opensAt": 130,
+       "about": "Clear the rubble and rebuild the round base of the mill.",
+       "rebuilds": "the mill base",
+       "reward": {
+        "id": "estate_windmill_base",
+        "text": "The base of the mill is rebuilt."
+       },
+       "letter": {
+        "title": "A good start",
+        "body": "Dear {farmer},\n\nThe base is done and it's as solid as my bread. Well, my good bread.\n\nRosa"
+       },
+       "bundles": [
+        {
+         "id": "stone",
+         "name": "Stone for the Base",
+         "icon": "hammer",
+         "wants": {
+          "stone_brick": 40,
+          "iron_bar": 10
+         }
+        },
+        {
+         "id": "lunch",
+         "name": "Bakery Lunch",
+         "icon": "basket",
+         "wants": {
+          "goose_egg_quiche": 10,
+          "apple_pie": 15
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Builders' Wages",
+         "icon": "coin",
+         "wants": {
+          "coins": 300000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_windmill_tower",
+       "name": "The White Tower",
+       "icon": "wheat",
+       "color": "yellow",
+       "villager": "rosa",
+       "opensAt": 132,
+       "about": "A tall white tower with room for the millstones inside.",
+       "rebuilds": "the mill tower",
+       "reward": {
+        "id": "estate_windmill_tower",
+        "text": "The white tower of the mill stands again."
+       },
+       "letter": {
+        "title": "White as flour",
+        "body": "Dear {farmer},\n\nThe tower is whitewashed and you can see it from my bakery window.\n\nRosa"
+       },
+       "bundles": [
+        {
+         "id": "stone",
+         "name": "Lime and Stone",
+         "icon": "hammer",
+         "wants": {
+          "stone_brick": 60,
+          "silver_bar": 8
+         }
+        },
+        {
+         "id": "stones",
+         "name": "The Millstones",
+         "icon": "gem",
+         "wants": {
+          "quartz": 20,
+          "star_ore": 10
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Builders' Wages",
+         "icon": "coin",
+         "wants": {
+          "coins": 450000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_windmill_cap",
+       "name": "The Cap",
+       "icon": "wheat",
+       "color": "yellow",
+       "villager": "rosa",
+       "opensAt": 134,
+       "about": "A thatched cap that turns the sails into the wind.",
+       "rebuilds": "the mill cap",
+       "reward": {
+        "id": "estate_windmill_cap",
+        "text": "The cap is on and turns to the wind."
+       },
+       "letter": {
+        "title": "It turns to the wind",
+        "body": "Dear {farmer},\n\nThe cap is on! Hazel says the thatch is the neatest she has ever seen.\n\nRosa"
+       },
+       "bundles": [
+        {
+         "id": "thatch",
+         "name": "Thatch and Timber",
+         "icon": "axe",
+         "wants": {
+          "wheat": 400,
+          "resin_varnish": 20
+         }
+        },
+        {
+         "id": "gears",
+         "name": "Gears and Shafts",
+         "icon": "hammer",
+         "wants": {
+          "starsteel_bar": 4,
+          "iron_bar": 12
+         }
+        },
+        {
+         "id": "wages",
+         "name": "Thatcher's Fee",
+         "icon": "coin",
+         "wants": {
+          "coins": 600000
+         }
+        }
+       ]
+      },
+      {
+       "id": "estate_windmill_sails",
+       "name": "The Sails",
+       "icon": "wheat",
+       "color": "yellow",
+       "villager": "rosa",
+       "opensAt": 136,
+       "about": "Four great sails of canvas on oak frames.",
+       "rebuilds": "the mill sails",
+       "reward": {
+        "id": "estate_windmill_sails",
+        "text": "The Windmill Mill turns: Feed Mill and Bakery jobs take 15% less time."
+       },
+       "letter": {
+        "title": "",
+        "body": ""
+       },
+       "bundles": [
+        {
+         "id": "canvas",
+         "name": "Canvas",
+         "icon": "sheep",
+         "wants": {
+          "cotton_fabric": 40,
+          "wool": 60
+         }
+        },
+        {
+         "id": "frames",
+         "name": "Oak Frames",
+         "icon": "axe",
+         "wants": {
+          "petrified_wood": 4,
+          "resin_varnish": 20
+         }
+        },
+        {
+         "id": "feast",
+         "name": "Harvest Feast",
+         "icon": "basket",
+         "wants": {
+          "smoked_herring": 10,
+          "bread": 100
+         }
+        },
+        {
+         "id": "wages",
+         "name": "First Milling",
+         "icon": "coin",
+         "wants": {
+          "coins": 800000
+         }
+        }
+       ]
+      }
+     ]
+    }
  ]
 }

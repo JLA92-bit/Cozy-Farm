@@ -11,7 +11,7 @@ import { PAL, geo, rng } from './Procedural';
 import { objectFor, visualFor } from './Visuals';
 import { boatGeometry, jettyGeometry } from './models/square';
 import { buntingGeometry, heroStatueGeometry } from './models/festival';
-import { CLOCK_FACE_Y, CLOCK_HALF, LAMP_Y, clockTowerGeometry, lighthouseGeometry } from './models/estate';
+import { CLOCK_FACE_Y, CLOCK_HALF, LAMP_Y, clockTowerGeometry, lighthouseGeometry, observatoryGeometry, windmillGeometry } from './models/estate';
 import { project, stagesDoneOf } from '../systems/Estate';
 import { game } from '../systems/Game';
 
@@ -45,6 +45,9 @@ const MANOR_SY = 31;
 /** 1.26 the Estate Projects (screen terms): the Clock Tower beside the manor grounds, the Lighthouse on the front-right point. */
 const CLOCK_S: [number, number] = [-15, 26];
 const LIGHT_S: [number, number] = [20, -9];
+/** 1.42 the Observatory on the right of the manor grounds, the Windmill Mill on the front-left point. */
+const OBS_S: [number, number] = [16, 26];
+const MILL_S: [number, number] = [-20, -9];
 
 /** 'arc': a curved row behind the plaza (wide screens). 'street': two columns along a main street (narrow phones). */
 export type SquareLayout = 'arc' | 'street';
@@ -637,7 +640,7 @@ export class SquareView {
     // the main street of the narrow layout
     const [sx, sy] = [(x * U.x + z * U.y), (x * V.x + z * V.y)];
     // 1.26 the Clock Tower and the Lighthouse
-    for (const s of [CLOCK_S, LIGHT_S]) { const [ex, ez] = at(s[0], s[1]); if (Math.hypot(x - ex, z - ez) < 4.2) return false; }
+    for (const s of [CLOCK_S, LIGHT_S, OBS_S, MILL_S]) { const [ex, ez] = at(s[0], s[1]); if (Math.hypot(x - ex, z - ez) < 4.2) return false; }
     // and Willowmere's grounds
     if (Math.abs(sx) < 11 && sy > MANOR_SY - 7 && sy < MANOR_SY + 8) return false;
     return !(Math.abs(sx) < 3.6 && sy > 3 && sy < MANOR_SY - 6);
@@ -849,7 +852,7 @@ export class SquareView {
 
   // ---------------------------------------------------------------------------------------- 1.26 estate
 
-  private estate?: { clock: THREE.Mesh; light: THREE.Mesh; clockStage: number; lightStage: number; faces: THREE.Group[]; glow: THREE.Sprite; beam: THREE.Mesh; lamp: THREE.Vector3 };
+  private estate?: { clock: THREE.Mesh; light: THREE.Mesh; clockStage: number; lightStage: number; obs: THREE.Mesh; mill: THREE.Mesh; obsStage: number; millStage: number; faces: THREE.Group[]; glow: THREE.Sprite; beam: THREE.Mesh; lamp: THREE.Vector3 };
 
   /** The Clock Tower and the Lighthouse: their look follows the stages built; the clock's hands and the light move. */
   private buildEstate(): void {
@@ -863,6 +866,16 @@ export class SquareView {
     light.position.set(lx, 0.02, lz);
     light.castShadow = true; light.receiveShadow = true;
     this.group.add(clock, light);
+    // 1.42 the Observatory and the Windmill Mill
+    const [ox, oz] = at(OBS_S[0], OBS_S[1]), [mx, mz] = at(MILL_S[0], MILL_S[1]);
+    const obs = new THREE.Mesh(observatoryGeometry(0), mat);
+    obs.position.set(ox, 0.02, oz);
+    obs.rotation.y = Math.PI / 4;
+    const mill = new THREE.Mesh(windmillGeometry(0), mat);
+    mill.position.set(mx, 0.02, mz);
+    mill.rotation.y = Math.PI / 4;
+    for (const m of [obs, mill]) { m.castShadow = true; m.receiveShadow = true; }
+    this.group.add(obs, mill);
     // a pair of hands on each face, moved by update() with the other clock
     const faces: THREE.Group[] = [];
     for (const ry of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
@@ -900,14 +913,14 @@ export class SquareView {
     beam.visible = false;
     this.group.add(glow, beam);
     // tap either to open the Estate Projects
-    for (const [x, z, hgt] of [[cx, cz, 12], [lx, lz, 10]] as const) {
+    for (const [x, z, hgt] of [[cx, cz, 12], [lx, lz, 10], [ox, oz, 7], [mx, mz, 7]] as const) {
       const pick = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, hgt, 10), new THREE.MeshBasicMaterial({ visible: false }));
       pick.position.set(x, hgt / 2, z);
       pick.userData.estate = true;
       this.group.add(pick);
       this.pickers.push(pick);
     }
-    this.estate = { clock, light, clockStage: 0, lightStage: 0, faces, glow, beam, lamp };
+    this.estate = { clock, light, clockStage: 0, lightStage: 0, obs, mill, obsStage: 0, millStage: 0, faces, glow, beam, lamp };
   }
 
   /** The tower's stage, the lighthouse's stage and whether its light is on (after dark): cheap, called now and then. */
@@ -918,6 +931,10 @@ export class SquareView {
     const cs = cp ? stagesDoneOf(cp) : 0, ls = lp ? stagesDoneOf(lp) : 0;
     if (cs !== e.clockStage) { e.clock.geometry.dispose(); e.clock.geometry = clockTowerGeometry(cs); e.clockStage = cs; }
     if (ls !== e.lightStage) { e.light.geometry.dispose(); e.light.geometry = lighthouseGeometry(ls); e.lightStage = ls; }
+    const op = project('observatory'), mp = project('windmill');
+    const os = op ? stagesDoneOf(op) : 0, ms = mp ? stagesDoneOf(mp) : 0;
+    if (os !== e.obsStage) { e.obs.geometry.dispose(); e.obs.geometry = observatoryGeometry(os); e.obsStage = os; }
+    if (ms !== e.millStage) { e.mill.geometry.dispose(); e.mill.geometry = windmillGeometry(ms); e.millStage = ms; }
     for (const f of e.faces) f.visible = cs >= 3;
     const h = new Date(game.now()).getHours();
     const lit = ls >= 4 && (h >= 18 || h < 7);

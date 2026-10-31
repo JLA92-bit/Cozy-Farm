@@ -416,19 +416,23 @@ try {
       g.state.debugTimeOffset += 22 * DAY;
       const sap0 = g.state.storage.elder_oak_sapling ?? 0;
       fill('grove_crown');
+      // 1.41 the Heartwood is the last stage now: the sapling comes when it is done
+      g.state.debugTimeOffset += 29 * DAY;
+      if (g.state.player.level < 100) g.state.player.level = 100;
+      fill('grove_heartwood');
       const sap1 = g.state.storage.elder_oak_sapling ?? 0;
       return { noPath, rootsOpen, shootShut, rootsDone, growing, shootOpen, pans0, pans1, digs0, digs1, v1, v2, v3, sap0, sap1, done: G.stagesDone(), oak: !!g.state.restoration.oak, times: Object.keys(g.state.restoration.grove ?? {}).length };
     });
     check('the Elder Oak needs the Root Path and grows in order', /Root Path/.test(r.noPath) && r.rootsOpen && /Waking Roots/.test(r.shootShut), JSON.stringify(r));
     check('each Elder Oak stage waits for the oak to grow', r.rootsDone && /growing/.test(r.growing) && r.shootOpen, JSON.stringify(r));
     check('Elder Oak perks: one more pan, twice-a-day critters, one more dig', r.pans1 === r.pans0 + 1 && r.v1 && r.v2 && !r.v3 && r.digs1 === r.digs0 + 1, JSON.stringify(r));
-    check('the whole Elder Oak gives the sapling once', r.done === 5 && r.oak && r.sap1 === r.sap0 + 1 && r.times === 5, JSON.stringify(r));
+    check('the whole Elder Oak gives the sapling once', r.done === 6 && r.oak && r.sap1 === r.sap0 + 1 && r.times === 6, JSON.stringify(r));
     await page.evaluate(() => dispatchEvent(new Event('pagehide')));
     await page.reload();
     await page.waitForFunction(() => window.__game?.state && window.__scene, null, { timeout: 120000 });
     await page.waitForTimeout(1500);
     const kept = (await state()).restoration;
-    check('Elder Oak progress is saved', kept.done.filter((x) => x.startsWith('grove_')).length === 5 && Object.keys(kept.grove ?? {}).length === 5 && kept.oak > 0, JSON.stringify(kept.grove));
+    check('Elder Oak progress is saved', kept.done.filter((x) => x.startsWith('grove_')).length === 6 && Object.keys(kept.grove ?? {}).length === 6 && kept.oak > 0, JSON.stringify(kept.grove));
   }
 
   // 1.24 the Tea House and the Florist open at their levels; every villager loves a bouquet; best-friend arcs come one
@@ -1379,6 +1383,36 @@ try {
       return out;
     });
     check('favours: one a week at 10 hearts, paid once in tokens; the golden keepsake is bought once', fv.none && fv.same && fv.three && !fv.before && fv.paid === 5 && fv.twice === 0 && fv.gold && !fv.gold2 && fv.tokens === 0, JSON.stringify(fv));
+    // 1.41 the far trip and its slot from level 90; Fern Falls pans on its own count
+    const far = await page.evaluate(() => {
+      const g = window.__game, s = g.state, W = window.__woods.sys;
+      const lvl = s.player.level;
+      s.player.level = 80; const before = { slots: window.__expeditions?.slots?.() };
+      s.player.level = 95; const after = { slots: window.__expeditions?.slots?.(), far: window.__expeditions?.trips?.().some((t) => t.id === 'far') };
+      s.player.level = lvl;
+      W.pansLeft('creek'); // rolls the day over first, so the counts set below stay
+      const w = s.woods;
+      const was = JSON.stringify({ panned: w.panned, pannedAt: w.pannedAt });
+      w.panned = 99;
+      const creek = W?.pansLeft?.('creek'), falls = W?.pansLeft?.('falls');
+      const back = JSON.parse(was); w.panned = back.panned; w.pannedAt = back.pannedAt;
+      return { before, after, creek, falls };
+    });
+    check('the Far Reaches: a third slot and the far trip from level 90; Fern Falls pans on its own', (far.before.slots === undefined || (far.before.slots === 2 && far.after.slots === 3 && far.after.far)) && far.creek === 0 && far.falls === 6, JSON.stringify(far));
+    // 1.43 milestones from level 80: one gift a 10 levels, chosen once; titles only when earned
+    const ms = await page.evaluate(() => {
+      const g = window.__game, T = window.__titles, s = g.state;
+      const was = { lvl: s.player.level, ms: s.milestones, gems: s.player.gems, title: s.title };
+      s.player.level = 79; delete s.milestones;
+      const none = T.pendingMilestone();
+      s.player.level = 95;
+      const first = T.pendingMilestone(), ok = T.claim(80, 'gems'), next = T.pendingMilestone(), twice = T.claim(80, 'gems');
+      const gems = s.player.gems - was.gems;
+      const bad = T.choose('delver');
+      s.player.level = was.lvl; s.milestones = was.ms; s.player.gems = was.gems; if (was.title) s.title = was.title; else delete s.title;
+      return { none, first, ok, next, twice, gems, bad };
+    });
+    check('milestone gifts from level 80, one each, chosen once; a title only when earned', ms.none === null && ms.first === 80 && ms.ok && ms.next === 90 && !ms.twice && ms.gems >= 25 && !ms.bad, JSON.stringify(ms));
   }
 } finally {
   await browser.close();

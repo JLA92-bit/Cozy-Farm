@@ -8,6 +8,7 @@
   ],
   "coinMult": 1.9,
   "gems": 2,
+  "rare": { "_comment": "1.41 rare guests (themes with rare: true): from level, on a boat day with chance, one of them comes instead. They want gold-star goods (gold: true, 2 kinds, 5 in all) and give their decoration once (decor), gems after.", "level": 100, "chance": 0.15, "gems": 10 },
   "themes": [
     {
       "id": "bakers",
@@ -540,6 +541,9 @@
         "gold_locket",
         "diamond_tiara"
       ]
-    }
+    },
+    {"id": "guest_collector", "name": "The Collector", "icon": "crown", "greeting": "Good day! I travel the coast for one thing only: the finest gold-star work. I hear yours is the best.", "rare": true, "gold": true, "decor": "guest_cabinet", "look": {"body": "male-a", "skin": "#d9a77c", "hair": "#e6e6ea", "top": "#5a2a6a", "bottom": "#2b2b33", "hat": "none", "accessory": "none", "pet": "none"}, "boat": {"model": "boat/wc_023", "scale": 0.42, "seat": [0, 0.9, -0.4]}, "items": ["ruby_ring", "emerald_brooch", "sapphire_pendant", "gold_locket", "gem_lantern", "crystal_vase", "opal_pendant", "silver_ring"]},
+    {"id": "guest_painter", "name": "The Painter", "icon": "sparkles", "greeting": "Oh, the light here! I paint only the loveliest things, and only in gold. Have you anything for my still life?", "rare": true, "gold": true, "decor": "guest_column", "look": {"body": "female-a", "skin": "#f2c6a0", "hair": "#c8423a", "top": "#3f9ab5", "bottom": "#f2efe6", "hat": "none", "accessory": "none", "pet": "none"}, "boat": {"model": "boat/wc_005", "scale": 0.22, "seat": [0, 0.7, -0.3]}, "items": ["blue_vase", "gilded_vase", "glazed_tile", "flower_crown", "rose_bouquet", "sunflower_bouquet", "lavender_candle", "honey_cake", "strawberry_cake"]},
+    {"id": "guest_admiral", "name": "The Admiral", "icon": "fish", "greeting": "Ahoy there! The fleet sails at dusk and my officers dine on nothing but gold-star fish suppers.", "rare": true, "gold": true, "decor": "guest_ship", "look": {"body": "male-b", "skin": "#c68a5a", "hair": "#3a3030", "top": "#1f3a6a", "bottom": "#1f3a6a", "hat": "none", "accessory": "none", "pet": "none"}, "boat": {"model": "boat/wc_023", "scale": 0.42, "seat": [0, 0.9, -0.4]}, "items": ["grilled_tuna", "crab_cakes", "harvest_fish_pie", "winter_chowder", "halibut_supper", "sea_bass_herbs", "pickled_herring", "smoked_salmon", "fish_pie"]}
   ]
 }

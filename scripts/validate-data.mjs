@@ -551,6 +551,19 @@ releases?.forEach((r, i) => {
   dup('recipes.json', /\{"id": "([a-z0-9_]+)"/g);
   dup('buildings.json', /\{ "id": "([a-z0-9_]+)"/g);
 }
+// 1.41 woods rooms (trails, Elder Oak stages, treehouse) never ask for an item that unlocks after the room opens
+{
+  const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));
+  const lvl = {};
+  for (const c of read('crops.json').crops) lvl[c.id] = c.level;
+  for (const t of read('crops.json').trees ?? []) lvl[t.item] = t.level;
+  for (const a of read('animals.json').animals) lvl[a.product] = a.level;
+  for (const r of read('recipes.json').recipes) lvl[r.item] = Math.min(lvl[r.item] ?? 999, Math.max(r.level, bl[r.building] ?? 1));
+  const wd = read('woods.json');
+  for (const room of [...(wd.trails ?? []), ...(wd.grove?.stages ?? []), ...(wd.treehouse?.stages ?? []), ...(wd.treehouse?.furnishings ?? [])]) {
+    for (const b of room.bundles ?? []) for (const it of Object.keys(b.wants ?? {})) if (lvl[it] !== undefined && lvl[it] > room.opensAt) err(`woods room ${room.id}/${b.id}: ${it} unlocks at level ${lvl[it]}, after the room opens (${room.opensAt})`);
+  }
+}
 // 1.35 Higher Ground: late upgrade levels name real items and a player level, and the top level comes after the last slot
 {
   const bd = read('buildings.json'), items = read('items.json').items;

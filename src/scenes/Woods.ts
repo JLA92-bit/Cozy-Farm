@@ -249,7 +249,7 @@ function act(hit: WoodsHit): void {
     if (!reg) return;
     if (!woods.regionOpen(reg.id)) { ui.feedback.toast(`${reg.name} is closed`, `Restore ${ROOM[reg.trail]?.name ?? 'the trail'} at the sign to get there.`, 'lock'); return; }
     if (hit.kind === 'pan') {
-      if (woods.pansLeft(reg.id) <= 0) { ui.feedback.toast('Tired arms', 'No more panning today. The creek will have more tomorrow.', 'water_wave'); return; }
+      if (woods.pansLeft(reg.id) <= 0) { ui.feedback.toast('Tired arms', `No more panning today. ${reg.name} will have more tomorrow.`, 'water_wave'); return; }
       const r = woods.pan(reg.id, at);
       if (!r) return;
       audio.play('pop', { volume: 0.8 });

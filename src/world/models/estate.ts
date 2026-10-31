@@ -95,3 +95,55 @@ export function lighthouseGeometry(stage: number): THREE.BufferGeometry {
   if (stage >= 4) b.sphere(0.32, '#fff2a8', [0, LAMP_Y, 0], 1);
   return b.build();
 }
+
+/** 1.42 The Observatory: a round stone tower with a copper dome and a brass telescope (0 = nothing yet, 4 = finished). */
+export function observatoryGeometry(stage: number): THREE.BufferGeometry {
+  const b = geo();
+  if (stage === 0) for (let k = 0; k < 7; k++) { const a = (k / 7) * Math.PI * 2; b.block(0.5, 0.25, 0.45, k % 2 ? STONE : STONE_D, [Math.cos(a) * 1.3, 0, Math.sin(a) * 1.3], [0, a, 0]); }
+  if (stage >= 1) b.cyl(1.8, 1.9, 0.4, STONE_D, [0, 0, 0], 18);
+  if (stage >= 2) {
+    b.cyl(1.35, 1.45, 4.2, STONE, [0, 0.4, 0], 18);
+    b.cyl(1.42, 1.42, 0.2, STONE_D, [0, 2.4, 0], 18);
+    b.block(0.6, 1.2, 0.1, '#6a4a2e', [0, 0.4, 1.4]);
+    for (const a of [0.8, 2.4, 4.0]) b.block(0.3, 0.5, 0.06, '#3a3a52', [Math.sin(a) * 1.42, 2.9, Math.cos(a) * 1.42], [0, a, 0]);
+  }
+  if (stage >= 3) {
+    // the copper dome with its slit
+    b.sphere(1.5, '#5fa89a', [0, 4.6, 0], 1, [1, 0.85, 1]);
+    b.block(0.32, 1.5, 0.2, '#2a2f44', [0, 4.7, 1.25], [-0.5, 0, 0]);
+    b.sphere(0.12, PAL.gold, [0, 5.95, 0], 1);
+  }
+  if (stage >= 4) {
+    // the telescope peeping out of the slit, and a little star flag
+    b.cyl(0.16, 0.22, 1.6, '#d9a43a', [0, 5.0, 1.0], 10, [1.0, 0, 0]);
+    b.cyl(0.02, 0.02, 1.0, '#3a3a46', [1.0, 5.6, 0], 4);
+    b.block(0.45, 0.3, 0.02, '#2a3a8a', [1.23, 6.4, 0]);
+    b.sphere(0.07, '#fff2a8', [1.2, 6.4, 0.02], 0);
+  }
+  return b.build();
+}
+
+/** 1.42 The Windmill Mill: a white tower mill with a thatched cap and four sails (0 = nothing yet, 4 = finished). */
+export function windmillGeometry(stage: number): THREE.BufferGeometry {
+  const b = geo();
+  if (stage === 0) for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; b.block(0.6, 0.18, 0.18, '#8a6a48', [Math.cos(a) * 1.2, 0.05, Math.sin(a) * 1.2], [0, a, 0]); }
+  if (stage >= 1) b.cyl(1.7, 1.8, 0.35, STONE_D, [0, 0, 0], 16);
+  if (stage >= 2) {
+    b.cyl(0.95, 1.4, 4.6, WHITE, [0, 0.35, 0], 16);
+    b.block(0.55, 1.0, 0.1, '#6a4a2e', [0, 0.35, 1.32]);
+    for (const y of [2.2, 3.6]) b.block(0.3, 0.4, 0.06, '#3a3a46', [0, y, 1.3 - (y - 2.2) * 0.17]);
+    for (let k = 0; k < 3; k++) b.block(0.7, 0.5, 0.6, '#e6cfa6', [1.3 + (k % 2) * 0.2, 0.35, -0.6 + k * 0.6]);
+  }
+  if (stage >= 3) b.cone(1.25, 1.3, '#c99a4a', [0, 4.95, 0], 12);
+  if (stage >= 4) {
+    // the sails on the front of the cap
+    b.cyl(0.14, 0.14, 0.5, '#5a3a22', [0, 5.2, 1.0], 8, [Math.PI / 2, 0, 0]);
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
+      const x = Math.cos(a) * 1.55, y = 5.2 + Math.sin(a) * 1.55;
+      b.block(0.08, 3.1, 0.06, '#5a3a22', [Math.cos(a) * 0.0, 5.2, 1.3], [0, 0, a - Math.PI / 2]);
+      b.box(0.55, 2.4, 0.03, '#f2efe6', [x * 0.55, y - (y - 5.2) * 0.45, 1.33], [0, 0, a - Math.PI / 2]);
+    }
+  }
+  return b.build();
+}

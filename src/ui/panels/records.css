@@ -1,0 +1,13 @@
+/* 1.43 Me > Records and the milestone gift */
+.rc-head { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #f1ebff; margin-bottom: 8px; }
+.rc-head-icon { width: 40px; height: 40px; }
+.rc-name { font-family: var(--font-display); font-size: 18px; }
+.rc-title { font-size: 14px; color: #6b4c9a; }
+.rc-titles { display: flex; flex-direction: column; gap: 6px; }
+.rc-t { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; background: #fbf6ec; }
+.rc-t.locked { opacity: .6; }
+.rc-t.on { background: #fff3c8; }
+.rc-records { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.rc-rec { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 8px; background: #fbf6ec; }
+.rc-gifts { display: flex; flex-direction: column; gap: 8px; }
+.rc-gift { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }

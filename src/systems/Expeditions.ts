@@ -13,6 +13,7 @@ import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
 
 const HOUR = 3600000;
+const FAR = (EXPEDITIONS as unknown as { far: { level: number; slots: number } }).far;
 export interface Trip { who: string; trip: string; start: number; end: number }
 export interface Loot { item: string; n: number }
 
@@ -20,9 +21,12 @@ class ExpeditionSystem {
   private list(): Trip[] { return (game.state.expeditions ??= { trips: [] }).trips; }
 
   get unlocked(): boolean { return game.state.tutorial.done && game.level >= EXPEDITIONS.level; }
-  slots(): number { return EXPEDITIONS.slots; }
+  /** 1.41 the Far Reaches add a slot from their level. */
+  slots(): number { return EXPEDITIONS.slots + (game.level >= FAR.level ? FAR.slots : 0); }
+  /** Trips this farm can send (the far one from its level). */
+  trips(): typeof EXPEDITIONS.trips { return EXPEDITIONS.trips.filter((t) => game.level >= ((t as { level?: number }).level ?? 0)); }
   active(): Trip[] { return this.list(); }
-  freeSlots(): number { return Math.max(0, EXPEDITIONS.slots - this.list().length); }
+  freeSlots(): number { return Math.max(0, this.slots() - this.list().length); }
   isOut(who: string): boolean { return this.list().some((t) => t.who === who); }
   ready(t: Trip, now = game.now()): boolean { return now >= t.end; }
   readyCount(now = game.now()): number { return this.list().filter((t) => this.ready(t, now)).length; }
@@ -38,7 +42,7 @@ class ExpeditionSystem {
   }
 
   send(who: string, tripId: string): boolean {
-    const trip = EXPEDITIONS.trips.find((t) => t.id === tripId);
+    const trip = this.trips().find((t) => t.id === tripId);
     if (!trip || !VILLAGER[who] || !this.unlocked || this.freeSlots() <= 0 || this.isOut(who)) return false;
     const start = game.now();
     this.list().push({ who, trip: tripId, start, end: start + Math.round(this.hours(who, tripId) * HOUR) });
@@ -68,6 +72,11 @@ class ExpeditionSystem {
       for (const e of table) { y -= e.w; if (y <= 0) { item = e.id; break; } }
       got.set(item, (got.get(item) ?? 0) + 1);
     }
+    // 1.41 the far trip also brings back bars, varnish and star ore
+    for (const [item, [lo, hi]] of Object.entries((trip as { extra?: Record<string, [number, number]> }).extra ?? {})) {
+      const n = lo + Math.floor(r() * (hi - lo + 1));
+      if (n > 0) got.set(item, (got.get(item) ?? 0) + n);
+    }
     const loot: Loot[] = [];
     for (const [item, n] of got) { game.addItem(item, n); woods.noteFound(item); loot.push({ item, n }); }
     list.splice(index, 1);
@@ -81,3 +90,4 @@ class ExpeditionSystem {
 }
 
 export const expeditions = new ExpeditionSystem();
+Object.assign(window as unknown as Record<string, unknown>, { __expeditions: expeditions });
