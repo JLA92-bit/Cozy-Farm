@@ -149,7 +149,36 @@ These come from the roadmap's content bank, and reuse existing models where we c
 - **Critters:** hearts 6-10, "Trusted". From 6, a second daily gift; a rare decor piece at 10.
 - **Rules:** friends only, as always.
 
-### 3.10 Later (2.x): the second plot
+### 3.10 Expeditions, boats and the woods: a second tier
+
+- **Expeditions:** a "Far Reaches" board from level 90. Longer trips (12-24 h) for 2 helpers, and they bring back mine bars, planks and rare forage, so they feed the 1.35 upgrades.
+- **Boat Visitors:** from level 100, a rare guest boat once a fortnight (the Collector, the Painter, the Admiral). Each asks for 5 gold goods and gives a one-off decor piece, never anything for sale.
+- **Woods:** a fifth region, the Fern Falls (trail at level 95), with 6 forage kinds, a waterfall pool to pan and a sixth critter family.
+- **Treehouse and Grove:** a fourth Treehouse stage (the Lookout) and a Grove "Heartwood" stage after the oak, each a restoration room with late goods.
+
+### 3.11 Two more Estate projects
+
+The Clock Tower (70) and Lighthouse (80) are done by now. Two more, built the same way (4 stages, restoration rooms):
+- **The Observatory (level 110):** at night the sky gets a named star you can tap once a night for a small gift. Finale decor: a brass telescope.
+- **The Windmill Mill (level 130):** grinds grain overnight in batches of 20, so bakery flour stops being a chore. Finale decor: the windmill on the hill.
+
+### 3.12 Collection and records
+
+- **Gold Collection:** every Collection Book page gets a gold column. Ship, cook or catch a gold version of each entry. Finishing a page gives a gold page frame (look only) and Book charm.
+- **Museum gold shelves:** a gold version of each shelf, for gold or rare finds already on it.
+- **Farm records page:** best harvest swipe, biggest fish, most coins in a day, longest login run. Read-only, shown on the player card for friends.
+
+### 3.13 Friends and the village late game
+
+- **Co-op projects tier 2:** bigger village projects for 3-5 friends (a bandstand, a boating lake), the same server tables, new `coop.json` entries. Needs a `schema.sql` run (`coop_catalog`).
+- **Village Fair (every 4th festival from level 100):** a bake-off and a best-animal show judged on your gold goods and animal hearts. Prizes are ribbons (decor) and titles.
+- **Titles:** small names under your farm name ("Master Angler", "Deep Delver", "Friend of Bram"), earned from the tracks above and chosen in Me. Look only.
+
+### 3.14 Milestones every 10 levels
+
+From level 80, every 10th level brings a letter from a villager and a choice of one of three rewards: a piece of decor, a home piece, or a farm-look item (a fence colour, path style, lamp style). This joins the Level Markers so the long levels feel marked.
+
+### 3.15 Later (2.x): the second plot
 
 This is the real answer to "the land is full". It's already in the roadmap: a hill farm or orchard island, opened by an
 Estate project and given its own performance budget. It's a large piece of work, so it comes after the steps above.
@@ -164,7 +193,13 @@ Estate project and given its own performance budget. It's a large piece of work,
 | 1.38 New Stock | Alpaca, highland cow, goose, Preserves Cellar, Smokehouse, levels 121-140 content | New things to build and grow for levels 120+ |
 | 1.39 Farmhouse 16-20 | New caps, after checking map room and the decor budget | Needs the space and performance check first |
 | 1.40 Favours and Trust | Villager favours, critter hearts 6-10 | Social late game |
+| 1.41 Far Reaches | Expeditions tier 2, rare guest boats, Fern Falls, Treehouse Lookout, Grove Heartwood | More places to go |
+| 1.42 Stargazing | The Observatory and the Windmill Mill | New long projects past 110 |
+| 1.43 Gold Collection | Gold Book columns, Museum gold shelves, Farm records, titles, 10-level milestones | Collectors and long goals |
+| 1.44 Village Fair | Co-op tier 2 (server), Village Fair | Friends late game |
 | 2.x | The second plot | The long-term land answer |
+
+The QOL releases in section 6 go in between, as point releases (1.35.1 and so on), so players feel the game getting easier to look after while the big tiers land.
 
 Each release:
 - gets its own `PLAN-1.3x.md` with the exact numbers;
@@ -178,3 +213,44 @@ Each release:
 2. Skills: top out at 20, or keep it smaller at 15?
 3. Land: wait for the 2.x second plot, or look for a smaller "reclaim the shore" expansion sooner?
 4. Did your level-81 player name anything in particular as maxed or boring? I'll move that to the front.
+5. QOL: ship the first batch (section 6, "Do first") as 1.34.3 before 1.35?
+6. Titles and the Farm records page show on the player card to friends. OK, or keep them private?
+
+## 6. Quality of life in the current game (searched 31 Oct)
+
+A big late farm (Farmhouse 15) can have 140 fields, up to 6 of each of 16 workshop kinds, 6 of each animal home, 397 item kinds and 296 decor pieces. Most screens were built for a small farm, so the late game is mostly taps. Fewer taps also helps the 2-3 hours a week target. What I checked in the code:
+- swipe harvest and swipe planting already exist;
+- tapping a workshop collects it, and tapping an animal home collects and re-feeds;
+- the order "Need items" button and red ingredients already point to where an item comes from.
+
+### Do first (small, high value)
+
+| # | Change | Why | Where |
+| --- | --- | --- | --- |
+| 1 | **Collect everything:** a "Ready" chip on the HUD with a count. One tap collects every workshop and animal home on the farm (and re-feeds animals with feed in the barn) | Today that's one tap per building, up to about 130 on a big farm | `production.readyBuildings()` already exists; new `ui/ReadyChip.ts`, `Animals.collectAll` |
+| 2 | **Make several:** a "Fill" button next to Make that queues as many as there are free slots and ingredients | Workshop 5-7 brings 8 slots; one tap per slot gets long | `ProductionPanel.ts`, a loop on `production.queue` |
+| 3 | **Make it again:** after a tap-collect, a small "Again" bubble on the workshop re-queues what it just made | The most common loop in the game, done in one tap | `ProductionPanel.ts` tap handler, `lastRecipe` per building (Farmhands already keep one) |
+| 4 | **Barn search and sort:** a search box (like the Furniture Catalogue's) and sort by value, count or name | 397 items, sorted by price only now | `InventoryPanel.ts` |
+| 5 | **"Used for" in the barn:** an item's card lists what wants it (recipes, orders, bundles, Museum, villager loves, boat wishes) | It says where an item comes from, not where it goes, so players sell things they later need | `InventoryPanel.ts`; the same lookups `validate-data` uses for "every item has a use" |
+| 6 | **Truck "Load all":** one button loads every line you have enough for | One tap per line now | `EconomyPanels.ts` truck card |
+
+### Next
+
+| # | Change | Why | Where |
+| --- | --- | --- | --- |
+| 7 | **Shop and decor search** | 296 decor pieces, found only by scrolling | `ShopPanel.ts`, `DecorUI.ts` (storage) |
+| 8 | **Fill empty fields:** in the seed tray, "Plant all empty" with the chosen seed (needs seeds or coins as now) | 140 fields is a long swipe across a big map | `UI.openSeedTray`, `farming.plant` |
+| 9 | **Workshops at a glance:** one list on the Farmhouse screen of every workshop's queue and "done in" time, tap to open | Finding which workshop is idle means walking the map | `FarmhousePanel.ts` |
+| 10 | **Sell extras:** in the barn, "Sell extras" sells only what is above what orders, the truck and set-asides need (shows the total first, a second tap to confirm) | Late-game barns fill up; selling one kind at a time is slow | `InventoryPanel.ts`, uses item 5 |
+| 11 | **Keep for later:** star an item in the barn so Sell extras, the market and the stall never offer it | Protects things saved for a project | state `storage` flags (optional field, repaired in Save.ts) |
+| 12 | **Recipe order:** recipes an order or project wants first, then newest | Bakery has 33 recipes, Village Kitchen 31 | `ProductionPanel.ts` (`wantedItems()` already marks them) |
+
+### Bigger
+
+| # | Change | Why |
+| --- | --- | --- |
+| 13 | **Notifications in the apps:** workshop done, crops ready, net full, boat here (FCM and APNs, plus `send-push`). Already on the to-do list | The best check-in help there is, and the apps have none today |
+| 14 | **Daily summary card:** on opening after 4+ hours away, one card saying what is ready, what finished and what is waiting (orders, letters, critters, net), with a button for each | Late farms have a lot going on at once |
+| 15 | **Move many decor at once:** multi-select today only stores pieces of one kind; let it pick mixed pieces and move the group together | Re-doing a corner of a big farm is piece by piece |
+
+Each QOL item is game only (no server change), gets a regression check where it touches saves or money, and goes through the phone sweep. Items 1-6 together are about one release.
