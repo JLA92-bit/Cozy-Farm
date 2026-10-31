@@ -1,6 +1,169 @@
 {
  "releases": [
   {
+   "version": "1.40.0",
+   "date": "2026-11-01",
+   "title": "Favours and Trust",
+   "icon": "heart",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "heart",
+     "text": "Best friends (10 hearts) ask one favour a week: three things they love, within three days. Each favour pays Friendship Tokens and coins"
+    },
+    {
+     "icon": "crown",
+     "text": "Spend Friendship Tokens on a golden version of each villager's keepsake, or another of the home pieces they gave you"
+    },
+    {
+     "icon": "hedgehog",
+     "text": "Woodland critters now go to 10 hearts. From 6 hearts they trust you and leave two gifts a visit, and the 10th heart brings gems"
+    }
+   ]
+  },
+  {
+   "version": "1.39.0",
+   "date": "2026-11-01",
+   "title": "A Bigger House",
+   "icon": "house",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "house",
+     "text": "The Farmhouse goes to level 20 (player levels 120 to 180): every level adds 10 fields, 4 trees and 80 decorations, and more workshops and animal homes of each kind"
+    },
+    {
+     "icon": "books",
+     "text": "Two new rooms inside: the Library at Farmhouse 17 and the Gallery at Farmhouse 19"
+    }
+   ]
+  },
+  {
+   "version": "1.38.0",
+   "date": "2026-11-01",
+   "title": "New Stock",
+   "icon": "goose",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "goose",
+     "text": "Three new animals for levels 121 to 130: geese on the Goose Green (goose eggs), alpacas in the Alpaca Shed (alpaca wool) and shaggy Highland Cows in the Highland Byre (clotted cream)"
+    },
+    {
+     "icon": "smoked_herring",
+     "text": "Two new workshops: the Smokehouse (smoked herring, cheese and salmon) and the Preserves Cellar (beetroot relish, plum chutney, preserved peaches and aged cheese)"
+    },
+    {
+     "icon": "highland_feast",
+     "text": "15 new recipes up to level 140, including alpaca shawls, cream scones and the Highland Feast, and the villagers have new favourites"
+    }
+   ]
+  },
+  {
+   "version": "1.37.0",
+   "date": "2026-11-01",
+   "title": "Old Hands",
+   "icon": "crown",
+   "color": "yellow",
+   "highlights": [
+    {
+     "icon": "crown",
+     "text": "Grand Mastery from level 80: once a crop or workshop is mastered, reach 50 gold crops or 30 gold goods in all for a crowned Grand Mastery Plaque, coins, gems and a little more gold from it for good"
+    },
+    {
+     "icon": "seedling",
+     "text": "Farmhands now level up every 10 days they work, to level 5: more fields a round, then every home or workshop of the same kind, and at the top one free day a week"
+    }
+   ]
+  },
+  {
+   "version": "1.36.0",
+   "date": "2026-11-01",
+   "title": "The Sunken Halls",
+   "icon": "water_wave",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "pick",
+     "text": "The Old Mine goes down to floor 100. Below the Ember Deeps: the Sunken Halls (floors 61 to 80, Mining 12) and the Starlit Vault (81 to 100, Mining 15)"
+    },
+    {
+     "icon": "star_ore",
+     "text": "New finds: star ore and moon ore, aquamarines, star crystals, sea lily fossils, sunken coins, drowned bells and starfall shards, with a new Museum shelf"
+    },
+    {
+     "icon": "starsteel_bar",
+     "text": "The Smelter makes starsteel and moonsilver bars, and the Jeweller an aquamarine brooch and a star tiara"
+    },
+    {
+     "icon": "pick",
+     "text": "Bram makes two more pickaxes: Starsteel (Mining 15) and Heartstone (Mining 20). Lift chests every 5 floors and three new letters from Bram"
+    }
+   ]
+  },
+  {
+   "version": "1.35.0",
+   "date": "2026-11-01",
+   "title": "Higher Ground",
+   "icon": "crown",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "sparkles",
+     "text": "Skills go to level 20. Levels 11 to 20 are expert ranks with a star ring, each giving half a level's bonus. XP you already earned counts, so you may jump a few ranks today"
+    },
+    {
+     "icon": "crown",
+     "text": "New perks to choose at skill levels 15 and 20, and a free bonus at 12 and 18 in every skill"
+    },
+    {
+     "icon": "fish_net",
+     "text": "The Grand Net at Fishing 15: holds 12 fish and you keep 6"
+    },
+    {
+     "icon": "hammer",
+     "text": "Workshops upgrade to level 8 and animal homes to level 7: more slots and stalls, then Fine Tools and the Prize Pen for a little more silver and gold. The late levels need bars from the Smelter, varnish from the Woodcraft Lodge and gems"
+    },
+    {
+     "icon": "heart",
+     "text": "The Vet's Cottage and the Carpenter's Workshop go to level 5: longer check-ups and paint, animals stay young longer, and buildings wear slower"
+    }
+   ]
+  },
+  {
+   "version": "1.34.3",
+   "date": "2026-11-01",
+   "title": "Fewer Taps",
+   "icon": "basket",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "basket",
+     "text": "A Collect button on the side of the screen gathers everything ready in your workshops and animal homes in one tap, and feeds hungry animals again"
+    },
+    {
+     "icon": "hammer",
+     "text": "Workshops: Fill makes as many as your free slots and ingredients allow, and after collecting from a workshop, Again starts the same goods once more. Recipes your orders want come first"
+    },
+    {
+     "icon": "magnifier",
+     "text": "The barn has a search box and sorting, and each item says what it's used for. Lock an item to keep it, and Sell extras sells only what nothing needs"
+    },
+    {
+     "icon": "truck",
+     "text": "Load all on the truck, Plant all in the seed tray, a search box in the shop, and every workshop on one list from the Farmhouse"
+    },
+    {
+     "icon": "bell",
+     "text": "Phone notifications in the Cozy Acres app: switch them on in Settings to hear when crops, animals and goods are ready"
+    },
+    {
+     "icon": "package",
+     "text": "In Build mode, Select many can now move a whole group of pieces together with the arrow buttons"
+    }
+   ]
+  },
+  {
    "version": "1.34.2",
    "date": "2026-10-30",
    "title": "Room at the Dock",

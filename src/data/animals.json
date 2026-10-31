@@ -116,6 +116,51 @@
    "model": "pet/horse",
    "scale": 0.46,
    "sound": "cow"
+  },
+  {
+   "id": "goose",
+   "name": "Goose",
+   "level": 121,
+   "house": "goose_pen",
+   "cost": 3200,
+   "feed": "goose_feed",
+   "product": "goose_egg",
+   "produceSec": 6000,
+   "xp": 26,
+   "model": "pet/chick",
+   "variant": "goose",
+   "scale": 0.48,
+   "sound": "chicken"
+  },
+  {
+   "id": "alpaca",
+   "name": "Alpaca",
+   "level": 125,
+   "house": "alpaca_shed",
+   "cost": 3800,
+   "feed": "alpaca_feed",
+   "product": "alpaca_wool",
+   "produceSec": 7800,
+   "xp": 30,
+   "model": "pet/polar",
+   "variant": "alpaca",
+   "scale": 0.6,
+   "sound": "cow"
+  },
+  {
+   "id": "highland",
+   "name": "Highland Cow",
+   "level": 130,
+   "house": "highland_byre",
+   "cost": 4400,
+   "feed": "highland_feed",
+   "product": "clotted_cream",
+   "produceSec": 8400,
+   "xp": 34,
+   "model": "pet/cow",
+   "variant": "highland",
+   "scale": 0.66,
+   "sound": "cow"
   }
  ]
 }

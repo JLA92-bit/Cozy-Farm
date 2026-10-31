@@ -163,7 +163,25 @@ function portrait(v: VillagerDef): () => THREE.BufferGeometry {
   };
 }
 
+/** 1.40 a golden keepsake: the same model, every colour turned to gold by its lightness (bought with Friendship Tokens). */
+function golden(make: () => THREE.BufferGeometry): () => THREE.BufferGeometry {
+  return () => {
+    const g = make();
+    const c = g.getAttribute('color');
+    if (!c) return g;
+    const dark = new THREE.Color(GOLD_DARK), light = new THREE.Color('#ffe9a0'), tmp = new THREE.Color();
+    for (let i = 0; i < c.count; i++) {
+      const l = 0.3 * c.getX(i) + 0.59 * c.getY(i) + 0.11 * c.getZ(i);
+      tmp.copy(dark).lerp(light, Math.min(1, l * 1.4));
+      c.setXYZ(i, tmp.r, tmp.g, tmp.b);
+    }
+    c.needsUpdate = true;
+    return g;
+  };
+}
+
 export const KEEPSAKE_PROC: Record<string, () => THREE.BufferGeometry> = {
   ...KEEPSAKES,
+  ...Object.fromEntries(Object.entries(KEEPSAKES).map(([id, make]) => [`${id}_gold`, golden(make)])),
   ...Object.fromEntries(VILLAGERS.map((v) => [`portrait_${v.id}`, portrait(v)])),
 };

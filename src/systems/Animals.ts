@@ -1,6 +1,7 @@
 import { ANIMAL, ANIMAL_COST_GROWTH, BUILDING, ITEMS } from '../data';
 import { buildings } from './Buildings';
 import { game, type Vec } from './Game';
+import { fromBuilding } from './UpgradeEffects';
 import type { PlacedBuilding } from './State';
 import { animalState, isBuilt } from './Timers';
 import { addRolled } from './Quality';
@@ -140,7 +141,8 @@ export class AnimalSystem {
       const bonus = claimShepherdBonus() ? 1 : 0;
       if (bonus) game.bus.emit('toast', { title: 'Shepherd', sub: `A bonus ${ITEMS[def.product]?.name ?? 'product'}`, icon: 'sheep' });
       collectLove = loveSum / n;
-      try { addRolled('animal', def.product, n + bonus, at); } finally { collectLove = 0; }
+      // 1.35 Prize Pen: this home's top upgrade adds a little silver and gold
+      try { fromBuilding(b, () => addRolled('animal', def.product, n + bonus, at)); } finally { collectLove = 0; }
       game.addXp(def.xp * n, at);
       game.incStat('animal_products', n);
       game.incStat(`collect_${def.product}`, n);

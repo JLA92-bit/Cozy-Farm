@@ -540,6 +540,30 @@ releases?.forEach((r, i) => {
   const pieces = new Set(read('furniture.json').pieces.map((p) => p.id));
   for (const [k, l] of Object.entries(md.letters)) if (l.piece && !pieces.has(l.piece)) err(`mine letter ${k}: unknown home piece ${l.piece}`);
 }
+// 1.38: a key written twice in a data file is silently merged by JSON.parse (the second wins), so look at the text
+{
+  const dup = (file, re) => {
+    const seen = new Set(), twice = new Set();
+    for (const m of readFileSync(new URL(file, dir), 'utf8').matchAll(re)) (seen.has(m[1]) ? twice : seen).add(m[1]);
+    if (twice.size) err(`${file}: written twice: ${[...twice].join(', ')}`);
+  };
+  dup('items.json', /^  "([a-z0-9_]+)": \{/gm);
+  dup('recipes.json', /\{"id": "([a-z0-9_]+)"/g);
+  dup('buildings.json', /\{ "id": "([a-z0-9_]+)"/g);
+}
+// 1.35 Higher Ground: late upgrade levels name real items and a player level, and the top level comes after the last slot
+{
+  const bd = read('buildings.json'), items = read('items.json').items;
+  for (const kind of ['production', 'animal']) {
+    const u = bd.upgrades[kind];
+    u.levels.forEach((l, i) => {
+      for (const [item, n] of Object.entries(l.goods ?? {})) if (!items[item] || !(n > 0)) err(`upgrades.${kind} level ${i + 2}: unknown good ${item} or bad count`);
+      if (l.goods && !(l.playerLevel > 0)) err(`upgrades.${kind} level ${i + 2}: goods need a playerLevel`);
+    });
+    const max = kind === 'production' ? u.maxSlotLevel : u.maxSpaceLevel;
+    if (u.top && !(u.top.level > max && u.top.level <= u.levels.length + 1)) err(`upgrades.${kind}: top level must come after the last slot level and be reachable`);
+  }
+}
 // 1.20 every item has a use beyond selling: an ingredient, a bundle, a Museum piece, animal feed, a critter treat, a boat
 // visitor's wish, a villager's favourite or a thing the game itself spends (seeds, fertiliser, bait, event tokens)
 {

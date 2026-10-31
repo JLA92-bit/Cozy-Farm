@@ -84,6 +84,8 @@ export interface SaveData {
     created: boolean;
   };
   inventory: Record<string, number>;
+  /** 1.34.3 items kept for later in the barn: Sell extras leaves them alone */
+  keep?: string[];
   storage: Record<string, number>;
   buildings: PlacedBuilding[];
   obstacles: Obstacle[];
@@ -176,8 +178,10 @@ export interface SaveData {
     lastRecipe: Record<string, string>;
     /** what the hands did today (local day) */
     today?: { day: string; planted: number; fed: number; queued: number; wages: number };
+    /** 1.37 days each hand has worked (their level grows with it) */
+    days?: Record<string, number>;
   };
-  mastery?: { done: string[]; /** 1.25 the line picked for each mastered crop or workshop (entry id -> line id) */ picks?: Record<string, string> };
+  mastery?: { done: string[]; /** 1.25 the line picked for each mastered crop or workshop (entry id -> line id) */ picks?: Record<string, string>; /** 1.37 entries with Grand Mastery */ grand?: string[] };
   /** 1.29 Home Sweet Home: inside the Farmhouse (src/systems/Home.ts) */
   home?: HomeState;
   /** 1.31 The Old Mine (src/systems/Mine.ts) */
@@ -211,6 +215,8 @@ export interface WoodsState {
   day: string; picked: number[]; dug: number[]; found: Record<string, number>; visited: boolean;
   /** 1.19 pans used today at Crystal Creek */
   panned?: number;
+  /** 1.41 pans today in regions other than Crystal Creek (Fern Falls) */
+  pannedAt?: Record<string, number>;
   /** 1.19 when each Whispering Pines tap was last emptied (ms), by tap id `<region>:<n>`; missing = full now */
   taps?: Record<string, number>;
   /** 1.20 critter families by id: visits so far, the treat waiting on the stump and the local day of the last visit */
@@ -291,6 +297,10 @@ export interface VillageState {
   /** 1.9: how many heart milestones were given on this local day (they are spread out: two a day at most) */
   milestoneDay?: string;
   milestoneN?: number;
+  /** 1.40 Friendship Tokens, earned by doing villagers' favours */
+  tokens?: number;
+  /** 1.40 this week's favour for each villager at 10 hearts */
+  favours?: Record<string, { week: string; items: Record<string, number>; until: number; done?: boolean }>;
 }
 /** 1.8 mail agent: what today's visiting villager asks for and pays (optional; made on the first tick of the day). */
 export interface VisitRequest { item: string; qty: number; coins: number; xp: number }

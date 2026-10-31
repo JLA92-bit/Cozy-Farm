@@ -8,7 +8,7 @@ import { CRAFT_RECIPES, HELPERS, ITEMS, SKILL_VALUES, type CraftRecipe } from '.
 import { game } from './Game';
 import { animals } from './Animals';
 import { roomDone } from './RestorationEffects';
-import { hasSkillPerk, skillLevel } from './SkillEffects';
+import { hasSkillPerk, hasSkillBonus, skillSteps } from './SkillEffects';
 import { feederPerTick, homesInReach } from './HelperEffects';
 import { isBuilt } from './Timers';
 import { logEvent } from '../online/Events';
@@ -16,7 +16,7 @@ import { logEvent } from '../online/Events';
 /** Items a craft needs after Thrifty Smith (a quarter off, at least one of anything that was wanted). */
 export function craftNeeds(r: CraftRecipe): Record<string, number> {
   const out: Record<string, number> = {};
-  const cut = hasSkillPerk('thrifty_smith') ? 1 - SKILL_VALUES.thriftyCrafting : 1;
+  const cut = (hasSkillPerk('thrifty_smith') ? 1 - SKILL_VALUES.thriftyCrafting : 1) * (hasSkillPerk('cheap_parts') ? 1 - SKILL_VALUES.cheapPartsCut : 1);
   for (const [id, n] of Object.entries(r.in)) out[id] = Math.max(1, Math.round(n * cut));
   return out;
 }
@@ -24,7 +24,7 @@ export function craftNeeds(r: CraftRecipe): Record<string, number> {
 class CraftingSystem {
   open(): boolean { return roomDone('workshop'); }
   recipes(): CraftRecipe[] { return CRAFT_RECIPES; }
-  chanceExtra(): number { return (skillLevel('crafting') - 1) * SKILL_VALUES.craftExtraPerLevel; }
+  chanceExtra(): number { return skillSteps('crafting') * SKILL_VALUES.craftExtraPerLevel + (hasSkillPerk('fine_smith') ? SKILL_VALUES.fineSmithExtra : 0) + (hasSkillBonus('shop_smith') ? SKILL_VALUES.shopSmithExtra : 0); }
 
   canCraft(r: CraftRecipe): { ok: boolean; reason?: string } {
     if (!this.open()) return { ok: false, reason: 'Rebuild the Workshop first' };

@@ -1077,3 +1077,9 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .update-screen .btn { margin-top: 6px; }
 /* 1.33.6 a gem button after the first tap: "Tap again" (dom.ts gemButton) */
 .btn.gem-armed { --c: var(--btn-red); --d: var(--btn-red-dark); animation: pulse .6s ease-in-out infinite; }
+/* 1.34.3 Plant all: first in the seed tray */
+.tray-fill { position: relative; flex: 0 0 auto; align-self: center; white-space: nowrap; }
+.tray-fill .tcount { position: absolute; top: -8px; right: -8px; min-width: 24px; height: 22px; padding: 0 4px; border-radius: 11px; background: var(--btn-blue); border: 2px solid var(--outline); color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+/* 1.34.3 move a selection a tile at a time */
+.nudge-pad { display: grid; grid-template-columns: repeat(2, auto); gap: 4px; }
+.nudge-pad .btn { min-width: 40px; min-height: 40px; padding: 0; font-size: 18px; }

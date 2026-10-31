@@ -53,6 +53,8 @@ export function openShop(tab?: string): void {
   p.open();
 }
 
+/** What the shop's search box holds this session. */
+let shopQuery = '';
 /** Decor filter chip picked last this session ('' = all). */
 let lastGroup = '';
 /** Nicer chip names for some groups; any other group shows as its id with a capital letter. */
@@ -88,9 +90,18 @@ function render(p: Panel, tab: string): void {
   const grid = h('div', { class: 'grid shop-grid' });
   const fill = (): void => {
     clear(grid);
-    for (const def of list) if (tab !== 'decor' || !lastGroup || def.group === lastGroup) grid.append(card(p, def));
+    const q = shopQuery.toLowerCase();
+    // 1.34.3: a search looks through every group, the chips only narrow an empty search
+    const shown = list.filter((def) => (q ? def.name.toLowerCase().includes(q) : tab !== 'decor' || !lastGroup || def.group === lastGroup));
+    for (const def of shown) grid.append(card(p, def));
+    if (!shown.length && q) grid.append(h('div', { class: 'empty-state' }, icon('magnifier'), h('div', null, `Nothing called "${shopQuery}" here`)));
     p.body.scrollTop = 0;
   };
+  // the box stays in the page while typing; only the grid redraws (the phone keyboard stays up)
+  if (list.length > 24) {
+    const box = h('input', { type: 'search', class: 'barn-search shop-search', placeholder: tab === 'decor' ? 'Find a decoration' : 'Find a building', 'aria-label': 'Find', value: shopQuery, oninput: (e: Event) => { shopQuery = (e.target as HTMLInputElement).value.trim(); fill(); } });
+    p.body.append(box);
+  } else shopQuery = '';
   const chips = tab === 'decor' ? groupChips(list, fill) : null;
   if (chips) p.body.append(chips);
   fill();

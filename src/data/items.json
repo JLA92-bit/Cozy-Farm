@@ -2297,6 +2297,228 @@
    "sell": 180,
    "icon": "cave_pearl"
   },
+  "star_ore": {
+   "name": "Star Ore",
+   "cat": "mineral",
+   "sell": 160,
+   "icon": "star_ore"
+  },
+  "moon_ore": {
+   "name": "Moon Ore",
+   "cat": "mineral",
+   "sell": 190,
+   "icon": "moon_ore"
+  },
+  "aquamarine": {
+   "name": "Aquamarine",
+   "cat": "mineral",
+   "sell": 300,
+   "icon": "aquamarine"
+  },
+  "star_crystal": {
+   "name": "Star Crystal",
+   "cat": "mineral",
+   "sell": 520,
+   "icon": "star_crystal"
+  },
+  "sea_lily": {
+   "name": "Sea Lily Fossil",
+   "cat": "fossil",
+   "sell": 280,
+   "icon": "sea_lily"
+  },
+  "sunken_coin": {
+   "name": "Sunken Coin",
+   "cat": "artifact",
+   "sell": 240,
+   "icon": "sunken_coin"
+  },
+  "drowned_bell": {
+   "name": "Drowned Bell",
+   "cat": "artifact",
+   "sell": 380,
+   "icon": "drowned_bell"
+  },
+  "starfall_shard": {
+   "name": "Starfall Shard",
+   "cat": "artifact",
+   "sell": 700,
+   "icon": "starfall_shard"
+  },
+  "starsteel_bar": {
+   "name": "Starsteel Bar",
+   "cat": "goods",
+   "sell": 620,
+   "icon": "starsteel_bar"
+  },
+  "moonsilver_bar": {
+   "name": "Moonsilver Bar",
+   "cat": "goods",
+   "sell": 720,
+   "icon": "moonsilver_bar"
+  },
+  "aquamarine_brooch": {
+   "name": "Aquamarine Brooch",
+   "cat": "goods",
+   "sell": 1500,
+   "icon": "aquamarine_brooch"
+  },
+  "star_tiara": {
+   "name": "Star Tiara",
+   "cat": "goods",
+   "sell": 7200,
+   "icon": "star_tiara"
+  },
+  "goose_egg": {
+   "name": "Goose Egg",
+   "cat": "animal",
+   "sell": 180,
+   "icon": "goose_egg"
+  },
+  "alpaca_wool": {
+   "name": "Alpaca Wool",
+   "cat": "animal",
+   "sell": 220,
+   "icon": "alpaca_wool"
+  },
+  "clotted_cream": {
+   "name": "Clotted Cream",
+   "cat": "animal",
+   "sell": 260,
+   "icon": "clotted_cream"
+  },
+  "goose_feed": {
+   "name": "Goose Feed",
+   "cat": "feed",
+   "sell": 34,
+   "icon": "goose_feed"
+  },
+  "alpaca_feed": {
+   "name": "Alpaca Feed",
+   "cat": "feed",
+   "sell": 38,
+   "icon": "alpaca_feed"
+  },
+  "highland_feed": {
+   "name": "Highland Feed",
+   "cat": "feed",
+   "sell": 42,
+   "icon": "highland_feed"
+  },
+  "smoked_herring": {
+   "name": "Smoked Herring",
+   "cat": "goods",
+   "sell": 1580,
+   "icon": "smoked_herring"
+  },
+  "beetroot_relish": {
+   "name": "Beetroot Relish",
+   "cat": "goods",
+   "sell": 1430,
+   "icon": "beetroot_relish"
+  },
+  "goose_egg_quiche": {
+   "name": "Goose Egg Quiche",
+   "cat": "goods",
+   "sell": 1340,
+   "icon": "goose_egg_quiche"
+  },
+  "alpaca_yarn": {
+   "name": "Alpaca Yarn",
+   "cat": "goods",
+   "sell": 970,
+   "icon": "alpaca_yarn"
+  },
+  "smoked_cheese": {
+   "name": "Smoked Cheese",
+   "cat": "goods",
+   "sell": 1480,
+   "icon": "smoked_cheese"
+  },
+  "plum_chutney": {
+   "name": "Plum Chutney",
+   "cat": "goods",
+   "sell": 2520,
+   "icon": "plum_chutney"
+  },
+  "clotted_cream_scones": {
+   "name": "Cream Scones",
+   "cat": "goods",
+   "sell": 970,
+   "icon": "clotted_cream_scones"
+  },
+  "alpaca_shawl": {
+   "name": "Alpaca Shawl",
+   "cat": "goods",
+   "sell": 3360,
+   "icon": "alpaca_shawl"
+  },
+  "smoked_salmon": {
+   "name": "Smoked Salmon",
+   "cat": "goods",
+   "sell": 1780,
+   "icon": "smoked_salmon"
+  },
+  "aged_cheese": {
+   "name": "Aged Cheese",
+   "cat": "goods",
+   "sell": 2920,
+   "icon": "aged_cheese"
+  },
+  "preserved_peaches": {
+   "name": "Preserved Peaches",
+   "cat": "goods",
+   "sell": 2490,
+   "icon": "preserved_peaches"
+  },
+  "highland_feast": {
+   "name": "Highland Feast",
+   "cat": "goods",
+   "sell": 10730,
+   "icon": "highland_feast"
+  },
+  "falls_fern": {
+   "name": "Waterfall Fern",
+   "cat": "forage",
+   "sell": 60,
+   "icon": "falls_fern"
+  },
+  "mist_berry": {
+   "name": "Mistberry",
+   "cat": "forage",
+   "sell": 75,
+   "icon": "mist_berry"
+  },
+  "river_orchid": {
+   "name": "River Orchid",
+   "cat": "forage",
+   "sell": 140,
+   "icon": "river_orchid"
+  },
+  "stone_mushroom": {
+   "name": "Stone Mushroom",
+   "cat": "forage",
+   "sell": 90,
+   "icon": "stone_mushroom"
+  },
+  "otter_pebble": {
+   "name": "Otter Pebble",
+   "cat": "artifact",
+   "sell": 600,
+   "icon": "otter_pebble"
+  },
+  "mistberry_cordial": {
+   "name": "Mistberry Cordial",
+   "cat": "goods",
+   "sell": 950,
+   "icon": "mistberry_cordial"
+  },
+  "orchid_spray": {
+   "name": "Orchid Spray",
+   "cat": "goods",
+   "sell": 1380,
+   "icon": "orchid_spray"
+  },
   "copper_bar": {
    "name": "Copper Bar",
    "cat": "goods",

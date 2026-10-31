@@ -1,8 +1,8 @@
 {
- "_comment": "1.31 The Old Mine (src/systems/Mine.ts, world/MineView.ts, scenes/Mine.ts). Across the water from the farm's north beach. Opens at `level` once the entrance room (mine_entrance, a restoration room) is restored. 60 floors in three layers; each floor's rocks are laid out from a seed of the day and the floor, so it looks the same all day and new the next. `swings` a day (lantern oil). A rock takes ceil(hard / power) swings with the pickaxe's power. One rock on every floor hides the ladder down; a lift every `liftEvery` floors remembers how deep you got. Chests on lift floors open once ever. Carts give a small bundle of ore once a day; pools (deeper layers) a find once a day. Geodes are cracked by Bram for `geodeCost` coins: one find from `geode` (a find like digging, never sold for gems or money).",
+ "_comment": "1.31 The Old Mine (src/systems/Mine.ts, world/MineView.ts, scenes/Mine.ts). Across the water from the farm's north beach. Opens at `level` once the entrance room (mine_entrance, a restoration room) is restored. 100 floors in five layers (1.36: the Sunken Halls 61-80 and the Starlit Vault 81-100 need a Mining skill level, `skill`, as well as the pickaxe; their rocks are `deep` harder); each floor's rocks are laid out from a seed of the day and the floor, so it looks the same all day and new the next. `swings` a day (lantern oil). A rock takes ceil(hard / power) swings with the pickaxe's power. One rock on every floor hides the ladder down; a lift every `liftEvery` floors remembers how deep you got. Chests on lift floors open once ever. Carts give a small bundle of ore once a day; pools (deeper layers) a find once a day. Geodes are cracked by Bram for `geodeCost` coins: one find from `geode` (a find like digging, never sold for gems or money).",
  "level": 18,
  "swings": 60,
- "floors": 60,
+ "floors": 100,
  "liftEvery": 5,
  "rocksPerFloor": [12, 16],
  "geodeCost": 25,
@@ -59,8 +59,10 @@
     "geode": [["geode", 100, 1, 2]],
     "fossil": [["cave_bear_tooth", 32, 1, 1], ["petrified_wood", 32, 1, 1], ["fossil_fish", 14, 1, 1], ["carved_stone", 16, 1, 1], ["old_pick_head", 6, 1, 1]]
    }
-  }
- ],
+  },
+    {"id": "sunken", "name": "The Sunken Halls", "from": 61, "to": 80, "pickaxe": 3, "skill": 12, "deep": 2, "icon": "water_wave", "about": "Old halls half under still green water, with drowned bells and coins from a town nobody remembers. Star ore and aquamarines.", "kinds": {"stone": 30, "ore": 30, "gem": 16, "fossil": 8, "geode": 8, "boulder": 8}, "drops": {"stone": [["stone", 40, 1, 2], ["coal", 45, 1, 3], ["aquamarine", 15, 1, 1]], "boulder": [["stone", 35, 2, 3], ["coal", 35, 2, 3], ["star_ore", 30, 1, 2]], "ore": [["star_ore", 40, 1, 2], ["gold_ore", 30, 1, 2], ["silver_ore", 20, 1, 2], ["coal", 10, 2, 3]], "gem": [["aquamarine", 40, 1, 1], ["sapphire", 25, 1, 1], ["opal", 20, 1, 1], ["diamond", 10, 1, 1], ["star_crystal", 5, 1, 1]], "geode": [["geode", 100, 1, 2]], "fossil": [["sea_lily", 40, 1, 1], ["sunken_coin", 35, 1, 1], ["drowned_bell", 20, 1, 1], ["fossil_fish", 5, 1, 1]]}},
+    {"id": "vault", "name": "The Starlit Vault", "from": 81, "to": 100, "pickaxe": 4, "skill": 15, "deep": 3, "icon": "glowing_star", "about": "The deepest place under the valley: a dark hall where the rock itself glitters like a night sky. Moon ore, star crystals and shards of fallen stars.", "kinds": {"stone": 30, "ore": 30, "gem": 18, "fossil": 6, "geode": 8, "boulder": 8}, "drops": {"stone": [["stone", 45, 1, 2], ["coal", 47, 1, 3], ["star_crystal", 8, 1, 1]], "boulder": [["stone", 30, 2, 3], ["coal", 30, 2, 3], ["moon_ore", 40, 1, 2]], "ore": [["moon_ore", 40, 1, 2], ["star_ore", 35, 1, 2], ["gold_ore", 15, 1, 2], ["coal", 10, 2, 3]], "gem": [["star_crystal", 30, 1, 1], ["aquamarine", 25, 1, 1], ["diamond", 20, 1, 1], ["opal", 15, 1, 1], ["sapphire", 10, 1, 1]], "geode": [["geode", 100, 2, 3]], "fossil": [["drowned_bell", 30, 1, 1], ["sunken_coin", 30, 1, 1], ["sea_lily", 25, 1, 1], ["starfall_shard", 15, 1, 1]]}}
+  ],
  "rocks": {
   "_comment": "hard: swings with the plain pickaxe (power 1). deep: added to hard in the Crystal Caverns and the Ember Deeps (bigger, harder rock)",
   "stone": { "hard": 1, "xp": 1 },
@@ -75,9 +77,11 @@
   { "id": "pickaxe_plain", "name": "Old Pickaxe", "power": 1, "icon": "pick", "about": "Found leaning by the entrance. It does the job.", "coins": 0, "needs": {} },
   { "id": "pickaxe_copper", "name": "Copper Pickaxe", "power": 1.5, "icon": "pick", "about": "Bram's first proper pick for you. Hard enough for the Crystal Caverns.", "coins": 800, "needs": { "copper_bar": 5 } },
   { "id": "pickaxe_iron", "name": "Iron Pickaxe", "power": 2, "icon": "pick", "about": "Heavy and sure. It opens the way to the Ember Deeps.", "coins": 3000, "needs": { "iron_bar": 6, "copper_bar": 2 } },
-  { "id": "pickaxe_gold", "name": "Golden Pickaxe", "power": 3, "icon": "pick", "about": "Bram's finest work: almost every rock breaks in a swing or two.", "coins": 12000, "needs": { "gold_bar": 6, "silver_bar": 3, "diamond": 1 } }
+  { "id": "pickaxe_gold", "name": "Golden Pickaxe", "power": 3, "icon": "pick", "about": "Bram's finest work: almost every rock breaks in a swing or two.", "coins": 12000, "needs": { "gold_bar": 6, "silver_bar": 3, "diamond": 1 } },
+  { "id": "pickaxe_starsteel", "name": "Starsteel Pickaxe", "power": 4, "skill": 15, "icon": "pick", "about": "Forged from star ore. Bram says it hums when you swing it. It opens the Starlit Vault.", "coins": 30000, "needs": { "starsteel_bar": 6, "gold_bar": 3 } },
+  { "id": "pickaxe_heartstone", "name": "Heartstone Pickaxe", "power": 5, "skill": 20, "icon": "pick", "about": "Moonsilver round a heart of star crystal. Nothing in the mine stands up to it for long.", "coins": 60000, "needs": { "moonsilver_bar": 6, "starsteel_bar": 4, "star_crystal": 2 } }
  ],
- "cart": { "chance": 0.34, "drops": { "workings": [["copper_ore", 3], ["iron_ore", 2], ["coal", 3]], "caverns": [["iron_ore", 3], ["silver_ore", 2], ["coal", 3]], "deeps": [["silver_ore", 3], ["gold_ore", 2], ["coal", 4]] } },
+ "cart": { "chance": 0.34, "drops": { "workings": [["copper_ore", 3], ["iron_ore", 2], ["coal", 3]], "caverns": [["iron_ore", 3], ["silver_ore", 2], ["coal", 3]], "deeps": [["silver_ore", 3], ["gold_ore", 2], ["coal", 4]], "sunken": [["star_ore", 2], ["gold_ore", 2], ["coal", 4]], "vault": [["moon_ore", 2], ["star_ore", 2], ["coal", 4]] } },
  "pool": { "chance": 0.34, "drops": [["glow_moss", 70, 1, 3], ["cave_pearl", 30, 1, 1]] },
  "geode": [["quartz", 22], ["amethyst", 20], ["topaz", 16], ["jade", 12], ["ruby", 9], ["emerald", 8], ["sapphire", 6], ["opal", 5], ["crystal_shell", 2]],
  "chests": {
@@ -92,7 +96,15 @@
   "45": { "coins": 12000, "gems": 6, "items": { "gold_bar": 2 } },
   "50": { "coins": 15000, "gems": 8, "items": { "sapphire": 2 } },
   "55": { "coins": 18000, "gems": 8, "items": { "opal": 2 } },
-  "60": { "coins": 25000, "gems": 15, "items": { "diamond": 2 } }
+  "60": { "coins": 25000, "gems": 15, "items": { "diamond": 2 } },
+  "65": { "coins": 28000, "gems": 8, "items": { "aquamarine": 2 } },
+  "70": { "coins": 31000, "gems": 8, "items": { "star_ore": 6 } },
+  "75": { "coins": 34000, "gems": 10, "items": { "starsteel_bar": 2 } },
+  "80": { "coins": 40000, "gems": 15, "items": { "drowned_bell": 1 } },
+  "85": { "coins": 44000, "gems": 10, "items": { "moon_ore": 6 } },
+  "90": { "coins": 48000, "gems": 12, "items": { "star_crystal": 2 } },
+  "95": { "coins": 52000, "gems": 12, "items": { "moonsilver_bar": 2 } },
+  "100": { "coins": 60000, "gems": 25, "items": { "starfall_shard": 1 } }
  },
  "letters": {
   "intro": {
@@ -111,6 +123,19 @@
    "title": "The very bottom",
    "body": "Dear {farmer},\n\nSixty floors. You've been further down that mine than anyone ever, my grandad included. He'd have put the kettle on and talked your ear off.\n\nThe rocks will keep moving about, so there's always more to find. I made you a crystal chandelier for the house. It's waiting in your home's storage.\n\nBram",
    "attach": { "coins": 5000, "gems": 10 }, "piece": "mine_crystal_chandelier"
+  },
+  "sunken": {
+   "title": "Below the bottom",
+   "body": "Dear {farmer},\n\nYou know I said sixty floors was the bottom? I was wrong, and so was grandad. Behind the last carvings there's a stair going down into water. Old halls, half drowned, with bells in them.\n\nYou're handy enough with a pick now (Mining 12 at least) to go and look. Watch for green stones that shine like the sea.\n\nBram"
+  },
+  "vault": {
+   "title": "Stars underground",
+   "body": "Dear {farmer},\n\nEighty floors. That star ore you keep bringing up makes the best steel I've ever worked. Get your Mining to 15 and bring me six starsteel bars and three gold bars, and I'll make you a pickaxe that can open the hall below.\n\nThey call it the Starlit Vault in the old books. I'd love to see it, but my knees say no.\n\nBram"
+  },
+  "deepest": {
+   "title": "A hundred floors",
+   "body": "Dear {farmer},\n\nA hundred floors down, under a ceiling full of stars. I don't think anyone will ever go deeper than you have.\n\nI've put a little something in with this letter. Come by the forge and tell me everything.\n\nBram",
+   "attach": { "coins": 15000, "gems": 25 }
   }
  },
  "entrance": {

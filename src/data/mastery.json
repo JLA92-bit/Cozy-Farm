@@ -8,6 +8,7 @@
   "gems": 3
  },
  "plaque": "mastery_plaque",
+  "grand": { "_comment": "1.37 Grand Mastery: after an entry is mastered, from unlockLevel, grow cropGold more gold crops or make workshopGold more gold goods there (counted after mastering is not tracked, so the totals include the first ones: targets are the whole count). Gives the reward, a Grand Mastery Plaque and +gold to that crop or workshop for good.", "unlockLevel": 80, "cropGold": 50, "workshopGold": 30, "reward": { "coins": 6000, "gems": 10 }, "plaque": "grand_plaque", "gold": 0.02 },
  "lines": {
   "_comment": "1.25 mastery lines: once a crop or workshop is mastered, pick one of its lines for good (no resets). Read in src/systems/MasteryEffects.ts.",
   "crop": [

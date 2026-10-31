@@ -370,8 +370,8 @@ for (const s of [...TREEHOUSE.stages, ...TREEHOUSE.furnishings]) ROOM[s.id] = s;
 export type MineRockKind = 'stone' | 'boulder' | 'ore' | 'gem' | 'geode' | 'fossil';
 /** [item, weight, min, max] */
 export type MineDrop = [string, number, number, number];
-export interface MineLayer { id: 'workings' | 'caverns' | 'deeps'; name: string; from: number; to: number; pickaxe: number; icon: string; about: string; kinds: Partial<Record<MineRockKind, number>>; drops: Partial<Record<MineRockKind, MineDrop[]>> }
-export interface MinePickaxe { id: string; name: string; power: number; icon: string; about: string; coins: number; needs: Record<string, number> }
+export interface MineLayer { id: 'workings' | 'caverns' | 'deeps' | 'sunken' | 'vault'; name: string; from: number; to: number; pickaxe: number; /** 1.36 the Mining skill level needed to go in */ skill?: number; /** 1.36 extra hardness for this layer's rocks (else rocks.deep) */ deep?: number; icon: string; about: string; kinds: Partial<Record<MineRockKind, number>>; drops: Partial<Record<MineRockKind, MineDrop[]>> }
+export interface MinePickaxe { id: string; name: string; power: number; /** 1.36 Mining skill level Bram needs to see before he makes it */ skill?: number; icon: string; about: string; coins: number; needs: Record<string, number> }
 export interface MineLetter { title: string; body: string; attach?: { coins?: number; gems?: number }; /** a home piece put in the home's storage with the letter */ piece?: string }
 export const MINE = mineJson as unknown as {
   level: number; swings: number; floors: number; liftEvery: number; rocksPerFloor: [number, number]; geodeCost: number;
@@ -382,7 +382,7 @@ export const MINE = mineJson as unknown as {
   pool: { chance: number; drops: MineDrop[] };
   geode: [string, number][];
   chests: Record<string, { coins: number; gems: number; items: Record<string, number> }>;
-  letters: Record<'intro' | 'caverns' | 'deeps' | 'bottom', MineLetter>;
+  letters: Record<'intro' | 'caverns' | 'deeps' | 'bottom' | 'sunken' | 'vault' | 'deepest', MineLetter>;
   entrance: RoomDef;
 };
 ROOM[MINE.entrance.id] = MINE.entrance;

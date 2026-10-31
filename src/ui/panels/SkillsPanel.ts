@@ -11,7 +11,8 @@ import './skills.css';
 /** A round progress ring with the level inside (always a number, never colour alone). */
 function ring(def: SkillDef): HTMLElement {
   const p = skills.progress(def.id);
-  const el = h('div', { class: `sk-ring ${def.color}`, style: `--p:${p.pct}`, role: 'img', 'aria-label': `${def.name} level ${p.level}${p.max ? ', top level' : `, ${p.pct} percent to the next level`}` },
+  // 1.35 expert ranks 11-20 get a star ring
+  const el = h('div', { class: `sk-ring ${def.color} ${p.level > 10 ? 'expert' : ''}`, style: `--p:${p.pct}`, role: 'img', 'aria-label': `${def.name} level ${p.level}${p.max ? ', top level' : `, ${p.pct} percent to the next level`}` },
     h('div', { class: 'sk-ring-in' }, icon(def.icon, 'sk-ring-icon'), h('span', { class: 'sk-ring-lvl outlined' }, String(p.level))));
   return el;
 }
@@ -63,7 +64,7 @@ function bonusRow(def: SkillDef, b: NonNullable<SkillDef['bonus']>[number]): HTM
 export function renderSkills(into: HTMLElement, refresh: () => void = () => {}): void {
   clear(into);
   into.append(h('div', { class: 'sk-intro' }, icon('sparkles', 'sk-intro-icon'),
-    h('div', null, h('div', { class: 'sk-intro-title' }, 'Skills'), h('div', { class: 'sk-intro-text' }, 'Each skill grows by itself as you play. Every level helps a little, and at levels 5 and 10 you choose a perk.'))));
+    h('div', null, h('div', { class: 'sk-intro-title' }, 'Skills'), h('div', { class: 'sk-intro-text' }, 'Each skill grows by itself as you play. Every level helps a little, and at levels 5, 10, 15 and 20 you choose a perk. Levels 11 to 20 are expert ranks.'))));
   for (const def of SKILLS) {
     // Crafting opens with Bram's Workshop in the village square
     if ((def.id === 'crafting' && !roomDone('workshop')) || (def.id === 'foraging' && game.level < WOODS.level) || (def.id === 'mining' && !mine.open)) {
@@ -72,15 +73,19 @@ export function renderSkills(into: HTMLElement, refresh: () => void = () => {}):
       continue;
     }
     const p = skills.progress(def.id);
+    // the expert perks (15, 20) and bonuses past 10 only show once the skill reaches level 10
+    const expert = p.level >= 10;
+    const perkLevels = SKILL_PERK_LEVELS.filter((lv) => lv <= 10 || expert);
+    const bonuses = (def.bonus ?? []).filter((b) => b.level <= 10 || expert);
     const card = h('div', { class: `sk-card ${def.color}` },
       h('div', { class: 'sk-head' }, ring(def),
         h('div', { class: 'grow' },
           h('div', { class: 'sk-name' }, def.name, skills.pendingChoice(def.id) !== null ? h('span', { class: 'sk-new' }, 'Choose a perk') : null),
           h('div', { class: 'sk-sub' }, def.grows),
-          h('div', { class: 'sk-sub' }, `Each level: ${def.perLevel.charAt(0).toLowerCase()}${def.perLevel.slice(1)}`),
+          h('div', { class: 'sk-sub' }, `Each level: ${def.perLevel.charAt(0).toLowerCase()}${def.perLevel.slice(1)}${expert ? ' (half as much from level 11)' : ''}`),
           h('div', { class: 'progress sk-bar' }, h('div', { class: 'fill', style: `width:${p.pct}%` }),
             h('div', { class: 'label' }, p.max ? 'Top level' : `${p.into.toLocaleString('en-US')} / ${p.need.toLocaleString('en-US')} XP`)))),
-      h('div', { class: 'sk-perks' }, ...SKILL_PERK_LEVELS.map((lv) => perkRow(def, lv, refresh)), ...(def.bonus ?? []).map((b) => bonusRow(def, b))));
+      h('div', { class: 'sk-perks' }, ...perkLevels.map((lv) => perkRow(def, lv, refresh)), ...bonuses.map((b) => bonusRow(def, b))));
     into.append(card);
   }
 }

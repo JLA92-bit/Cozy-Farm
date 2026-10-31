@@ -13,14 +13,14 @@ import { mail } from './Mail';
 import { home } from './Home';
 import { localDay } from './Progression';
 import { roomDone } from './RestorationEffects';
-import { hasSkillBonus, hasSkillPerk, skillLevel } from './SkillEffects';
+import { hasSkillBonus, hasSkillPerk, skillLevel, skillSteps } from './SkillEffects';
 import { hashString, rng } from '../world/Procedural';
 import { logEvent } from '../online/Events';
 import type { MineState } from './State';
 
 type Vec = { x: number; y: number; z: number };
 /** the Mining skill's numbers (skills.json values) */
-const V = SKILL_VALUES as unknown as { mineBonusPerLevel: number; strongArmChance: number; prospectorChance: number; gemSenseMult: number; secondWindSwings: number; cartLuckMult: number };
+const V = SKILL_VALUES as unknown as { mineBonusPerLevel: number; strongArmChance: number; prospectorChance: number; gemSenseMult: number; secondWindSwings: number; cartLuckMult: number; staminaSwings: number; steadyBreathSwings: number; gemEyeMult: number; powerSwingChance: number; richSeamsChance: number; minersLuck: number };
 
 /** The room a floor is drawn in: rocks stand on a grid of cells, half a room either side of the middle. */
 export const MINE_ROOM = { half: 6.4, cells: 9 };
@@ -60,13 +60,15 @@ class MineSystem {
   /** The entrance is restored: the floors can be visited. */
   get open(): boolean { return this.unlocked && roomDone(MINE.entrance.id); }
 
-  maxSwings(): number { return MINE.swings + (hasSkillPerk('second_wind') ? V.secondWindSwings : 0); }
+  maxSwings(): number { return MINE.swings + (hasSkillPerk('second_wind') ? V.secondWindSwings : 0) + (hasSkillPerk('stamina') ? V.staminaSwings : 0) + (hasSkillBonus('steady_breath') ? V.steadyBreathSwings : 0); }
   swingsLeft(): number { return Math.max(0, this.maxSwings() - this.st.swings); }
   get deepest(): number { return game.state.mine?.deepest ?? 0; }
   pickaxe(): number { return game.state.mine?.pickaxe ?? 0; }
   power(): number { return MINE.pickaxes[this.pickaxe()]?.power ?? 1; }
   /** The pickaxe a floor's layer asks for, or null when yours will do. */
   needsPickaxe(floor: number): number | null { const l = layerOf(floor); return this.pickaxe() >= l.pickaxe ? null : l.pickaxe; }
+  /** 1.36 the Mining skill level a floor's layer asks for, or null when yours will do. */
+  needsSkill(floor: number): number | null { const s = layerOf(floor).skill ?? 0; return skillLevel('mining') >= s ? null : s; }
 
   /** Floors the lift goes to: the top, and every lift floor reached. */
   lifts(): number[] {
@@ -103,13 +105,13 @@ class MineSystem {
     for (let i = cellsFree.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [cellsFree[i], cellsFree[j]] = [cellsFree[j], cellsFree[i]]; }
     const [lo, hi] = MINE.rocksPerFloor;
     const n = Math.min(cellsFree.length, lo + Math.floor(r() * (hi - lo + 1)));
-    const gemMult = hasSkillPerk('gem_sense') ? V.gemSenseMult : 1;
+    const gemMult = (hasSkillPerk('gem_sense') ? V.gemSenseMult : 1) * (hasSkillPerk('gem_eye') ? V.gemEyeMult : 1);
     const kinds = Object.entries(layer.kinds).map(([k, w]) => ({ v: k as MineRockKind, w: (w ?? 0) * (k === 'gem' ? gemMult : 1) }));
     const rocks: MineRock[] = [];
     for (let i = 0; i < n; i++) {
       const [cx, cz] = cellsFree[i];
       const kind = pickWeighted(kinds, r);
-      const deep = kind === 'stone' || layer.id === 'workings' ? 0 : MINE.rocks.deep;
+      const deep = kind === 'stone' || layer.id === 'workings' ? 0 : layer.deep ?? MINE.rocks.deep;
       rocks.push({
         i, kind, x: cx + (r() - 0.5) * step * 0.45, z: cz + (r() - 0.5) * step * 0.45, hard: MINE.rocks[kind].hard + deep,
         size: kind === 'boulder' ? 1.15 + r() * 0.25 : kind === 'stone' ? 0.7 + r() * 0.25 : 0.85 + r() * 0.25, rot: r() * Math.PI * 2, variant: Math.floor(r() * 1000),
@@ -141,9 +143,10 @@ class MineSystem {
     const need = this.need(rock);
     // Strong Arm: now and then a rock breaks in one swing (seeded, so it is the same rock all day)
     const rr = rng(f.seed + i * 7919);
-    const strong = hasSkillPerk('strong_arm') && rr() < V.strongArmChance;
+    const strong = rr() < (hasSkillPerk('strong_arm') ? V.strongArmChance : 0) + (hasSkillPerk('power_swing') ? V.powerSwingChance : 0);
     hits[i] = strong ? need : hits[i] + 1;
     game.incStat('mine_swings');
+    if (this.deepest >= 60) this.deepLetters();
     const out: Strike = { hit: hits[i], need, broken: hits[i] >= need, drops: [], ladder: false, first: [] };
     if (out.broken) {
       out.drops = this.rollDrops(f, rock, rr);
@@ -168,10 +171,10 @@ class MineSystem {
     const [item, , lo, hi] = list[Math.max(0, list.findIndex((d) => d[0] === pickWeighted(list.map((d) => [d[0], d[1]] as [string, number]), r)))];
     let n = lo + Math.floor(r() * (hi - lo + 1));
     // Prospector: ore rocks give one more ore now and then
-    if (rock.kind === 'ore' && hasSkillPerk('prospector') && r() < V.prospectorChance) n++;
+    if (rock.kind === 'ore' && r() < (hasSkillPerk('prospector') ? V.prospectorChance : 0) + (hasSkillPerk('rich_seams') ? V.richSeamsChance : 0)) n++;
     const out = [{ item, n }];
     // every Mining level adds a little chance of a bonus find from the same rock
-    if (r() < (skillLevel('mining') - 1) * V.mineBonusPerLevel) {
+    if (r() < skillSteps('mining') * V.mineBonusPerLevel + (hasSkillBonus('miners_luck') ? V.minersLuck : 0)) {
       const [extra] = list[Math.floor(r() * list.length)];
       if (extra === item) out[0].n++; else out.push({ item: extra, n: 1 });
     }
@@ -182,6 +185,8 @@ class MineSystem {
   descend(f: MineFloor): { ok: boolean; reason?: string; floor: number } {
     const next = f.floor + 1;
     if (!this.ladderFound(f) || next > MINE.floors) return { ok: false, floor: f.floor };
+    const skill = this.needsSkill(next);
+    if (skill !== null) return { ok: false, floor: f.floor, reason: `The way down to ${layerOf(next).name} needs Mining level ${skill}.` };
     const tier = this.needsPickaxe(next);
     if (tier !== null) return { ok: false, floor: f.floor, reason: `The rock below needs the ${MINE.pickaxes[tier].name.toLowerCase()}. Bram can make one.` };
     this.reach(next);
@@ -197,7 +202,8 @@ class MineSystem {
     game.setGauge('mine_deepest', floor);
     if (floor >= 20) this.letter('caverns');
     if (floor >= 40) this.letter('deeps');
-    if (floor >= MINE.floors) this.letter('bottom');
+    if (floor >= 60) this.letter('bottom');
+    this.deepLetters();
     logEvent('mine_floor', { floor });
     game.bus.emit('mine:changed', {});
     saves.save();
@@ -269,9 +275,11 @@ class MineSystem {
 
   /** The next pickaxe Bram can make, or null when you have the best. */
   nextPickaxe(): (typeof MINE.pickaxes)[number] | null { return MINE.pickaxes[this.pickaxe() + 1] ?? null; }
+  /** 1.36 the next pickaxe needs a Mining level before Bram will make it (null when it does not, or yours is enough). */
+  pickaxeSkill(): number | null { const p = this.nextPickaxe(); return p?.skill && skillLevel('mining') < p.skill ? p.skill : null; }
   canBuyPickaxe(): boolean {
     const p = this.nextPickaxe();
-    return !!p && game.coins >= p.coins && Object.entries(p.needs).every(([k, n]) => game.count(k) >= n);
+    return !!p && this.pickaxeSkill() === null && game.coins >= p.coins && Object.entries(p.needs).every(([k, n]) => game.count(k) >= n);
   }
   buyPickaxe(): boolean {
     const p = this.nextPickaxe();
@@ -305,7 +313,15 @@ class MineSystem {
 
   // ---------------------------------------------------------------------------------------- letters
 
-  private letter(id: 'intro' | 'caverns' | 'deeps' | 'bottom'): void {
+  /** 1.36 Bram's letters for the Sunken Halls (floor 60 and Mining 12), the Starlit Vault (floor 80) and floor 100. */
+  deepLetters(): void {
+    const d = this.deepest;
+    if (d >= 60 && skillLevel('mining') >= (MINE.layers.find((l) => l.id === 'sunken')?.skill ?? 0)) this.letter('sunken');
+    if (d >= 80) this.letter('vault');
+    if (d >= MINE.floors) this.letter('deepest');
+  }
+
+  private letter(id: keyof typeof MINE.letters): void {
     const st = this.st;
     if (st.letters.includes(id)) return;
     st.letters.push(id);
@@ -317,7 +333,7 @@ class MineSystem {
 
   /** Start listening (once, after the farm is loaded): Bram's letter when the mine can be opened. */
   init(): void {
-    const check = () => { if (this.unlocked && game.state.player.created) this.letter('intro'); };
+    const check = () => { if (this.unlocked && game.state.player.created) { this.letter('intro'); if (this.deepest >= 60) this.deepLetters(); } };
     check();
     game.bus.on('levelup', check);
   }

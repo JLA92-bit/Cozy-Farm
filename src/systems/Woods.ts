@@ -12,7 +12,7 @@ import { game, type Vec } from './Game';
 import { saves } from './Save';
 import { localDay } from './Progression';
 import { rollQuality, type Quality } from './Quality';
-import { extraDigs, keenEyesChance, luckyFinds } from './SkillEffects';
+import { extraDigs, bigBasketChance, keenEyesChance, luckyFinds } from './SkillEffects';
 import { manorDigs, manorForageFull } from './Manor';
 import { groveDigs, grovePans } from './Grove';
 import { treehouseCampFinds } from './Treehouse';
@@ -44,7 +44,7 @@ class WoodsSystem {
   private st(): WoodsState {
     const day = localDay(game.now());
     const w = (game.state.woods ??= { day, picked: [], dug: [], found: {}, visited: false });
-    if (w.day !== day) { w.day = day; w.picked = []; w.dug = []; w.panned = 0; }
+    if (w.day !== day) { w.day = day; w.picked = []; w.dug = []; w.panned = 0; delete w.pannedAt; }
     return w;
   }
 
@@ -101,13 +101,16 @@ class WoodsSystem {
   }
 
   /** Pans left today at Crystal Creek. */
-  pansLeft(id = 'creek'): number { const p = this.region(id)?.pan; return p ? Math.max(0, p.perDay + grovePans() - (this.st().panned ?? 0)) : 0; }
+  // 1.41 each region pans on its own count (Crystal Creek keeps the old `panned`, Fern Falls and later ones `pannedAt`)
+  pansLeft(id = 'creek'): number { const p = this.region(id)?.pan; return p ? Math.max(0, p.perDay + (id === 'creek' ? grovePans() : 0) - this.pannedToday(id)) : 0; }
+  private pannedToday(id: string): number { const w = this.st(); return id === 'creek' ? w.panned ?? 0 : w.pannedAt?.[id] ?? 0; }
   /** Swirl the pan: one find from the creek's table. */
   pan(id = 'creek', at?: Vec): { item: string; first: boolean } | null {
     const reg = this.region(id);
     if (!reg?.pan || !this.regionOpen(id) || this.pansLeft(id) <= 0) return null;
     const w = this.st();
-    w.panned = (w.panned ?? 0) + 1;
+    if (id === 'creek') w.panned = (w.panned ?? 0) + 1;
+    else (w.pannedAt ??= {})[id] = (w.pannedAt?.[id] ?? 0) + 1;
     // 1.21 mist makes the rarer finds likelier
     const misty = weatherToday() === 'mist';
     const table = reg.pan.table.map((e) => ({ id: e.id, w: e.w * (misty && WOODS_WEATHER.rarePan.includes(e.id) ? WOODS_WEATHER.rareMult : 1) }));
@@ -180,7 +183,8 @@ class WoodsSystem {
     const w = this.st();
     w.picked.push(i);
     const quality = rollQuality('forage', spot.item);
-    const n = Math.random() < keenEyesChance() ? 2 : 1;
+    // Keen Eyes doubles a pick; 1.35 Big Basket adds one more now and then
+    const n = (Math.random() < keenEyesChance() ? 2 : 1) + (Math.random() < bigBasketChance() ? 1 : 0);
     game.addItem(spot.item, n, at, quality);
     this.noteFound(spot.item);
     game.incStat('forage_picked', n);

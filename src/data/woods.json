@@ -400,7 +400,8 @@
      "w": 1
     }
    ]
-  }
+  },
+    {"id": "falls", "name": "Fern Falls", "icon": "water_wave", "trail": "trail_falls", "at": [43.5, -11.6], "r": 13, "feature": "panning", "forage": {"spots": 9, "chance": 0.8}, "foraged": [{"id": "falls_fern", "kind": "leaf", "w": 6}, {"id": "mist_berry", "kind": "berry", "w": 5}, {"id": "river_orchid", "kind": "flower", "w": 3}, {"id": "stone_mushroom", "kind": "mushroom", "w": 4}, {"id": "watercress", "kind": "leaf", "w": 3}, {"id": "river_mint", "kind": "leaf", "w": 3}], "pan": {"spots": 3, "perDay": 6, "table": [{"id": "gold_flake", "w": 30}, {"id": "river_pearl", "w": 14}, {"id": "jade", "w": 12}, {"id": "aquamarine", "w": 8}, {"id": "opal", "w": 6}, {"id": "sapphire", "w": 5}, {"id": "quartz", "w": 25}]}}
  ],
  "trails": [
   {
@@ -645,12 +646,16 @@
      }
     }
    ]
-  }
+  },
+    {"id": "trail_falls", "name": "The Falls Path", "icon": "water_wave", "color": "blue", "villager": "hazel", "opensAt": 95, "about": "Behind the Pines a path climbs to a waterfall Hazel remembers from when she was a girl. The steps are washed away: help her cut new ones, bring rope and lanterns, and a picnic for the top.", "rebuilds": "the path up to Fern Falls", "reward": {"id": "trail_falls", "text": "Fern Falls opens: waterfall ferns, mistberries, river orchids and stone mushrooms, six pans a day in the plunge pool (pearls, jade, aquamarines), and a family of otters."}, "letter": {"title": "The falls", "body": "Dear {farmer},\n\nI climbed all the way up this morning, slowly, and sat by the pool with my feet in the water like I did sixty years ago. The otters are still there. Fancy that.\n\nThank you, dear.\n\nHazel"}, "bundles": [{"id": "steps", "name": "New Stone Steps", "icon": "hammer", "wants": {"stone_brick": 30, "iron_bar": 8, "resin_varnish": 10}}, {"id": "rope", "name": "Rope and Lanterns", "icon": "candle", "wants": {"yarn": 40, "alpaca_yarn": 6, "pine_candle": 10}}, {"id": "picnic", "name": "A Picnic at the Top", "icon": "basket", "wants": {"woodland_pie": 12, "elderberry_cordial": 12, "peach_iced_tea": 8}}, {"id": "wages", "name": "The Builders' Wages", "icon": "coin", "wants": {"coins": 250000}}]}
  ],
  "critters": {
   "_comment": "1.20 Woodland Friends. A feeding stump per critter family (in the glade or a region, which must be open). Leave one of its treats on the stump; the family visits during its hours (local time, from-to, may wrap past midnight) and the treat waits until then, never lost. Tap the visitor to say hello: one visit a day per family. Every visitsPerHeart visits is a heart (up to maxHearts); each heart pays heartCoins x hearts. A visit leaves a gift: one of `gifts` (weights), or the family's `rare` gift with chance rareBase + rarePerHeart x hearts (always at the last heart). Visits grow the Foraging skill (stat critter_visits).",
   "visitsPerHeart": 3,
-  "maxHearts": 5,
+  "maxHearts": 10,
+  "friendHearts": 5,
+  "trustedFrom": 6,
+  "trustedGems": 10,
   "heartCoins": 150,
   "rareBase": 0.04,
   "rarePerHeart": 0.05,
@@ -871,7 +876,8 @@
       "w": 1
      }
     ]
-   }
+   },
+    {"id": "otter", "name": "Otters", "one": "otter", "icon": "wild_otter", "model": "proc:otter", "region": "falls", "from": 7, "to": 13, "when": "morning", "treats": ["salmon", "tuna", "mackerel", "herring"], "rare": "otter_pebble", "about": "A playful otter family in the plunge pool below the falls. They juggle pebbles and love a proper fish breakfast.", "gifts": [{"id": "falls_fern", "w": 3}, {"id": "mist_berry", "w": 2}, {"id": "river_pearl", "w": 1}, {"id": "jade", "w": 1}]}
   ]
  },
  "wren": {
@@ -1173,10 +1179,7 @@
      "id": "grove_crown",
      "text": "The Elder Oak is whole: a sapling of it for your own farm, and a letter from the whole valley."
     },
-    "letter": {
-     "title": "",
-     "body": ""
-    },
+    "letter": {"title": "Something still grows", "body": "Dear {farmer},\n\nThe crown is up and the whole valley came to see it. But put your ear to the trunk, dear: something inside is still growing. Old stories say a heart of golden wood.\n\nWe will see in a few weeks.\n\nRosa"},
     "bundles": [
      {
       "id": "rare",
@@ -1217,7 +1220,8 @@
       }
      }
     ]
-   }
+   },
+    {"id": "grove_heartwood", "name": "The Heartwood", "icon": "oak", "color": "green", "villager": "rosa", "opensAt": 100, "growDays": 28, "about": "Deep in the Elder Oak something still grows: a heart of golden wood. Feed the roots the best the valley has, and it will glow for good.", "rebuilds": "the heart of the Elder Oak", "reward": {"id": "grove_heartwood", "text": "The heartwood glows: woods forage is likelier still to carry silver and gold, and one more dig a day."}, "letter": {"title": "", "body": ""}, "bundles": [{"id": "roots", "name": "Food for the Roots", "icon": "seedling", "wants": {"quality_fertiliser": 20, "acorn": 120}}, {"id": "gold", "name": "Golden Gifts", "icon": "sparkles", "wants": {"golden_acorn": 4, "moonflower": 20, "river_orchid": 10}}, {"id": "feast", "name": "Supper Under the Oak", "icon": "basket", "wants": {"highland_feast": 2, "acorn_bread": 20, "moonflower_tea": 20}}, {"id": "wages", "name": "Lanterns in the Branches", "icon": "coin", "wants": {"coins": 600000}}]}
   ]
  },
  "treehouse": {
@@ -1546,7 +1550,8 @@
       }
      }
     ]
-   }
+   },
+    {"id": "treehouse_lookout", "name": "The Lookout", "icon": "glowing_star", "color": "green", "villager": "juniper", "opensAt": 95, "about": "A little crow's nest high up the pine, with a rope ladder and a flag, to see the whole valley from.", "rebuilds": "the lookout", "reward": {"id": "treehouse_lookout", "text": "A crow's nest and a flag high up the pine."}, "letter": {"title": "", "body": ""}, "bundles": [{"id": "make", "name": "The Crow's Nest", "icon": "hammer", "wants": {"resin_varnish": 12, "starsteel_bar": 2, "alpaca_yarn": 4, "coins": 60000}}]}
   ]
  }
 }

@@ -17,6 +17,7 @@ import { COOP_PROC } from './models/coop';
 import { KILN_PROC } from './models/kiln';
 import { MINE_PROC } from './models/mine';
 import { FISHSTALL_PROC } from './models/fishstall';
+import { STOCK_PROC } from './models/stock';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -171,6 +172,10 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   pen_rabbit: () => penBuilder('#b6e08a', '#e59ab8', '#fff3c4'),
   pen_duck: () => penDuck(),
   pen_horse: () => penHorse(),
+  // 1.38 New Stock
+  pen_goose: () => penGoose(),
+  pen_alpaca: () => penBuilder('#a8cf78', '#c8864a', '#fff3c4'),
+  pen_highland: () => penBuilder('#8fbf5a', '#6a7a4a', '#bfe8ff'),
   haybale: () => geo()
     .cyl(0.32, 0.32, 0.55, PAL.hay, [0, 0.32, 0], 9, [Math.PI / 2, 0, 0])
     .cyl(0.33, 0.33, 0.06, PAL.hayDark, [0, 0.32, 0.12], 9, [Math.PI / 2, 0, 0])
@@ -453,6 +458,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...KILN_PROC,
   ...MINE_PROC,
   ...FISHSTALL_PROC,
+  ...STOCK_PROC,
 };
 
 /** The Duck Pond: a grassy pen with a pond in the middle, reeds and a little blue duck house. */
@@ -470,6 +476,23 @@ function penDuck(): THREE.BufferGeometry {
   shed(b, 1.3, 1.0, 0.85, '#bfe8ff', '#3fa9f5', [-0.95, 0.04, -1.25]);
   b.block(0.6, 0.22, 0.3, PAL.woodDark, [1.0, 0.05, -1.3]);
   b.block(0.5, 0.06, 0.2, '#e6c76a', [1.0, 0.27, -1.3]);
+  return b.build();
+}
+
+/** 1.38 Goose Green: a bigger pond with reeds, a grey goose house with a red roof and a little bridge plank. */
+function penGoose(): THREE.BufferGeometry {
+  const b = geo();
+  b.block(3.9, 0.05, 3.9, '#9fd17a', [0, 0, 0]);
+  fencePosts(b, 3.9, 3.9);
+  b.cyl(1.45, 1.5, 0.07, '#d9c7a3', [0.25, 0.05, 0.45], 20);
+  b.cyl(1.32, 1.32, 0.09, '#5fb6e2', [0.25, 0.06, 0.45], 20);
+  b.cyl(0.8, 0.8, 0.1, '#86cdf2', [0.45, 0.06, 0.55], 14);
+  for (const [x, z, h] of [[-1.05, 1.2, 0.55], [-0.9, 1.35, 0.42], [1.55, -0.2, 0.5], [1.65, 0.05, 0.38], [1.5, 1.4, 0.45]] as const) {
+    b.cyl(0.02, 0.02, h, PAL.green, [x, 0.07, z], 5);
+    b.cyl(0.04, 0.04, 0.1, '#8a5a33', [x, 0.07 + h, z], 6);
+  }
+  shed(b, 1.4, 1.05, 0.9, '#d8dde2', '#c8423a', [-0.95, 0.04, -1.25]);
+  b.block(0.9, 0.06, 0.25, PAL.wood, [-0.85, 0.08, 0.35]);
   return b.build();
 }
 

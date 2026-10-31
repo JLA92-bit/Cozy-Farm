@@ -8,7 +8,7 @@ import { isBuilt, plotReady, plotRemaining, treeReady } from './Timers';
 import { speedupCost } from './Buildings';
 import { addRolled, qualityBoosts } from './Quality';
 import { plantGrowthMult } from './Weather';
-import { bigHarvestChance, cropGrowMult, seedSaverChance } from './SkillEffects';
+import { bigHarvestChance, cropGrowMult, freeSeedsChance, seedSaverChance } from './SkillEffects';
 import { RESTORATION, HELPERS } from '../data';
 import { craftFertMult, sprinklerGrowMult } from './HelperEffects';
 
@@ -52,7 +52,8 @@ export class FarmingSystem {
   plant(b: PlacedBuilding, crop: string): boolean {
     if (!this.canPlant(b, crop).ok) return false;
     const def = CROP[crop];
-    game.spend(def.seedCost);
+    // 1.35 Free Seeds: now and then a planting costs nothing
+    if (!(def.seedCost > 0 && Math.random() < freeSeedsChance())) game.spend(def.seedCost);
     // Charm speeds growth a little; so does a rainy day (1.8 weather)
     const growSec = Math.max(5, Math.round(def.growSec * (1 - buildings.bonuses().growth) * plantGrowthMult() * cropGrowMult() * sprinklerGrowMult(b) * manorGrowTimeMult() * cropGrowMultFor(crop)));
     b.plot = { crop, plantedAt: game.now(), growSec };

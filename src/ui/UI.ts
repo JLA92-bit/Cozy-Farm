@@ -237,6 +237,9 @@ class UIManager {
       if (fertStock() > 0 || farming.useFert) tray.append(this.fertTile());
       // 1.8.5: Rosa's rare seeds work the same way
       if (game.count(RARE_SEED) > 0 || farming.useRare) tray.append(this.rareTile());
+      // 1.34.3: a big farm can sow every empty field in one tap
+      const empty = game.state.tutorial.done ? this.interaction.emptyFields().length : 0;
+      if (empty >= 6 && sel) tray.append(button(['Plant all', h('span', { class: 'tcount outlined' }, `${empty}`)], () => { this.interaction.plantAllEmpty(); render(sel); }, 'green small tray-fill'));
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
@@ -418,7 +421,7 @@ class UIManager {
   }
 
   /** Build mode shortcuts (1.10): "Select many" normally, and Store (n) / Cancel while multi-selecting. */
-  setEditBar(a: { select?: () => void; store?: () => void; cancel?: () => void; count?: number } | null): void {
+  setEditBar(a: { select?: () => void; store?: () => void; cancel?: () => void; count?: number; nudge?: (dx: number, dz: number) => void } | null): void {
     this.editBar?.remove();
     this.editBar = null;
     if (!a) return;
@@ -426,6 +429,14 @@ class UIManager {
     if (a.select) bar.append(button([icon('package'), ' Select many'], a.select, 'yellow'));
     if (a.cancel) bar.append(button('✕', a.cancel, 'red round', { 'aria-label': 'Cancel selection' }));
     if (a.store) bar.append(button([icon('package'), ` Store (${a.count ?? 0})`], a.store, `yellow ${a.count ? '' : 'disabled'}`));
+    // 1.34.3: move the whole selection a tile at a time; screen directions on the fixed corner camera
+    if (a.nudge && a.count) {
+      const nudge = a.nudge;
+      const pad = h('div', { class: 'nudge-pad', role: 'group', 'aria-label': 'Move the selection' },
+        ...([['↖', -1, 0, 'Up left'], ['↗', 0, -1, 'Up right'], ['↙', 0, 1, 'Down left'], ['↘', 1, 0, 'Down right']] as const)
+          .map(([t, dx, dz, label]) => button(t, () => nudge(dx, dz), 'blue round small', { 'aria-label': `Move ${label.toLowerCase()}` })));
+      bar.append(pad);
+    }
     this.editBar = bar;
     this.root.append(bar);
   }
@@ -557,6 +568,8 @@ class UIManager {
         this.world.hidePopup();
       }, `small ${check.ok ? 'yellow' : 'disabled'}`));
       rows.push(h('div', { class: 'card-sub' }, `Next: ${up.label}${check.ok ? '' : ` (${(check as { reason: string }).reason})`}`));
+      // 1.35 the late upgrades also take goods
+      if (up.goods) rows.push(h('div', { class: 'row up-goods' }, ...Object.entries(up.goods).map(([item, n]) => h('span', { class: `pill ${game.count(item) >= n ? 'enough' : 'short'}` }, itemIcon(item), `${Math.min(game.count(item), n)}/${n}`))));
     }
     btns.append(button('Move', () => { this.world.hidePopup(); void this.interaction.startMove(b.uid, false); }, 'small blue'));
     // 1.9: lay a path under this object (paths can go beneath benches, lanterns and the like)

@@ -27,7 +27,8 @@
       { "name": "Old Net", "skill": 3, "holds": 4, "keep": 2, "hours": 6, "rare": 0 },
       { "name": "Mended Net", "skill": 5, "holds": 6, "keep": 3, "hours": 7, "rare": 0 },
       { "name": "Sturdy Net", "skill": 7, "holds": 8, "keep": 4, "hours": 8, "rare": 0.02 },
-      { "name": "Master Net", "skill": 10, "holds": 10, "keep": 5, "hours": 8, "rare": 0.04 }
+      { "name": "Master Net", "skill": 10, "holds": 10, "keep": 5, "hours": 8, "rare": 0.04 },
+      { "name": "Grand Net", "skill": 15, "holds": 12, "keep": 6, "hours": 8, "rare": 0.05 }
     ]
   },
   "species": [

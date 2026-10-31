@@ -63,6 +63,18 @@ const PALS: Record<string, Pal> = {
     hemiSky: C('#e8b496'), hemiGround: C('#26120c'), hemi: 0.85, sun: 0.55, sunColor: C('#ffd0a8'),
     torch: '#ff9a48', crystals: ['#ffb347', '#ff7a3a', '#ffe08a'], ores: ['#ffcf3a', '#eef2f6', '#ffcf3a'], motes: '#ff9a50', rise: 0.35,
   },
+  // 1.36 the Sunken Halls: green-blue stone and still water
+  sunken: {
+    dark: C('#1a2e2c'), light: C('#6aa89a'), top: C('#3f6e66'), floor: C('#1a2a28'), floorLight: C('#284440'), fog: C('#050c0c'),
+    hemiSky: C('#9fe0d0'), hemiGround: C('#10201e'), hemi: 0.95, sun: 0.55, sunColor: C('#c8f0e6'),
+    torch: '#9ff0d8', crystals: ['#5fe0d0', '#7fd8ff', '#b0fff0'], ores: ['#aab8ff', '#ffcf3a', '#eef2f6'], motes: '#a0ffe8', rise: 0.03,
+  },
+  // 1.36 the Starlit Vault: dark violet rock that glitters like a night sky
+  vault: {
+    dark: C('#16142c'), light: C('#706aae'), top: C('#3c3870'), floor: C('#141228'), floorLight: C('#24224a'), fog: C('#04030c'),
+    hemiSky: C('#b8b0ff'), hemiGround: C('#100e24'), hemi: 0.95, sun: 0.5, sunColor: C('#d8d0ff'),
+    torch: '#c8b8ff', crystals: ['#ffffff', '#c8b8ff', '#8fd0ff', '#ffe8a0'], ores: ['#e8f0ff', '#aab8ff', '#ffffff'], motes: '#ffffff', rise: 0.02,
+  },
 };
 export const palOf = (floor: number): Pal => PALS[layerOf(floor).id];
 
@@ -441,7 +453,7 @@ export class MineView {
     // ---- the layer's dressing (timber props and torches, crystals, braziers and pillars)
     const lightsAt: { pos: THREE.Vector3; colour: string; power: number; flicker: number; sprite: boolean }[] = [];
     if (layer === 'workings') await this.dressWorkings(walls, pal, r, lightsAt);
-    else if (layer === 'caverns') this.dressCaverns(walls, pal, r, lightsAt, f);
+    else if (layer === 'caverns' || layer === 'sunken' || layer === 'vault') this.dressCaverns(walls, pal, r, lightsAt, f);
     else await this.dressDeeps(walls, pal, r, lightsAt);
     mergeStatic(walls);
 
@@ -865,7 +877,7 @@ export class MineView {
       const key = used ? 'empty' : 'full';
       if (key !== this.cartState) {
         if (this.cart) { this.floorStuff.remove(this.cart); this.cart.geometry.dispose(); }
-        const ore = f.layer.id === 'workings' ? '#c4743a' : f.layer.id === 'caverns' ? '#dfe4ea' : '#ffc83a';
+        const ore = f.layer.id === 'workings' ? '#c4743a' : f.layer.id === 'caverns' ? '#dfe4ea' : f.layer.id === 'sunken' ? '#aab8ff' : f.layer.id === 'vault' ? '#eef4ff' : '#ffc83a';
         this.cart = new THREE.Mesh(mineCartGeometry(ore, used), assets.vertexMaterial);
         this.cart.position.set(f.cart.x, 0.02, f.cart.z);
         this.cart.rotation.y = f.cart.rot;

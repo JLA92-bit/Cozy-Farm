@@ -11,3 +11,6 @@
 .fh-hand-job { display: flex; gap: 8px; align-items: center; margin: 8px 0 6px; font-size: 14px; }
 .fh-hand-job img, .fh-hand-job svg { width: 24px; height: 24px; flex: none; }
 .fh-hand-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+/* 1.37 farmhand levels */
+.fh-lv { margin-left: 6px; padding: 1px 7px; border-radius: 9px; background: #ffe58a; font-size: 12px; }
+.fh-lv-text { font-size: 12px; opacity: .85; }

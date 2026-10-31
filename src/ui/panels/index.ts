@@ -2,6 +2,8 @@
 import './ShopPanel';
 import './InventoryPanel';
 import './ProductionPanel';
+import './CollectAll';
+import './WorkshopsPanel';
 import './AnimalPanel';
 import './CharacterPanel';
 import './EconomyPanels';

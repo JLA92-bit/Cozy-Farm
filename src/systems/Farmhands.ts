@@ -20,6 +20,9 @@ import type { PlacedBuilding, SaveData } from './State';
 type St = NonNullable<SaveData['farmhands']>;
 export interface RoundResult { planted: number; fed: number; queued: number; paid: number; resting: boolean; broke: string[] }
 
+/** 1.37 farmhand levels (farmhands.json `levels`). */
+const LV = (FARMHANDS as unknown as { levels: { daysPerLevel: number; max: number; fieldsPerLevel: number; allKindLevel: number; freeDayLevel: number; freeDayEvery: number } }).levels;
+
 class FarmhandsSystem {
   private started = false;
   /** when the last round ran (ms, real time), for 'next round in' */
@@ -66,14 +69,29 @@ class FarmhandsSystem {
   /** Let a hand go (they can be hired again at any time). */
   dismiss(id: string): void { const st = this.st; st.hired = st.hired.filter((h) => h.id !== id); delete st.paid[id]; saves.save(); }
 
+  // ---- 1.37 farmhand levels: they get better at the same job the longer they work
+  daysWorked(id: string): number { return game.state.farmhands?.days?.[id] ?? 0; }
+  level(id: string): number { return Math.min(LV.max, 1 + Math.floor(this.daysWorked(id) / LV.daysPerLevel)); }
+  /** Days until the next level, or null at the top. */
+  toNextLevel(id: string): number | null { return this.level(id) >= LV.max ? null : LV.daysPerLevel - (this.daysWorked(id) % LV.daysPerLevel); }
+  fieldsPerRound(id: string): number { return FARMHANDS.fieldsPerRound + (this.level(id) - 1) * LV.fieldsPerLevel; }
+  /** From level 3 an animals or workshop hand looks after every building of the target's kind. */
+  allOfKind(id: string): boolean { return this.level(id) >= LV.allKindLevel; }
+  /** At level 5, every 7th working day is a free one. */
+  private freeDay(id: string): boolean { return this.level(id) >= LV.freeDayLevel && (this.daysWorked(id) + 1) % LV.freeDayEvery === 0; }
+
   /** Pay today's wage the first time a hand works today: the coins paid now (0 if already paid), or -1 when they cannot be. */
   private pay(id: string): number {
     const st = this.st, day = localDay(game.now());
     if (st.paid[id] === day) return 0;
-    if (!game.spend(FARMHANDS.wage)) return -1;
+    const wage = this.freeDay(id) ? 0 : FARMHANDS.wage;
+    if (wage && !game.spend(wage)) return -1;
     st.paid[id] = day;
-    this.today().wages += FARMHANDS.wage;
-    return FARMHANDS.wage;
+    const before = this.level(id);
+    (st.days ??= {})[id] = this.daysWorked(id) + 1;
+    if (this.level(id) > before) game.bus.emit('toast', { title: `${this.def(id)?.name ?? 'Your farmhand'} is now level ${this.level(id)}`, sub: 'Better at the job: see the Farmhands screen.', icon: this.def(id)?.icon ?? 'seedling' });
+    this.today().wages += wage;
+    return wage;
   }
 
   /** What a hand would do now, without doing it (so no wage is paid for an idle round). */
@@ -83,7 +101,7 @@ class FarmhandsSystem {
       const st = this.st;
       let n = 0;
       for (const b of game.state.buildings) {
-        if (n >= FARMHANDS.fieldsPerRound) break;
+        if (n >= this.fieldsPerRound(h.id)) break;
         const crop = st.lastCrop[b.uid];
         if (b.type !== 'plot' || b.plot || !crop || !CROP[crop] || !farming.canPlant(b, crop).ok) continue;
         // a dry run keeps the day's wage aside: a hand is never paid for a round the seeds cannot be bought for
@@ -98,17 +116,24 @@ class FarmhandsSystem {
       }
       return n;
     }
-    const b = game.state.buildings.find((x) => x.uid === h.target);
-    if (!b || !isBuilt(b, now)) return 0;
-    if (h.chore === 'animals') {
-      if (dry) return animals.counts(b).hungry > 0 && game.count(animalFeed(b)) > 0 ? 1 : 0;
-      return animals.feedAll(b);
-    }
-    const recipe = this.st.lastRecipe[b.uid];
-    if (!recipe || !RECIPE[recipe]) return 0;
-    if (dry) return production.canQueue(b, recipe).ok ? 1 : 0;
+    const target = game.state.buildings.find((x) => x.uid === h.target);
+    if (!target || !isBuilt(target, now)) return 0;
+    // 1.37 from level 3 the hand looks after every home or workshop of the same kind, the target first
+    const list = this.allOfKind(h.id) ? [target, ...game.state.buildings.filter((x) => x.type === target.type && x.uid !== target.uid && isBuilt(x, now))] : [target];
     let n = 0;
-    while (n < 10 && production.queue(b, recipe)) n++;
+    for (const b of list) {
+      if (h.chore === 'animals') {
+        if (dry) { if (animals.counts(b).hungry > 0 && game.count(animalFeed(b)) > 0) return 1; continue; }
+        n += animals.feedAll(b);
+        continue;
+      }
+      const recipe = this.st.lastRecipe[b.uid];
+      if (!recipe || !RECIPE[recipe]) continue;
+      if (dry) { if (production.canQueue(b, recipe).ok) return 1; continue; }
+      let k = 0;
+      while (k < 10 && production.queue(b, recipe)) k++;
+      n += k;
+    }
     return n;
   }
 

@@ -18,6 +18,8 @@ import { restoration } from '../../systems/Restoration';
 import { ESTATE, MANOR_WINGS, ROOMS } from '../../data';
 import { currentWing, manorStarted, wingsDone } from '../../systems/Manor';
 import './village.css';
+import { favours } from '../../systems/Favours';
+import { PIECE } from '../../data';
 
 /**
  * 1.8 Village Friends screens: the Village (six villager cards), a villager's page, the gift picker with the
@@ -200,6 +202,9 @@ export function openVillager(id: string, opts: { gift?: boolean; standalone?: bo
       const text = !arc ? `${v.name} has a story to tell. It starts in your mailbox soon.` : arc.sent >= arc.of ? 'The whole story is in your mailbox.' : `In your mailbox: ${arc.sent} of ${arc.of} letters so far.`;
       p.body.append(h('div', { class: 'v-next' }, icon('mailbox', 'icon'), h('div', null, h('b', null, `${v.arc.title}: `), text)));
     }
+    // 1.40 a weekly favour at 10 hearts, and the Friendship Token shop
+    const fav = favourBox(id, render);
+    if (fav) p.body.append(...fav);
     // tastes
     p.body.append(h('div', { class: 'section-title' }, 'What they like'));
     const box = h('div', { class: 'v-tastes' });
@@ -470,7 +475,9 @@ export function refreshVillageBadge(): void {
   const birthday = met.some((v) => village.isBirthday(v.id) && village.canGift(v.id));
   const unopened = s.village.openedDay !== today && met.some((v) => village.canGift(v.id));
   const never = !s.village.openedDay && s.tutorial.done && s.player.created;
-  ui.hud.setBadge('village', birthday || unopened || never || (game.level >= 10 && restoration.givable() > 0));
+  // 1.40 a favour ready to hand over shows the dot too
+  const favour = favours.waiting().some((id) => favours.canDo(id));
+  ui.hud.setBadge('village', birthday || unopened || never || favour || (game.level >= 10 && restoration.givable() > 0));
 }
 
 let lastInput = performance.now();
@@ -526,3 +533,42 @@ ui.onTick(() => {
 });
 
 ui.register('village', (arg) => openVillage(arg as { villager?: string } | undefined));
+
+/** 1.40 the favour card and the token shop on a best friend's page. */
+function favourBox(id: string, redraw: () => void): HTMLElement[] | null {
+  if (!favours.open(id)) return null;
+  const v = VILLAGER[id], now = game.now(), f = favours.current(id, now), P = favours.prices;
+  const out: HTMLElement[] = [h('div', { class: 'section-title' }, `Favours for ${v.name}`)];
+  if (!f) out.push(h('div', { class: 'muted' }, `${v.name} has nothing to ask yet.`));
+  else if (f.done) out.push(h('div', { class: 'v-favour done' }, icon('check', 'icon'), h('div', null, `Done for this week. ${v.name} will ask again on Monday.`)));
+  else if (f.until <= now) out.push(h('div', { class: 'v-favour' }, icon('timer', 'icon'), h('div', null, `This week's favour has passed. ${v.name} will ask again on Monday.`)));
+  else {
+    const hours = Math.max(1, Math.round((f.until - now) / 3600000));
+    const lines = Object.entries(f.items).map(([i, n]) => h('span', { class: `pill ${game.count(i) >= n ? 'enough' : 'short'}` }, itemIcon(i), `${Math.min(game.count(i), n)}/${n} ${ITEMS[i]?.name ?? i}`));
+    const can = favours.canDo(id, now);
+    out.push(h('div', { class: 'v-favour' },
+      h('div', null, h('b', null, `${v.name} asks a favour`), h('div', { class: 'muted' }, `Bring these within ${hours > 24 ? `${Math.round(hours / 24)} days` : `${hours} hours`}: ${P.tokens} Friendship Tokens and ${fmt(P.coins)} coins.`)),
+      h('div', { class: 'row v-favour-items' }, ...lines),
+      button([icon('gift'), 'Do the favour'], () => {
+        const t = favours.doFavour(id);
+        if (!t) { ui.feedback.toast('Not everything yet', 'Bring all three things first', 'cross'); audio.play('error'); return; }
+        audio.play('reward');
+        ui.feedback.toast(`Thank you!`, `${v.name} gave you ${t} Friendship Tokens and ${fmt(P.coins)} coins`, 'heart');
+        redraw();
+      }, `small ${can ? 'green' : 'disabled'}`)));
+  }
+  // the shop
+  const shop = h('div', { class: 'v-token-shop' }, h('div', { class: 'muted' }, icon('heart', 'icon tiny'), ` You have ${favours.tokens} Friendship Tokens.`));
+  const g = favours.goldKeepsake(id);
+  if (g && BUILDING[g]) {
+    const have = favours.hasGoldKeepsake(id);
+    shop.append(h('div', { class: 'v-token-row' }, icon(`building:${g}`, 'icon big'), h('div', { class: 'grow' }, h('b', null, BUILDING[g].name), h('div', { class: 'muted' }, have ? 'Yours. Find it in Build > storage.' : `${P.keepsakeGold} tokens, once`)),
+      have ? null : button('Get it', () => { if (!favours.buyGoldKeepsake(id)) { ui.feedback.toast('Not enough tokens yet', undefined, 'heart'); audio.play('error'); return; } audio.play('reward'); ui.feedback.toast(BUILDING[g].name, 'It is in your storage', 'package'); redraw(); }, `small ${favours.tokens >= P.keepsakeGold ? 'yellow' : 'disabled'}`)));
+  }
+  for (const piece of favours.pieces(id)) {
+    shop.append(h('div', { class: 'v-token-row' }, icon(`piece:${piece}`, 'icon big'), h('div', { class: 'grow' }, h('b', null, PIECE[piece].name), h('div', { class: 'muted' }, `Another one for your home: ${P.piece} tokens`)),
+      button('Get one', () => { if (!favours.buyPiece(id, piece)) { ui.feedback.toast('Not enough tokens yet', undefined, 'heart'); audio.play('error'); return; } audio.play('reward'); ui.feedback.toast(PIECE[piece].name, 'It is in your home storage', 'package'); redraw(); }, `small ${favours.tokens >= P.piece ? 'yellow' : 'disabled'}`)));
+  }
+  out.push(shop);
+  return out;
+}

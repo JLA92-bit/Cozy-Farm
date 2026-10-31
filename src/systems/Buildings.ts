@@ -1,4 +1,4 @@
-import { ANIMAL, BUILDING, ECONOMY, MINE, ROOM, FARMHOUSE, TREE, UPGRADES, UPKEEP, type BuildingDef } from '../data';
+import { ANIMAL, BUILDING, ECONOMY, ITEMS, MINE, ROOM, FARMHOUSE, TREE, UPGRADES, UPKEEP, type BuildingDef } from '../data';
 import { game, type Vec } from './Game';
 import type { PlacedBuilding } from './State';
 import { farmCharm, isBuilt, isUpgrading, settleProduction } from './Timers';
@@ -107,6 +107,31 @@ export class BuildingSystem {
     return true;
   }
 
+  /** 1.34.3: move several pieces one step together (all or none; they may move into each other's old tiles). */
+  moveGroup(uids: number[], dx: number, dz: number): boolean {
+    // fields before what stands on them (a scarecrow is marked on top of its field)
+    const list = uids.map((u) => game.byUid(u)).filter((b): b is PlacedBuilding => !!b).sort((a, c) => Number(!!BUILDING[a.type].onField) - Number(!!BUILDING[c.type].onField));
+    if (!list.length) return false;
+    // lift every piece first so they don't block each other, then place each at its new spot
+    for (const b of list) game.markBuilding(b, 0);
+    const placed: PlacedBuilding[] = [];
+    let ok = true;
+    for (const b of list) {
+      if (!game.canPlace(b.type, b.x + dx, b.z + dz, b.rot, b.uid)) { ok = false; break; }
+      b.x += dx; b.z += dz;
+      game.markBuilding(b, b.uid);
+      placed.push(b);
+    }
+    if (!ok) {
+      // put them all back where they were
+      for (const b of placed) { game.markBuilding(b, 0); b.x -= dx; b.z -= dz; }
+      for (const b of list) game.markBuilding(b, b.uid);
+      return false;
+    }
+    for (const b of list) game.bus.emit('building:moved', { b });
+    return true;
+  }
+
   store(uid: number): boolean {
     const b = game.byUid(uid);
     if (!b) return false;
@@ -133,7 +158,7 @@ export class BuildingSystem {
 
   // ------------------------------------------------------------ upgrades
   /** Max level for a building and the next upgrade's cost/time/requirement. */
-  upgradeInfo(b: PlacedBuilding): { next: number; cost: number; sec: number; needLevel: number; label: string } | null {
+  upgradeInfo(b: PlacedBuilding): { next: number; cost: number; sec: number; needLevel: number; label: string; goods?: Record<string, number> } | null {
     const def = BUILDING[b.type];
     if (b.type === 'farmhouse') {
       const lv = FARMHOUSE.levels[b.level];
@@ -147,18 +172,22 @@ export class BuildingSystem {
       const vet = b.type === 'vet_cottage';
       return {
         next: b.level + 1, cost: lv.cost, sec: lv.sec, needLevel: lv.playerLevel,
-        label: vet ? (b.level === 1 ? 'Treatments 25% cheaper and a daily check-up' : 'Treatments cheaper again and two check-ups a day')
-          : (b.level === 1 ? 'Repairs 25% cheaper and fresh paint' : 'Repairs cheaper again and longer-lasting paint'),
+        label: vet ? ['Treatments 25% cheaper and a daily check-up', 'Treatments cheaper again and two check-ups a day', 'Check-ups last 5 days', 'Animals stay young twice as long'][b.level - 1]
+          : ['Repairs 25% cheaper and fresh paint', 'Repairs cheaper again and longer-lasting paint', 'Fresh paint lasts twice as long', 'Everything wears 25% slower'][b.level - 1],
       };
     }
     const kind = def.cat === 'production' ? UPGRADES.production : def.cat === 'animal' ? UPGRADES.animal : null;
     if (!kind) return null;
-    const lv = kind.levels[b.level - 1];
+    const lv = kind.levels[b.level - 1] as { cost: number; sec: number; playerLevel?: number; goods?: Record<string, number> } | undefined;
     if (!lv) return null;
     const mult = def.upgradeMult ?? 1;
+    // 1.35 Higher Ground: the late levels need a player level and goods (bars from the Smelter, varnish from the Lodge, gems)
+    const top = (kind as { top?: { level: number; name: string } }).top;
+    const isTop = !!top && b.level + 1 >= top.level;
     return {
-      next: b.level + 1, cost: Math.round(lv.cost * mult), sec: lv.sec, needLevel: def.level + b.level * 2,
-      label: def.cat === 'production' ? '+1 production slot' : '+1 animal space',
+      next: b.level + 1, cost: Math.round(lv.cost * mult), sec: lv.sec, needLevel: lv.playerLevel ?? def.level + b.level * 2,
+      label: isTop ? `${top!.name}: more silver and gold from this building` : def.cat === 'production' ? '+1 production slot' : '+1 animal space',
+      goods: lv.goods,
     };
   }
 
@@ -169,6 +198,8 @@ export class BuildingSystem {
     if (!isBuilt(b, now) || isUpgrading(b, now)) return { ok: false, reason: 'Busy' };
     if (game.level < info.needLevel) return { ok: false, reason: `Needs level ${info.needLevel}` };
     if (game.coins < info.cost) return { ok: false, reason: 'Not enough coins' };
+    const short = Object.entries(info.goods ?? {}).find(([item, n]) => game.count(item) < n);
+    if (short) return { ok: false, reason: `Needs ${short[1] - game.count(short[0])} more ${ITEMS[short[0]]?.name ?? short[0]}` };
     return { ok: true };
   }
 
@@ -176,6 +207,7 @@ export class BuildingSystem {
     const info = this.upgradeInfo(b);
     if (!info || !this.canUpgrade(b).ok) return false;
     game.spend(info.cost);
+    for (const [item, n] of Object.entries(info.goods ?? {})) game.addItem(item, -n);
     b.upgradeEnd = game.now() + info.sec * 1000;
     if (info.sec === 0) this.completeUpgrade(b);
     game.bus.emit('building:changed', { b });
@@ -242,9 +274,9 @@ export class BuildingSystem {
   }
 
   /** Animal capacity of a housing building. */
-  capacity(b: PlacedBuilding): number { return UPGRADES.animal.baseCapacity + (b.level - 1) + breederSpaces(); }
+  capacity(b: PlacedBuilding): number { return UPGRADES.animal.baseCapacity + (Math.min(b.level, UPGRADES.animal.maxSpaceLevel ?? 99) - 1) + breederSpaces(); }
   /** Production queue slots. */
-  slots(b: PlacedBuilding): number { return UPGRADES.production.baseSlots + (b.level - 1) + headChefSlots(); }
+  slots(b: PlacedBuilding): number { return UPGRADES.production.baseSlots + (Math.min(b.level, UPGRADES.production.maxSlotLevel ?? 99) - 1) + headChefSlots(); }
 
   animalDef(b: PlacedBuilding) { return ANIMAL[BUILDING[b.type].animal!]; }
 

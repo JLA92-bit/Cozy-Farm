@@ -1082,7 +1082,7 @@ try {
       const bottom = { letters: st.letters.join(), piece: (hs?.storage?.mine_crystal_chandelier ?? 0) - had };
       return { bottom, rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
     });
-    check('a damaged mine save is mended', m.rep.deepest === 60 && m.rep.pickaxe === 3 && m.rep.chests.join() === '5' && m.rep.carts.join() === '2' && m.rep.found.join() === 'coal', JSON.stringify(m.rep));
+    check('a damaged mine save is mended', m.rep.deepest === 100 && m.rep.pickaxe === 5 && m.rep.chests.join() === '5' && m.rep.carts.join() === '2' && m.rep.found.join() === 'coal', JSON.stringify(m.rep));
     check('a mine floor is the same all day and different the next', m.same && m.differs, JSON.stringify(m));
     check('60 swings a day, then the lantern is out', m.swung === 60 && m.max === 60 && m.after === null, JSON.stringify(m));
     check('the ladder down is under a rock; breaking it lets you go down a floor', !m.ladderBefore && m.down.ok && m.down.floor === 2, JSON.stringify(m));
@@ -1218,7 +1218,7 @@ try {
       const g = window.__game, n = window.__net, s = g.state;
       document.querySelectorAll('.overlay').forEach((o) => o.remove());
       s.player.level = 50;
-      (s.skills ??= { xp: {}, perks: {} }).xp.fishing = 1e9;
+      (s.skills ??= { xp: {}, perks: {} }).xp.fishing = 16000; // Fishing 10: the Master Net (15 is the Grand Net)
       s.fishing.caught = { sardine: 1, shrimp: 1, crab: 1, clownfish: 1, kraken: 1, smelt: 1 };
       s.fishing.records = {};
       delete s.fishing.net;
@@ -1237,6 +1237,148 @@ try {
     });
     check('the fishing net fills, keeps at most 5 and gives plain fish with no XP or records', net.ok && net.bait === 7 && net.holds === 10 && net.allowed && net.atStart === 0 && net.full && net.inNet === 10
       && net.kept === 5 && net.added === 5 && net.xpSame && net.caughtSame && net.qSame && net.noRecords && net.cleared, JSON.stringify(net));
+    // 1.34.3 QOL: collect everything, Fill, Again, Sell extras keeps what is needed and what is kept
+    const qol = await page.evaluate(() => {
+      const g = window.__game, q = window.__qol, s = g.state;
+      document.querySelectorAll('.overlay').forEach((o) => o.remove());
+      let shop = s.buildings.find((b) => b.type === 'bakery' && (!b.buildEnd || b.buildEnd <= g.now()));
+      if (!shop) { shop = { uid: g.newUid(), type: 'bakery', x: 1, z: 1, rot: 0, level: 1 }; s.buildings.push(shop); }
+      const out = {};
+      if (shop) {
+        shop.queue = []; shop.ready = ['bread', 'bread'];
+        const jobs = q.againJobs(shop, ['bread', 'bread']);
+        out.jobs = jobs.length;
+        const r = q.collectEverything();
+        out.collected = r.goods >= 2 && !(shop.ready ?? []).length;
+        s.inventory.wheat = 999;
+        const n = q.fillCount(shop, jobs[0] ?? 'bread');
+        out.fill = n;
+        const put = q.queueAgain(shop, jobs);
+        out.again = put;
+        shop.queue = [];
+      }
+      s.inventory.wheat = 200; s.inventory.egg = 200;
+      s.keep = ['egg'];
+      const plan = q.sellExtrasPlan(['wheat', 'egg', 'bait']);
+      out.wheatSold = plan.lines.find((l) => l.id === 'wheat')?.n ?? 0;
+      out.wheatLeft = 200 - out.wheatSold;
+      out.eggSold = plan.lines.some((l) => l.id === 'egg');
+      out.baitSold = plan.lines.some((l) => l.id === 'bait');
+      out.uses = q.itemUses('wheat').length > 0;
+      out.expect = Math.max(0, 200 - Math.max(20, q.itemNeeded('wheat')));
+      delete s.keep;
+      return out;
+    });
+    check('QOL: collect everything, Fill and Again; Sell extras leaves kept items, bait and a reserve', qol.collected && qol.jobs === 2 && qol.fill >= 2 && qol.again === 2
+      && qol.wheatSold === qol.expect && qol.wheatLeft >= 20 && !qol.eggSold && !qol.baitSold && qol.uses, JSON.stringify(qol));
+    // 1.34.3: a selection moves one tile together, or not at all
+    const grp = await page.evaluate(() => {
+      const g = window.__game, bs = window.__buildings, s = g.state;
+      s.player.coins += 100000; if (s.player.level < 5) s.player.level = 5;
+      const free = [];
+      outer: for (let z = 4; z < 40; z++) for (let x = 4; x < 40; x++) if (g.canPlace('fence_wood', x, z, 0) && g.canPlace('fence_wood', x + 1, z, 0) && g.canPlace('fence_wood', x + 2, z, 0)) { free.push(x, z); break outer; }
+      if (!free.length) return { skipped: true };
+      const [x, z] = free;
+      const a = bs.place('fence_wood', x, z, 0), b = bs.place('fence_wood', x + 1, z, 0);
+      if (!a || !b) return { placed: false };
+      const ok = bs.moveGroup([a.uid, b.uid], 1, 0);
+      const moved = a.x === x + 1 && b.x === x + 2 && g.buildingAt(x, z) === undefined && g.buildingAt(x + 1, z)?.uid === a.uid && g.buildingAt(x + 2, z)?.uid === b.uid;
+      const blocker = bs.place('fence_wood', x + 3, z, 0);
+      const no = blocker ? !bs.moveGroup([a.uid, b.uid], 1, 0) : true;
+      const stayed = a.x === x + 1 && b.x === x + 2 && g.buildingAt(x + 1, z)?.uid === a.uid;
+      for (const u of [a.uid, b.uid, blocker?.uid]) if (u) bs.remove(u);
+      return { ok, moved, no, stayed };
+    });
+    check('a selection of decor moves a tile together, and stays put when something is in the way', grp.skipped || (grp.ok && grp.moved && grp.no && grp.stayed), JSON.stringify(grp));
+    // 1.35 Higher Ground: skills reach 20 with perks at 15 and 20, late upgrades take goods, slots stop, the top level adds stars
+    const hg = await page.evaluate(() => {
+      const g = window.__game, sk = window.__skills, bs = window.__buildings, s = g.state, n = window.__net;
+      document.querySelectorAll('.overlay').forEach((o) => o.remove());
+      const st = (s.skills ??= { xp: {}, perks: {}, headStart: true });
+      st.xp.farming = 141000; st.perks.farming = ['quick_grower', 'master_farmer'];
+      const lvl = sk.level('farming'), pend = sk.pendingChoice('farming');
+      const chose15 = sk.choose('farming', 'fast_fields'), chose20 = sk.choose('farming', 'free_seeds');
+      st.xp.fishing = 141000;
+      const net = n.tierIndex();
+      let shop = s.buildings.find((b) => b.type === 'bakery');
+      if (!shop) { shop = { uid: g.newUid(), type: 'bakery', x: 1, z: 1, rot: 0, level: 1 }; s.buildings.push(shop); }
+      const was = { level: shop.lv, lvl: shop.level, pl: s.player.level, coins: s.player.coins };
+      shop.level = 5; delete shop.upgradeEnd; delete shop.buildEnd;
+      s.player.level = 120; s.player.coins = 1e9;
+      delete s.inventory.iron_bar; delete s.inventory.resin_varnish;
+      const info = bs.upgradeInfo(shop), noGoods = !bs.canUpgrade(shop).ok;
+      s.inventory.iron_bar = 6; s.inventory.resin_varnish = 4;
+      const up = bs.upgrade(shop) && !s.inventory.iron_bar && !s.inventory.resin_varnish;
+      shop.level = 7; const slots7 = bs.slots(shop); shop.level = 8; const slots8 = bs.slots(shop);
+      const top = bs.upgradeInfo(shop) === null;
+      shop.level = was.lvl; delete shop.upgradeEnd; s.player.level = was.pl; s.player.coins = was.coins;
+      return { lvl, pend, chose15, chose20, net, goods: info?.goods?.iron_bar === 6, need: info?.needLevel, noGoods, up, slots7, slots8, top };
+    });
+    check('Higher Ground: skills to 20 with perks at 15 and 20, the Grand Net, late upgrades need goods, the top level adds no slot', hg.lvl === 20 && hg.pend === 15 && hg.chose15 && hg.chose20 && hg.net === 4
+      && hg.goods && hg.need === 75 && hg.noGoods && hg.up && hg.slots8 === hg.slots7 && hg.top, JSON.stringify(hg));
+    // 1.36 the Sunken Halls: floors to 100, a Mining level gates each new layer and the star pickaxes, new finds drop
+    const sh = await page.evaluate(() => {
+      const g = window.__game, m = window.__mine.sys, s = g.state;
+      const st = (s.skills ??= { xp: {}, perks: {}, headStart: true });
+      const was = { xp: st.xp.mining, mine: JSON.stringify(s.mine ?? null) };
+      st.xp.mining = 0;
+      const f61 = m.layout(61), f90 = m.layout(90);
+      const gate61 = m.needsSkill(61), gate90 = m.needsSkill(90), pick90 = m.needsPickaxe(90);
+      const items = new Set();
+      for (let fl = 61; fl <= 100; fl += 3) for (const k of Object.values(m.layout(fl).layer.drops)) for (const d of k) items.add(d[0]);
+      s.mine = { ...(s.mine ?? {}), pickaxe: 3, deepest: 60, letters: [...(s.mine?.letters ?? [])], hits: {}, found: {}, carts: [], pools: [], chests: [], day: '', swings: 0 };
+      const noStar = m.pickaxeSkill();
+      st.xp.mining = 141000;
+      const okStar = m.pickaxeSkill();
+      st.xp.mining = was.xp ?? 0;
+      s.mine = JSON.parse(was.mine) ?? undefined;
+      return { l61: f61.layer.id, l90: f90.layer.id, gate61, gate90, pick90, star: items.has('star_ore'), moon: items.has('moon_ore'), noStar, okStar, floors: f90.rocks.length > 0 };
+    });
+    check('the Sunken Halls: floors 61-100 in two new layers, gated by Mining 12 and 15, with star and moon ore', sh.l61 === 'sunken' && sh.l90 === 'vault' && sh.gate61 === 12 && sh.gate90 === 15 && sh.pick90 === 4
+      && sh.star && sh.moon && sh.noStar === 15 && sh.okStar === null && sh.floors, JSON.stringify(sh));
+    // 1.37 Grand Mastery and farmhand levels
+    const gm = await page.evaluate(() => {
+      const g = window.__game, ms = window.__mastery, fh = window.__farmhands, s = g.state;
+      const was = { lvl: s.player.level, mastery: JSON.stringify(s.mastery ?? null), stats: { ...s.stats }, fh: JSON.stringify(s.farmhands ?? null) };
+      s.player.level = 90;
+      const e = ms.entries.find((x) => x.kind === 'crop');
+      s.mastery = { done: [e.id] };
+      s.stats[`gold_${e.items[0]}`] = 49; ms.check();
+      const before = ms.isGrand(e.id);
+      s.stats[`gold_${e.items[0]}`] = 50; ms.check();
+      const after = ms.isGrand(e.id), plaque = (s.storage.grand_plaque ?? 0) > 0;
+      s.farmhands = { hired: [], paid: {}, lastCrop: {}, lastRecipe: {}, days: { fern: 0 } };
+      const l1 = fh.level('fern'), f1 = fh.fieldsPerRound('fern');
+      s.farmhands.days.fern = 25;
+      const l3 = fh.level('fern'), f3 = fh.fieldsPerRound('fern'), all = fh.allOfKind('fern');
+      s.farmhands.days.fern = 999;
+      const l5 = fh.level('fern');
+      s.player.level = was.lvl; s.mastery = JSON.parse(was.mastery) ?? undefined; s.stats = was.stats; s.farmhands = JSON.parse(was.fh) ?? undefined;
+      if (s.storage.grand_plaque) { s.storage.grand_plaque--; if (!s.storage.grand_plaque) delete s.storage.grand_plaque; }
+      return { before, after, plaque, l1, f1, l3, f3, all, l5 };
+    });
+    check('Grand Mastery comes at 50 gold crops with a plaque; farmhands level up with days worked', !gm.before && gm.after && gm.plaque && gm.l1 === 1 && gm.f1 === 12 && gm.l3 === 3 && gm.f3 === 16 && gm.all && gm.l5 === 5, JSON.stringify(gm));
+    // 1.40 favours at 10 hearts pay tokens; tokens buy the golden keepsake once
+    const fv = await page.evaluate(() => {
+      const g = window.__game, F = window.__favours, s = g.state;
+      const was = JSON.stringify(s.village), lvl = s.player.level, inv = JSON.stringify(s.inventory), store = JSON.stringify(s.storage);
+      s.player.level = 140;
+      s.village.friends.rosa = { ...(s.village.friends.rosa ?? { giftDay: '', chatDay: '', gifts: 0, rewards: [], known: [] }), points: 99999 };
+      s.village.friends.tom = { ...(s.village.friends.tom ?? { giftDay: '', chatDay: '', gifts: 0, rewards: [], known: [] }), points: 0 };
+      delete s.village.favours; s.village.tokens = 0;
+      const none = F.current('tom') === null;
+      const f = F.current('rosa'), again = F.current('rosa');
+      const same = JSON.stringify(f.items) === JSON.stringify(again.items), three = Object.keys(f.items).length === 3;
+      const before = F.canDo('rosa');
+      for (const [i, n] of Object.entries(f.items)) s.inventory[i] = (s.inventory[i] ?? 0) + n;
+      const paid = F.doFavour('rosa'), twice = F.doFavour('rosa');
+      s.village.tokens = 30;
+      const gold = F.buyGoldKeepsake('rosa'), gold2 = F.buyGoldKeepsake('rosa');
+      const out = { none, same, three, before, paid, twice, gold, gold2, tokens: s.village.tokens };
+      s.village = JSON.parse(was); s.player.level = lvl; s.inventory = JSON.parse(inv); s.storage = JSON.parse(store);
+      return out;
+    });
+    check('favours: one a week at 10 hearts, paid once in tokens; the golden keepsake is bought once', fv.none && fv.same && fv.three && !fv.before && fv.paid === 5 && fv.twice === 0 && fv.gold && !fv.gold2 && fv.tokens === 0, JSON.stringify(fv));
   }
 } finally {
   await browser.close();

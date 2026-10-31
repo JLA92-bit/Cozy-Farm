@@ -10,6 +10,9 @@ import { qualityBoosts } from './Quality';
 export type LineKind = 'crop' | 'workshop';
 export interface LineDef { id: string; name: string; icon: string; text: string; chance?: number; gold?: number; mult?: number }
 export const LINES = MASTERY.lines as unknown as Record<LineKind, LineDef[]>;
+/** 1.37 Grand Mastery (mastery.json `grand`). */
+export const GRAND = (MASTERY as unknown as { grand: { unlockLevel: number; cropGold: number; workshopGold: number; reward: { coins: number; gems: number }; plaque: string; gold: number } }).grand;
+const grand = (entry: string): boolean => !!game.state?.mastery?.grand?.includes(entry);
 
 /** The line picked for an entry (`crop:<id>` or `workshop:<building>`), if any. */
 export const pickOf = (entry: string): LineDef | undefined => {
@@ -38,5 +41,11 @@ const madeBy = (item: string): string[] => {
 qualityBoosts.push((source, item) => {
   if (source === 'crop') { const l = line(`crop:${item}`, 'gold'); return l ? { gold: l.gold } : null; }
   if (source === 'production') { for (const b of madeBy(item)) { const l = line(`workshop:${b}`, 'gold'); if (l) return { gold: l.gold }; } }
+  return null;
+});
+// 1.37 Grand Mastery: a little more gold for that crop, or for goods its workshop makes
+qualityBoosts.push((source, item) => {
+  if (source === 'crop' || source === 'tree') return grand(`crop:${item}`) ? { gold: GRAND.gold } : null;
+  if (source === 'production') return madeBy(item).some((b) => grand(`workshop:${b}`)) ? { gold: GRAND.gold } : null;
   return null;
 });

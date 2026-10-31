@@ -33,7 +33,7 @@ class UpkeepSystem {
   vetLevel(): number { return this.careLevel('vet_cottage'); }
   carpenterLevel(): number { return this.careLevel('carpenter'); }
   /** Price factor for a care building's level: each level above the first is `discount` cheaper. */
-  private careMult(level: number): number { return Math.max(0.1, 1 - UPKEEP.care.discount * Math.max(0, level - 1)); }
+  private careMult(level: number): number { return Math.max(0.1, 1 - UPKEEP.care.discount * Math.max(0, Math.min(level, UPKEEP.care.discountTop ?? 3) - 1)); }
   /** Check-ups the vet can still give today. */
   checkupsLeft(): number {
     const per = UPKEEP.care.checkup.perDay[Math.max(0, this.vetLevel() - 1)] ?? 0;
@@ -52,7 +52,7 @@ class UpkeepSystem {
     const up = (game.state.upkeep ??= { day: localDay(game.now()), lost: [] });
     const today = localDay(game.now());
     up.checkups = { day: today, n: (up.checkups?.day === today ? up.checkups.n : 0) + 1 };
-    b.checkupUntil = game.now() + UPKEEP.care.checkup.days * DAY;
+    b.checkupUntil = game.now() + (UPKEEP.care.checkup.daysByLevel?.[this.vetLevel() - 1] ?? UPKEEP.care.checkup.days) * DAY;
     game.incStat('checkups');
     game.bus.emit('building:changed', { b });
     saves.save();
@@ -113,7 +113,8 @@ class UpkeepSystem {
   }
 
   ageDays(a: { born?: number }): number { return a.born ? Math.max(0, (game.now() - a.born) / DAY) : 0; }
-  isElder(a: { born?: number }): boolean { return this.ageDays(a) >= UPKEEP.animals.elderDays; }
+  // 1.35 Vet's Cottage level 5: animals stay young twice as long
+  isElder(a: { born?: number }): boolean { return this.ageDays(a) >= UPKEEP.animals.elderDays * (this.vetLevel() >= 5 ? UPKEEP.care.vetElderMult ?? 2 : 1); }
 
   treatCost(animal: string): number { return Math.max(UPKEEP.animals.treatMin, Math.round(ANIMAL[animal].cost * UPKEEP.animals.treatCostPct * this.careMult(this.vetLevel()) / 5) * 5); }
   /** Cure a sick animal: its product timer carries on from where it paused. */
@@ -177,7 +178,7 @@ class UpkeepSystem {
     });
     for (const b of game.state.buildings) {
       if (this.wears(b) && isBuilt(b, now)) {
-        const slower = sturdyJointsMult() * (this.freshPaint(b) ? UPKEEP.care.freshPaint.wearMult : 1);
+        const slower = sturdyJointsMult() * (this.freshPaint(b) ? UPKEEP.care.freshPaint.wearMult : 1) * (this.carpenterLevel() >= 5 ? UPKEEP.care.carpenterWear ?? 0.75 : 1);
         b.wear = Math.min(100, (b.wear ?? 0) + UPKEEP.wear.perDay * s * slower * (0.7 + 0.6 * (hashString(`${b.uid}:${game.state.upkeep!.day}`) % 100) / 100));
       }
       for (let i = (b.animals?.length ?? 0) - 1; i >= 0; i--) {

@@ -28,7 +28,11 @@
   { "id": "sunroom", "name": "Sunroom", "fh": 13, "icon": "sunflower",
     "look": { "wall": ["pinstripe", "#fdf6e3", "#f3d98a"], "floor": ["terracotta", "#d98a5f", "#b86b44"], "trim": "#ffffff", "ceiling": "#ffffff" } },
   { "id": "landing", "name": "Upstairs Landing", "fh": 15, "icon": "door",
-    "look": { "wall": ["stripes", "#e6eef7", "#c9d8ea"], "floor": ["carpet", "#8a5a6a", "#7a4a5a"], "trim": "#ffffff", "ceiling": "#fbf3e2" } }
+    "look": { "wall": ["stripes", "#e6eef7", "#c9d8ea"], "floor": ["carpet", "#8a5a6a", "#7a4a5a"], "trim": "#ffffff", "ceiling": "#fbf3e2" } },
+  { "id": "library", "name": "Library", "fh": 17, "icon": "books",
+    "look": { "wall": ["panelling", "#6a4a32", "#5a3c28"], "floor": ["parquet", "#b07a48", "#8f5f36"], "trim": "#3f2a1c", "ceiling": "#efe2c8" } },
+  { "id": "gallery", "name": "Gallery", "fh": 19, "icon": "sparkles",
+    "look": { "wall": ["plaster", "#f7f3ea", "#e8e0cf"], "floor": ["herringbone", "#c8a070", "#a8804f"], "trim": "#d4b06a", "ceiling": "#ffffff" } }
  ],
  "wallPatterns": [
   { "id": "plaster", "name": "Plaster" },

@@ -1,5 +1,6 @@
 {
   "_comment": "1.8 Village Friends. Six named villagers. loves/likes/dislikes are item ids (\"fish\" in likes = any fish). birthday = month/day. perk6 is the 6-heart reward. look = how they appear on the farm and in portraits (COSMETICS ids), scale = their size on the farm. Text: chat (tap lines on the farm), react (gift reactions), letters (sent at heart milestones, every week once best friends, the day after a birthday gift; {farmer} = the player's name), stories (4 and 8 hearts, shown as picture cards), weekly (the best-friend gift). Milestones and perks: src/systems/VillageRewards.ts. 1.24 arc: a second story once a best friend (10 hearts), letters `day` days after it starts; one arc runs at a time in villager order; the last letter carries the gift.",
+  "favours": { "_comment": "1.40 Favours: a villager at hearts (10) asks one favour a week (from Monday, local time): three of their loves and likes, open for days. Doing it pays tokens (Friendship Tokens) and coins. Tokens buy their golden keepsake (keepsakeGold, once) or another of their gift pieces for the home (piece).", "hearts": 10, "days": 3, "items": 3, "tokens": 5, "coins": 2500, "keepsakeGold": 30, "piece": 12 },
   "friendship": {
     "pointsPerHeart": 100,
     "maxHearts": 10,
@@ -49,6 +50,9 @@
         "ruby_ring"
       ],
       "likes": [
+        "mist_berry",
+        "preserved_peaches",
+        "plum_chutney",
         "bread",
         "egg",
         "milk",
@@ -301,6 +305,9 @@
         "gem_lantern"
       ],
       "likes": [
+        "stone_mushroom",
+        "smoked_herring",
+        "smoked_cheese",
         "fish",
         "oyster_chowder",
         "fish_cake",
@@ -552,6 +559,9 @@
         "opal_pendant"
       ],
       "likes": [
+        "river_orchid",
+        "orchid_spray",
+        "alpaca_shawl",
         "strawberry_jam",
         "grape_jam",
         "pear",
@@ -805,6 +815,7 @@
         "geode"
       ],
       "likes": [
+        "goose_egg_quiche",
         "caramel",
         "pancakes",
         "watermelon",
@@ -1077,6 +1088,9 @@
         "gold_locket"
       ],
       "likes": [
+        "mistberry_cordial",
+        "falls_fern",
+        "beetroot_relish",
         "butter",
         "syrup",
         "scarf",
@@ -1328,6 +1342,7 @@
         "gold_bar"
       ],
       "likes": [
+        "highland_feast",
         "bread",
         "tomato_sauce",
         "salsa",

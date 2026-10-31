@@ -176,6 +176,14 @@ export function openTruck(): void {
         }, `small ${have >= c.qty ? '' : 'disabled'}`)]);
       grid.append(card);
     });
+    // 1.34.3: one tap loads every crate there is enough for
+    const loadable = t.crates.map((c, i) => (!c.filled && game.count(c.item) >= c.qty ? i : -1)).filter((i) => i >= 0);
+    if (loadable.length >= 2) p.body.append(h('div', { class: 'row', style: 'justify-content:flex-end;margin-bottom:6px' }, button(`Load all (${loadable.length})`, () => {
+      let coins = 0, xp = 0;
+      for (const i of loadable) { const c = t.crates[i]; if (!c.filled && truck.fill(i)) { coins += c.coins; xp += c.xp; } }
+      if (coins || xp) { flyFrom(grid, { coins, xp }); haptics.buzz([10, 30, 10]); }
+      render();
+    }, 'small blue')));
     p.body.append(grid);
     const sendBtn = button(['Send truck', priceTag(t.bonusCoins), icon('gift')], () => {
       if (!truck.send()) { ui.feedback.toast('Load every crate first', `${t.crates.length - loaded} to go`, 'package'); audio.play('error'); return; }

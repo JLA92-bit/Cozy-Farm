@@ -76,3 +76,6 @@
 .cr-entry.locked { opacity: .7; }
 .card.cr-state, .card.cr-rare, .card.cr-entry, .card.list-item.cr-note { flex-direction: row; align-items: center; text-align: left; }
 .cr-entry .row.between { gap: 6px; flex-wrap: wrap; }
+/* 1.40 ten hearts for trusted critters */
+.cr-hearts { flex-wrap: wrap; max-width: 190px; }
+.cr-heart { width: 16px; height: 16px; }

@@ -77,6 +77,13 @@ export function openFarmhouse(): void {
         button(n ? 'See your farmhands' : 'Hire a farmhand', () => { p.close(); ui.open('farmhands'); }, 'small green')));
     }
 
+    // 1.34.3 every workshop's queue on one screen
+    const ws = game.state.buildings.filter((b) => BUILDING[b.type]?.cat === 'production').length;
+    if (ws >= 3) p.body.append(h('div', { class: 'card' },
+      h('div', { class: 'title' }, icon('hammer'), ' Workshops'),
+      h('div', { class: 'sub' }, `All ${ws} workshops on one list: which are ready, idle or busy.`),
+      button('See workshops', () => { p.close(); ui.open('workshops'); }, 'small blue')));
+
     // what you can have right now
     p.body.append(h('div', { class: 'section-title' }, 'Your farm now'));
     const now1 = h('div', { class: 'fh-caps' });

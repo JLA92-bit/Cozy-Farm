@@ -23,13 +23,12 @@ const KINDS: { id: NotifyKind; label: string; icon: string }[] = [
   { id: 'daily', label: 'Daily reward reminder', icon: 'calendar' },
 ];
 
-const UNAVAILABLE: Record<Exclude<NotifyState['available'], 'ok'>, string> = {
+const UNAVAILABLE: Record<Exclude<NotifyState['available'], 'ok' | 'app'>, string> = {
   'not-configured': 'Available when online play is switched on.',
   unsupported: 'This browser cannot show notifications from games. Try Chrome, Edge or Firefox, or the Cozy Acres app.',
   'ios-install': 'On iPhone and iPad, add Cozy Acres to your Home Screen first (Share, then Add to Home Screen) and open it from there. Needs iOS 16.4 or newer.',
   'ios-old': 'Notifications need iOS 16.4 or newer. Update your iPhone or iPad, then open Cozy Acres from the Home Screen.',
   'no-sw': 'Notifications are not available in this window yet. Reload the game and try again.',
-  app: 'Phone notifications are coming to the Cozy Acres app in an update. Until then, the game on cozyacres.joshmakesgames.app can send them (in Chrome on Android, or added to the Home Screen on iPhone).',
 };
 
 function toggle(on: boolean, label: string, onChange: (v: boolean) => void): HTMLElement {
@@ -83,7 +82,8 @@ export function notificationSettingsSection(): HTMLElement {
     const box = h('div', { class: 'notify-box' });
     root.append(box);
 
-    if (st.available !== 'ok') {
+    const app = st.available === 'app';
+    if (st.available !== 'ok' && st.available !== 'app') {
       box.append(
         h('div', { class: 'setting-row' }, h('label', null, 'Phone notifications'), h('div', { class: 'toggle disabled', 'aria-disabled': 'true' })),
         h('div', { class: 'muted notify-note' }, UNAVAILABLE[st.available]));
@@ -133,10 +133,12 @@ export function notificationSettingsSection(): HTMLElement {
     const testBtn = button([icon('bell'), 'Send a test'], async () => {
       testBtn.disabled = true;
       const ok = await sendTestNotification();
-      ui.feedback.toast(ok ? 'Test notification on its way' : 'Could not send a test', ok ? 'It can take up to 5 minutes to arrive.' : 'Check your connection and try again in a few minutes.', ok ? 'bell' : 'cloud', ok ? '' : 'warn');
+      ui.feedback.toast(ok ? 'Test notification on its way' : 'Could not send a test', ok ? (app ? 'It arrives in a few seconds. Close the game to see it.' : 'It can take up to 5 minutes to arrive.') : 'Check your connection and try again in a few minutes.', ok ? 'bell' : 'cloud', ok ? '' : 'warn');
       setTimeout(() => { testBtn.disabled = false; }, 30000);
     }, 'small blue');
     box.append(h('div', { class: 'notify-actions' }, testBtn));
+    // the apps plan reminders on the phone; gifts and market sales need the server and come later
+    if (app) box.append(h('div', { class: 'muted notify-note' }, 'Reminders are planned on this phone. Gift and market sale alerts come in a later update.'));
   };
 
   async function turnOn(): Promise<void> {

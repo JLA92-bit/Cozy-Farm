@@ -16,6 +16,10 @@ import { logEvent } from '../online/Events';
 import { hashString, rng } from '../world/Procedural';
 import type { WoodsState } from './State';
 
+/** 1.40: hearts 6-10 are trust: best friends at 5 as before, a second gift a visit from 6, gems at 10. */
+const FRIEND = (CRITTERS as unknown as { friendHearts?: number }).friendHearts ?? 5;
+const TRUSTED = (CRITTERS as unknown as { trustedFrom?: number }).trustedFrom ?? 6;
+
 export interface VisitResult { gift: string; rare: boolean; heart: number | null; coins: number }
 
 const pickWeighted = <T extends { w: number }>(list: T[], r: () => number): T => {
@@ -99,14 +103,17 @@ class CrittersSystem {
     r.visits++;
     const after = this.hearts(id);
     const heart = after > before ? after : null;
-    // the rare gift: likelier with every heart, and always on reaching the last heart
-    const rareChance = CRITTERS.rareBase + CRITTERS.rarePerHeart * before;
-    const rare = heart === CRITTERS.maxHearts || Math.random() < rareChance;
+    // the rare gift: likelier with every heart up to 5, and always on reaching 5 (best friends)
+    const rareChance = CRITTERS.rareBase + CRITTERS.rarePerHeart * Math.min(before, FRIEND);
+    const rare = heart === FRIEND || Math.random() < rareChance;
     const gift = rare ? c.rare : pickWeighted(c.gifts, Math.random).id;
     game.addItem(gift, 1, at);
     if (ITEMS[gift]?.cat === 'forage' || rare) woods.noteFound(gift);
-    const coins = heart ? CRITTERS.heartCoins * heart : 0;
+    // 1.40 trusted (6 hearts and up): a second small gift with every visit
+    if (before >= TRUSTED) { const more = pickWeighted(c.gifts, Math.random).id; game.addItem(more, 1, at); if (ITEMS[more]?.cat === 'forage') woods.noteFound(more); }
+    const coins = heart ? CRITTERS.heartCoins * Math.min(heart, FRIEND) : 0;
     if (coins) game.addCoins(coins, at);
+    if (heart === CRITTERS.maxHearts) game.addGems((CRITTERS as unknown as { trustedGems?: number }).trustedGems ?? 10);
     game.incStat('critter_visits');
     if (heart) game.incStat('critter_hearts');
     logEvent('critter', { id, gift, heart: heart ?? 0 });

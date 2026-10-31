@@ -10,7 +10,7 @@ import { saves } from './Save';
 import { rollsQuality } from './Quality';
 import { logEvent } from '../online/Events';
 import { hints } from './Hints';
-import { LINES, type LineDef } from './MasteryEffects';
+import { GRAND, LINES, type LineDef } from './MasteryEffects';
 
 export interface MasteryEntry { id: string; kind: 'crop' | 'workshop'; name: string; icon: string; target: number; items: string[] }
 
@@ -29,7 +29,15 @@ class MasterySystem {
   private started = false;
 
   get entries(): MasteryEntry[] { return (this.cached ??= buildEntries()); }
-  get st(): { done: string[]; picks?: Record<string, string> } { return (game.state.mastery ??= { done: [] }); }
+  get st(): { done: string[]; picks?: Record<string, string>; grand?: string[] } { return (game.state.mastery ??= { done: [] }); }
+
+  // ---- 1.37 Grand Mastery: a second, bigger gold challenge after an entry is mastered
+  grandOpen(): boolean { return game.level >= GRAND.unlockLevel; }
+  grandTarget(e: MasteryEntry): number { return e.kind === 'crop' ? GRAND.cropGold : GRAND.workshopGold; }
+  isGrand(id: string): boolean { return !!game.state.mastery?.grand?.includes(id); }
+  grandCount(): number { return game.state.mastery?.grand?.length ?? 0; }
+  /** Gold made of this entry in all (the first challenge's ones count too). */
+  grandProgress(e: MasteryEntry): number { return Math.min(this.grandTarget(e), e.items.reduce((s, i) => s + game.stat(`gold_${i}`), 0)); }
 
   /** 1.25 the lines a mastered entry can take, and the one picked (picked once, for good). */
   lines(e: MasteryEntry): LineDef[] { return LINES[e.kind] ?? []; }
@@ -75,6 +83,20 @@ class MasterySystem {
       game.bus.emit('toast', { title: `${e.name} mastered!`, sub: `A Mastery Plaque is in your storage, plus ${MASTERY.reward.coins} coins and ${MASTERY.reward.gems} gems. Pick its mastery line in Me > Mastery.`, icon: 'trophy' });
       game.bus.emit('sfx', { name: 'levelup' });
       logEvent('mastery', { id: e.id, level: game.level });
+    }
+    if (this.grandOpen()) {
+      for (const e of this.entries) {
+        if (!this.isDone(e.id) || this.isGrand(e.id) || this.grandProgress(e) < this.grandTarget(e)) continue;
+        (this.st.grand ??= []).push(e.id);
+        game.addCoins(GRAND.reward.coins);
+        game.addGems(GRAND.reward.gems);
+        game.state.storage[GRAND.plaque] = (game.state.storage[GRAND.plaque] ?? 0) + 1;
+        game.discover(GRAND.plaque, 'building');
+        game.incStat('grand_masteries');
+        game.bus.emit('toast', { title: `Grand Mastery: ${e.name}!`, sub: `A Grand Mastery Plaque is in your storage, plus ${GRAND.reward.coins} coins and ${GRAND.reward.gems} gems. ${e.name} is now a little likelier to come out gold.`, icon: 'crown' });
+        game.bus.emit('sfx', { name: 'levelup' });
+        logEvent('grand_mastery', { id: e.id, level: game.level });
+      }
     }
     saves.save();
   }

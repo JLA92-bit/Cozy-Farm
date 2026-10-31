@@ -9,7 +9,7 @@ import { isBuilt } from './Timers';
 import { hasSkillPerk } from './SkillEffects';
 
 /** Tiles of extra reach (Sturdy Tools). */
-const reachBonus = (): number => (hasSkillPerk('sturdy_tools') ? 1 : 0);
+const reachBonus = (): number => (hasSkillPerk('sturdy_tools') ? 1 : 0) + (hasSkillPerk('long_reach') ? 1 : 0);
 /** Quality fertiliser strength (Golden Touch makes it twice as strong). */
 export const craftFertMult = (): number => (hasSkillPerk('golden_touch') ? 2 : 1);
 

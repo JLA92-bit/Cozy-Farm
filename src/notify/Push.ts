@@ -6,6 +6,7 @@ import { onlineConfigured } from '../online/Connect';
 import type { AccountBackend, PushBackend, PushDevice } from '../online/types';
 import { readyEvents } from './Events';
 import { planNotifications, planKey, sanitizeNotifyPrefs, type NotifyPrefs, type PlannedNotification } from './Plan';
+import { askLocalPermission, clearLocal, localPermission, scheduleLocal, testLocal, type LocalPerm } from './LocalPush';
 
 /**
  * Phone notifications (Web Push), the game side.
@@ -33,7 +34,7 @@ export type PushAvailability =
   | 'ios-old'
   /** no service worker (development server, or the browser blocks it) */
   | 'no-sw'
-  /** 1.32 the Android app: web push does not reach it (app notifications come in a later update) */
+  /** 1.32 the store apps: no web push; from 1.34.3 they schedule reminders on the phone (LocalPush.ts) */
   | 'app';
 
 export interface NotifyState {
@@ -107,8 +108,9 @@ let swMissing = false;
 
 /** Can this device get notifications at all? (Fast, no waiting.) */
 export function pushAvailability(): PushAvailability {
-  if (!onlineConfigured() || !vapidKey() || !backend()) return 'not-configured';
+  // the apps schedule on the phone itself, so they need no server or VAPID key
   if (isNative()) return 'app';
+  if (!onlineConfigured() || !vapidKey() || !backend()) return 'not-configured';
   const hasPush = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   if (isIos() && !isStandalone()) return 'ios-install';
   if (!hasPush) return isIos() ? 'ios-old' : 'unsupported';
@@ -117,6 +119,8 @@ export function pushAvailability(): PushAvailability {
 }
 
 const permission = (): NotificationPermission => ('Notification' in window ? Notification.permission : 'default');
+/** The app's notification permission, read once at start and after asking (the plugin call is async). */
+let appPerm: LocalPerm = 'prompt';
 
 let waiting = false;
 let lastPlan: PlannedNotification[] = [];
@@ -128,6 +132,10 @@ export function onNotify(fn: () => void): () => void { listeners.add(fn); return
 export function notifyState(): NotifyState {
   const available = pushAvailability();
   const wants = !!game.state && notifyPrefs().enabled;
+  if (available === 'app') {
+    const on = wants && appPerm === 'granted';
+    return { available, on, elsewhere: wants && !on && appPerm !== 'denied', blocked: wants && appPerm === 'denied', waiting: false, next: on ? lastPlan[0] ?? null : null };
+  }
   const blocked = available === 'ok' && permission() === 'denied';
   const on = available === 'ok' && wants && !!rec.endpoint && permission() === 'granted';
   return { available, on, elsewhere: wants && !on, blocked, waiting: on && waiting, next: on ? lastPlan[0] ?? null : null };
@@ -201,6 +209,7 @@ export function syncSoon(delay = DEBOUNCE_MS, force = false): void {
 
 async function syncNow(): Promise<void> {
   if (busy) { again = true; return; }
+  if (pushAvailability() === 'app') { await syncApp(); return; }
   const pb = backend();
   if (!pb || !game.state) return;
   busy = true;
@@ -262,10 +271,43 @@ async function syncNow(): Promise<void> {
   }
 }
 
+/** The apps: the next reminders go to the phone's own schedule (none while visiting a friend's farm). */
+async function syncApp(): Promise<void> {
+  if (!game.state) return;
+  busy = true;
+  try {
+    if (!notifyState().on || visiting.active) { lastPlan = []; if (rec.schedule) { await clearLocal(); rec.schedule = ''; persist(); } return; }
+    lastPlan = planNotifications(readyEvents(game.state, game.now()), notifyPrefs(), Date.now());
+    const key = planKey(lastPlan);
+    if (key !== rec.schedule || Date.now() - rec.scheduleAt > REFRESH_MS) {
+      await scheduleLocal(lastPlan);
+      rec.schedule = key;
+      rec.scheduleAt = Date.now();
+      persist();
+    }
+  } catch (e) {
+    console.warn('[notify] could not schedule on the phone', e);
+  } finally {
+    busy = false;
+    notify();
+    if (again) { again = false; syncSoon(500); }
+  }
+}
+
 // ------------------------------------------------------------------------------- switching
 
 /** Ask for permission (on a tap) and switch notifications on for this device. Returns null or a short reason. */
 export async function enableNotifications(): Promise<null | 'blocked' | 'dismissed' | 'unavailable' | 'failed'> {
+  if (pushAvailability() === 'app') {
+    appPerm = await askLocalPermission();
+    if (appPerm !== 'granted') { notify(); return appPerm === 'denied' ? 'blocked' : 'dismissed'; }
+    notifyPrefs().enabled = true;
+    rec.schedule = '';
+    persist();
+    syncSoon(0, true);
+    notify();
+    return null;
+  }
   if (pushAvailability() !== 'ok') return 'unavailable';
   // first thing on the tap: browsers only show the permission prompt for a user gesture
   let perm = permission();
@@ -299,6 +341,7 @@ export async function enableNotifications(): Promise<null | 'blocked' | 'dismiss
 export async function disableNotifications(): Promise<void> {
   notifyPrefs().enabled = false;
   lastPlan = [];
+  if (pushAvailability() === 'app') { rec.schedule = ''; persist(); await clearLocal(); notify(); return; }
   const ep = rec.endpoint || currentSub?.endpoint || '';
   if (ep && !rec.pendingDelete.includes(ep)) rec.pendingDelete.push(ep);
   rec.endpoint = '';
@@ -320,6 +363,7 @@ export function setNotifyPref<K extends Exclude<keyof NotifyPrefs, 'enabled'>>(k
 
 /** Ask the server for a test notification (arrives within a few minutes, when the sender runs). */
 export async function sendTestNotification(): Promise<boolean> {
+  if (pushAvailability() === 'app') return notifyState().on && testLocal();
   const pb = backend();
   if (!pb || !notifyState().on) return false;
   try {
@@ -355,6 +399,10 @@ export function startNotifications(): void {
   window.addEventListener('online', () => { if (failures) syncSoon(1000); });
   window.setInterval(() => { if (!document.hidden) kick(); }, 30 * 60000);
   // check this device once the game has settled: permission taken away, subscription renewed by the browser...
+  if (pushAvailability() === 'app') {
+    void localPermission().then((p) => { appPerm = p; notify(); if (notifyPrefs().enabled) syncSoon(0, true); });
+    return;
+  }
   setTimeout(() => {
     if (!notifyPrefs().enabled && !rec.pendingDelete.length) return;
     if (notifyPrefs().enabled && rec.endpoint && permission() !== 'granted') {

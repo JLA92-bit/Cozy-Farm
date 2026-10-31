@@ -1,6 +1,7 @@
 import { BUILDING, RECIPE, RECIPES, type RecipeDef } from '../data';
 import { buildings, speedupCost } from './Buildings';
 import { game, type Vec } from './Game';
+import { fromBuilding } from './UpgradeEffects';
 import type { PlacedBuilding } from './State';
 import { isBuilt, settleProduction } from './Timers';
 import { addRolled, countStars, rollsQuality, type Quality } from './Quality';
@@ -100,7 +101,8 @@ export class ProductionSystem {
     for (const [item, n] of Object.entries(counts)) {
       // goods from star ingredients keep their star; the rest roll their own small chance
       const s = Math.min(n, star[item]?.[0] ?? 0), g = Math.min(n - s, star[item]?.[1] ?? 0);
-      addRolled('production', item, n - s - g, at);
+      // 1.35 Fine Tools: this building's top upgrade adds a little silver and gold
+      fromBuilding(b, () => addRolled('production', item, n - s - g, at));
       if (s) game.addItem(item, s, at, 1);
       if (g) game.addItem(item, g, at, 2);
       countStars(s, g);

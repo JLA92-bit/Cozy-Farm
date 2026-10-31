@@ -20,6 +20,15 @@ import { askButton } from './HelpPanel';
 import { upkeep } from '../../systems/Upkeep';
 import { wearRow } from './UpkeepUI';
 
+/** How many times a recipe can be queued right now: free slots, then ingredients (of the picked star). */
+export function fillCount(b: PlacedBuilding, recipe: string, star: Quality = 0): number {
+  const r = RECIPE[recipe];
+  if (!r || game.level < r.level || !production.canQueue(b, recipe, star).ok) return 0;
+  let n = buildings.slots(b) - production.queued(b);
+  for (const [item, k] of Object.entries(r.in)) n = Math.min(n, Math.floor((star ? game.qualityCounts(item)[star] : game.count(item)) / k));
+  return Math.max(0, n);
+}
+
 /** How many locked recipes to preview below the unlocked ones. */
 const LOCKED_PREVIEW = 2;
 
@@ -132,7 +141,7 @@ export function openProduction(b: PlacedBuilding): void {
     if (!isBuilt(b, now)) detail.textContent = 'Still under construction.';
     else if (production.queued(b) >= slots) {
       const up = buildings.upgradeInfo(b);
-      detail.textContent = up ? 'Queue is full. Upgrade for an extra slot!' : 'Queue is full.';
+      detail.textContent = up && !up.label.includes(':') ? 'Queue is full. Upgrade for an extra slot!' : 'Queue is full.';
     } else if (detail.dataset.sticky !== '1') detail.textContent = '';
     // recipes depend on stock and queue state; re-render them only when those change
     const sig = `${upkeep.stage(b)}|${Math.round(upkeep.wearOf(b))}|${game.coins >= upkeep.repairCost(b) ? 1 : 0}|${q.length}|${ready.size}|${Object.entries(game.state.inventory).join(',')}|${JSON.stringify(game.state.quality)}|${game.state.orders.list.map((o) => o.id + ':' + (o.readyAt <= now)).join(',')}|${game.state.truck?.crates.map((c) => c.filled).join(',') ?? ''}`;
@@ -152,7 +161,8 @@ export function openProduction(b: PlacedBuilding): void {
     const wanted = wantedItems();
     const full = production.queued(b) >= buildings.slots(b);
     const all = production.recipesFor(b.type);
-    const unlocked = all.filter((r) => game.level >= r.level);
+    // recipes something wants (an order, the truck, a project) come first; the rest keep their order
+    const unlocked = all.filter((r) => game.level >= r.level).sort((x, y) => Number((wanted.get(y.item) ?? 0) > 0) - Number((wanted.get(x.item) ?? 0) > 0));
     const locked = all.filter((r) => game.level < r.level);
     for (const r of [...unlocked, ...locked.slice(0, LOCKED_PREVIEW)]) {
       const isLocked = game.level < r.level;
@@ -203,6 +213,17 @@ export function openProduction(b: PlacedBuilding): void {
         game.bus.emit('tutorial', { signal: `produce:${r.id}` });
         renderQueue();
       }, `small ${isLocked ? 'grey' : check.ok ? '' : 'disabled'}`);
+      // Fill: as many jobs as there are free slots and ingredients (only worth a button for 2+)
+      const fillN = isLocked ? 0 : fillCount(b, r.id, pick);
+      const fill = fillN >= 2 ? button(`Fill x${fillN}`, () => {
+        let n = 0;
+        while (n < fillN && production.queue(b, r.id, pick)) n++;
+        if (!n) { audio.play('error'); return; }
+        if (pick) starPick.delete(r.id);
+        ui.feedback.toast(`${n} ${ITEMS[r.item].name} on the way`, undefined, ITEMS[r.item].icon);
+        game.bus.emit('tutorial', { signal: `produce:${r.id}` });
+        renderQueue();
+      }, 'small blue') : null;
       const ic = itemIcon(r.item, 'icon big');
       if (isLocked) ic.style.filter = 'brightness(0) opacity(.35)';
       const need = wanted.get(r.item) ?? 0;
@@ -219,7 +240,7 @@ export function openProduction(b: PlacedBuilding): void {
           tags.childElementCount ? tags : null,
           ingredients,
           starRow),
-        make));
+        fill ? h('div', { class: 'prod-make' }, make, fill) : make));
     }
     if (locked.length > LOCKED_PREVIEW) recipesEl.append(h('div', { class: 'muted center' }, `${locked.length - LOCKED_PREVIEW} more recipes unlock as you level up.`));
   };
@@ -240,10 +261,47 @@ ui.onBuildingTap((b) => {
   settleProduction(b, game.now());
   if ((b.ready ?? []).length) {
     const at = ui.scene.farm.anchor(b.uid);
-    production.collect(b, { x: at.x, y: at.y, z: at.z }, ui.scene.env.night > 0.6);
+    const items = production.collect(b, { x: at.x, y: at.y, z: at.z }, ui.scene.env.night > 0.6);
     ui.effects.sparkle(at, '#fff6a0', 8);
+    offerAgain(b, items);
     return true;
   }
   openProduction(b);
   return true;
 });
+
+/** The jobs that made these goods, by recipe, in the order they came out. */
+export function againJobs(b: PlacedBuilding, items: string[]): string[] {
+  const counts = new Map<string, number>();
+  for (const i of items) counts.set(i, (counts.get(i) ?? 0) + 1);
+  const jobs: string[] = [];
+  for (const [item, n] of counts) {
+    const r = Object.values(RECIPE).find((x) => x.item === item && x.building === b.type);
+    if (r) for (let k = 0; k < Math.ceil(n / (r.out || 1)); k++) jobs.push(r.id);
+  }
+  return jobs;
+}
+
+/** Queue the jobs again, as many as fit and have ingredients. Returns how many went in. */
+export function queueAgain(b: PlacedBuilding, jobs: string[]): number {
+  let n = 0;
+  for (const id of jobs) if (production.queue(b, id)) n++;
+  return n;
+}
+
+/** After a tap-collect, a small "Again" button over the workshop re-makes what just came out. */
+function offerAgain(b: PlacedBuilding, items: string[]): void {
+  const jobs = againJobs(b, items).filter((id) => production.canQueue(b, id).ok);
+  if (!jobs.length) return;
+  const first = RECIPE[jobs[0]];
+  const btn = button([itemIcon(first.item, 'icon'), 'Again', jobs.length > 1 ? `x${jobs.length}` : null], () => {
+    const n = queueAgain(b, againJobs(b, items));
+    ui.world.hidePopup();
+    if (!n) { ui.feedback.toast('Cannot make that now', production.canQueue(b, first.id).reason, 'cross'); audio.play('error'); return; }
+    ui.feedback.toast(n > 1 ? `${n} jobs started` : `${ITEMS[first.item].name} on the way`, undefined, ITEMS[first.item].icon);
+    audio.play('select', { volume: 0.6 });
+  }, 'small again-btn');
+  ui.world.showPopup(ui.scene.farm.anchor(b.uid), h('div', { class: 'again-pop' }, btn));
+  const uid = b.uid;
+  window.setTimeout(() => { if (ui.world.popupOpen && document.querySelector('.again-pop') && game.state.buildings.some((x) => x.uid === uid)) ui.world.hidePopup(); }, 4500);
+}

@@ -17,3 +17,6 @@
 .ms-line-btn small { font-weight: 600; opacity: .85; }
 .ms-line { margin-top: 6px; display: flex; gap: 6px; align-items: center; font-size: 13px; padding: 4px 8px; border-radius: 10px; background: #fff; border: 2px solid var(--outline); }
 .ms-line img, .ms-line svg { width: 20px; height: 20px; flex: none; }
+/* 1.37 Grand Mastery */
+.ms-grand { margin-top: 6px; padding: 6px 8px; border-radius: 10px; background: #f1ebff; }
+.ms-grand.done { background: #fff4c8; }

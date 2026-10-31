@@ -463,4 +463,17 @@ export const FURNISH_GEO: Record<string, () => THREE.BufferGeometry> = {
   },
   telescope: () => geo().cyl(0.02, 0.02, 0.6, '#3a3a46', [-0.9, TREEHOUSE_Y + 0.07, 1.15], 4, [0.25, 0, 0]).cyl(0.02, 0.02, 0.6, '#3a3a46', [-1.05, TREEHOUSE_Y + 0.07, 1.0], 4, [-0.2, 0, 0.2])
     .cyl(0.07, 0.1, 0.7, '#d9a43a', [-0.95, TREEHOUSE_Y + 0.62, 1.15], 10, [0.9, 0, 0]).build(),
+  // 1.41 the Lookout: a round crow's nest high up the pine, a rope ladder and a flag
+  lookout: () => {
+    const b = geo();
+    const y = TREEHOUSE_Y + 3.4;
+    b.cyl(0.75, 0.7, 0.12, '#a8743a', [0, y, -0.5], 12);
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; b.cyl(0.03, 0.03, 0.45, '#7a4a2a', [Math.sin(a) * 0.7, y + 0.12, -0.5 + Math.cos(a) * 0.7], 4); }
+    b.cyl(0.74, 0.74, 0.04, '#7a4a2a', [0, y + 0.55, -0.5], 12);
+    for (let i = 0; i < 9; i++) b.block(0.36, 0.03, 0.05, '#c9a26a', [0.55, TREEHOUSE_Y + 0.35 + i * 0.36, 0.1]);
+    for (const x of [0.37, 0.73]) b.cyl(0.015, 0.015, 3.3, '#c9a26a', [x, TREEHOUSE_Y + 0.2, 0.1], 4);
+    b.cyl(0.02, 0.02, 1.2, '#5a3a22', [0.55, y + 0.12, -0.9], 4);
+    b.block(0.5, 0.3, 0.02, '#e2537a', [0.8, y + 0.95, -0.9]);
+    return b.build();
+  },
 };

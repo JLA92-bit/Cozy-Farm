@@ -5,6 +5,11 @@ import type { OfflineSummary } from '../../systems/Offline';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
 import { hints } from '../../systems/Hints';
+import { ui } from '../UI';
+import { mail } from '../../systems/Mail';
+import { fishNet } from '../../systems/FishNet';
+import { orders } from '../../systems/Economy';
+import { BUILDING } from '../../data';
 
 /** "about 3 hours" style wording, kinder than an exact timer. */
 function awayText(ms: number): string {
@@ -31,12 +36,23 @@ export function openWelcome(s: OfflineSummary, onClose?: () => void): void {
     h('div', { class: 'welcome-hello outlined' }, `${greeting()}, ${game.state.player.name}!`),
     h('div', null, `You were away for ${awayText(s.awayMs)}. The farm kept busy:`)));
   const list = h('div', { class: 'list' });
-  const row = (ic: string, text: string, tag?: string) => list.append(h('div', { class: 'list-item' }, icon(ic, 'icon big'), h('div', { class: 'grow title' }, text), tag ? h('span', { class: 'pill' }, tag) : null));
+  const row = (ic: string, text: string, tag?: string, go?: () => void) => list.append(h('div', { class: 'list-item' }, icon(ic, 'icon big'), h('div', { class: 'grow title' }, text),
+    go ? button(tag ?? 'Go', () => { p.close(); go(); }, 'small blue') : tag ? h('span', { class: 'pill' }, tag) : null));
   const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
   if (s.crops) row('wheat', `${plural(s.crops, 'field')} ready to harvest`, hints.coach('swipe') ? 'Swipe!' : undefined);
   if (s.trees) row('apple', `${plural(s.trees, 'tree')} full of fruit`);
-  if (s.animals) row('egg', `${plural(s.animals, 'animal product')} waiting`);
-  if (s.goods) row('bread', `${plural(s.goods, 'finished good')} to collect`);
+  // 1.34.3: with more than a couple of homes or workshops to visit, collecting is one button
+  const collectAll = s.animals + s.goods >= 2 && game.state.tutorial.done ? () => ui.open('collect_all') : undefined;
+  if (s.animals) row('egg', `${plural(s.animals, 'animal product')} waiting`, collectAll && !s.goods ? 'Collect all' : undefined, collectAll && !s.goods ? collectAll : undefined);
+  if (s.goods) row('bread', `${plural(s.goods, 'finished good')} to collect`, collectAll ? 'Collect all' : undefined, collectAll);
+  const now = game.now();
+  const idle = game.state.buildings.filter((b) => BUILDING[b.type]?.cat === 'production' && !(b.buildEnd && b.buildEnd > now) && !(b.queue ?? []).some((q) => q.end > now)).length;
+  if (idle >= 2) row('hammer', `${plural(idle, 'workshop')} with nothing cooking`, 'See', () => ui.open('workshops'));
+  const deliverable = game.state.orders.list.filter((o) => orders.canComplete(o)).length;
+  if (deliverable) row('clipboard', `${plural(deliverable, 'order')} you can deliver now`, 'Orders', () => ui.open('orders'));
+  if (fishNet.full()) row('fish_net', 'Your fishing net is full', 'Haul', () => ui.open('net'));
+  const letters = mail.unread();
+  if (letters) row('mailbox', `${plural(letters, 'letter')} in the mailbox`, 'Read', () => ui.open('mail'));
   for (const b of s.built) row('construction', `${b} finished building`, hints.coach('build') ? 'Tap it!' : undefined);
   if (s.stallSold.length) row('store', `${plural(s.stallSold.length, 'stall sale')} (${s.stallSold.reduce((a, b) => a + b.coins, 0)} coins to collect)`);
   p.body.append(list);

@@ -44,7 +44,12 @@ export const stageOpen = (id: string): boolean => !roomDone(id) && stageLock(id)
 // ------------------------------------------------------------------------------------------- effects
 const on = (stage: string): boolean => roomDone(`grove_${stage}`);
 /** Waking Roots: woods forage is likelier to carry silver and gold stars. */
-export const groveForageBoost = (): { silver: number; gold: number } | null => (on('roots') ? { silver: E.forageSilver, gold: E.forageGold } : null);
+export const groveForageBoost = (): { silver: number; gold: number } | null => {
+  if (!on('roots')) return null;
+  // 1.41 the Heartwood: the same boost again
+  const k = on('heartwood') ? 2 : 1;
+  return { silver: E.forageSilver * k, gold: E.forageGold * k };
+};
 /** The Green Shoot: more pans a day at Crystal Creek. */
 export const grovePans = (): number => (on('shoot') ? E.extraPans : 0);
 /** Spreading Boughs: how many times a day each critter family visits its stump. */
@@ -52,6 +57,6 @@ export const critterVisitsPerDay = (): number => (on('boughs') ? E.critterVisits
 /** The Glowing Canopy: the oak glows at night. */
 export const canopyGlows = (): boolean => on('canopy');
 /** The Glowing Canopy: more digs a day in the woods. */
-export const groveDigs = (): number => (on('canopy') ? E.extraDigs : 0);
+export const groveDigs = (): number => (on('canopy') ? E.extraDigs : 0) + (on('heartwood') ? 1 : 0);
 
 qualityBoosts.push((source) => (source === 'forage' ? groveForageBoost() : null));

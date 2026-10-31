@@ -5,6 +5,8 @@
 .mn-under { background: linear-gradient(180deg, #3a2c22, #2a201a); color: #fff3df; border-color: #1a120d; }
 .mn-under.mn-caverns { background: linear-gradient(180deg, #2a3150, #1c2038); border-color: #0e1122; }
 .mn-under.mn-deeps { background: linear-gradient(180deg, #4a2418, #2e140d); border-color: #1a0a06; }
+.mn-under.mn-sunken { background: linear-gradient(180deg, #1f3e3a, #122624); border-color: #071412; }
+.mn-under.mn-vault { background: linear-gradient(180deg, #24204a, #14122c); border-color: #08061a; }
 .mn-under .visit-sub { color: #f2dcc0; display: flex; align-items: center; gap: 4px; }
 .mn-under .visit-sub .icon { width: 18px; height: 18px; }
 .mn-side { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex: 0 0 auto; }
@@ -25,6 +27,8 @@
 .mn-floor .icon { width: 26px; height: 26px; }
 .mn-floor.mn-caverns { background: #dfe4ff; }
 .mn-floor.mn-deeps { background: #ffe0cc; }
+.mn-floor.mn-sunken { background: #d4f4ec; }
+.mn-floor.mn-vault { background: #e4e0ff; }
 .mn-floor.locked { opacity: 0.55; }
 .mn-floor-n { flex: 1; text-align: left; }
 .mn-floor-tag { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; background: #ffd84a; border-radius: 8px; padding: 1px 5px; }

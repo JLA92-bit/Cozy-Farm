@@ -51,6 +51,23 @@ export function masteryPlaqueGeometry(): THREE.BufferGeometry {
   return b.build();
 }
 
+/** 1.37 Grand Mastery: a taller plaque on a dark stone column, with a crown of stars. */
+export function grandPlaqueGeometry(): THREE.BufferGeometry {
+  const b = geo();
+  b.cyl(0.44, 0.5, 0.1, '#8f8676', [0, 0, 0], 12);
+  b.cyl(0.12, 0.14, 0.9, '#a39886', [0, 0.1, 0], 10);
+  b.block(0.86, 0.58, 0.1, '#6b4c9a', [0, 0.96, 0]);
+  b.block(0.74, 0.46, 0.12, GOLD_LIGHT, [0, 1.02, 0.01]);
+  b.sphere(0.12, GOLD, [0, 1.25, 0.09], 1, [1, 1, 0.5]);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2;
+    b.cone(0.05, 0.16, GOLD, [Math.sin(a) * 0.16, 1.25 + Math.cos(a) * 0.16, 0.09], 4, [Math.PI / 2, 0, -a]);
+  }
+  for (let i = -1; i <= 1; i++) b.cone(0.07, 0.2, GOLD, [i * 0.28, 1.36, 0], 5);
+  b.block(0.5, 0.03, 0.02, GOLD_DARK, [0, 0.88, 0.12]);
+  return b.build();
+}
+
 const FLAGS = ['#ff6b6b', '#ffd166', '#6cc644', '#3fa9f5', '#ff8fb4', '#a97bd8'];
 
 /** Bunting between two points: a sagging string with little pennants, in island-space coordinates. */
@@ -71,4 +88,4 @@ export function buntingGeometry(ax: number, az: number, bx: number, bz: number, 
   return b.build();
 }
 
-export const FESTIVAL_PROC: Record<string, () => THREE.BufferGeometry> = { hero_statue: heroStatueGeometry, mastery_plaque: masteryPlaqueGeometry };
+export const FESTIVAL_PROC: Record<string, () => THREE.BufferGeometry> = { hero_statue: heroStatueGeometry, mastery_plaque: masteryPlaqueGeometry, grand_plaque: grandPlaqueGeometry };

@@ -63,7 +63,9 @@ export function openBram(): void {
       const can = mine.canBuyPickaxe();
       p.body.append(h('div', { class: 'mn-card next' }, icon('pick', 'mn-card-icon'), h('div', { class: 'grow' },
         h('div', { class: 'mn-card-name' }, `Next: ${next.name}`), h('div', { class: 'mn-card-sub' }, next.about),
-        h('div', { class: 'mn-needs' }, ...lines, h('div', { class: `mn-need${game.coins >= next.coins ? ' ok' : ''}` }, icon('coin'), h('span', null, 'Coins'), h('b', null, fmt(next.coins)))),
+        h('div', { class: 'mn-needs' }, ...lines, h('div', { class: `mn-need${game.coins >= next.coins ? ' ok' : ''}` }, icon('coin'), h('span', null, 'Coins'), h('b', null, fmt(next.coins))),
+          // 1.36 the star pickaxes need a Mining level first
+          next.skill ? h('div', { class: `mn-need${mine.pickaxeSkill() === null ? ' ok' : ''}` }, icon('mining'), h('span', null, 'Mining level'), h('b', null, String(next.skill))) : null),
         button([icon('hammer'), 'Make it'], () => {
           if (!mine.buyPickaxe()) { audio.play('error'); return; }
           audio.play('build');

@@ -11,7 +11,7 @@ import { geo, rng } from './Procedural';
 import { currentLook } from './FarmLook';
 import { CLIFF_H, R_ISLAND, grassTop, islandBase, mergeStatic, modelObject } from './SquareView';
 import { boatGeometry, jettyGeometry } from './models/square';
-import { FURNISH_GEO, TREEHOUSE_Y, treehouseGeometry, elderOakGeometry, FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
+import { WILD_PROC, FURNISH_GEO, TREEHOUSE_Y, treehouseGeometry, elderOakGeometry, FORAGE_COLOR, hedgehogGeometry, owlGeometry, squirrelGeometry, stumpGeometry, treatGeometry, bridgeGeometry, dugGeometry, forageGeometry, moundGeometry, noticeBoardGeometry, panPoolGeometry, pedestalGeometry, pondGeometry, sapBucketGeometry, streamGeometry } from './models/woods';
 import { restoration } from '../systems/Restoration';
 import { game } from '../systems/Game';
 import { critters } from '../systems/Critters';
@@ -740,7 +740,8 @@ export class WoodsView {
 
   /** The visitor's model: a modelled pet (deer, fox, rabbit) or a small procedural one. */
   private async critterObject(c: CritterDef): Promise<THREE.Object3D> {
-    const proc: Record<string, () => THREE.BufferGeometry> = { 'proc:hedgehog': hedgehogGeometry, 'proc:squirrel': squirrelGeometry, 'proc:owl': owlGeometry };
+    // 1.41 any of the woods' procedural animals (the otters at Fern Falls)
+    const proc: Record<string, () => THREE.BufferGeometry> = { ...WILD_PROC, 'proc:hedgehog': hedgehogGeometry, 'proc:squirrel': squirrelGeometry, 'proc:owl': owlGeometry };
     if (proc[c.model]) {
       const g = new THREE.Group();
       const m = new THREE.Mesh(proc[c.model](), assets.vertexMaterial);

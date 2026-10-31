@@ -1,7 +1,28 @@
 {
-  "_comment": "1.21: `bonus` perks come free at their level (no choice), on top of the two-way choices at perkLevels. 1.8.5 Skills. Four skills level 1-10 by doing what players already do (src/systems/Skills.ts). xpLevels[n] = total XP needed to reach level n+1. xp maps a game stat (an incStat name) to the XP each count gives. Each level gives the 'perLevel' bonus (numbers in 'values'); at levels 5 and 10 the player picks one of two perks. All numbers here can be tuned without code changes (see BALANCE.md > Skills).",
-  "xpLevels": [0, 50, 150, 400, 1000, 2000, 3500, 6000, 10000, 16000],
-  "perkLevels": [5, 10],
+  "_comment": "1.21: `bonus` perks come free at their level (no choice), on top of the two-way choices at perkLevels. 1.8.5 Skills. Four skills level 1-10 by doing what players already do (src/systems/Skills.ts). xpLevels[n] = total XP needed to reach level n+1. xp maps a game stat (an incStat name) to the XP each count gives. Each level gives the 'perLevel' bonus (numbers in 'values'); at levels 5 and 10 the player picks one of two perks. All numbers here can be tuned without code changes (see BALANCE.md > Skills). 1.35 Higher Ground: levels 11-20 (expert ranks). Each rank above 10 gives half the perLevel bonus (expertStep); perk choices at 15 and 20, and a free bonus at 12 and 18 in every skill.",
+  "xpLevels": [
+    0,
+    50,
+    150,
+    400,
+    1000,
+    2000,
+    3500,
+    6000,
+    10000,
+    16000,
+    24000,
+    33000,
+    43000,
+    54000,
+    66000,
+    79000,
+    93000,
+    108000,
+    124000,
+    141000
+  ],
+  "perkLevels": [5, 10, 15, 20],
   "headStartMaxLevel": 5,
   "values": {
     "goldPerLevel": 0.01,
@@ -31,131 +52,464 @@
     "forageGoldPerLevel": 0.01,
     "keenEyesChance": 0.2,
     "extraDigs": 2,
-    "wildGold": 0.05, "hardyStockSick": 0.6, "sturdyJointsWear": 0.75,
-    "mineBonusPerLevel": 0.01, "strongArmChance": 0.125, "prospectorChance": 0.34, "gemSenseMult": 2, "secondWindSwings": 15, "cartLuckMult": 2
+    "wildGold": 0.05,
+    "hardyStockSick": 0.6,
+    "sturdyJointsWear": 0.75,
+    "mineBonusPerLevel": 0.01,
+    "strongArmChance": 0.125,
+    "prospectorChance": 0.34,
+    "gemSenseMult": 2,
+    "secondWindSwings": 15,
+    "cartLuckMult": 2,
+    "expertStep": 0.5,
+    "fastFieldsTime": 0.9,
+    "bumperCropChance": 0.1,
+    "goldenFieldsGold": 0.05,
+    "freeSeedsChance": 0.25,
+    "goodSoilGold": 0.02,
+    "sunnyFieldsTime": 0.95,
+    "quickHerdTime": 0.9,
+    "goodCompanyChance": 0.15,
+    "prizeHerdSilver": 0.04,
+    "prizeHerdGold": 0.02,
+    "fullBarnSpaces": 1,
+    "gentleHandsSilver": 0.02,
+    "oldFriendsSick": 0.8,
+    "steadyReelZone": 0.05,
+    "earlyBiteWait": 0.85,
+    "deepWaterRare": 1.25,
+    "fishMarketSell": 1.1,
+    "patientReelZone": 0.02,
+    "bigFishTop": 1.2,
+    "quickKitchenTime": 0.95,
+    "doubleBatchChance": 0.1,
+    "masterChefSell": 1.1,
+    "extraHobSlots": 1,
+    "fineFoodGold": 0.02,
+    "busyKitchenTime": 0.97,
+    "fineSmithExtra": 0.1,
+    "cheapPartsCut": 0.15,
+    "mendingWear": 0.9,
+    "woodcareWear": 0.85,
+    "longReach": 1,
+    "shopSmithExtra": 0.05,
+    "sharpEyesChance": 0.15,
+    "deepDigsDigs": 1,
+    "wildGoldGold": 0.05,
+    "bigBasketChance": 0.2,
+    "woodsWiseGold": 0.02,
+    "moreDigs": 1,
+    "powerSwingChance": 0.1,
+    "richSeamsChance": 0.15,
+    "gemEyeMult": 1.5,
+    "staminaSwings": 15,
+    "minersLuck": 0.01,
+    "steadyBreathSwings": 10
   },
   "skills": [
     {
-      "id": "farming", "name": "Farming", "icon": "seedling", "color": "green",
+      "id": "farming",
+      "name": "Farming",
+      "icon": "seedling",
+      "color": "green",
       "about": "Grows as you harvest crops and fruit.",
       "grows": "Harvesting crops and fruit",
-      "xp": { "crops_harvested": 1, "fruit_harvested": 1 },
+      "xp": {"crops_harvested": 1, "fruit_harvested": 1},
       "perLevel": "+1% chance of gold crops",
       "perks": {
         "5": [
-          { "id": "quick_grower", "name": "Quick Grower", "icon": "timer", "text": "Crops you plant grow 10% faster" },
-          { "id": "big_harvest", "name": "Big Harvest", "icon": "basket", "text": "1 harvest in 10 gives a double crop" }
+          {"id": "quick_grower", "name": "Quick Grower", "icon": "timer", "text": "Crops you plant grow 10% faster"},
+          {"id": "big_harvest", "name": "Big Harvest", "icon": "basket", "text": "1 harvest in 10 gives a double crop"}
         ],
         "10": [
-          { "id": "master_farmer", "name": "Master Farmer", "icon": "crown", "text": "A further 5% chance of gold crops" },
-          { "id": "seed_saver", "name": "Seed Saver", "icon": "seed", "text": "Now and then a harvest gives your seed money back" }
+          {"id": "master_farmer", "name": "Master Farmer", "icon": "crown", "text": "A further 5% chance of gold crops"},
+          {
+            "id": "seed_saver",
+            "name": "Seed Saver",
+            "icon": "seed",
+            "text": "Now and then a harvest gives your seed money back"
+          }
+        ],
+        "15": [
+          {"id": "fast_fields", "name": "Fast Fields", "icon": "timer", "text": "Crops grow a further 10% faster"},
+          {
+            "id": "bumper_crop",
+            "name": "Bumper Crop",
+            "icon": "basket",
+            "text": "A further 1 harvest in 10 gives a double crop"
+          }
+        ],
+        "20": [
+          {"id": "golden_fields", "name": "Golden Fields", "icon": "crown", "text": "A further 5% chance of gold crops"},
+          {"id": "free_seeds", "name": "Free Seeds", "icon": "seed", "text": "1 planting in 4 costs no seed money"}
         ]
-      }
+      },
+      "bonus": [
+        {
+          "id": "good_soil",
+          "name": "Good Soil",
+          "icon": "seedling",
+          "text": "A further 2% chance of gold crops",
+          "level": 12
+        },
+        {"id": "sunny_fields", "name": "Sunny Fields", "icon": "sun", "text": "Crops grow 5% faster", "level": 18}
+      ]
     },
     {
-      "id": "animals", "name": "Animals", "icon": "cow", "color": "pink",
+      "id": "animals",
+      "name": "Animals",
+      "icon": "cow",
+      "color": "pink",
       "about": "Grows as you collect eggs, milk, wool and more.",
       "grows": "Collecting animal products",
-      "xp": { "animal_products": 1 },
+      "xp": {"animal_products": 1},
       "perLevel": "Animals give their products 1% sooner",
       "perks": {
         "5": [
-          { "id": "happy_herd", "name": "Happy Herd", "icon": "heart", "text": "A quarter of the time an animal carries on without needing new feed" },
-          { "id": "prize_animals", "name": "Prize Animals", "icon": "medal", "text": "More silver and gold animal products" }
+          {
+            "id": "happy_herd",
+            "name": "Happy Herd",
+            "icon": "heart",
+            "text": "A quarter of the time an animal carries on without needing new feed"
+          },
+          {
+            "id": "prize_animals",
+            "name": "Prize Animals",
+            "icon": "medal",
+            "text": "More silver and gold animal products"
+          }
         ],
         "10": [
-          { "id": "shepherd", "name": "Shepherd", "icon": "sheep", "text": "A bonus animal product every day" },
-          { "id": "breeder", "name": "Breeder", "icon": "nest", "text": "One extra space in every animal home" }
+          {"id": "shepherd", "name": "Shepherd", "icon": "sheep", "text": "A bonus animal product every day"},
+          {"id": "breeder", "name": "Breeder", "icon": "nest", "text": "One extra space in every animal home"}
+        ],
+        "15": [
+          {
+            "id": "quick_herd",
+            "name": "Quick Herd",
+            "icon": "timer",
+            "text": "Animals make their goods a further 10% sooner"
+          },
+          {
+            "id": "good_company",
+            "name": "Good Company",
+            "icon": "heart",
+            "text": "A further 15% chance a collected animal stays fed"
+          }
+        ],
+        "20": [
+          {"id": "prize_herd", "name": "Prize Herd", "icon": "star", "text": "More silver and gold animal goods"},
+          {"id": "full_barn", "name": "Full Barn", "icon": "hut", "text": "One more place for an animal in every home"}
         ]
       },
-      "bonus": [{ "level": 7, "id": "hardy_stock", "name": "Hardy Stock", "icon": "heart", "text": "Animals fall unwell 40% less often" }]
+      "bonus": [
+        {
+          "level": 7,
+          "id": "hardy_stock",
+          "name": "Hardy Stock",
+          "icon": "heart",
+          "text": "Animals fall unwell 40% less often"
+        },
+        {
+          "id": "gentle_hands",
+          "name": "Gentle Hands",
+          "icon": "hug",
+          "text": "A little more silver from your animals",
+          "level": 12
+        },
+        {
+          "id": "old_friends",
+          "name": "Old Friends",
+          "icon": "heart",
+          "text": "Animals fall unwell less often",
+          "level": 18
+        }
+      ]
     },
     {
-      "id": "fishing", "name": "Fishing", "icon": "fishing_pole", "color": "blue",
+      "id": "fishing",
+      "name": "Fishing",
+      "icon": "fishing_pole",
+      "color": "blue",
       "about": "Grows with every fish you land at the dock.",
       "grows": "Catching fish",
-      "xp": { "fish_caught": 8 },
+      "xp": {"fish_caught": 8},
       "perLevel": "A wider green zone when reeling in",
       "perks": {
         "5": [
-          { "id": "patient_angler", "name": "Patient Angler", "icon": "hourglass", "text": "Rare fish bite more often" },
-          { "id": "quick_cast", "name": "Quick Cast", "icon": "rocket", "text": "Fish bite sooner after you cast" }
+          {"id": "patient_angler", "name": "Patient Angler", "icon": "hourglass", "text": "Rare fish bite more often"},
+          {"id": "quick_cast", "name": "Quick Cast", "icon": "rocket", "text": "Fish bite sooner after you cast"}
         ],
         "10": [
-          { "id": "legend_hunter", "name": "Legend Hunter", "icon": "kraken", "text": "Legendary and mythic fish bite more often" },
-          { "id": "fishmonger", "name": "Fishmonger", "icon": "coin", "text": "Fish sell for 25% more in the barn" }
+          {
+            "id": "legend_hunter",
+            "name": "Legend Hunter",
+            "icon": "kraken",
+            "text": "Legendary and mythic fish bite more often"
+          },
+          {"id": "fishmonger", "name": "Fishmonger", "icon": "coin", "text": "Fish sell for 25% more in the barn"}
+        ],
+        "15": [
+          {"id": "steady_reel", "name": "Steady Reel", "icon": "fishing_pole", "text": "The green zone is wider again"},
+          {"id": "early_bite", "name": "Early Bite", "icon": "timer", "text": "Fish bite 15% sooner"}
+        ],
+        "20": [
+          {"id": "deep_water", "name": "Deep Water", "icon": "fish", "text": "Rare fish bite more often"},
+          {"id": "fish_market", "name": "Fish Market", "icon": "coin", "text": "The barn pays 10% more for fish"}
         ]
-      }
+      },
+      "bonus": [
+        {
+          "id": "patient_reel",
+          "name": "Patient Reel",
+          "icon": "fishing_pole",
+          "text": "The green zone is a little wider",
+          "level": 12
+        },
+        {
+          "id": "big_fish",
+          "name": "Big Fish",
+          "icon": "crown",
+          "text": "Legendary and mythic fish bite a little more often",
+          "level": 18
+        }
+      ]
     },
     {
-      "id": "cooking", "name": "Cooking", "icon": "pie", "color": "yellow",
+      "id": "cooking",
+      "name": "Cooking",
+      "icon": "pie",
+      "color": "yellow",
       "about": "Grows as your workshops finish goods.",
       "grows": "Making goods in workshops",
-      "xp": { "items_produced": 1 },
+      "xp": {"items_produced": 1},
       "perLevel": "Workshops work 1% faster",
       "perks": {
         "5": [
-          { "id": "batch_cook", "name": "Batch Cook", "icon": "bowl", "text": "Now and then a batch makes double" },
-          { "id": "chef", "name": "Chef", "icon": "cake", "text": "Goods sell for 10% more in the barn" }
+          {"id": "batch_cook", "name": "Batch Cook", "icon": "bowl", "text": "Now and then a batch makes double"},
+          {"id": "chef", "name": "Chef", "icon": "cake", "text": "Goods sell for 10% more in the barn"}
         ],
         "10": [
-          { "id": "head_chef", "name": "Head Chef", "icon": "crown", "text": "An extra queue place in every workshop" },
-          { "id": "gourmet", "name": "Gourmet", "icon": "sparkles", "text": "More gold goods" }
+          {"id": "head_chef", "name": "Head Chef", "icon": "crown", "text": "An extra queue place in every workshop"},
+          {"id": "gourmet", "name": "Gourmet", "icon": "sparkles", "text": "More gold goods"}
+        ],
+        "15": [
+          {"id": "quick_kitchen", "name": "Quick Kitchen", "icon": "timer", "text": "Workshop jobs take 5% less time"},
+          {
+            "id": "double_batch",
+            "name": "Double Batch",
+            "icon": "basket",
+            "text": "A further 1 batch in 10 makes double"
+          }
+        ],
+        "20": [
+          {"id": "master_chef", "name": "Master Chef", "icon": "crown", "text": "The barn pays 10% more for goods"},
+          {"id": "extra_hob", "name": "Extra Hob", "icon": "hammer", "text": "One more queue place in every workshop"}
         ]
-      }
+      },
+      "bonus": [
+        {
+          "id": "fine_food",
+          "name": "Fine Food",
+          "icon": "star",
+          "text": "A further 2% chance of gold goods",
+          "level": 12
+        },
+        {
+          "id": "busy_kitchen",
+          "name": "Busy Kitchen",
+          "icon": "timer",
+          "text": "Workshop jobs take 3% less time",
+          "level": 18
+        }
+      ]
     },
     {
-      "id": "crafting", "name": "Crafting", "icon": "hammer_wrench", "color": "grey",
+      "id": "crafting",
+      "name": "Crafting",
+      "icon": "hammer_wrench",
+      "color": "grey",
       "about": "Opens when Bram's Workshop is rebuilt in the village square. Grows with everything you craft at his forge.",
       "grows": "Crafting at Bram's forge",
-      "xp": { "crafts_made": 80 },
+      "xp": {"crafts_made": 80},
       "perLevel": "A better chance that a craft makes an extra one",
       "perks": {
         "5": [
-          { "id": "thrifty_smith", "name": "Thrifty Smith", "icon": "coin", "text": "Crafts use a quarter fewer materials" },
-          { "id": "sturdy_tools", "name": "Sturdy Tools", "icon": "toolbox", "text": "Sprinklers and auto-feeders reach one tile further" }
+          {
+            "id": "thrifty_smith",
+            "name": "Thrifty Smith",
+            "icon": "coin",
+            "text": "Crafts use a quarter fewer materials"
+          },
+          {
+            "id": "sturdy_tools",
+            "name": "Sturdy Tools",
+            "icon": "toolbox",
+            "text": "Sprinklers and auto-feeders reach one tile further"
+          }
         ],
         "10": [
-          { "id": "golden_touch", "name": "Golden Touch", "icon": "sparkles", "text": "Quality fertiliser is twice as strong" },
-          { "id": "tinkerer", "name": "Tinkerer", "icon": "gear", "text": "Auto-feeders feed twice as many animals" }
+          {
+            "id": "golden_touch",
+            "name": "Golden Touch",
+            "icon": "sparkles",
+            "text": "Quality fertiliser is twice as strong"
+          },
+          {"id": "tinkerer", "name": "Tinkerer", "icon": "gear", "text": "Auto-feeders feed twice as many animals"}
+        ],
+        "15": [
+          {
+            "id": "fine_smith",
+            "name": "Fine Smith",
+            "icon": "hammer",
+            "text": "A further 10% chance of an extra crafted item"
+          },
+          {"id": "cheap_parts", "name": "Cheap Parts", "icon": "coin", "text": "Crafting costs a further 15% less"}
+        ],
+        "20": [
+          {
+            "id": "long_reach",
+            "name": "Long Reach",
+            "icon": "sparkles",
+            "text": "Sprinklers and helpers reach one tile further again"
+          },
+          {"id": "woodcare", "name": "Woodcare", "icon": "hut", "text": "Buildings wear 15% slower"}
         ]
       },
-      "bonus": [{ "level": 7, "id": "sturdy_joints", "name": "Sturdy Joints", "icon": "hammer", "text": "Workshops and animal homes wear a quarter slower" }]
+      "bonus": [
+        {
+          "level": 7,
+          "id": "sturdy_joints",
+          "name": "Sturdy Joints",
+          "icon": "hammer",
+          "text": "Workshops and animal homes wear a quarter slower"
+        },
+        {"id": "mending", "name": "Mending", "icon": "hammer", "text": "Buildings wear 10% slower", "level": 12},
+        {
+          "id": "shop_smith",
+          "name": "Shop Smith",
+          "icon": "sparkles",
+          "text": "A further 5% chance of an extra crafted item",
+          "level": 18
+        }
+      ]
     },
     {
-      "id": "foraging", "name": "Foraging", "icon": "mushroom", "color": "green",
+      "id": "foraging",
+      "name": "Foraging",
+      "icon": "mushroom",
+      "color": "green",
       "about": "Opens with the Wild Woods. Grows as you pick wild plants and dig up finds.",
       "grows": "Foraging, digging and befriending critters in the Wild Woods",
-      "xp": { "forage_picked": 3, "digs_done": 4, "pans_done": 4, "sap_collected": 3, "fireflies_caught": 3, "critter_visits": 5, "field_notes": 8, "camp_mornings": 10 },
+      "xp": {
+        "forage_picked": 3,
+        "digs_done": 4,
+        "pans_done": 4,
+        "sap_collected": 3,
+        "fireflies_caught": 3,
+        "critter_visits": 5,
+        "field_notes": 8,
+        "camp_mornings": 10
+      },
       "perLevel": "+1% chance of gold-star forage",
       "perks": {
         "5": [
-          { "id": "keen_eyes", "name": "Keen Eyes", "icon": "sparkles", "text": "1 forage pick in 5 gives a double" },
-          { "id": "extra_digs", "name": "Deep Digger", "icon": "pick", "text": "Two more dig spots can be dug each day" }
+          {"id": "keen_eyes", "name": "Keen Eyes", "icon": "sparkles", "text": "1 forage pick in 5 gives a double"},
+          {"id": "extra_digs", "name": "Deep Digger", "icon": "pick", "text": "Two more dig spots can be dug each day"}
         ],
         "10": [
-          { "id": "forager_gold", "name": "Wild Gold", "icon": "crown", "text": "A further 5% chance of gold-star forage" },
-          { "id": "lucky_finds", "name": "Lucky Finds", "icon": "gem", "text": "Fossils, artifacts and gems turn up much more often" }
+          {
+            "id": "forager_gold",
+            "name": "Wild Gold",
+            "icon": "crown",
+            "text": "A further 5% chance of gold-star forage"
+          },
+          {
+            "id": "lucky_finds",
+            "name": "Lucky Finds",
+            "icon": "gem",
+            "text": "Fossils, artifacts and gems turn up much more often"
+          }
+        ],
+        "15": [
+          {
+            "id": "sharp_eyes",
+            "name": "Sharp Eyes",
+            "icon": "mushroom",
+            "text": "A further 15% chance of a double forage pick"
+          },
+          {"id": "deep_digs", "name": "Deep Digs", "icon": "pick", "text": "One more dig spot a day"}
+        ],
+        "20": [
+          {"id": "wild_gold", "name": "Wild Gold", "icon": "crown", "text": "A further 5% chance of gold forage"},
+          {"id": "big_basket", "name": "Big Basket", "icon": "basket", "text": "1 woods find in 5 gives one extra"}
         ]
-      }
+      },
+      "bonus": [
+        {
+          "id": "woods_wise",
+          "name": "Woods Wise",
+          "icon": "seedling",
+          "text": "A further 2% chance of gold forage",
+          "level": 12
+        },
+        {"id": "more_digs", "name": "More Digs", "icon": "pick", "text": "One more dig spot a day", "level": 18}
+      ]
     },
     {
-      "id": "mining", "name": "Mining", "icon": "mining", "color": "grey",
+      "id": "mining",
+      "name": "Mining",
+      "icon": "mining",
+      "color": "grey",
       "about": "Opens with the Old Mine. Grows as you break rocks, find gems and fossils and go deeper.",
       "grows": "Breaking rocks, finding gems and fossils, and reaching new floors in the Old Mine",
-      "xp": { "rocks_broken": 2, "mine_gems": 6, "mine_fossils": 8, "mine_floors": 12, "geodes_cracked": 4, "mine_carts": 4 },
+      "xp": {"rocks_broken": 2, "mine_gems": 6, "mine_fossils": 8, "mine_floors": 12, "geodes_cracked": 4, "mine_carts": 4},
       "perLevel": "+1% chance a rock gives a bonus find",
       "perks": {
         "5": [
-          { "id": "strong_arm", "name": "Strong Arm", "icon": "pick", "text": "1 rock in 8 breaks in a single swing" },
-          { "id": "prospector", "name": "Prospector", "icon": "copper_ore", "text": "Ore rocks give one more ore 1 time in 3" }
+          {"id": "strong_arm", "name": "Strong Arm", "icon": "pick", "text": "1 rock in 8 breaks in a single swing"},
+          {
+            "id": "prospector",
+            "name": "Prospector",
+            "icon": "copper_ore",
+            "text": "Ore rocks give one more ore 1 time in 3"
+          }
         ],
         "10": [
-          { "id": "gem_sense", "name": "Gem Sense", "icon": "gem", "text": "Gem rocks turn up twice as often" },
-          { "id": "second_wind", "name": "Second Wind", "icon": "candle", "text": "15 more swings a day" }
+          {"id": "gem_sense", "name": "Gem Sense", "icon": "gem", "text": "Gem rocks turn up twice as often"},
+          {"id": "second_wind", "name": "Second Wind", "icon": "candle", "text": "15 more swings a day"}
+        ],
+        "15": [
+          {
+            "id": "power_swing",
+            "name": "Power Swing",
+            "icon": "pick",
+            "text": "A further 10% chance a swing breaks a rock at once"
+          },
+          {"id": "rich_seams", "name": "Rich Seams", "icon": "gem", "text": "A further 15% chance of an extra ore"}
+        ],
+        "20": [
+          {"id": "gem_eye", "name": "Gem Eye", "icon": "gem", "text": "Gems turn up half as often again"},
+          {"id": "stamina", "name": "Stamina", "icon": "timer", "text": "15 more swings a day"}
         ]
       },
-      "bonus": [{ "level": 7, "id": "cart_luck", "name": "Cart Luck", "icon": "mine_cart", "text": "Mine carts and cave pools give twice as much" }]
+      "bonus": [
+        {
+          "level": 7,
+          "id": "cart_luck",
+          "name": "Cart Luck",
+          "icon": "mine_cart",
+          "text": "Mine carts and cave pools give twice as much"
+        },
+        {
+          "id": "miners_luck",
+          "name": "Miner's Luck",
+          "icon": "sparkles",
+          "text": "A little more chance of a bonus find",
+          "level": 12
+        },
+        {"id": "steady_breath", "name": "Steady Breath", "icon": "timer", "text": "10 more swings a day", "level": 18}
+      ]
     }
   ]
 }

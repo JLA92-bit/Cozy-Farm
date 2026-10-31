@@ -28,7 +28,9 @@ export function openFarmhands(): void {
       const hired = farmhands.hired(d.id), open = farmhands.unlocked(d.id);
       const card = h('div', { class: `card fh-hand${hired ? ' hired' : ''}${open ? '' : ' locked'}` },
         h('div', { class: 'fh-hand-head' }, icon(open ? d.icon : 'lock', 'fh-hand-icon'),
-          h('div', { class: 'grow' }, h('div', { class: 'title' }, d.name), h('div', { class: 'sub' }, open ? d.about : `Can be hired from level ${d.level}.`))));
+          h('div', { class: 'grow' }, h('div', { class: 'title' }, d.name, open && farmhands.daysWorked(d.id) ? h('span', { class: 'fh-lv' }, `Lv ${farmhands.level(d.id)}`) : null), h('div', { class: 'sub' }, open ? d.about : `Can be hired from level ${d.level}.`),
+            // 1.37 levels: what they do better now, and how long to the next
+            open && farmhands.daysWorked(d.id) ? h('div', { class: 'sub fh-lv-text' }, levelText(d.id)) : null)));
       if (open) {
         if (hired) {
           const c = FARMHANDS.chores[hired.chore];
@@ -69,3 +71,12 @@ export function openFarmhands(): void {
 }
 
 ui.register('farmhands', () => openFarmhands());
+
+/** 1.37 a hand's level in words. */
+function levelText(id: string): string {
+  const lv = farmhands.level(id), next = farmhands.toNextLevel(id);
+  const parts = [`Sows up to ${farmhands.fieldsPerRound(id)} fields a round`];
+  if (farmhands.allOfKind(id)) parts.push('looks after every home or workshop of the same kind');
+  if (lv >= 5) parts.push('every 7th working day is free');
+  return `${parts.join(', ')}. ${next === null ? 'Top level.' : `Level ${lv + 1} in ${next} working ${next === 1 ? 'day' : 'days'}.`}`;
+}

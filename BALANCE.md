@@ -898,7 +898,79 @@ The net saves time; it does not make more fish. Rod comparison: 5 free casts a d
 | Mended Net | 5 | 6 | 3 | 7 h | 0 |
 | Sturdy Net | 7 | 8 | 4 | 8 h | 2% |
 | Master Net | 10 | 10 | 5 | 8 h | 4% |
+| Grand Net (1.35) | 15 | 12 | 6 | 8 h | 5% |
 
 - Setting costs 3 bait (15 coins). Only dock fish already caught with the rod, not the extra kinds; common and uncommon, each weighted by the share of the day it bites; rare only at the tier's chance and only rare kinds already caught.
 - Net fish are always plain (no stars), give no XP (player or Fishing skill), set no records, do not count as `fish_caught` (Master, awards, Derby). Stats `nets_set`, `net_hauls`, `net_fish`.
 - Two hauls a day with a Master Net keep at most 10 fish. Commons sell 8-24 and uncommons 26-62, so with the best fish picked that is about 250-300 coins a day after 30 coins of bait: small next to orders and workshops at Fishing 10. The rod's 5 free casts alone are worth about the same, plus XP, stars and the chance of legendary fish.
+
+Keeping 6 is the hard top: two hauls a day are 12 fish, still about what the rod's free casts and a little bait bring in.
+
+## 1.35 Higher Ground (`skills.json`, `buildings.json` `upgrades`, `upkeep.json` `care`)
+
+**Skills 11-20.** XP ladder past 16,000: 24k, 33k, 43k, 54k, 66k, 79k, 93k, 108k, 124k, 141k (each rank about 1.3x the step before). Ranks above 10 give half the per-level bonus (`values.expertStep` 0.5), so level 20 is worth 14 steps, not 19: gold crops +14% (was +9% at 10), animals and workshops 14% faster. Perk choices at 15 and 20, a free bonus at 12 and 18 in every skill; all are small (5-15% on one thing, +1 slot, stall, dig or 10-15 swings). Gold chance stays capped at 25% (`qualityChances`), so stacked gold perks cannot run away.
+
+Pace: a big late farm earns roughly 600-1,500 skill XP a day in its main skills (1 XP per harvest, collect or job), so 16k to 141k takes about 3-6 months of regular play; a level-81 farm whose XP already ran past 16k opens a few ranks on the first day.
+
+**Workshop levels 6-8, animal home levels 5-7.** Coins are multiplied by the building's `upgradeMult` (1 to 4.6); goods are not.
+
+| Upgrade | Gives | Coins (x mult) | Goods | Player level |
+| --- | --- | --- | --- | --- |
+| Workshop 6 | 7th slot | 12,000 | 6 iron bars, 4 resin varnish | 75 |
+| Workshop 7 | 8th slot | 30,000 | 6 silver bars, 8 resin varnish | 90 |
+| Workshop 8, Fine Tools | +3% silver, +2% gold from that workshop | 75,000 | 6 gold bars, 3 rubies | 105 |
+| Animal home 5 | 7th stall | 15,000 | 6 iron bars, 4 resin varnish | 80 |
+| Animal home 6 | 8th stall | 35,000 | 6 silver bars, 8 resin varnish | 95 |
+| Animal home 7, Prize Pen | +3% silver, +2% gold from that home | 80,000 | 6 gold bars, 3 emeralds | 110 |
+
+One workshop all the way costs about 117k x mult (roughly 140k-400k) plus about 3,500 coins of goods; with 20 spare k a day that is one to three weeks per building, a long sink by design. A 7th and 8th slot add a third more queue but the goods still need ingredients, so income grows with what the farm grows, not by itself.
+
+**Vet's Cottage and Carpenter's Workshop 4-5** (60k at level 85, 150k at level 100). The price cut stops at level 3 (`discountTop`). Vet 4: check-ups last 5 days (3). Vet 5: animals count as old after 120 days (60). Carpenter 4: fresh paint lasts 28 days (14). Carpenter 5: everything wears at 0.75. Upkeep gets lighter; it never switches off.
+
+## 1.36 The Sunken Halls (`mine.json` layers `sunken`, `vault`)
+
+Floors 61-80 need Mining 12 (and the Golden Pickaxe), 81-100 Mining 15 and the Starsteel Pickaxe. Their rocks are 2 and 3 swings harder (`deep`), so the Golden Pickaxe (power 3) still breaks most in two swings and the Heartstone (power 5) in one or two. Still 60 swings a day: deeper floors are worth more per rock, not more rocks.
+
+| Item | Sells | From |
+| --- | --- | --- |
+| Star ore / moon ore | 160 / 190 | Sunken Halls ore and boulders / Starlit Vault |
+| Starsteel bar / moonsilver bar | 620 / 720 | Smelter, 3 ore + 2 coal (1 h / 70 min) |
+| Aquamarine / star crystal | 300 / 520 | gems; star crystals mostly in the Vault |
+| Sea lily, sunken coin, drowned bell, starfall shard | 280-700 | fossil rocks (Museum shelf "The Sunken Halls", 15,000 coins and 25 gems) |
+| Aquamarine brooch / star tiara | 1,500 / 7,200 | Jeweller (Collector's Cruise wants both) |
+
+Pickaxes: Starsteel 30,000 coins + 6 starsteel bars + 3 gold bars (Mining 15); Heartstone 60,000 + 6 moonsilver + 4 starsteel + 2 star crystals (Mining 20). Lift chests 65-100 pay 28,000-60,000 coins and 8-25 gems once each (about 350k coins in all, spread over months).
+
+## 1.37 Grand Mastery and farmhand levels
+
+Grand Mastery (from level 80, after the first plaque): 50 gold crops or 30 gold goods of that entry in all (the first challenge's 10 or 6 count). Reward 6,000 coins, 10 gems, a Grand Mastery Plaque (16 charm, inside the trophy cap) and +2% gold for that crop or workshop. With gold at 3-25%, 50 gold crops is a few hundred harvests of one crop: weeks, which is the point.
+
+Farmhands: a level every 10 working days, top level 5 after 40. Fields a round 12, 14, 16, 18, 20. From level 3 an animals or workshop hand looks after every building of the target's kind (still only feeding and restarting; nothing is collected or sold). Level 5: every 7th working day costs no wage (2,500 coins a week saved per hand).
+
+## 1.38 New Stock (levels 121-140, `authoredMax` 140)
+
+| Animal | Level | Home (coins) | Animal | Product (sells) | Every |
+| --- | --- | --- | --- | --- | --- |
+| Goose | 121 | Goose Green 60,000 | 3,200 | goose egg (180) | 100 min |
+| Alpaca | 125 | Alpaca Shed 75,000 | 3,800 | alpaca wool (220) | 130 min |
+| Highland Cow | 130 | Highland Byre 90,000 | 4,400 | clotted cream (260) | 140 min |
+
+Workshops: Smokehouse (123, 200,000) and Preserves Cellar (127, 220,000). Recipe prices follow the late-game rule used since 1.22: about 1.3x the ingredients plus a little for the time, so a slot earns roughly what the Tea House and Florist earn. The Highland Feast (140) takes three of the new dishes and sells for about 10,700.
+
+## 1.39 Farmhouse 16-20
+
+| Farmhouse | Player level | Cost | Fields | Trees | Of each workshop | Of each animal home | Decor |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 16 | 120 | 4.5M | 150 | 64 | 7 | 6 | 880 |
+| 17 | 135 | 6M | 160 | 68 | 7 | 7 | 960 |
+| 18 | 150 | 8M | 170 | 72 | 8 | 7 | 1,040 |
+| 19 | 165 | 10M | 180 | 76 | 8 | 8 | 1,120 |
+| 20 | 180 | 12M | 190 | 80 | 9 | 8 | 1,200 |
+
+The map is 48 x 48 tiles and is already full long before every cap is used (6 of every animal home alone would be over a thousand tiles), so the caps mostly give choice, not a duty to build. Rooms: the Library (17) and the Gallery (19). The decor cap past 800 was checked with `tools/stress-decor.mjs` at 1,200 pieces (see the 1.39 commit).
+
+## 1.40 Favours and Trust (`villagers.json` `favours`, `woods.json` critters)
+
+Favours: one a week per villager at 10 hearts (six best friends is six a week), three of their loves or likes the farm can already make (6 of something under 60 coins, 3 under 300, 2 under 1,500, else 1), open 3 days. Each pays 5 Friendship Tokens and 2,500 coins. A golden keepsake is 30 tokens (six weeks of one villager's favours), another gift piece for the home 12. Tokens buy only looks; nothing they buy earns money.
+
+Critters: hearts 6-10 at the same 3 visits a heart (15 more visits, about two to three weeks of daily visits per family). The rare-gift chance stops growing at 5 hearts (29%), so trust does not flood the Museum shelf; from 6 hearts each visit leaves a second common gift, and the 10th heart pays 10 gems once per family.

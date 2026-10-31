@@ -45,7 +45,7 @@ export function openCritter(id: string): void {
     clear(p.body);
     p.body.append(h('div', { class: 'cr-head' }, icon(c.icon, 'cr-big'),
       h('div', { class: 'grow' }, h('div', { class: 'muted' }, c.about), heartsRow(c.id),
-        h('div', { class: 'cr-sub' }, critters.hearts(c.id) >= CRITTERS.maxHearts ? 'Best friends!' : `${critters.toNextHeart(c.id)} more ${critters.toNextHeart(c.id) === 1 ? 'visit' : 'visits'} to the next heart`))));
+        h('div', { class: 'cr-sub' }, critters.hearts(c.id) >= CRITTERS.maxHearts ? 'They trust you completely!' : `${critters.hearts(c.id) >= 6 ? 'Trusted: two gifts a visit. ' : critters.hearts(c.id) >= 5 ? 'Best friends! ' : ''}${critters.toNextHeart(c.id)} more ${critters.toNextHeart(c.id) === 1 ? 'visit' : 'visits'} to the next heart`))));
     p.body.append(h('div', { class: `card cr-state ${critters.present(c.id) ? 'here' : ''}` }, icon(critters.present(c.id) ? 'paw_prints' : 'hourglass', 'cr-state-icon'), h('span', null, stumpLine(c))));
     if (critters.present(c.id)) {
       p.body.append(h('div', { class: 'center' }, button([icon('heart'), 'Say hello'], () => { p.close(); sayHello(c.id); }, 'green')));

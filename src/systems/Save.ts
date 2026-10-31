@@ -94,6 +94,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     found: countMap(s.woods.found, (k) => !!ITEMS[k]),
     visited: !!s.woods.visited,
     ...(Number.isFinite(s.woods.panned) ? { panned: Math.max(0, Math.floor(s.woods.panned as number)) } : {}),
+    ...(isObj(s.woods.pannedAt) ? { pannedAt: countMap(s.woods.pannedAt, (k) => typeof k === 'string') } : {}),
     ...(isObj(s.woods.taps) ? { taps: Object.fromEntries(Object.entries(s.woods.taps).filter(([k, v]) => /^[a-z]+:\d+$/.test(k) && typeof v === 'number' && Number.isFinite(v))) as Record<string, number> } : {}),
     // 1.20 Woodland Friends: visits per known family, a treat only if it is a real item, Wren's note for one day
     ...(isObj(s.woods.critters) ? { critters: Object.fromEntries(Object.entries(s.woods.critters).filter(([k, v]) => CRITTERS.families.some((c) => c.id === k) && isObj(v)).map(([k, v]) => {
@@ -127,7 +128,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     .map((p) => ({ project: p.project as string, kind: p.kind as string, host: typeof p.host === 'string' ? p.host.slice(0, 24) : '', names: strArr(p.names).slice(0, 30).map((n) => n.slice(0, 24)), at: finite(p.at, 0, 0) })),
     ...(Array.isArray(s.coop.pending) ? { pending: (s.coop.pending as unknown[]).filter((x): x is Record<string, unknown> => isObj(x) && typeof x.key === 'string' && typeof x.project === 'string' && typeof x.item === 'string' && !!ITEMS[x.item] && Array.isArray(x.taken)).slice(0, 20)
       .map((x) => ({ key: x.key as string, project: x.project as string, item: x.item as string, n: Math.floor(finite(x.n, 0, 0)), taken: [0, 1, 2].map((i) => Math.floor(finite((x.taken as unknown[])[i], 0, 0))) as [number, number, number] })) } : {}) } : undefined;
-  out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}) } : undefined;
+  out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}), ...(Array.isArray(s.mastery.grand) ? { grand: strArr(s.mastery.grand).filter((k) => strArr(s.mastery!.done).includes(k)) } : {}) } : undefined;
   return sanitize(out, base);
 }
 
@@ -195,6 +196,7 @@ function repairFarmhands(v: unknown): SaveData['farmhands'] {
   return {
     hired, paid: strMap(v.paid, () => true), lastCrop: strMap(v.lastCrop, (s) => !!CROP[s]), lastRecipe: strMap(v.lastRecipe, (s) => !!RECIPE[s]),
     ...(t ? { today: { day: t.day as string, planted: Math.floor(finite(t.planted, 0, 0)), fed: Math.floor(finite(t.fed, 0, 0)), queued: Math.floor(finite(t.queued, 0, 0)), wages: Math.floor(finite(t.wages, 0, 0)) } } : {}),
+    ...(isObj(v.days) ? { days: countMap(v.days, (k) => FARMHANDS.hands.some((f) => f.id === k)) } : {}),
   };
 }
 
@@ -304,6 +306,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   });
 
   out.inventory = countMap(out.inventory, (k) => !!ITEMS[k]);
+  if (out.keep !== undefined) out.keep = Array.isArray(out.keep) ? [...new Set(out.keep.filter((k): k is string => typeof k === 'string' && !!ITEMS[k]))].slice(0, 500) : undefined;
   if (isObj(out.storage) && Number.isFinite((out.storage as Record<string, unknown>).glass_frame)) glassRefund += Math.max(0, Math.floor((out.storage as Record<string, number>).glass_frame));
   if (glassRefund) p.coins += glassRefund * 900;
   out.storage = countMap(out.storage, (k) => !!BUILDING[k]);
@@ -367,6 +370,16 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
     if (isObj(r.arc) && typeof r.arc.day === 'string') vf[k].arc = { day: r.arc.day, sent: Math.min(VILLAGER[k].arc?.letters.length ?? 0, Math.floor(finite(r.arc.sent, 0, 0))), ...(typeof r.arc.last === 'string' ? { last: r.arc.last } : {}) };
   }
   out.village.friends = vf;
+  // 1.40 favours and tokens: only well-formed weeks with real items survive
+  out.village.tokens = Math.floor(finite(out.village.tokens, 0, 0));
+  if (out.village.favours !== undefined) {
+    const fv: NonNullable<SaveData['village']['favours']> = {};
+    for (const [k, f] of Object.entries(isObj(out.village.favours) ? out.village.favours : {})) {
+      if (!isObj(f) || typeof f.week !== 'string' || !Number.isFinite(f.until)) continue;
+      fv[k] = { week: f.week, items: countMap(f.items, (i) => !!ITEMS[i]), until: f.until as number, ...(f.done === true ? { done: true } : {}) };
+    }
+    out.village.favours = fv;
+  }
   if (out.village.openedDay !== undefined && typeof out.village.openedDay !== 'string') delete out.village.openedDay;
   if (typeof out.village.milestoneDay !== 'string') { delete out.village.milestoneDay; delete out.village.milestoneN; } else out.village.milestoneN = Math.floor(finite(out.village.milestoneN, 0, 0));
   const td = out.village.today;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import type { Pointer, DragKind } from '../core/Input';
-import { BUILDING, CROP, TREE } from '../data';
+import { BUILDING, CROP, ITEMS, TREE } from '../data';
 import { buildings, isStorable } from '../systems/Buildings';
 import { farming } from '../systems/Farming';
 import { game } from '../systems/Game';
@@ -292,6 +292,33 @@ export class Interaction implements WorldHandler {
     return true;
   }
 
+  /** Empty, built fields on the farm. */
+  emptyFields(): PlacedBuilding[] {
+    const now = game.now();
+    return game.state.buildings.filter((b) => b.type === 'plot' && !b.plot && isBuilt(b, now));
+  }
+
+  /** 1.34.3: sow the picked seed in every empty field (stops when the coins run out). Returns how many. */
+  plantAllEmpty(): number {
+    if (this.mode.kind !== 'plant' || !this.mode.crop) return 0;
+    const crop = this.mode.crop;
+    let n = 0;
+    for (const b of this.emptyFields()) {
+      if (!farming.canPlant(b, crop).ok) break;
+      farming.plant(b, crop);
+      if (n < 16) ui.effects.dust(this.anchorOf(b).setY(0.2), 2, 1);
+      n++;
+    }
+    if (!n) { const f = this.emptyFields()[0]; if (f) this.plantOne(f, crop, 0); return 0; }
+    this.lastCrop = crop;
+    audio.playCombo('plant', Math.min(n, 12), 0);
+    haptics.play('tap');
+    const left = this.emptyFields().length;
+    ui.feedback.toast(`Planted ${n} ${CROP[crop].name}`, left ? `${left} fields left: ${farming.canPlant(this.emptyFields()[0], crop).reason ?? ''}` : undefined, ITEMS[crop]?.icon ?? 'wheat');
+    this.maybeAllPlanted();
+    return n;
+  }
+
   /** Once every field is sown, tidy the seed tray away with a little cheer. */
   private maybeAllPlanted(): void {
     if (this.mode.kind !== 'plant') return;
@@ -545,11 +572,11 @@ export class Interaction implements WorldHandler {
   private beginMulti(): void {
     if (this.mode.kind !== 'edit') return;
     this.multi = new Map();
-    ui.setModeBanner('Swipe across pieces of one kind to select them, then Store', () => this.exitEdit());
+    ui.setModeBanner('Tap pieces or swipe across one kind to select them, then move or store them', () => this.exitEdit());
     this.refreshMultiBar();
   }
   private refreshMultiBar(): void {
-    ui.setEditBar({ cancel: () => { this.endMulti(); this.enterEdit(); }, store: () => this.storeMany(), count: this.multi?.size ?? 0 });
+    ui.setEditBar({ cancel: () => { this.endMulti(); this.enterEdit(); }, store: () => this.storeMany(), count: this.multi?.size ?? 0, nudge: (dx, dz) => this.nudgeMany(dx, dz) });
   }
   private selectable(b: PlacedBuilding): boolean { return isStorable(BUILDING[b.type]) && !b.plot; }
   /** While swiping: select (or unselect) every piece of the starting kind under the finger, on any layer of the tile. */
@@ -580,6 +607,15 @@ export class Interaction implements WorldHandler {
     audio.play('select', { volume: 0.5, throttleMs: 40 });
     haptics.play('tap');
     this.refreshMultiBar();
+  }
+  /** 1.34.3: step every selected piece one tile together (the camera looks from a fixed corner, so the arrows are diagonal). */
+  private nudgeMany(dx: number, dz: number): void {
+    const multi = this.multi;
+    if (!multi?.size) return;
+    if (!buildings.moveGroup([...multi.keys()], dx, dz)) { ui.feedback.toast("Can't move them there", 'Something is in the way', 'cross'); audio.play('error'); return; }
+    for (const [uid, g] of multi) { const b = game.byUid(uid); if (b) g.position.set(b.x - HALF, 0, b.z - HALF); }
+    audio.play('select', { volume: 0.5, throttleMs: 40 });
+    haptics.play('tap');
   }
   private endMulti(): void {
     if (!this.multi) return;

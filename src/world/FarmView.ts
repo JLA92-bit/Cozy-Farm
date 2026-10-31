@@ -60,7 +60,7 @@ interface PlantInst {
 export function productModel(item: string): string {
   const icon = ITEMS[item]?.icon ?? '';
   if (icon.startsWith('model:')) return icon.slice(6);
-  return ({ egg: 'food/egg', milk: 'food/carton', truffle: 'food/mushroom' } as Record<string, string>)[item] ?? 'food/bag';
+  return ({ egg: 'food/egg', goose_egg: 'food/egg', milk: 'food/carton', clotted_cream: 'food/carton', truffle: 'food/mushroom' } as Record<string, string>)[item] ?? 'food/bag';
 }
 
 export interface BuildingView {
@@ -924,6 +924,10 @@ export class FarmView {
         if (def.variant === 'sheep') geometry = this.own(sheepGeometry(sm.geometry, sm.size));
         if (def.variant === 'goat') { material = goatMaterial(sm.material as THREE.MeshLambertMaterial); this.ownMaterial.push(material); }
         if (def.variant === 'duck') { material = duckMaterial(sm.material as THREE.MeshLambertMaterial); this.ownMaterial.push(material); }
+        // 1.38 New Stock: a grey-white goose, a caramel alpaca and a shaggy ginger highland cow, recoloured from the farm's models
+        if (def.variant === 'goose' || def.variant === 'alpaca' || def.variant === 'highland') { material = recolourMaterial(sm.material as THREE.MeshLambertMaterial, def.variant); this.ownMaterial.push(material); }
+        // the alpaca is a fluffy sheep body in caramel (the deer model kept its antlers)
+        if (def.variant === 'alpaca') geometry = this.own(sheepGeometry(sm.geometry, sm.size));
         return this.pools.pool(`a/${animal}`, () => ({ geometry, material, castShadow: true }));
       })();
       this.animalPools.set(animal, p);
@@ -1319,6 +1323,40 @@ function duckMaterial(src: THREE.MeshLambertMaterial): THREE.Material {
     const sat = Math.max(r, gg, b) - Math.min(r, gg, b);
     if (sat > 60 && r > b && gg > r * 0.72) { // yellow body -> soft white; orange beak and feet are redder, so they stay
       d[i] = 250; d[i + 1] = 246; d[i + 2] = 236;
+    }
+  }
+  g.putImageData(data, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.flipY = false;
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  return new THREE.MeshLambertMaterial({ map: tex, vertexColors: true });
+}
+
+/** 1.38 recolours for the new animals: goose (yellow chick body to soft white), alpaca (white fur to caramel), highland (all fur to ginger). */
+function recolourMaterial(src: THREE.MeshLambertMaterial, kind: 'goose' | 'alpaca' | 'highland'): THREE.Material {
+  const img = src.map!.image as HTMLImageElement | ImageBitmap;
+  const c = document.createElement('canvas');
+  c.width = img.width; c.height = img.height;
+  const g = c.getContext('2d')!;
+  g.drawImage(img as CanvasImageSource, 0, 0);
+  const data = g.getImageData(0, 0, c.width, c.height);
+  const d = data.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], gg = d[i + 1], b = d[i + 2];
+    const l = 0.3 * r + 0.59 * gg + 0.11 * b;
+    const sat = Math.max(r, gg, b) - Math.min(r, gg, b);
+    if (kind === 'goose') {
+      if (sat > 60 && r > b && gg > r * 0.72) { const k = Math.min(255, 196 + l * 0.22); d[i] = k * 0.95; d[i + 1] = k * 0.96; d[i + 2] = k * 0.97; }
+    } else if (kind === 'alpaca') {
+      // the white bear's fur turns caramel; its dark nose and eyes stay dark
+      if (l > 110) { const k = Math.min(255, l * 0.95); d[i] = k; d[i + 1] = k * 0.78; d[i + 2] = k * 0.55; }
+    } else if (l > 40) {
+      // highland: black and white patches both turn ginger, darker where the hide was dark
+      const k = Math.min(255, 90 + l * 0.65);
+      d[i] = k; d[i + 1] = k * 0.55; d[i + 2] = k * 0.28;
     }
   }
   g.putImageData(data, 0, 0);
