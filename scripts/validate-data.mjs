@@ -551,6 +551,15 @@ releases?.forEach((r, i) => {
   dup('recipes.json', /\{"id": "([a-z0-9_]+)"/g);
   dup('buildings.json', /\{ "id": "([a-z0-9_]+)"/g);
 }
+// 1.45 parcels: every sender is a villager, and value and shares are sane
+{
+  const P = read('parcels.json');
+  const who = new Set(read('villagers.json').villagers.map((v) => v.id));
+  for (const [cat, id] of Object.entries(P.senders)) if (!who.has(id)) errors.push(`parcels.json senders.${cat}: unknown villager ${id}`);
+  if (!(P.lineShare > 0 && P.lineShare <= 1)) errors.push('parcels.json lineShare must be above 0 and at most 1');
+  for (const k of ['level', 'welcome', 'master', 'festival']) if (!(P.share[k] > 0)) errors.push(`parcels.json share.${k} is missing`);
+}
+
 // 1.41 woods rooms (trails, Elder Oak stages, treehouse) never ask for an item that unlocks after the room opens
 {
   const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));

@@ -10,6 +10,7 @@ import type { PlacedBuilding } from './State';
 import { isBuilt, isUpgrading, plotReady, treeReady } from './Timers';
 import { farmhouseBuilding, fieldStatus, nextCapRaise } from './Caps';
 import { hints } from './Hints';
+import { parcels } from './Parcels';
 
 export interface GoalAction {
   panel?: string; arg?: unknown; focusUid?: number;
@@ -104,6 +105,7 @@ export function nextGoal(): Goal {
   }
   const claim = quests.claimable();
   if (claim) return { title: 'Quest complete', text: 'Claim your quest reward!', icon: 'scroll', action: { panel: 'quests' } };
+  if (parcels.waiting()) return { title: 'A parcel for you', text: 'Someone in the village sent something over', icon: 'package', action: { panel: 'parcels' } };
   if (s.crates.length) return { title: 'Mystery crate', text: `You have ${s.crates.length} crate${s.crates.length > 1 ? 's' : ''} to open`, icon: 'gift', action: { panel: 'crates' } };
   if (game.state.tutorial.done && daily.check(now)) return { title: 'Daily gift', text: `Day ${daily.dayIndex + 1} reward is waiting!`, icon: 'calendar', action: { panel: 'daily' } };
   const page = BOOK_PAGES.find((g) => book.claimable(g));
@@ -113,6 +115,8 @@ export function nextGoal(): Goal {
   // hungry animals with feed
   const hungry = s.buildings.find((b) => b.animals?.length && animals.counts(b).hungry && game.count(ANIMAL[BUILDING[b.type].animal!].feed) > 0);
   if (hungry) return { title: 'Feed animals', text: 'Your animals are hungry', icon: ITEMS[ANIMAL[BUILDING[hungry.type].animal!].feed].icon, action: { focusUid: hungry.uid } };
+  const pinned = parcels.pinned();
+  if (pinned) return { title: 'Your pinned goal', text: `${parcels.needName(pinned)} ${pinned.why}`, icon: pinned.item === 'coins' ? 'coin' : ITEMS[pinned.item].icon, action: { panel: 'parcels' } };
   // something new to build
   const build = BUILDINGS.find((b) => (b.cat === 'production' || b.cat === 'animal' || (b.cat === 'special' && b.max)) && !b.event && b.level <= game.level && game.ownedCount(b.id) === 0);
   const buildOk = !!build && buildings.canBuy(build.id).ok;

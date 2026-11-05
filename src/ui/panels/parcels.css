@@ -1,0 +1,10 @@
+/* 1.45 Thoughtful Parcels */
+.pc-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.pc-card { display: flex; flex-direction: column; gap: 3px; padding: 10px; border-radius: 12px; background: #fbf6ec; }
+.pc-what { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.pc-extra { font-size: 14px; }
+.pc-from { font-size: 14px; color: #6b4c9a; }
+.pc-pick { align-self: flex-end; min-height: 44px; min-width: 96px; }
+.pc-goal { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 4px; border-radius: 10px; background: #fbf6ec; }
+.pc-goal.on { background: #fff3c8; }
+.pc-goal .btn { min-height: 40px; min-width: 64px; flex: none; }

@@ -6,6 +6,7 @@ import './CollectAll';
 import './WorkshopsPanel';
 import './RecordsPanel';
 import './FairPanel';
+import './ParcelPanel';
 import './AnimalPanel';
 import './CharacterPanel';
 import './EconomyPanels';

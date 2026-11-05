@@ -10,6 +10,7 @@ import { hashString, rng } from '../world/Procedural';
 import { weekKey } from '../online/Weekly';
 import { logEvent } from '../online/Events';
 import { lateXp } from './Endless';
+import { parcels } from './Parcels';
 
 const WEEK_MS = 7 * 86400000;
 export interface MasterChallenge { id: string; text: string; icon: string; stat: string; target: number; progress: number; claimed: boolean; done: boolean }
@@ -100,6 +101,7 @@ class MasterSystem {
       game.discover(ms.id, 'building');
       sub += ` A ${BUILDING[ms.id].name} is waiting in your storage!`;
     }
+    parcels.add('master');
     logEvent('master_week', { streak: st.streak, level: game.level });
     game.bus.emit('toast', { title: 'Master week complete!', sub, icon: 'crown' });
   }

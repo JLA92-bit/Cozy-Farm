@@ -1,7 +1,7 @@
 import { Panel } from '../Panel';
 import { h, icon, button, clear, fmt } from '../dom';
 import { ui } from '../UI';
-import { BUILDING, PIECE } from '../../data';
+import { BUILDING, PARCELS, PIECE } from '../../data';
 import { game } from '../../systems/Game';
 import { audio } from '../../systems/Audio';
 import { titles, TITLES } from '../../systems/Titles';
@@ -14,6 +14,7 @@ export function renderRecords(into: HTMLElement, redraw: () => void): void {
   const cur = titles.current();
   into.append(h('div', { class: 'rc-head' }, icon('medal', 'rc-head-icon'), h('div', null,
     h('div', { class: 'rc-name' }, game.state.player.name), h('div', { class: 'rc-title' }, cur ? cur.name : 'No title yet'))));
+  if (game.level >= PARCELS.level) into.append(button([icon('package'), ' Pin a goal for your parcels'], () => ui.open('parcels'), 'btn blue'));
   into.append(h('div', { class: 'section-title' }, 'Titles'));
   const list = h('div', { class: 'rc-titles' });
   for (const t of TITLES) {

@@ -993,3 +993,21 @@ Gold column from level 80: 15 gems per Collection Book page with every rollable 
 ## 1.44 Village Fair
 
 On the Harvest Fair day (one day in 28) from level 100. Bake-off: one gold-star good, judged by its barn price (4,000+ first, 1,500+ second, else third). Show: one animal home, judged by its animals' average hearts (90%+ of the top first, 60%+ second). Prizes: a rosette (30/20/12 charm, inside the trophy cap) and 10/5/2 gems. Co-op tier 2: the Village Bandstand (100) and the Boating Lake (110), about 4-5x the goods of the first projects, best with 3-5 friends. **Needs `schema.sql` re-run (coop_catalog).**
+
+## 1.45 Thoughtful Parcels (`parcels.json`, `src/systems/Parcels.ts`, `Needs.ts`)
+
+Need picks what a parcel holds, never how much. Worth = 6,000 + 50 x level, at most 25,000 (level 61: 9,050; level 140: 13,000; reached at level 380). A Master week or a 3-star festival pays half. Items count at their sell price, silver x2.5 and gold x5; what does not fit comes as coins.
+
+**Limits:** a quarter of what is missing from a project line or upgrade; the same item at most once in 7 days (a pinned goal is exempt); only items the farm has had, so the Collection Book never ticks; gold only once the farm has had that item in gold; no Museum pieces. Cheap lines come mostly as coins, because the worth is fixed and the quarter limit is low.
+
+**Crate item rolls:** something the farm is short of, up to the old amount and worth at most the crate's top coin roll; otherwise a crop or feed. Fixes the bug that opened almost every item to crates from level 99.
+
+**Result** (`npm run simulate-economy -- --days 300`, parcels counted as their full worth in coins, 3-star festival parcels not modelled because the simulated player wins two stars):
+
+| | Level 100 | Level 120 | Level 140 | Level 150 | Saving for at day 300 |
+| --- | --- | --- | --- | --- | --- |
+| Before | day 187 | day 231 | day 271 | day 291 | Farmhouse 15 |
+| After | day 184 | day 228 | day 268 | day 287 | Farmhouse 16 |
+
+Level pace barely moves, about 3 days earlier by level 150. The Farmhouse comes about one level sooner.
+

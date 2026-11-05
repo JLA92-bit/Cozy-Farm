@@ -16,7 +16,8 @@ This is the long-term plan for Cozy Acres. It follows the 1.15 audit and the own
 - **Money:**
   - nothing until after the Play production launch;
   - after it, paid building unlocks and speed-ups are allowed, within the rules in "2.0 The Market Stall" below;
-  - no loot boxes.
+  - no loot boxes;
+  - need-based rewards are never sold: no shop offer is ever built from what a player is short of, and parcels stay free (owner, 5 Nov 2026).
 - **Every release runs on the cheapest phone you test on:** draw calls stay inside `npm run test:perf` (720 decor, at most 520 calls).
 
 ## Release plan

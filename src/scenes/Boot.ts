@@ -53,6 +53,7 @@ import '../ui/panels/BoatVisitPanel';
 import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
+import { parcels } from '../systems/Parcels';
 import { upkeep } from '../systems/Upkeep';
 import type { SaveData } from '../systems/State';
 import { master } from '../systems/Master';
@@ -199,6 +200,7 @@ export async function boot(): Promise<void> {
   events.check();
   achievements.init();
   endless.init();
+  parcels.init();
   upkeep.init();
   quests.init();
   orders.refresh();

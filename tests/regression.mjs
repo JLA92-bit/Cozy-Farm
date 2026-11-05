@@ -1433,6 +1433,71 @@ try {
       return out;
     });
     check('the Village Fair: one Harvest Fair day a cycle, one bake-off entry with a gold good, a rosette', fair.found >= 0 && fair.bakes && fair.r1 === 'yellow' && fair.r2 === null && fair.rosette && !fair.next, JSON.stringify(fair));
+    // 1.45 Thoughtful Parcels: need picks what, never how much
+    const parcel = await page.evaluate(() => {
+      const g = window.__game, P = window.__parcels, s = g.state;
+      const was = JSON.stringify({ player: s.player, inventory: s.inventory, quality: s.quality, storage: s.storage, collection: s.collection, parcels: s.parcels ?? null, orders: s.orders, truck: s.truck ?? null });
+      const out = {};
+      const worth = (c) => (c.item ? c.qty * P.debug.unit(c.item, c.star ?? 0) : 0) + (c.decor ? P.debug.decorCost(c.decor) : 0) + c.coins;
+      s.player.level = 90;
+      s.orders.list = [{ id: 1, readyAt: 0, lines: [{ item: 'bread', qty: 500 }] }];
+      s.truck = null; s.inventory = {}; s.quality = {};
+      s.collection['item:bread'] = 1;
+      s.parcels = { level: 90, pending: [{ src: 'level', level: 90 }], recent: {} };
+      const value = 6000 + 50 * 90;
+      const a = P.offer();
+      out.three = a.cards.length;
+      out.worth = a.cards.map(worth);
+      out.fixed = out.worth.every((w) => Math.abs(w - value) <= 2);
+      out.kept = JSON.stringify(P.offer()) === JSON.stringify(a);
+      // a much richer farm gets the same worth
+      s.player.coins = 50000000;
+      delete s.parcels.offer;
+      out.richSame = P.offer().cards.every((c) => Math.abs(worth(c) - value) <= 2);
+      // only things the farm has had
+      const needs = window.__needs();
+      out.onlyKnown = needs.every((n) => n.item === 'coins' || !!s.collection[`item:${n.item}`]);
+      // a pin comes first, and a line gives a quarter of what is missing at most
+      s.collection['item:wheat'] = 1;
+      const line = P.goals().find((n) => n.capped && n.missing >= 8 && n.star === 0);
+      if (line) {
+        s.parcels.pin = line.id;
+        delete s.parcels.offer;
+        const c = P.offer().cards[0];
+        out.pinFirst = c.need === line.id;
+        out.capped = c.qty <= Math.ceil(line.missing * 0.25);
+        delete s.parcels.pin;
+      } else out.pinFirst = out.capped = true;
+      // the same item waits a week
+      delete s.parcels.offer;
+      s.parcels.recent.bread = g.now();
+      out.waits = !P.offer().cards.some((c) => c.item === 'bread');
+      s.parcels.recent = {};
+      // picking pays once and moves on
+      delete s.parcels.offer;
+      s.player.coins = 1000;
+      const got = P.pick(P.offer().cards.findIndex((c) => c.item === 'bread'));
+      out.paid = !!got && g.count('bread') === got.qty && s.player.coins === 1000 + got.coins;
+      out.gone = P.waiting() === 0 && !s.parcels.offer && P.pick(0) === null;
+      // below the level there are none; a Master week counts for half
+      s.player.level = 40; P.add('master'); out.lowNone = P.waiting() === 0;
+      s.player.level = 90; P.add('master'); out.master = P.waiting() === 1 && P.offer().cards.every((c) => Math.abs(worth(c) - value / 2) <= 2);
+      // junk in a save does not survive
+      const r = P.debug.repair({ level: 'x', pending: [{ src: 'nope', level: 3 }, { src: 'level', level: 70 }], offer: { src: 'level', level: 70, cards: [{ item: 'not_an_item', qty: 3, coins: 1, why: 'w', from: 'hazel' }] }, recent: { a: 'b' }, pin: 7 });
+      out.repair = r.pending.length === 1 && !r.offer && r.level === 0 && !r.pin && !Object.keys(r.recent).length;
+      // a crate's item roll at a high level: a crop, feed or something the farm has had
+      s.player.level = 120;
+      const known = { ...s.collection };
+      out.crateBad = [];
+      for (let i = 0; i < 200; i++) for (const c of P.debug.crates.open('common').rewards) if (c.type === 'items' && !known[`item:${c.id}`] && !P.debug.plain(c.id)) out.crateBad.push(c.id);
+      const w = JSON.parse(was);
+      s.player = w.player; s.inventory = w.inventory; s.quality = w.quality; s.storage = w.storage; s.collection = w.collection; s.orders = w.orders; s.truck = w.truck;
+      if (w.parcels) s.parcels = w.parcels; else delete s.parcels;
+      return out;
+    });
+    check('parcels: three cards, a fixed worth for any farm, kept on reopening, a pin comes first, a quarter of a line at most, a week between repeats, paid once', parcel.three === 3 && parcel.fixed && parcel.kept && parcel.richSame && parcel.onlyKnown && parcel.pinFirst && parcel.capped && parcel.waits && parcel.paid && parcel.gone && parcel.lowNone && parcel.master, JSON.stringify(parcel));
+    check('parcel save repair drops bad entries', parcel.repair);
+    check('crate items at a high level are only crops, feed or things the farm has had', parcel.crateBad.length === 0, parcel.crateBad.slice(0, 5).join());
   }
 } finally {
   await browser.close();

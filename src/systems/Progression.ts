@@ -5,6 +5,7 @@ import {
 import { game } from './Game';
 import type { QuestState } from './State';
 import { rng, hashString } from '../world/Procedural';
+import { crateNeed } from './Parcels';
 
 // ======================================================================== unlocks
 export interface UnlockEntry { kind: string; id: string; name: string; icon: string; level: number }
@@ -270,11 +271,15 @@ export class CrateSystem {
       if (pick.type === 'coins') { const a = Math.round(amt(pick.min, pick.max) * scale); game.addCoins(a); rewards.push({ type: 'coins', amount: a, name: 'Coins', icon: 'coin' }); }
       else if (pick.type === 'gems') { const a = amt(pick.min, pick.max); game.addGems(a); rewards.push({ type: 'gems', amount: a, name: 'Gems', icon: 'gem' }); }
       else if (pick.type === 'items') {
-        const pool2 = Object.values(ITEMS).filter((it) => it.cat !== 'event' && (CROP[it.id]?.level ?? 99) <= game.level || (it.cat === 'feed'));
-        const it = pool2[Math.floor(Math.random() * pool2.length)];
         const a = amt(pick.min, pick.max);
-        game.addItem(it.id, a);
-        rewards.push({ type: 'items', amount: a, id: it.id, name: it.name, icon: it.icon });
+        // 1.45: something the farm is short of when there is something, worth no more than the crate's top coin roll
+        const top = (pool.find((p) => p.type === 'coins')?.max ?? 100) * scale;
+        const needed = crateNeed(a, top, Math.random);
+        const pool2 = Object.values(ITEMS).filter((it) => (CROP[it.id] && CROP[it.id].level <= game.level) || it.cat === 'feed');
+        const it = needed ? ITEMS[needed.item] : pool2[Math.floor(Math.random() * pool2.length)];
+        const n = needed ? needed.n : a;
+        game.addItem(it.id, n);
+        rewards.push({ type: 'items', amount: n, id: it.id, name: it.name, icon: it.icon });
       } else if (pick.type === 'decor') {
         const cap = final === 'legendary' ? 99 : final === 'epic' ? game.level + 15 : game.level + 6;
         const list = BUILDINGS.filter((b) => b.cat === 'decor' && !b.event && !b.path && b.level <= cap && b.cost >= (final === 'rare' ? 20 : 150));

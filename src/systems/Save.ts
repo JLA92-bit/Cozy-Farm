@@ -1,7 +1,7 @@
 import { repairHome } from './Home';
 import { game } from './Game';
 import { createNewGame } from './NewGame';
-import { SAVE_VERSION, type SaveData, type PlacedBuilding } from './State';
+import { SAVE_VERSION, type SaveData, type PlacedBuilding, type ParcelCard, type ParcelSource } from './State';
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
@@ -156,6 +156,18 @@ function repairSkills(v: unknown): SaveData['skills'] {
 
 /** 1.27 Wildlife Album: only known species and sets. */
 /** 1.31 The Old Mine: numbers in range, lists of whole numbers, known items only. */
+export function repairParcels(v: unknown): SaveData['parcels'] {
+  if (!isObj(v)) return undefined;
+  const isSrc = (x: unknown): x is ParcelSource => x === 'level' || x === 'welcome' || x === 'master' || x === 'festival';
+  const pending = (Array.isArray(v.pending) ? v.pending : []).filter((e): e is { src: ParcelSource; level: number } => isObj(e) && isSrc(e.src) && Number.isInteger(e.level) && (e.level as number) > 0).slice(0, 100);
+  const cards = isObj(v.offer) && Array.isArray(v.offer.cards) ? v.offer.cards.filter((c): c is ParcelCard => isObj(c) && Number.isFinite(c.coins) && (c.coins as number) >= 0 && typeof c.why === 'string' && typeof c.from === 'string'
+    && (c.item === undefined || (!!ITEMS[c.item as string] && Number.isInteger(c.qty) && (c.qty as number) > 0)) && (c.decor === undefined || !!BUILDING[c.decor as string])) : [];
+  const offer = isObj(v.offer) && isSrc(v.offer.src) && Number.isInteger(v.offer.level) && cards.length ? { src: v.offer.src, level: v.offer.level as number, cards } : undefined;
+  const recent: Record<string, number> = {};
+  if (isObj(v.recent)) for (const [k, t] of Object.entries(v.recent)) if (Number.isFinite(t)) recent[k] = t as number;
+  return { level: Number.isInteger(v.level) ? v.level as number : 0, pending, ...(offer ? { offer } : {}), recent, ...(typeof v.pin === 'string' ? { pin: v.pin } : {}) };
+}
+
 function repairMine(v: unknown): SaveData['mine'] {
   if (!isObj(v)) return undefined;
   const int = (x: unknown, lo: number, hi: number) => (typeof x === 'number' && Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.floor(x))) : lo);
@@ -313,6 +325,7 @@ export function sanitize(out: SaveData, base: SaveData): SaveData {
   if (out.milestones) out.milestones = [...new Set(out.milestones.filter((x): x is number => Number.isInteger(x)))];
   if (out.title !== undefined && typeof out.title !== 'string') delete out.title;
   if (out.guestGifts !== undefined) out.guestGifts = Array.isArray(out.guestGifts) ? [...new Set(out.guestGifts.filter((k): k is string => typeof k === 'string'))] : undefined;
+  if (out.parcels !== undefined) out.parcels = repairParcels(out.parcels);
   if (out.keep !== undefined) out.keep = Array.isArray(out.keep) ? [...new Set(out.keep.filter((k): k is string => typeof k === 'string' && !!ITEMS[k]))].slice(0, 500) : undefined;
   if (isObj(out.storage) && Number.isFinite((out.storage as Record<string, unknown>).glass_frame)) glassRefund += Math.max(0, Math.floor((out.storage as Record<string, number>).glass_frame));
   if (glassRefund) p.coins += glassRefund * 900;

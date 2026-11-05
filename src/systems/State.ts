@@ -68,6 +68,21 @@ export interface StallSlot { item: string | null; qty: number; price: number; li
 
 export interface QuestState { tpl: string; text: string; stat: string; start: number; target: number; claimed: boolean; icon: string }
 
+export type ParcelSource = 'level' | 'welcome' | 'master' | 'festival';
+/** One choice in a parcel. Worth the parcel's value in all: an item or a decor piece, and the rest in coins. */
+export interface ParcelCard { item?: string; qty?: number; star?: 0 | 1 | 2; decor?: string; coins: number; why: string; from: string; need?: string }
+export interface ParcelState {
+  /** the last level a parcel was given for */
+  level: number;
+  pending: { src: ParcelSource; level: number }[];
+  /** the cards shown for the first parcel, kept until one is picked, so reopening cannot change them */
+  offer?: { src: ParcelSource; level: number; cards: ParcelCard[] };
+  /** item id: when it last came in a parcel */
+  recent: Record<string, number>;
+  /** the need id the player pinned */
+  pin?: string;
+}
+
 export interface SaveData {
   version: number;
   createdAt: number;
@@ -98,6 +113,8 @@ export interface SaveData {
   guestGifts?: string[];
   /** 1.34.3 items kept for later in the barn: Sell extras leaves them alone */
   keep?: string[];
+  /** 1.45 Thoughtful Parcels (src/systems/Parcels.ts) */
+  parcels?: ParcelState;
   storage: Record<string, number>;
   buildings: PlacedBuilding[];
   obstacles: Obstacle[];

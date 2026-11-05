@@ -1,0 +1,10 @@
+{
+ "_comment": "1.45 Thoughtful Parcels. Need picks what a parcel holds, never how much: a parcel's worth is value.base + value.perLevel x the level it was earned at, capped at value.max, times share for what earned it. Items count at their sell price (silver and gold at the star price); what does not fit comes as coins. lineShare: at most this share of what is missing from a project line or an upgrade. repeatDays: an item comes at most once in this many days (a pinned goal is exempt). low: when feed and bait count as running low.",
+ "level": 61,
+ "value": { "base": 6000, "perLevel": 50, "max": 25000 },
+ "share": { "level": 1, "welcome": 1, "master": 0.5, "festival": 0.5 },
+ "lineShare": 0.25,
+ "repeatDays": 7,
+ "low": { "feedLowPerAnimal": 2, "feedTopPerAnimal": 6, "baitLow": 5, "baitTop": 20 },
+ "senders": { "crop": "rosa", "fruit": "rosa", "goods": "rosa", "fish": "tom", "mineral": "bram", "feed": "hazel", "animal": "hazel", "forage": "pip", "coins": "hazel", "decor": "juniper" }
+}

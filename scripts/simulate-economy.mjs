@@ -82,6 +82,9 @@ const MAX_LEVEL = opt('maxlevel', (LV.authoredMax ?? E.tableMax) + 20);
 const xpToNext = (l) => LV.levels[l - 1]?.xpToNext ?? Math.round(LV.levels[E.tableMax - 1].xpToNext + E.xpPerLevel * (l - E.tableMax));
 const levelDef = (l) => LV.levels[l - 1] ?? { coins: Math.min(E.coinsMax, E.coinsBase + (l - E.tableMax) * E.coinsPerLevel), gems: l % 10 === 0 ? E.gemsEvery10 : l % 5 === 0 ? E.gemsEvery5 : E.gems };
 const MASTER = read('master.json');
+const PARCELS = read('parcels.json');
+// 1.45: a parcel's worth, counted as coins here (goods the player would have had to make or buy)
+const parcelValue = (level, src) => Math.round(Math.min(PARCELS.value.max, PARCELS.value.base + PARCELS.value.perLevel * level) * PARCELS.share[src]);
 /** 1.17 late-game XP: a share of the current level (levels.json endless.lateXp) */
 const lateXp = (kind, share = 1) => (E.lateXp && S.level >= E.lateXp.from ? Math.round(xpToNext(S.level) * E.lateXp[kind] * share) : 0);
 const sell = (i) => ITEMS[i]?.sell ?? 0;
@@ -199,6 +202,7 @@ function addXp(n, src) {
     li.t = S.t; li.active = S.active; li.coinsAt = S.coins;
     const def = levelDef(S.level);
     addCoins(def.coins, 'level-ups'); addGems(def.gems, 'level-ups');
+    if (S.level >= PARCELS.level) addCoins(parcelValue(S.level, 'level'), 'parcels');
     gauge('level', S.level);
     onLevel(S.level);
   }
@@ -813,6 +817,7 @@ function sessionEnd(s) {
     if (s.day % 7 === 6) {
       for (let i = 0; i < 3; i++) { addCoins(MASTER.reward.coinsBase + MASTER.reward.coinsPerLevel * S.level, 'master'); addGems(MASTER.reward.gems, 'master'); addXp(lateXp('master'), 'master'); }
       addGems(MASTER.allBonus.gems, 'master'); addXp(lateXp('masterWeek'), 'master');
+      if (S.level >= PARCELS.level) addCoins(parcelValue(S.level, 'master'), 'parcels');
     }
     if (s.day % 7 === 1 || s.day % 7 === 4) addXp(lateXp('boat'), 'boat visits');
     if (s.day % 7 === 3) addXp(lateXp('festival', 2 / 3), 'festivals');

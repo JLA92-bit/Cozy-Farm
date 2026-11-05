@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.45.0",
+   "date": "2026-11-05",
+   "title": "Thoughtful Parcels",
+   "icon": "package",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "package",
+     "text": "From level 61 the village sends a parcel each time you go up a level. Choose one of three, picked from what your farm is short of right now"
+    },
+    {
+     "icon": "star",
+     "text": "Pin the goal you are working towards and parcels offer it first. A finished Master week and a 3-star festival send a parcel too"
+    },
+    {
+     "icon": "gift",
+     "text": "Crate items now lean towards what your farm needs"
+    }
+   ]
+  },
+  {
    "version": "1.44.0",
    "date": "2026-11-01",
    "title": "Village Fair",

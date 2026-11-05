@@ -11,6 +11,7 @@ import { lateXp } from './Endless';
 import { saves } from './Save';
 import { cycleNow } from './FestivalCycle';
 import { logEvent } from '../online/Events';
+import { parcels } from './Parcels';
 
 export interface FestivalNow { key: string; def: FestivalDef; slot: string; cycle: number }
 
@@ -73,6 +74,7 @@ class FestivalSystem {
     if (stars >= 2 && BUILDING[decor]) st[decor] = (st[decor] ?? 0) + 1;
     const item = stars === 3 ? def.prize.item : undefined;
     if (item && ITEMS[item.id]) game.addItem(item.id, item.n);
+    if (stars === 3) parcels.add('festival');
     this.st.done[key] = stars;
     game.incStat('festival_ribbons');
     game.discover(sid, 'ribbon');
