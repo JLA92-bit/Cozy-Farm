@@ -1,6 +1,6 @@
 # Plan: Thoughtful Parcels and content past level 140 (drafted 4 Nov 2026)
 
-Status (5 Nov 2026): section 3 built as 1.45.0, local, not pushed. Owner: three cards, guardrail added. Differences: a pinned goal is exempt from the 7-day limit; items must have been on the farm before, not only unlocked; Master week and festival parcels are worth half a level-up parcel. Tables in BALANCE.md "1.45". Section 4 is not built.
+Status (5 Nov 2026): section 3 built as 1.45.0, local, not pushed. Owner: three cards, guardrail added. Differences: a pinned goal is exempt from the 7-day limit; items must have been on the farm before, not only unlocked; Master week and festival parcels are worth half a level-up parcel. Tables in BALANCE.md "1.45". Section 4: 1.46 built, local, not pushed (BALANCE.md "1.46"); 1.47 onwards not built.
 
 ## 1. What we have at high levels
 
@@ -83,7 +83,7 @@ Cards come from different groups where possible, so the three are a real choice.
 
 | Version | Theme | Levels | What |
 | --- | --- | --- | --- |
-| 1.46 | Bean and Spice | 141-160 | Cocoa, coffee, chilli, saffron, zucchini, kiwi. Fig and almond trees. Chocolatier and Coffee Roastery. About 25 recipes |
+| 1.46 (built) | Bean and Spice | 141-160 | Cocoa, coffee, chilli, saffron, zucchini, kiwi. Fig and almond trees. Chocolatier and Coffee Roastery. 26 recipes |
 | 1.47 | Colour and Lanterns | 161-180, and 131-140 | Dye Works (coloured yarn and fabric unlock decor paint colours). Lantern, Cottage Garden, Lighthouse Point and Village Fete decor sets. Decor added to the thin 131-140 stretch |
 | 1.48 | More festivals | All | Fruit Press, Lantern Night, Sheep Shearing Fair, Kite Day. Eight festivals in turn |
 | 1.49 | Collector's Shore | All | Beach shells, pressed flowers, a decorations page and a recipe page per workshop in the Book |

@@ -660,6 +660,116 @@
     "model": "crop/leafs_b",
     "produce": "proc/rose"
    }
+  },
+  {
+   "id": "zucchini",
+   "name": "Zucchini",
+   "level": 141,
+   "seedCost": 146,
+   "growSec": 111600,
+   "yield": 2,
+   "xp": 148,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "tint": "#5f9a3a",
+    "produce": "proc/zucchini"
+   }
+  },
+  {
+   "id": "cocoa_pod",
+   "name": "Cocoa Pods",
+   "level": 142,
+   "seedCost": 148,
+   "growSec": 112320,
+   "yield": 2,
+   "xp": 149,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/cocoa_pod"
+   }
+  },
+  {
+   "id": "coffee_bean",
+   "name": "Coffee Beans",
+   "level": 147,
+   "seedCost": 153,
+   "growSec": 114120,
+   "yield": 2,
+   "xp": 154,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "tint": "#3f7a2e",
+    "produce": "proc/coffee_bean"
+   }
+  },
+  {
+   "id": "chilli",
+   "name": "Chillies",
+   "level": 151,
+   "seedCost": 158,
+   "growSec": 115200,
+   "yield": 2,
+   "xp": 159,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/chilli"
+   }
+  },
+  {
+   "id": "kiwi",
+   "name": "Kiwi",
+   "level": 155,
+   "seedCost": 163,
+   "growSec": 116640,
+   "yield": 2,
+   "xp": 163,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/kiwi"
+   }
+  },
+  {
+   "id": "saffron",
+   "name": "Saffron",
+   "level": 158,
+   "seedCost": 168,
+   "growSec": 118800,
+   "yield": 2,
+   "xp": 166,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/saffron"
+   }
   }
  ],
  "trees": [
@@ -795,6 +905,30 @@
    "xp": 100,
    "model": "nat/tree_oak",
    "fruit": "proc/olive"
+  },
+  {
+   "id": "fig_tree",
+   "name": "Fig Tree",
+   "item": "fig",
+   "level": 145,
+   "cost": 54000,
+   "growSec": 30600,
+   "yield": 3,
+   "xp": 110,
+   "model": "nat/tree_fat",
+   "fruit": "proc/fig"
+  },
+  {
+   "id": "almond_tree",
+   "name": "Almond Tree",
+   "item": "almond",
+   "level": 152,
+   "cost": 62000,
+   "growSec": 32400,
+   "yield": 3,
+   "xp": 120,
+   "model": "nat/tree_oak",
+   "fruit": "proc/almond"
   }
  ]
 }

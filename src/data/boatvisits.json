@@ -25,7 +25,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": [
+      "items": ["zucchini_bread", "fig_tart", "almond_biscotti", "coffee_cake", "saffron_buns", 
         "bread",
         "cookie",
         "corn_bread",
@@ -159,7 +159,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": [
+      "items": ["fig", "almond", "kiwi", "fig_jam", "kiwi_juice", 
         "apple",
         "cherry",
         "grapes",
@@ -214,7 +214,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": [
+      "items": ["kiwi_sorbet", "latte", "almond_latte", 
         "milk",
         "cream",
         "butter",
@@ -257,7 +257,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": [
+      "items": ["zucchini", "cocoa_pod", "coffee_bean", "chilli", "kiwi", "saffron", 
         "carrot",
         "tomato",
         "pumpkin",
@@ -315,7 +315,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": [
+      "items": ["dark_chocolate", "milk_chocolate", "chocolate_truffles", "fig_bonbons", "almond_praline", "chilli_chocolate", 
         "cookie",
         "strawberry_jam",
         "apple_jam",
@@ -385,7 +385,7 @@
           0
         ]
       },
-      "items": [
+      "items": ["zucchini_fritters", "iced_coffee", "kiwi_juice", "espresso", 
         "garden_pizza",
         "pumpkin_pasta",
         "veggie_dumplings",

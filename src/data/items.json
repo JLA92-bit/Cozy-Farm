@@ -2608,6 +2608,211 @@
    "cat": "goods",
    "sell": 4800,
    "icon": "diamond_tiara"
+  },
+  "zucchini": {
+   "name": "Zucchini",
+   "cat": "crop",
+   "sell": 1020,
+   "icon": "zucchini"
+  },
+  "cocoa_pod": {
+   "name": "Cocoa Pods",
+   "cat": "crop",
+   "sell": 1040,
+   "icon": "cocoa_pod"
+  },
+  "coffee_bean": {
+   "name": "Coffee Beans",
+   "cat": "crop",
+   "sell": 1090,
+   "icon": "coffee_bean"
+  },
+  "chilli": {
+   "name": "Chillies",
+   "cat": "crop",
+   "sell": 1130,
+   "icon": "chilli"
+  },
+  "kiwi": {
+   "name": "Kiwi",
+   "cat": "crop",
+   "sell": 1170,
+   "icon": "kiwi"
+  },
+  "saffron": {
+   "name": "Saffron",
+   "cat": "crop",
+   "sell": 1220,
+   "icon": "saffron"
+  },
+  "fig": {
+   "name": "Fig",
+   "cat": "fruit",
+   "sell": 420,
+   "icon": "fig"
+  },
+  "almond": {
+   "name": "Almond",
+   "cat": "fruit",
+   "sell": 460,
+   "icon": "almond"
+  },
+  "dark_chocolate": {
+   "name": "Dark Chocolate",
+   "cat": "goods",
+   "sell": 2170,
+   "icon": "dark_chocolate"
+  },
+  "milk_chocolate": {
+   "name": "Milk Chocolate",
+   "cat": "goods",
+   "sell": 2330,
+   "icon": "milk_chocolate"
+  },
+  "zucchini_bread": {
+   "name": "Zucchini Bread",
+   "cat": "goods",
+   "sell": 2140,
+   "icon": "zucchini_bread"
+  },
+  "chocolate_truffles": {
+   "name": "Chocolate Truffles",
+   "cat": "goods",
+   "sell": 3440,
+   "icon": "chocolate_truffles"
+  },
+  "zucchini_fritters": {
+   "name": "Zucchini Fritters",
+   "cat": "goods",
+   "sell": 2480,
+   "icon": "zucchini_fritters"
+  },
+  "fig_jam": {
+   "name": "Fig Jam",
+   "cat": "goods",
+   "sell": 2700,
+   "icon": "fig_jam"
+  },
+  "fig_bonbons": {
+   "name": "Fig Bonbons",
+   "cat": "goods",
+   "sell": 4520,
+   "icon": "fig_bonbons"
+  },
+  "roasted_coffee": {
+   "name": "Roasted Coffee",
+   "cat": "goods",
+   "sell": 2180,
+   "icon": "roasted_coffee"
+  },
+  "espresso": {
+   "name": "Espresso",
+   "cat": "goods",
+   "sell": 3340,
+   "icon": "espresso"
+  },
+  "ratatouille": {
+   "name": "Ratatouille",
+   "cat": "goods",
+   "sell": 3600,
+   "icon": "ratatouille"
+  },
+  "latte": {
+   "name": "Latte",
+   "cat": "goods",
+   "sell": 3680,
+   "icon": "latte"
+  },
+  "fig_tart": {
+   "name": "Fig Tart",
+   "cat": "goods",
+   "sell": 3080,
+   "icon": "fig_tart"
+  },
+  "mocha": {
+   "name": "Mocha",
+   "cat": "goods",
+   "sell": 6630,
+   "icon": "mocha"
+  },
+  "chilli_chocolate": {
+   "name": "Chilli Chocolate",
+   "cat": "goods",
+   "sell": 4950,
+   "icon": "chilli_chocolate"
+  },
+  "chilli_sauce": {
+   "name": "Chilli Sauce",
+   "cat": "goods",
+   "sell": 3910,
+   "icon": "chilli_sauce"
+  },
+  "almond_praline": {
+   "name": "Almond Praline",
+   "cat": "goods",
+   "sell": 4940,
+   "icon": "almond_praline"
+  },
+  "almond_biscotti": {
+   "name": "Almond Biscotti",
+   "cat": "goods",
+   "sell": 1990,
+   "icon": "almond_biscotti"
+  },
+  "iced_coffee": {
+   "name": "Iced Coffee",
+   "cat": "goods",
+   "sell": 3660,
+   "icon": "iced_coffee"
+  },
+  "kiwi_juice": {
+   "name": "Kiwi Juice",
+   "cat": "goods",
+   "sell": 2340,
+   "icon": "kiwi_juice"
+  },
+  "almond_latte": {
+   "name": "Almond Latte",
+   "cat": "goods",
+   "sell": 4930,
+   "icon": "almond_latte"
+  },
+  "kiwi_sorbet": {
+   "name": "Kiwi Sorbet",
+   "cat": "goods",
+   "sell": 2670,
+   "icon": "kiwi_sorbet"
+  },
+  "coffee_cake": {
+   "name": "Coffee Cake",
+   "cat": "goods",
+   "sell": 3760,
+   "icon": "coffee_cake"
+  },
+  "saffron_risotto": {
+   "name": "Saffron Risotto",
+   "cat": "goods",
+   "sell": 5400,
+   "icon": "saffron_risotto"
+  },
+  "chocolate_box": {
+   "name": "Box of Chocolates",
+   "cat": "goods",
+   "sell": 10750,
+   "icon": "chocolate_box",
+   "bouquet": true
+  },
+  "saffron_buns": {
+   "name": "Saffron Buns",
+   "cat": "goods",
+   "sell": 2860,
+   "icon": "saffron_buns"
+  },
+  "spice_banquet": {
+   "name": "Spice Banquet",
+   "cat": "goods",
+   "sell": 22570,
+   "icon": "spice_banquet"
   }
  }
 }

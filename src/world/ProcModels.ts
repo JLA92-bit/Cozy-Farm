@@ -18,6 +18,7 @@ import { KILN_PROC } from './models/kiln';
 import { MINE_PROC } from './models/mine';
 import { FISHSTALL_PROC } from './models/fishstall';
 import { STOCK_PROC } from './models/stock';
+import { BEANSPICE_PROC } from './models/beanspice';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -382,6 +383,59 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cone(0.05, 0.12, '#8aa05a', [0.02, 0.14, -0.04], 4, [0, 0, 1.1]);
     return b.build();
   },
+  // 1.46 Bean and Spice: zucchini, cocoa, coffee, chillies, kiwi and saffron in the field, figs and almonds on the trees
+  zucchini: () => {
+    const b = geo();
+    for (const [x, z, r] of [[-0.09, 0.03, 1.2], [0.09, -0.04, 1.75]] as V3[]) b.cyl(0.05, 0.06, 0.34, '#3f7a2e', [x, 0.07, z], 8, [Math.PI / 2, r, 0]);
+    b.sphere(0.05, '#f2c23a', [0.2, 0.11, 0.03], 0);
+    b.cone(0.09, 0.1, '#5f9a3a', [-0.04, 0.2, -0.02], 5);
+    return b.build();
+  },
+  cocoa_pod: () => {
+    const b = geo();
+    b.cyl(0.02, 0.03, 0.36, '#6a4a2e', [0, 0, 0], 5);
+    for (const [x, y, z, c] of [[-0.09, 0.2, 0.03, '#c9702a'], [0.09, 0.26, -0.02, '#e0a03a'], [0.01, 0.12, 0.09, '#a8501f']] as [number, number, number, string][]) b.sphere(0.075, c, [x, y, z], 1, [0.8, 1.35, 0.8]);
+    b.cone(0.08, 0.14, '#3f8a35', [0, 0.38, 0], 4, [0, 0, 1.0]);
+    return b.build();
+  },
+  coffee_bean: () => {
+    const b = geo();
+    b.cyl(0.02, 0.03, 0.26, '#6a4a2e', [0, 0, 0], 5);
+    for (let i = 0; i < 7; i++) { const a = i * 2.4, d = 0.05 + (i % 3) * 0.04; b.sphere(0.06, i % 2 ? '#c8324a' : '#e0503a', [Math.cos(a) * d, 0.2 + (i % 3) * 0.05, Math.sin(a) * d], 0); }
+    b.sphere(0.09, '#3f7a2e', [0, 0.38, 0], 0, [1, 0.45, 1]);
+    return b.build();
+  },
+  chilli: () => {
+    const b = geo();
+    for (const [x, z, r] of [[-0.08, 0.02, 0.35], [0.03, 0.08, -0.15], [0.09, -0.05, -0.4]] as V3[]) {
+      b.cone(0.05, 0.28, '#d6332a', [x, 0.15, z], 6, [Math.PI, 0, r]);
+      b.cyl(0.012, 0.015, 0.05, '#4f8a3a', [x - r * 0.12, 0.31, z], 4);
+    }
+    return b.build();
+  },
+  kiwi: () => {
+    const b = geo();
+    b.sphere(0.12, '#8a6a3a', [-0.04, 0.12, 0], 1, [1.15, 1, 1]);
+    b.cyl(0.11, 0.11, 0.03, '#8fc04a', [0.11, 0.13, 0.06], 12, [1.0, 0, 0]);
+    b.cyl(0.03, 0.03, 0.035, '#e8f0c0', [0.11, 0.13, 0.06], 8, [1.0, 0, 0]);
+    return b.build();
+  },
+  saffron: () => {
+    const b = geo();
+    for (const [x, z, h] of [[-0.09, 0.03, 0.26], [0.08, -0.03, 0.32], [0, 0.09, 0.22]] as V3[]) {
+      b.cyl(0.012, 0.015, h, '#4f8a3a', [x, 0, z], 5);
+      b.cone(0.075, 0.1, '#9a6ad0', [x, h, z], 6, [Math.PI, 0, 0]);
+      b.cyl(0.006, 0.006, 0.09, '#e8501f', [x, h + 0.04, z], 4);
+    }
+    return b.build();
+  },
+  fig: () => geo().sphere(0.12, '#5a3a6a', [0, 0.12, 0], 1, [1, 1.1, 1]).cone(0.05, 0.1, '#6a4a7a', [0, 0.24, 0], 6).sphere(0.03, '#8a6a9a', [0.05, 0.16, 0.07], 0).build(),
+  almond: () => {
+    const b = geo();
+    for (const p of [[0, 0.09, 0], [0.09, 0.07, 0.04], [-0.08, 0.07, 0.05]] as V3[]) b.sphere(0.06, '#b9884a', p, 1, [1, 1.4, 0.75]);
+    b.cone(0.05, 0.12, '#8aa05a', [0.02, 0.15, -0.04], 4, [0, 0, 1.1]);
+    return b.build();
+  },
   potato: () => {
     const b = geo();
     for (const [x, z, s, c] of [[-0.12, 0.02, 1, '#c99a5a'], [0.1, -0.04, 0.85, '#b9884a'], [0.02, 0.13, 0.7, '#d4a86a']] as [number, number, number, string][]) {
@@ -459,6 +513,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...MINE_PROC,
   ...FISHSTALL_PROC,
   ...STOCK_PROC,
+  ...BEANSPICE_PROC,
 };
 
 /** The Duck Pond: a grassy pen with a pond in the middle, reeds and a little blue duck house. */

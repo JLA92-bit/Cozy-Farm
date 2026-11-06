@@ -725,6 +725,22 @@ try {
     check('Farmhouse level 15 raises the caps', r.fh === 15 && r.plots === 140 && r.decor === 800, JSON.stringify(r));
   }
 
+  // 1.46 Bean and Spice: the trees and workshops open at their levels, and the new goods can be made
+  {
+    const r = await page.evaluate(() => {
+      const g = window.__game, B = window.__buildings;
+      const was = g.state.player.level;
+      const ids = ['fig_tree', 'almond_tree', 'chocolatier', 'coffee_roastery'];
+      g.state.player.level = 142;
+      const early = ids.map((id) => /level/i.test(B.canBuy(id).reason ?? ''));
+      g.state.player.level = 160;
+      const open = ids.map((id) => !/level/i.test(B.canBuy(id).reason ?? ''));
+      g.state.player.level = was;
+      return { early, open };
+    });
+    check('Bean and Spice trees and workshops open at their levels', r.early.every(Boolean) && r.open.every(Boolean), JSON.stringify(r));
+  }
+
   // account locks: a locked player sees the notice with the reason and a countdown over everything, cannot reach the
   // farm, and the notice lifts by itself when the time runs out (here in practice mode, from the lock kept on the device)
   {

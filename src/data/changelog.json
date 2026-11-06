@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.46.0",
+   "date": "2026-11-06",
+   "title": "Bean and Spice",
+   "icon": "dark_chocolate",
+   "color": "orange",
+   "highlights": [
+    {
+     "icon": "cocoa_pod",
+     "text": "Levels 141 to 160: grow zucchini, cocoa, coffee, chillies, kiwi and saffron, and plant fig and almond trees"
+    },
+    {
+     "icon": "dark_chocolate",
+     "text": "Open the Chocolatier and the Coffee Roastery. Every villager loves a box of chocolates"
+    },
+    {
+     "icon": "spice_banquet",
+     "text": "26 new recipes, ending with the Spice Banquet at level 160"
+    }
+   ]
+  },
+  {
    "version": "1.45.0",
    "date": "2026-11-05",
    "title": "Thoughtful Parcels",

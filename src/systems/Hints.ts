@@ -112,6 +112,8 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   beehive_house: { title: 'Bees at work!', sub: 'Tap it and pick a recipe: apples become honey, then candles and honey butter.', icon: 'honey_pot' },
   tea_house: { title: 'The Tea House!', sub: 'Brew your tea leaves into green tea, chai, iced tea and more. Villagers love a cup.', icon: 'green_tea' },
   florist: { title: 'The Florist!', sub: 'Tie flowers into bouquets. Every villager loves a bouquet, the best gift there is.', icon: 'rose_bouquet' },
+  chocolatier: { title: 'The Chocolatier!', sub: 'Make chocolate from your cocoa pods, then truffles and bonbons. Every villager loves a box of chocolates.', icon: 'dark_chocolate' },
+  coffee_roastery: { title: 'The Coffee Roastery!', sub: 'Roast your coffee beans first, then pour espresso, lattes and mochas.', icon: 'roasted_coffee' },
   juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
   pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },
   duck_house: { title: 'Ducks!', sub: 'Make duck feed at the Feed Mill. Fed ducks lay duck eggs.', icon: 'duck' },
@@ -139,6 +141,12 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   cranberry: { title: 'Cranberries!', sub: 'Simmer cranberry sauce at the Jam Kitchen.' },
   tea_leaf: { title: 'Tea Leaves!', sub: 'Build the Tea House at level 106 to brew them.' },
   rose: { title: 'Roses!', sub: 'Tie rose bouquets at the Florist. Every villager loves one.' },
+  zucchini: { title: 'Zucchini!', sub: 'Bake zucchini bread at the Bakery, or fry fritters at the Village Kitchen.' },
+  cocoa_pod: { title: 'Cocoa Pods!', sub: 'Build the Chocolatier at level 143 to make chocolate.' },
+  coffee_bean: { title: 'Coffee Beans!', sub: 'Build the Coffee Roastery at level 148 to roast them.' },
+  chilli: { title: 'Chillies!', sub: 'Bottle chilli sauce at the Preserves Cellar, or spice up dark chocolate.' },
+  kiwi: { title: 'Kiwi!', sub: 'Press kiwi juice at the Juice Press, or churn a sorbet at the Dairy.' },
+  saffron: { title: 'Saffron!', sub: 'Cook saffron risotto at the Village Kitchen, or bake saffron buns.' },
 };
 
 let wired = false;

@@ -1011,3 +1011,17 @@ Need picks what a parcel holds, never how much. Worth = 6,000 + 50 x level, at m
 
 Level pace barely moves, about 3 days earlier by level 150. The Farmhouse comes about one level sooner.
 
+## 1.46 Bean and Spice (levels 141-160, `authoredMax` 160)
+
+| Kind | Content |
+| --- | --- |
+| Crops | zucchini (141, sells 1,020), cocoa pods (142, 1,040), coffee beans (147, 1,090), chillies (151, 1,130), kiwi (155, 1,170), saffron (158, 1,220); 31-33 h each |
+| Trees | fig (145, 54,000 coins, 420 a fruit, 8.5 h), almond (152, 62,000, 460, 9 h); 3 fruit |
+| Workshops | Chocolatier (143, 240,000), Coffee Roastery (148, 270,000), both 2x2 |
+| Recipes | 26: 7 Chocolatier, 6 Roastery, 13 in the Bakery, Village Kitchen, Jam Kitchen, Preserves Cellar, Juice Press and Dairy |
+
+Prices: x2.0 the ingredients' barn value for first-step goods, x1.35-1.6 for goods made from other goods, x1.8 for two savoury dishes, x1.4 for the Spice Banquet (160, sells 22,570). Slots earn about 1,100-3,200 coins an hour, in line with the Tea House and Florist (about 2,000-5,100). Box of Chocolates has `bouquet`, so every villager loves it.
+
+Uses: goods on the Baker's, Orchard, Dairy, Garden, Sweet Tooth and Picnic boats, and each villager likes 3 or 4.
+
+Simulation (`--days 520`, 3 sessions a day): level 150 on day 288 and level 160 on day 308. The simulated player never buys the two workshops, as it never buys the 1.38 animals, so it shows pace but not what these workshops earn. Check real income from them on the dashboard.
