@@ -206,7 +206,7 @@ export async function goDown(n: number, how: 'lift' | 'ladder' = 'lift'): Promis
   busy = false;
   const first = layerOf(target).from === target && target > 1;
   if (first && hints.firstTime(`intro:mine:${layerOf(target).id}`)) ui.feedback.toast(layerOf(target).name, layerOf(target).about, layerOf(target).icon);
-  else if (target === 1 && hints.firstTime('intro:mine:floor')) ui.feedback.toast('Floor 1', 'Tap a rock to swing at it. One rock on every floor hides the ladder down. Your lantern lasts for 60 swings a day.', 'pick');
+  else if (target === 1 && hints.firstTime('intro:mine:floor')) ui.feedback.toast('Floor 1', `Tap a rock to swing at it. One rock on every floor hides the ladder down. Your lantern holds ${mine.maxSwings()} swings and tops up ${MINE.refill.swings} every ${MINE.refill.hours} hours.`, 'pick');
 }
 
 /** Back up to the island. */
@@ -351,7 +351,7 @@ function swingAt(i: number): void {
   const rock = floor.rocks[i];
   if (!rock) return;
   if (mine.swingsLeft() <= 0) {
-    ui.feedback.toast('Your lantern is low', `It refills every morning: ${mine.maxSwings()} swings a day. Come back tomorrow!`, 'candle', 'warn');
+    ui.feedback.toast('Your lantern is out', `It tops up ${MINE.refill.swings} swings every ${MINE.refill.hours} hours${mine.refillText().replace(/^, \+\d+/, ': next')}, and it is full again every morning.`, 'candle', 'warn');
     audio.play('error');
     return;
   }
@@ -361,6 +361,8 @@ function swingAt(i: number): void {
   view.strike(i, r.broken, rock.kind, ui.effects);
   haptics.play(r.broken ? 'success' : 'tap');
   audio.play(r.broken ? 'rock' : 'chop', { volume: r.broken ? 0.85 : 0.5, rate: r.broken ? 0.95 : 1.15 + Math.random() * 0.15 });
+  // 1.47.1 a warning before the lantern runs out, with when it tops up
+  if (mine.swingsLeft() === 10) ui.feedback.toast('Lantern running low', `10 swings left. It tops up ${MINE.refill.swings} every ${MINE.refill.hours} hours.`, 'candle');
   if (r.broken) {
     ctx.scene.rig.shake(0.06, 0.18);
     if (r.ladder) {
@@ -395,8 +397,9 @@ function makeBanner(): HTMLElement {
     h('div', { class: 'visit-title' },
       h('div', { class: 'visit-name outlined' }, `Floor ${floorNo}`),
       h('div', { class: 'visit-sub' }, h('span', null, icon(l.icon), l.name)),
-      h('div', { class: 'mn-lantern', role: 'meter', 'aria-label': `${left} of ${max} swings left today`, 'aria-valuenow': String(left), 'aria-valuemax': String(max) },
+      h('div', { class: 'mn-lantern', role: 'meter', 'aria-label': `${left} of ${max} swings left`, 'aria-valuenow': String(left), 'aria-valuemax': String(max) },
         icon('candle'), h('div', { class: 'mn-oil' }, h('div', { class: 'mn-oil-fill', style: `width:${pct}%` })), h('span', { class: 'mn-oil-n' }, `${left}`)),
+      left < max ? h('div', { class: 'mn-hint' }, `Lantern: +${MINE.refill.swings} swings at ${mine.refillText().replace(/^, \+\d+ at /, '')}`) : '',
       h('div', { class: 'mn-hint' }, floorNo >= MINE.floors ? 'The very bottom of the mine.' : floor && mine.ladderFound(floor) ? 'The ladder is uncovered: tap the hole to go down.' : 'One rock hides the ladder down.')),
     h('div', { class: 'mn-side' },
       button([icon('ladder'), h('span', null, 'Up')], () => void goUp(), 'green visit-home', { 'aria-label': 'Climb up to the island' }),

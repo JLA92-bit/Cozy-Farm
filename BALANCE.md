@@ -1038,3 +1038,7 @@ Simulation (`--days 520`, 3 sessions a day): level 150 on day 288 and level 160 
 
 The Grand Tapestry is the long chain on purpose: three dyes, six dyed goods, a quilt, a scarf and bunting, about 55,000 coins of goods in.
 
+## 1.47.1 A brighter lantern (`mine.json` `swings`, `refill`)
+
+Players said a mine visit ended too soon. The lantern holds 100 swings (was 60; Mining perks still add 15/15/10) and tops up 25 every 4 hours, counted from the first swing since it was last full, never past full; it is still full every morning. Three check-ins a day now give roughly 100 + 2 x 25 to 100 + 4 x 25 swings: about 8 floors a visit and 12-16 floors a day instead of 5. Mine goods stay small next to farm income at these levels, so farm earnings barely move.
+

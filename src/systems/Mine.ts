@@ -1,7 +1,7 @@
 /**
  * 1.31 The Old Mine (mine.json). Sixty floors under the north island, in three layers. Each floor's rocks are laid out
  * from a seed of the local day and the floor (the same all day, new tomorrow); one rock hides the ladder down. Swings
- * come from the lantern (`MINE.swings` a day). A lift every `liftEvery` floors remembers how deep you got. Chests on
+ * come from the lantern (`MINE.swings` a day, and from 1.47.1 it tops up `MINE.refill.swings` every `MINE.refill.hours`). A lift every `liftEvery` floors remembers how deep you got. Chests on
  * lift floors open once ever; carts and pools give something once a day. Bram makes the pickaxes and cracks geodes.
  * Drops are rolled from a seed too (day, floor, rock), so a floor cannot be re-rolled by leaving and coming back.
  * This file has the rules and the state; world/MineView.ts draws it and scenes/Mine.ts answers taps.
@@ -51,7 +51,16 @@ class MineSystem {
   get st(): MineState {
     const s = (game.state.mine ??= { deepest: 0, pickaxe: 0, day: '', swings: 0, hits: {}, carts: [], pools: [], chests: [], letters: [], found: {} });
     const day = localDay(game.now());
-    if (s.day !== day) { s.day = day; s.swings = 0; s.hits = {}; s.carts = []; s.pools = []; }
+    if (s.day !== day) { s.day = day; s.swings = 0; s.hits = {}; s.carts = []; s.pools = []; delete s.refillAt; }
+    // 1.47.1 the lantern tops up: every refill period since its clock started gives swings back, up to full
+    if (s.swings > 0 && s.refillAt) {
+      const period = MINE.refill.hours * 3_600_000;
+      const ticks = Math.floor((game.now() - s.refillAt) / period);
+      if (ticks > 0) {
+        s.swings = Math.max(0, s.swings - ticks * MINE.refill.swings);
+        if (s.swings > 0) s.refillAt += ticks * period; else delete s.refillAt;
+      }
+    } else if (s.swings <= 0) delete s.refillAt;
     return s;
   }
 
@@ -62,6 +71,8 @@ class MineSystem {
 
   maxSwings(): number { return MINE.swings + (hasSkillPerk('second_wind') ? V.secondWindSwings : 0) + (hasSkillPerk('stamina') ? V.staminaSwings : 0) + (hasSkillBonus('steady_breath') ? V.steadyBreathSwings : 0); }
   swingsLeft(): number { return Math.max(0, this.maxSwings() - this.st.swings); }
+  /** 1.47.1 when the lantern next tops up (ms), or null when it is full. */
+  nextRefill(): number | null { const s = this.st; return s.swings > 0 && s.refillAt ? s.refillAt + MINE.refill.hours * 3_600_000 : null; }
   get deepest(): number { return game.state.mine?.deepest ?? 0; }
   pickaxe(): number { return game.state.mine?.pickaxe ?? 0; }
   power(): number { return MINE.pickaxes[this.pickaxe()]?.power ?? 1; }
@@ -137,6 +148,7 @@ class MineSystem {
     const rock = f.rocks[i];
     if (!this.open || !rock || this.broken(f.floor, rock) || this.swingsLeft() <= 0) return null;
     const st = this.st;
+    if (!st.refillAt) st.refillAt = game.now();
     st.swings++;
     const hits = (st.hits[f.floor] ??= []);
     while (hits.length <= i) hits.push(0);
@@ -306,9 +318,14 @@ class MineSystem {
 
   /** One line for the banner. */
   describe(floor: number): string {
-    if (floor <= 0) return this.deepest ? `Deepest: floor ${this.deepest}. ${this.swingsLeft()} swings left today.` : 'The lamps are lit. Down the ladder to floor 1!';
+    if (floor <= 0) return this.deepest ? `Deepest: floor ${this.deepest}. ${this.swingsLeft()} swings left${this.refillText()}.` : 'The lamps are lit. Down the ladder to floor 1!';
     const l = layerOf(floor);
-    return `${l.name}. ${this.swingsLeft()} of ${this.maxSwings()} swings left today.`;
+    return `${l.name}. ${this.swingsLeft()} of ${this.maxSwings()} swings left${this.refillText()}.`;
+  }
+  /** ", +25 at 3:40 pm" while the lantern is not full. */
+  refillText(): string {
+    const t = this.nextRefill();
+    return t === null ? '' : `, +${MINE.refill.swings} at ${new Date(t - (game.state.debugTimeOffset ?? 0)).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
   }
 
   // ---------------------------------------------------------------------------------------- letters

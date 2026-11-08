@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 8 November 2026 (game version 1.47.0 local, 1.45.0-1.47.0 not pushed; 1.34.3-1.44.0 pushed 1 Nov; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 8 November 2026 (game version 1.47.1 local; 1.45.0-1.47.0 pushed 8 Nov; 1.34.3-1.44.0 pushed 1 Nov; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.47.0** (local, 1.45.0-1.47.0 not pushed; 1.46.1 needs the whole schema.sql run); 1.34.3-1.44.0 pushed 1 Nov (1.44 needs the whole schema.sql run for the new co-op projects); 1.34.2 pushed 30 Oct; 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.47.1** (local); 1.45.0-1.47.0 pushed 8 Nov (1.46.1 needs the whole schema.sql run); 1.34.3-1.44.0 pushed 1 Nov (1.44 needs the whole schema.sql run for the new co-op projects); 1.34.2 pushed 30 Oct; 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -25,7 +25,9 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
 
-**1.47.0 (local, 8 Nov): Colour and Lanterns** (`PLAN-1.47.md`, BALANCE.md "1.47"). Levels 161-180, `authoredMax` 180: indigo, madder, marigold, Dye Works, 13 recipes (Grand Tapestry at 180), dye paint colours (`PAINTS[].made`, offered in `DecorUI` once that item is in the Collection Book), 16 decor in four sets incl. six at 131-139 (`models/colour.ts`). Game only.
+**1.47.1 (local, 8 Nov): a brighter lantern.** Players said the mine ran out too soon: 100 swings (was 60) and the lantern tops up `mine.json` `refill` (25 every 4 h from the first swing since full, never past full; state `mine.refillAt`, `Mine.nextRefill/refillText`), refill time on the floor banner, warning at 10 left. Game only.
+
+**1.47.0 (pushed 8 Nov): Colour and Lanterns** (`PLAN-1.47.md`, BALANCE.md "1.47"). Levels 161-180, `authoredMax` 180: indigo, madder, marigold, Dye Works, 13 recipes (Grand Tapestry at 180), dye paint colours (`PAINTS[].made`, offered in `DecorUI` once that item is in the Collection Book), 16 decor in four sets incl. six at 131-139 (`models/colour.ts`). Game only.
 
 **1.46.1 (local, 8 Nov): item log** (ADMIN.md "Item history"). Every barn change is tagged with a reason (`game.as('<reason>')`; `game.actor` 'farmhand' during rounds), logged by `online/ItemLog.ts` (merges changes close together, device copy of 1,500 lines, sends batches every 3 min; counts that changed outside the game are logged as `loaded`), server section `item log` (`item_log`, `log_items`, `admin_player_items`, 120 days; tested on PGlite), dashboard player tab Item history (`admin/src/views/items.ts`). Privacy page and data-safety.md updated. **Needs `schema.sql` re-run.** New barn changes must be tagged or they show as Other.
 
@@ -330,6 +332,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-08: 1.45.0-1.47.0 pushed; 1.47.1 (local): mine lantern 100 swings and tops up 25 every 4 hours.
 - 2026-11-08: 1.47.0 (local, not pushed): Colour and Lanterns, levels 161-180, Dye Works, dye paints, 16 decor in four sets.
 - 2026-11-08: 1.46.1 (local, not pushed): item log, every barn change with its reason, dashboard Item history tab (needs schema.sql).
 - 2026-11-06: 1.46.0 (local, not pushed): Bean and Spice, levels 141-160 (crops, trees, Chocolatier, Coffee Roastery, 26 recipes).
@@ -339,4 +342,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-29: 1.34.1 (local): version and where you play shown at the bottom of Settings.
 - 2026-10-29: 1.34.0 pushed with 1.33.8 and 1.33.9: the Fishing Net (dock, Fishing skill 3, 8-hour fill, keep limit, bait to set).
 - 2026-10-28: 1.33.9 (local): bug sweep: ghost-tap guard on every tap-twice confirm, merchant stock stays put after a purchase.
-- 2026-10-28: 1.33.7 pushed; 1.33.8 (local): reason for unasked sign-outs kept and logged, Signed out card.

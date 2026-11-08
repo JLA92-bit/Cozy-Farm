@@ -1,6 +1,23 @@
 {
  "releases": [
   {
+   "version": "1.47.1",
+   "date": "2026-11-08",
+   "title": "A brighter lantern",
+   "icon": "candle",
+   "color": "yellow",
+   "highlights": [
+    {
+     "icon": "candle",
+     "text": "The mine lantern now holds 100 swings, up from 60, and tops itself up by 25 every 4 hours, so you can come back for more later in the day"
+    },
+    {
+     "icon": "pick",
+     "text": "The mine banner shows when the next top-up comes, and you get a warning when 10 swings are left"
+    }
+   ]
+  },
+  {
    "version": "1.47.0",
    "date": "2026-11-08",
    "title": "Colour and Lanterns",

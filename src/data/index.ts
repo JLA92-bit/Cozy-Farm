@@ -375,7 +375,7 @@ export interface MineLayer { id: 'workings' | 'caverns' | 'deeps' | 'sunken' | '
 export interface MinePickaxe { id: string; name: string; power: number; /** 1.36 Mining skill level Bram needs to see before he makes it */ skill?: number; icon: string; about: string; coins: number; needs: Record<string, number> }
 export interface MineLetter { title: string; body: string; attach?: { coins?: number; gems?: number }; /** a home piece put in the home's storage with the letter */ piece?: string }
 export const MINE = mineJson as unknown as {
-  level: number; swings: number; floors: number; liftEvery: number; rocksPerFloor: [number, number]; geodeCost: number;
+  level: number; swings: number; refill: { swings: number; hours: number }; floors: number; liftEvery: number; rocksPerFloor: [number, number]; geodeCost: number;
   layers: MineLayer[];
   rocks: Record<MineRockKind, { hard: number; xp: number }> & { deep: number };
   pickaxes: MinePickaxe[];

@@ -1129,11 +1129,19 @@ try {
       const had = hs?.storage?.mine_crystal_chandelier ?? 0;
       st.deepest = 59; M.reach(60); M.reach(60);
       const bottom = { letters: st.letters.join(), piece: (hs?.storage?.mine_crystal_chandelier ?? 0) - had };
-      return { bottom, rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
+      // 1.47.1 the lantern tops up 25 swings every 4 hours after the first swing since it was full, never past full
+      const H = 3_600_000, t = g.now();
+      Object.assign(st, { swings: 100, refillAt: t - 4 * H - 60_000 }); const r1 = M.swingsLeft();
+      Object.assign(st, { swings: 100, refillAt: t - 9 * H }); const r2 = M.swingsLeft(), next2 = M.nextRefill() - t;
+      Object.assign(st, { swings: 10, refillAt: t - 8 * H }); const r3 = M.swingsLeft(), clock3 = st.refillAt;
+      const refill = { r1, r2, next2: Math.round(next2 / H), r3, clock3: clock3 ?? null };
+      Object.assign(st, { swings: 0 }); delete st.refillAt;
+      return { refill, bottom, rep, same: a === b, differs: a !== tomorrow, swung, max: M.maxSwings(), after, ladderBefore, down, deepest: M.deepest, blocked, lifts, c1: !!c1, c2, c3, bought, pick: M.pickaxe(), geo: geo?.item, paid: coins - g.coins, geodes: g.count('geode'), geo2 };
     });
     check('a damaged mine save is mended', m.rep.deepest === 100 && m.rep.pickaxe === 5 && m.rep.chests.join() === '5' && m.rep.carts.join() === '2' && m.rep.found.join() === 'coal', JSON.stringify(m.rep));
     check('a mine floor is the same all day and different the next', m.same && m.differs, JSON.stringify(m));
-    check('60 swings a day, then the lantern is out', m.swung === 60 && m.max === 60 && m.after === null, JSON.stringify(m));
+    check('100 swings a day, then the lantern is out', m.swung === 100 && m.max === 100 && m.after === null, JSON.stringify(m));
+    check('the lantern tops up 25 swings every 4 hours, up to full', m.refill.r1 === 25 && m.refill.r2 === 50 && m.refill.next2 === 3 && m.refill.r3 === 100 && m.refill.clock3 === null, JSON.stringify(m.refill));
     check('the ladder down is under a rock; breaking it lets you go down a floor', !m.ladderBefore && m.down.ok && m.down.floor === 2, JSON.stringify(m));
     check('the Crystal Caverns need the copper pickaxe', !m.blocked.ok && /copper/i.test(m.blocked.reason ?? ''), JSON.stringify(m.blocked));
     check('the lift stops at every fifth floor reached, a chest opens once', m.lifts === '1,5,10,15,20' && m.c1 && m.c2 === null && m.c3 === null, JSON.stringify(m));

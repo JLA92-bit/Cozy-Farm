@@ -179,6 +179,7 @@ function repairMine(v: unknown): SaveData['mine'] {
     pickaxe: int(v.pickaxe, 0, MINE.pickaxes.length - 1),
     day: typeof v.day === 'string' ? v.day.slice(0, 12) : '',
     swings: int(v.swings, 0, 999),
+    ...(typeof v.refillAt === 'number' && Number.isFinite(v.refillAt) && v.refillAt > 0 ? { refillAt: v.refillAt } : {}),
     hits,
     carts: ints(v.carts), pools: ints(v.pools), chests: ints(v.chests),
     letters: Array.isArray(v.letters) ? v.letters.filter((x): x is string => typeof x === 'string' && x in MINE.letters) : [],

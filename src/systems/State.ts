@@ -224,8 +224,10 @@ export interface MineState {
   /** pickaxe tier (mine.json pickaxes) */
   pickaxe: number;
   day: string;
-  /** swings used today */
+  /** swings used today (less what the lantern has topped up) */
   swings: number;
+  /** 1.47.1 when the lantern's refill clock started (ms): the first swing since it was last full; none when full */
+  refillAt?: number;
   /** today: swings put into each rock, by floor then rock index */
   hits: Record<string, number[]>;
   /** today: floors whose cart was emptied and whose pool was dipped */
