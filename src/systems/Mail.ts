@@ -34,7 +34,7 @@ export class MailSystem {
     const a = l.attach;
     if (a.coins) game.addCoins(a.coins);
     if (a.gems) game.addGems(a.gems);
-    for (const [k, n] of Object.entries(a.items ?? {})) if (ITEMS[k] && n > 0) game.addItem(k, n);
+    for (const [k, n] of Object.entries(a.items ?? {})) if (ITEMS[k] && n > 0) game.as('mail').addItem(k, n);
     saves.save();
     logEvent('mail_collect', { from: l.from, coins: a.coins ?? 0, gems: a.gems ?? 0, items: Object.keys(a.items ?? {}).length });
     return a;

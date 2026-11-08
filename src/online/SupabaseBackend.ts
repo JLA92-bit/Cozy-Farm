@@ -661,6 +661,12 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
     } catch { /* statistics only: never bother the player */ }
   }
 
+  async logItems(rows: { t: number; i: string; d: number; q: number; w: string; b: number }[]): Promise<boolean> {
+    await this.init();
+    const r = this.check(await this.db().rpc('log_items', { p_rows: rows }) as Result<number | null>);
+    return typeof r === 'number' && r >= 0;
+  }
+
   async myLock(): Promise<AccountLock | null> {
     await this.init();
     const r = await this.db().rpc('my_lock') as Result<unknown>;

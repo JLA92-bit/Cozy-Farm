@@ -151,7 +151,7 @@ class MineSystem {
     if (out.broken) {
       out.drops = this.rollDrops(f, rock, rr);
       for (const d of out.drops) {
-        game.addItem(d.item, d.n, at);
+        game.as('mine_rock').addItem(d.item, d.n, at);
         if (this.noteFound(d.item)) out.first.push(d.item);
       }
       out.ladder = rock.i === f.ladder;
@@ -218,7 +218,7 @@ class MineSystem {
     this.st.carts.push(f.floor);
     const mult = hasSkillBonus('cart_luck') ? V.cartLuckMult : 1;
     const got = (MINE.cart.drops[f.layer.id] ?? []).map(([item, n]) => ({ item, n: n * mult }));
-    for (const g of got) { game.addItem(g.item, g.n, at); this.noteFound(g.item); }
+    for (const g of got) { game.as('mine_cart').addItem(g.item, g.n, at); this.noteFound(g.item); }
     game.incStat('mine_carts');
     game.bus.emit('mine:changed', {});
     saves.save();
@@ -234,7 +234,7 @@ class MineSystem {
     const item = pickWeighted(MINE.pool.drops.map((d) => [d[0], d[1]] as [string, number]), r);
     const d = MINE.pool.drops.find((x) => x[0] === item)!;
     const n = (d[2] + Math.floor(r() * (d[3] - d[2] + 1))) * (hasSkillBonus('cart_luck') ? V.cartLuckMult : 1);
-    game.addItem(item, n, at);
+    game.as('mine_pool').addItem(item, n, at);
     const first = this.noteFound(item);
     game.incStat('mine_pools');
     game.bus.emit('mine:changed', {});
@@ -250,7 +250,7 @@ class MineSystem {
     this.st.chests.push(floor);
     game.addCoins(c.coins, at);
     game.addGems(c.gems);
-    for (const [k, n] of Object.entries(c.items)) { game.addItem(k, n, at); this.noteFound(k); }
+    for (const [k, n] of Object.entries(c.items)) { game.as('mine_chest').addItem(k, n, at); this.noteFound(k); }
     game.incStat('mine_chests');
     logEvent('mine_chest', { floor });
     game.bus.emit('mine:changed', {});
@@ -262,10 +262,10 @@ class MineSystem {
   crackGeode(at?: Vec): { item: string; first: boolean } | null {
     if (!this.open || game.count('geode') <= 0 || game.coins < MINE.geodeCost) return null;
     if (!game.spend(MINE.geodeCost)) return null;
-    game.addItem('geode', -1);
+    game.as('geode').addItem('geode', -1);
     const n = game.stat('geodes_cracked');
     const item = pickWeighted(MINE.geode, rng(hashString(`${game.state.seed}:geode:${n}`)));
-    game.addItem(item, 1, at);
+    game.as('geode').addItem(item, 1, at);
     const first = this.noteFound(item);
     game.incStat('geodes_cracked');
     game.bus.emit('mine:changed', {});
@@ -285,7 +285,7 @@ class MineSystem {
     const p = this.nextPickaxe();
     if (!this.open || !p || !this.canBuyPickaxe()) return false;
     if (!game.spend(p.coins)) return false;
-    for (const [k, n] of Object.entries(p.needs)) game.addItem(k, -n);
+    for (const [k, n] of Object.entries(p.needs)) game.as('pickaxe').addItem(k, -n);
     this.st.pickaxe++;
     game.incStat('pickaxes_made');
     logEvent('mine_pickaxe', { tier: this.st.pickaxe });

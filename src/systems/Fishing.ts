@@ -73,20 +73,20 @@ class FishingSystem {
   /** Pay for one cast (a free cast first, then bait). Returns how it was paid, or null. */
   payCast(): 'free' | 'bait' | null {
     if (this.freeLeft > 0) { this.st.freeUsed++; this.st.casts++; return 'free'; }
-    if (this.bait > 0) { game.addItem(FISHING.baitItem, -1); this.st.casts++; return 'bait'; }
+    if (this.bait > 0) { game.as('fishing').addItem(FISHING.baitItem, -1); this.st.casts++; return 'bait'; }
     return null;
   }
   /** Give a cast back (the player reeled in before anything bit). */
   refund(paid: 'free' | 'bait'): void {
     if (paid === 'free') this.st.freeUsed = Math.max(0, this.st.freeUsed - 1);
-    else game.addItem(FISHING.baitItem, 1);
+    else game.as('fishing').addItem(FISHING.baitItem, 1);
     this.st.casts = Math.max(0, this.st.casts - 1);
   }
 
   buyBait(): boolean {
     const { qty, coins } = FISHING.baitShop;
     if (!game.spend(coins)) return false;
-    game.addItem(FISHING.baitItem, qty);
+    game.as('bait_buy').addItem(FISHING.baitItem, qty);
     game.bus.emit('sfx', { name: 'purchase' });
     return true;
   }
@@ -156,7 +156,7 @@ class FishingSystem {
   buyLucky(): boolean {
     const { qty, coins, item } = FISHING.luckyBait;
     if (!game.spend(coins)) return false;
-    game.addItem(item, qty);
+    game.as('bait_buy').addItem(item, qty);
     game.bus.emit('sfx', { name: 'purchase' });
     return true;
   }
@@ -185,7 +185,7 @@ class FishingSystem {
       res.xp = Math.round(c.def.xp * (record ? 1 + FISHING.recordXpBonus : 1));
       // 1.8: a fish can be a silver or gold catch (the catch card shows it)
       res.quality = rollQuality('fish', c.id);
-      game.addItem(c.id, 1, undefined, res.quality);
+      game.as('fishing').addItem(c.id, 1, undefined, res.quality);
       countStars(res.quality === 1 ? 1 : 0, res.quality === 2 ? 1 : 0);
       game.incStat('fish_caught');
       game.incStat(`catch_${c.id}`);
@@ -197,7 +197,7 @@ class FishingSystem {
       const j = c.def;
       res.xp = j.xp;
       game.incStat('junk_caught');
-      if (ITEMS[c.id]) { game.addItem(c.id, 1); res.line = j.lines?.[Math.floor(Math.random() * j.lines.length)]; }
+      if (ITEMS[c.id]) { game.as('fishing').addItem(c.id, 1); res.line = j.lines?.[Math.floor(Math.random() * j.lines.length)]; }
       else {
         // a message in a bottle: a sweet note and a little gift
         res.coins = (j.coinsBase ?? 0) + (j.coinsPerLevel ?? 0) * game.level;

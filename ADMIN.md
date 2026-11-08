@@ -83,6 +83,17 @@ many were left), with totals by kind. On: finishing a workshop job, a building o
 once, the Master Boutique, an extra stall slot. From the game events (kept 180 days, `admin_player_gems`). Older
 spends were not recorded. Lifetime coin totals (coins earned and spent) are in the save's stats on the player page.
 
+## Item history
+
+From 1.46.1 the player page has an **Item history** tab (`admin/src/views/items.ts`): every change to the player's
+barn, what caused it and how many were left after. Type an item (e.g. Wheat) to see its story: totals by reason, then
+every change, newest first; Download CSV saves the lines. "Changed outside this game" lines are counts that differed
+when the game started (a cloud farm, an import or another device); "Farmhand:" lines are a farmhand's round. Only for
+players who play signed in online, from 1.46.1. The game tags each barn change (`game.as('<reason>')`, reasons listed
+in `items.ts` `WHY`), keeps the newest 1,500 lines on the device (`online/ItemLog.ts`, debug `__itemLog`) and sends
+them every 3 minutes and when the game is hidden (`log_items`, table `item_log`, kept 120 days, schema section
+`item log`). A barn change nobody tagged shows as "Other": tag it where it happens.
+
 ## Restoring a player's farm
 
 1. Players > find them > open their page.

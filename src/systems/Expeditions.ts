@@ -78,7 +78,7 @@ class ExpeditionSystem {
       if (n > 0) got.set(item, (got.get(item) ?? 0) + n);
     }
     const loot: Loot[] = [];
-    for (const [item, n] of got) { game.addItem(item, n); woods.noteFound(item); loot.push({ item, n }); }
+    for (const [item, n] of got) { game.as('expedition').addItem(item, n); woods.noteFound(item); loot.push({ item, n }); }
     list.splice(index, 1);
     game.incStat('expeditions_done');
     village.addPoints(t.who, 2, 'expedition');

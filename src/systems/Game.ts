@@ -16,7 +16,8 @@ export interface GameEvents extends Record<string, unknown> {
   gems: { delta: number; total: number; at?: Vec; on?: string };
   xp: { delta: number; total: number; at?: Vec };
   levelup: { level: number };
-  item: { item: string; delta: number; total: number; at?: Vec; quality?: 0 | 1 | 2 };
+  /** `why`: what moved it (game.as), for the item log (online/ItemLog.ts) */
+  item: { item: string; delta: number; total: number; at?: Vec; quality?: 0 | 1 | 2; why?: string };
   /** 1.8: friendship changed (src/systems/Village.ts) */
   'village:points': { id: string; delta: number; points: number; hearts: number; reason: string };
   /** 1.8.5: a bundle in the village square got items, or was filled (src/systems/Restoration.ts) */
@@ -224,6 +225,24 @@ export class Game {
     return true;
   }
 
+  /** What the barn changes in this tick are for (game.as), cleared after it: the item log's reason. */
+  private why = '';
+  private whyClear = false;
+  /**
+   * 1.46.1 Tag the barn changes made in this tick with a reason for the item log, e.g.
+   * `game.as('order').take(items)`. The tag lasts until the current task ends; a later tag wins.
+   */
+  as(why: string): this {
+    this.why = why;
+    if (!this.whyClear) { this.whyClear = true; queueMicrotask(() => { this.why = ''; this.whyClear = false; }); }
+    return this;
+  }
+
+  /** 1.46.1 who is acting when it is not the player (a farmhand's round), for the item log. */
+  actor = '';
+  /** The current tick's reason tag ('' when none). */
+  get reason(): string { return this.why; }
+
   count(item: string): number { return this.state.inventory[item] ?? 0; }
   /**
    * Add (n > 0) or remove (n < 0) items. 1.8 star quality: `quality` 1 = silver, 2 = gold marks added items;
@@ -248,7 +267,7 @@ export class Game {
       const g2 = Math.max(0, g - Math.max(0, over));
       if (s2 || g2) q[item] = [s2, g2]; else delete q[item];
     }
-    this.bus.emit('item', { item, delta: n, total: inv[item] ?? 0, at, quality: n > 0 ? quality : undefined });
+    this.bus.emit('item', { item, delta: n, total: inv[item] ?? 0, at, quality: n > 0 ? quality : undefined, why: this.why || undefined });
     if (n > 0) this.discover(item, 'item');
   }
   /** How many of an item are normal, silver and gold. */
@@ -267,7 +286,7 @@ export class Game {
     const inv = this.state.inventory;
     inv[item] = Math.max(0, (inv[item] ?? 0) - n);
     if (inv[item] === 0) delete inv[item];
-    this.bus.emit('item', { item, delta: -n, total: inv[item] ?? 0, at });
+    this.bus.emit('item', { item, delta: -n, total: inv[item] ?? 0, at, quality, why: this.why || undefined });
     return true;
   }
   has(items: Record<string, number>): boolean {

@@ -138,7 +138,7 @@ export class OrderSystem {
     const idx = list.findIndex((o) => o.id === orderId);
     if (idx < 0 || !this.canComplete(list[idx])) return false;
     const o = list[idx];
-    for (const l of o.lines) game.addItem(l.item, -l.qty);
+    for (const l of o.lines) game.as('order').addItem(l.item, -l.qty);
     game.addCoins(this.payout(o), at);
     game.addXp(o.xp, at);
     if (o.gems) game.addGems(o.gems, at);
@@ -209,7 +209,7 @@ export class TruckSystem {
     const t = game.state.truck;
     const c = t?.crates[i];
     if (!t || !c || c.filled || game.count(c.item) < c.qty) return false;
-    game.addItem(c.item, -c.qty);
+    game.as('truck').addItem(c.item, -c.qty);
     c.filled = true;
     game.addCoins(c.coins, at);
     game.addXp(c.xp, at);
@@ -257,7 +257,7 @@ export class StallSystem {
     if (!slot || slot.item || game.count(item) < qty || qty <= 0) return false;
     const [min, max] = this.priceRange(item, qty);
     price = Math.max(min, Math.min(max, Math.round(price)));
-    game.addItem(item, -qty);
+    game.as('stall_list').addItem(item, -qty);
     // cheaper listings sell faster
     const [lo, hi] = ECONOMY.stall.buyDelaySec;
     const t = (price - min) / Math.max(1, max - min);
@@ -284,7 +284,7 @@ export class StallSystem {
   cancel(i: number): void {
     const slot = this.ensureSlots()[i];
     if (!slot?.item || this.sold(slot)) return;
-    game.addItem(slot.item, slot.qty);
+    game.as('stall_back').addItem(slot.item, slot.qty);
     Object.assign(slot, { item: null, qty: 0, price: 0, listedAt: 0, soldAt: null, buyDelay: 0 });
     game.bus.emit('stall:changed', {});
   }
@@ -363,7 +363,7 @@ export class MerchantSystem {
     for (const k of Object.keys(game.state.merchant.bought)) if (Number(k.split(':')[0]) < this.visit().index - 2) delete game.state.merchant.bought[k];
     if (offer.kind === 'decor') game.state.storage[offer.id] = (game.state.storage[offer.id] ?? 0) + 1;
     else if (offer.kind === 'cosmetic') { game.state.cosmetics.push(offer.id); game.discover(offer.id, 'cosmetic'); }
-    else if (offer.kind === 'items') game.addItem(offer.id, offer.qty, at);
+    else if (offer.kind === 'items') game.as('merchant').addItem(offer.id, offer.qty, at);
     else game.addGems(offer.qty, at);
     game.incStat('merchant_buys');
     game.bus.emit('sfx', { name: 'purchase' });

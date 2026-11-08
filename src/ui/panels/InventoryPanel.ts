@@ -175,7 +175,7 @@ function sellExtrasButton(plan: { lines: { id: string; n: number }[]; coins: num
     if (tooSoon(armedAt)) return;
     armedAt = 0;
     let coins = 0;
-    for (const l of plan.lines) coins += game.sellItem(l.id, l.n, undefined, 0);
+    for (const l of plan.lines) coins += game.as('sell_extras').sellItem(l.id, l.n, undefined, 0);
     const r = b.getBoundingClientRect();
     if (coins) ui.feedback.fly(r.left + r.width / 2, r.top, 'coin', 'coins', Math.min(20, Math.ceil(coins / 50)));
     rerender();
@@ -240,7 +240,7 @@ function sellBar(p: Panel, item: string, quality: Quality, rerender: () => void)
       if (keepAsk && tooSoon(keepAsk)) return;
       keepAsk = 0;
       const r = p.footer.getBoundingClientRect();
-      const coins = game.sellItem(item, qty, undefined, quality);
+      const coins = game.as('barn_sell').sellItem(item, qty, undefined, quality);
       if (coins) ui.feedback.fly(r.left + r.width / 2, r.top, 'coin', 'coins', Math.ceil(coins / 20));
       rerender();
     }, 'small yellow sell-btn'),

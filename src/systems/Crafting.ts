@@ -37,11 +37,11 @@ class CraftingSystem {
     const r = CRAFT_RECIPES.find((x) => x.id === id);
     if (!r || !this.canCraft(r).ok) return false;
     if (r.coins) game.spend(r.coins);
-    for (const [item, n] of Object.entries(craftNeeds(r))) game.addItem(item, -n);
+    for (const [item, n] of Object.entries(craftNeeds(r))) game.as('forge').addItem(item, -n);
     const extra = Math.random() < this.chanceExtra();
     const qty = r.qty * (extra ? 2 : 1);
     if (r.kind === 'building') game.state.storage[r.out] = (game.state.storage[r.out] ?? 0) + qty;
-    else game.addItem(r.out, qty);
+    else game.as('forge').addItem(r.out, qty);
     game.discover(r.out, r.kind === 'building' ? 'building' : 'item');
     game.incStat('crafts_made');
     game.bus.emit('toast', { title: extra ? `${r.name} x${qty}` : r.name, sub: extra ? 'An extra one came out!' : r.kind === 'building' ? 'In storage: place it from the Shop' : 'Added to your barn', icon: r.icon });

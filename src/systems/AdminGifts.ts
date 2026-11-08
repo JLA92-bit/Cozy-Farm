@@ -29,7 +29,7 @@ export function applyAdminGift(g: AdminGift): AppliedGift {
   for (const [k, raw] of Object.entries(g.items ?? {})) {
     const key = giftItemKey(k), n = Math.floor(raw);
     if (!key || !(n > 0)) continue;
-    game.addItem(key.item, n, undefined, key.quality);
+    game.as('dev_gift').addItem(key.item, n, undefined, key.quality);
     items[key.item] = (items[key.item] ?? 0) + n;
   }
   const coins = Math.max(0, Math.floor(g.coins) || 0), gems = Math.max(0, Math.floor(g.gems) || 0);

@@ -134,7 +134,7 @@ class Welcome18System {
   /** Hazel's basket of strawberries, once, when there is nothing Rosa would enjoy. Returns true when given now. */
   ensureBasket(): boolean {
     if (this.replay || this.w.basket || this.giftOptions().length) return false;
-    for (const [item, n] of Object.entries(W18.basket)) if (ITEMS[item]) game.addItem(item, n);
+    for (const [item, n] of Object.entries(W18.basket)) if (ITEMS[item]) game.as('welcome').addItem(item, n);
     this.w.basket = true;
     saves.save();
     logEvent('welcome_basket');

@@ -42,7 +42,8 @@ function). Running the whole file again only adds what is missing; players' data
 The "Helping neighbours" update adds the `farm_help` table and the `help_farm`, `like_farm`,
 `farm_help_status` and `claim_farm_help` functions, so run it again for that too.
 Version 1.8.0 "Village Friends" adds Ask a friend (`help_requests`, `help_fills`, `help_watch` and their functions,
-push kind `help`), the game event log (`player_events` and `log_event`) and letters to every player
+push kind `help`), the game event log (`player_events` and `log_event`; from 1.46.1 also the barn history,
+`item_log` and `log_items`, ADMIN.md "Item history") and letters to every player
 (`admin_letters`, `admin_letter_inbox`, `my_admin_letters`, `claim_admin_letter`), so run it again for 1.8 as well.
 
 ## 4. Copy the project URL and anon key into GitHub

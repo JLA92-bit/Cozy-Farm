@@ -64,6 +64,7 @@ export function rollCounts(source: QualitySource, item: string, n: number, rand:
  */
 export function addRolled(source: QualitySource, item: string, n: number, at?: Vec): [number, number, number] {
   const split = rollCounts(source, item, n);
+  if (!game.reason) game.as(source);
   split.forEach((k, q) => { if (k > 0) game.addItem(item, k, at, q as Quality); });
   countStars(split[1], split[2]);
   // 1.8.6 mastery plaques count gold items one kind at a time

@@ -62,7 +62,7 @@ class FishNetSystem {
     };
     const fish: string[] = [];
     for (let i = 0; i < t.holds; i++) fish.push(rare.length && r() < t.rare ? pick(rare) : pick(plain));
-    game.addItem(FISHING.baitItem, -NET.bait);
+    game.as('net_set').addItem(FISHING.baitItem, -NET.bait);
     game.state.fishing.net = { setAt: now, tier: tierIdx, fish };
     game.incStat('nets_set');
     logEvent('net_set', { tier: tierIdx });
@@ -125,7 +125,7 @@ class FishNetSystem {
     if (!s) return null;
     const fish = this.inNet(now), t = NET.tiers[s.tier];
     const keep = [...new Set(picked)].filter((i) => Number.isInteger(i) && i >= 0 && i < fish.length).slice(0, t.keep).map((i) => fish[i]);
-    for (const id of keep) game.addItem(id, 1, undefined, 0);
+    for (const id of keep) game.as('net_haul').addItem(id, 1, undefined, 0);
     delete game.state.fishing.net;
     game.incStat('net_hauls');
     if (keep.length) game.incStat('net_fish', keep.length);

@@ -252,6 +252,7 @@ export class LocalBackend implements OnlineBackend {
   async adminLetters(): Promise<AdminLetter[]> { return []; }
   async claimAdminLetter(): Promise<AdminLetter> { throw new Error('not found'); }
   async logEvent(): Promise<void> { /* practice mode: no statistics */ }
+  async logItems(): Promise<boolean> { return false; }
   async gameConfig(): Promise<Record<string, unknown>> { return {}; }
   async myLock(): Promise<null> { return null; }
   async submitFeedback(): Promise<void> {

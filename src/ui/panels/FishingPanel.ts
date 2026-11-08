@@ -173,7 +173,7 @@ class FishingController {
   close(): void {
     if (!this.el || !this.view) return;
     // reeled in before anything bit: the cast is free
-    if (this.paid && (this.step === 'cast' || this.step === 'wait')) { fishing.refund(this.paid); if (this.luckyUsed) { game.addItem(FISHING.luckyBait.item, 1); this.luckyUsed = false; } }
+    if (this.paid && (this.step === 'cast' || this.step === 'wait')) { fishing.refund(this.paid); if (this.luckyUsed) { game.as('lucky_bait').addItem(FISHING.luckyBait.item, 1); this.luckyUsed = false; } }
     this.paid = null;
     this.catch = null;
     this.holding = false;
@@ -373,7 +373,7 @@ class FishingController {
     // Lucky Bait is only used up when something you need is biting, so it is never wasted
     this.luckyUsed = false;
     if (this.luckyArmed && fishing.lucky > 0 && fishing.wantedBiting) {
-      game.addItem(FISHING.luckyBait.item, -1);
+      game.as('lucky_bait').addItem(FISHING.luckyBait.item, -1);
       this.luckyUsed = true;
       if (fishing.lucky <= 0) this.luckyArmed = false;
     }

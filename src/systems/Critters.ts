@@ -82,7 +82,7 @@ class CrittersSystem {
   feed(id: string, treat: string, at?: Vec): boolean {
     const c = this.def(id);
     if (!c || !this.open(id) || this.treatOn(id) || !c.treats.includes(treat) || game.count(treat) < 1) return false;
-    game.addItem(treat, -1, at);
+    game.as('critter_treat').addItem(treat, -1, at);
     this.rec(id).treat = treat;
     game.incStat('critter_treats');
     game.bus.emit('woods:changed', {});
@@ -107,10 +107,10 @@ class CrittersSystem {
     const rareChance = CRITTERS.rareBase + CRITTERS.rarePerHeart * Math.min(before, FRIEND);
     const rare = heart === FRIEND || Math.random() < rareChance;
     const gift = rare ? c.rare : pickWeighted(c.gifts, Math.random).id;
-    game.addItem(gift, 1, at);
+    game.as('critter_gift').addItem(gift, 1, at);
     if (ITEMS[gift]?.cat === 'forage' || rare) woods.noteFound(gift);
     // 1.40 trusted (6 hearts and up): a second small gift with every visit
-    if (before >= TRUSTED) { const more = pickWeighted(c.gifts, Math.random).id; game.addItem(more, 1, at); if (ITEMS[more]?.cat === 'forage') woods.noteFound(more); }
+    if (before >= TRUSTED) { const more = pickWeighted(c.gifts, Math.random).id; game.as('critter_gift').addItem(more, 1, at); if (ITEMS[more]?.cat === 'forage') woods.noteFound(more); }
     const coins = heart ? CRITTERS.heartCoins * Math.min(heart, FRIEND) : 0;
     if (coins) game.addCoins(coins, at);
     if (heart === CRITTERS.maxHearts) game.addGems((CRITTERS as unknown as { trustedGems?: number }).trustedGems ?? 10);
@@ -158,7 +158,7 @@ class CrittersSystem {
     const n = this.note();
     if (!n || n.done || game.count(n.item) < n.n) return null;
     const reward = this.noteReward();
-    game.addItem(n.item, -n.n, at);
+    game.as('field_note').addItem(n.item, -n.n, at);
     const w = this.woodsState();
     w.note!.done = true;
     w.notesDone = (w.notesDone ?? 0) + 1;

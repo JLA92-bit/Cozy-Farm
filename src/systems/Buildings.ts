@@ -207,7 +207,7 @@ export class BuildingSystem {
     const info = this.upgradeInfo(b);
     if (!info || !this.canUpgrade(b).ok) return false;
     game.spend(info.cost);
-    for (const [item, n] of Object.entries(info.goods ?? {})) game.addItem(item, -n);
+    for (const [item, n] of Object.entries(info.goods ?? {})) game.as('upgrade').addItem(item, -n);
     b.upgradeEnd = game.now() + info.sec * 1000;
     if (info.sec === 0) this.completeUpgrade(b);
     game.bus.emit('building:changed', { b });

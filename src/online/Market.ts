@@ -169,7 +169,7 @@ class MarketService {
     if (fee && !game.canAfford(fee)) return `Listing costs ${fee} coins.`;
     try { await ensureOnline(); } catch (e) { return errorText(e); }
     // escrow: take the goods (and fee) first, give them back if the market says no
-    if (!game.take({ [item]: qty })) return 'You do not have that many.';
+    if (!game.as('market_list').take({ [item]: qty })) return 'You do not have that many.';
     if (fee) game.addCoins(-fee);
     try {
       const l = await online.listItem(item, qty, price);
@@ -178,7 +178,7 @@ class MarketService {
       this.changed();
       return l;
     } catch (e) {
-      game.addItem(item, qty);
+      game.as('market_back').addItem(item, qty);
       if (fee) game.addCoins(fee);
       return errorText(e);
     }
@@ -193,7 +193,7 @@ class MarketService {
     if (!game.spend(l.price)) return 'Not enough coins.';
     try {
       const done = await online.buy(l.id);
-      game.addItem(l.item, l.qty);
+      game.as('market').addItem(l.item, l.qty);
       game.incStat('market_buys');
       game.incStat('market_items_bought', l.qty);
       if (this.browseList) this.browseList = this.browseList.filter((x) => x.id !== l.id);
@@ -214,7 +214,7 @@ class MarketService {
     try {
       await ensureOnline();
       await online.cancel(l.id);
-      game.addItem(l.item, l.qty);
+      game.as('market_cancel').addItem(l.item, l.qty);
       if (this.mine) this.mine = this.mine.filter((x) => x.id !== l.id);
       this.changed();
       return true;

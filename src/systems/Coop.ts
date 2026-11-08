@@ -188,7 +188,7 @@ class CoopSystem {
         game.bus.emit('toast', { title: `${def.name} is finished!`, sub: `Built together by ${c.names.slice(0, 4).join(', ')}${c.names.length > 4 ? ' and friends' : ''}. Its decoration and a plaque are in your storage.`, icon: def.icon });
         game.bus.emit('sfx', { name: 'reward' });
       } else if (c.refund) {
-        for (const [item, n] of Object.entries(c.refund)) game.addItem(item, n);
+        for (const [item, n] of Object.entries(c.refund)) game.as('coop_refund').addItem(item, n);
         game.bus.emit('toast', { title: 'Goods returned', sub: `${def?.name ?? 'A project'} closed before it was finished, so what you gave is back in your barn.`, icon: 'basket' });
       }
     }

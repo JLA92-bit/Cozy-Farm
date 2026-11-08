@@ -141,7 +141,7 @@ class DailySystem {
   give(): (VisitRequest & { id: string; hearts: number; heartUp: boolean }) | null {
     const q = this.request();
     const id = this.today.visitor;
-    if (!q || !game.take({ [q.item]: q.qty })) return null;
+    if (!q || !game.as('villager_request').take({ [q.item]: q.qty })) return null;
     const before = village.hearts(id);
     this.today.visitorDone = true;
     game.addCoins(q.coins);
@@ -277,7 +277,7 @@ class DailySystem {
       return { name: info.name, icon: info.icon, lost: info.lost, points: LOST_POINTS };
     }
     const k = FIND_KINDS[info.kind];
-    game.addItem(k.item, k.qty);
+    game.as('daily_find').addItem(k.item, k.qty);
     return { name: k.name, icon: k.icon, item: k.item, qty: k.qty };
   }
 

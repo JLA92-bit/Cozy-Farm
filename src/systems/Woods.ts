@@ -92,7 +92,7 @@ class WoodsSystem {
     const w = this.st();
     if (w.picked.includes(id)) return null;
     w.picked.push(id);
-    game.addItem(reg.fireflies.item, 1, at);
+    game.as('fireflies').addItem(reg.fireflies.item, 1, at);
     this.noteFound(reg.fireflies.item);
     game.incStat('fireflies_caught');
     game.bus.emit('woods:changed', {});
@@ -115,7 +115,7 @@ class WoodsSystem {
     const misty = weatherToday() === 'mist';
     const table = reg.pan.table.map((e) => ({ id: e.id, w: e.w * (misty && WOODS_WEATHER.rarePan.includes(e.id) ? WOODS_WEATHER.rareMult : 1) }));
     const item = pickWeighted(table, Math.random).id;
-    game.addItem(item, 1, at);
+    game.as('pan').addItem(item, 1, at);
     const first = this.noteFound(item);
     game.incStat('pans_done');
     logEvent('pan', { item });
@@ -143,7 +143,7 @@ class WoodsSystem {
     const w = this.st();
     (w.taps ??= {})[key] = game.now();
     const item = pickWeighted(reg.taps.items, Math.random).id;
-    game.addItem(item, reg.taps.yield, at);
+    game.as('tap').addItem(item, reg.taps.yield, at);
     this.noteFound(item);
     game.incStat('sap_collected', reg.taps.yield);
     game.bus.emit('woods:changed', {});
@@ -185,7 +185,7 @@ class WoodsSystem {
     const quality = rollQuality('forage', spot.item);
     // Keen Eyes doubles a pick; 1.35 Big Basket adds one more now and then
     const n = (Math.random() < keenEyesChance() ? 2 : 1) + (Math.random() < bigBasketChance() ? 1 : 0);
-    game.addItem(spot.item, n, at, quality);
+    game.as('forage').addItem(spot.item, n, at, quality);
     this.noteFound(spot.item);
     game.incStat('forage_picked', n);
     logEvent('forage', { item: spot.item, q: quality });
@@ -206,7 +206,7 @@ class WoodsSystem {
     ];
     const kind = pickWeighted(kinds, Math.random).id;
     const item = kind === 'clay' ? WOODS.clayItem : pickWeighted(WOODS.finds[kind], Math.random).id;
-    game.addItem(item, 1, at);
+    game.as('dig').addItem(item, 1, at);
     const first = this.noteFound(item);
     game.incStat('digs_done');
     logEvent('dig', { item });
@@ -277,7 +277,7 @@ class WoodsSystem {
     const got: string[] = [];
     for (let i = 0; i < WOODS_CAMP.finds + treehouseCampFinds(); i++) got.push(pickWeighted(pool, Math.random).id);
     if (Math.random() < WOODS_CAMP.digChance) got.push(pickWeighted(WOODS.finds[Math.random() < 0.6 ? 'mineral' : 'fossil'], Math.random).id);
-    for (const id of got) { game.addItem(id, 1, at); this.noteFound(id); }
+    for (const id of got) { game.as('camp').addItem(id, 1, at); this.noteFound(id); }
     const w = this.st();
     w.camp = { lastNight: this.nightOf(c.pitchedAt) };
     game.incStat('camp_mornings');

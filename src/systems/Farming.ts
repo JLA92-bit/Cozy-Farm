@@ -59,7 +59,7 @@ export class FarmingSystem {
     b.plot = { crop, plantedAt: game.now(), growSec };
     if (this.useFert && fertStock() > 0) {
       const q = game.count(QUALITY_FERT) > 0;
-      game.addItem(q ? QUALITY_FERT : FERTILISER, -1);
+      game.as('fertiliser').addItem(q ? QUALITY_FERT : FERTILISER, -1);
       b.plot.fert = true;
       if (q) b.plot.qfert = true;
       game.incStat('fertiliser_used');
@@ -67,7 +67,7 @@ export class FarmingSystem {
       if (fertStock() <= 0) this.useFert = false;
     }
     if (this.useRare && game.count(RARE_SEED) > 0) {
-      game.addItem(RARE_SEED, -1);
+      game.as('rare_seed_plant').addItem(RARE_SEED, -1);
       b.plot.rare = true;
       game.incStat('rare_seeds_used');
       if (game.count(RARE_SEED) <= 0) this.useRare = false;

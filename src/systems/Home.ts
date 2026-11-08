@@ -491,7 +491,7 @@ class Home {
   craft(piece: string): boolean {
     const def = PIECE[piece];
     if (!def?.craft || !this.canCraftHere() || Object.keys(this.craftShort(piece)).length || !game.canAfford(def.price)) return false;
-    for (const [it, n] of Object.entries(def.craft)) game.addItem(it, -n);
+    for (const [it, n] of Object.entries(def.craft)) game.as('home_craft').addItem(it, -n);
     game.spend(def.price);
     this.give(piece);
     return true;

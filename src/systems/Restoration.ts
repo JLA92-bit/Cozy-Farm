@@ -101,6 +101,7 @@ class RestorationSystem {
     const can = this.canGive(room, bundle, item);
     const k = Math.min(can, n === undefined ? can : Math.floor(n));
     if (k <= 0) return 0;
+    game.as(`project:${room}`.slice(0, 40));
     if (item === 'coins') { if (!game.spend(k)) return 0; }
     else {
       const star = this.minStar(room, bundle);
@@ -233,7 +234,7 @@ class RestorationSystem {
     if (!game.spend(RESTORATION.rewards.rareSeedPrice)) return false;
     const st = this.st, today = dayKey(game.now());
     st.seeds = { day: today, bought: (st.seeds?.day === today ? st.seeds.bought : 0) + 1 };
-    game.addItem('rare_seed', 1);
+    game.as('rare_seed').addItem('rare_seed', 1);
     game.incStat('rare_seeds_bought');
     game.bus.emit('sfx', { name: 'purchase' });
     saves.save();

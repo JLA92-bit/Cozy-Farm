@@ -217,6 +217,8 @@ export interface OnlineBackend {
   claimAdminLetter(id: string): Promise<AdminLetter>;
   /** 1.8: one small game event for the developer dashboard (src/online/Events.ts). Never throws. */
   logEvent(kind: string, detail: Record<string, unknown>): Promise<void>;
+  /** 1.46.1 a batch of item log lines (online/ItemLog.ts); true when the server stored them */
+  logItems(rows: { t: number; i: string; d: number; q: number; w: string; b: number }[]): Promise<boolean>;
   /** 1.9 settings the developer can change from the dashboard (market day, a day's weather); {} when offline */
   gameConfig(): Promise<Record<string, unknown>>;
   /** The caller's account lock (Lock.ts): null when not locked. Throws when the server cannot be reached. */

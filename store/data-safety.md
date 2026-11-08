@@ -50,6 +50,10 @@ Play Console > **App content** > **Data safety**. Answers derived from the code 
   `log_event()`): welcome steps, gifts to villagers and their taste, hearts gained, daily villager visits, Ask a
   friend and mailbox counters. A short kind plus a small detail object, max 200 a day per player, kept 180 days.
   No analytics SDK; never shown to other players.
+- **Barn history** (from 1.46.1): first-party log of barn changes for support (`item_log`, written only by
+  `log_items()`): item id, change, reason id, count left and time. Kept 120 days, max 20,000 lines a day per player,
+  deleted with the account (cascade). Never shown to other players. Covered by App activity (Other actions: App
+  functionality; App interactions: Analytics) already declared: **the Play form answers do not change**.
 - **Letters to every player** (from 1.8): `admin_letter_inbox` records that a developer letter was delivered to the
   player's in-game mailbox (exactly once). No personal data beyond the account id.
 - No ads and no in-app purchases yet (when either is added, use the ready-made additions in `store/monetisation.md`), no third-party analytics, no crash reporting SDK, no location, no contacts, no advertising ID or hardware IDs.

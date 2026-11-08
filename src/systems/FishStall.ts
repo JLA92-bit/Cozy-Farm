@@ -82,7 +82,7 @@ class FishStallSystem {
     const day = this.day();
     const st = game.state.fishstall && game.state.fishstall.day === day ? game.state.fishstall : (game.state.fishstall = { day, bought: {} });
     st.bought[id] = (st.bought[id] ?? 0) + 1;
-    game.addItem(id, 1, at);
+    game.as('fish_stall').addItem(id, 1, at);
     game.incStat('fishstall_buys');
     game.bus.emit('sfx', { name: 'purchase' });
     return true;

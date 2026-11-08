@@ -52,8 +52,8 @@ export class ProductionSystem {
   queue(b: PlacedBuilding, recipe: string, star: Quality = 0): boolean {
     if (!this.canQueue(b, recipe, star).ok) return false;
     const r = RECIPE[recipe];
-    if (star) { for (const [item, n] of Object.entries(r.in)) game.removeQuality(item, star, n); }
-    else game.take(r.in);
+    if (star) { for (const [item, n] of Object.entries(r.in)) game.as('workshop_start').removeQuality(item, star, n); }
+    else game.as('workshop_start').take(r.in);
     const now = game.now();
     settleProduction(b, now);
     const q = (b.queue ??= []);
@@ -82,7 +82,7 @@ export class ProductionSystem {
     q.splice(index, 1);
     for (let k = index; k < q.length; k++) { q[k].start -= dur; q[k].end -= dur; }
     // star ingredients come back as stars
-    for (const [item, n] of Object.entries(RECIPE[e.recipe].in)) game.addItem(item, n, undefined, e.q ?? 0);
+    for (const [item, n] of Object.entries(RECIPE[e.recipe].in)) game.as('workshop_cancel').addItem(item, n, undefined, e.q ?? 0);
     game.bus.emit('building:changed', { b });
     game.bus.emit('sfx', { name: 'close' });
     return true;
@@ -104,8 +104,8 @@ export class ProductionSystem {
       const s = Math.min(n, star[item]?.[0] ?? 0), g = Math.min(n - s, star[item]?.[1] ?? 0);
       // 1.35 Fine Tools: this building's top upgrade adds a little silver and gold
       fromBuilding(b, () => addRolled('production', item, n - s - g, at));
-      if (s) game.addItem(item, s, at, 1);
-      if (g) game.addItem(item, g, at, 2);
+      if (s) game.as('workshop').addItem(item, s, at, 1);
+      if (g) game.as('workshop').addItem(item, g, at, 2);
       countStars(s, g);
       const r = RECIPES.find((x) => x.item === item && x.building === b.type);
       xp += Math.round(((r?.xp ?? 1) * n) / (r?.out ?? 1));

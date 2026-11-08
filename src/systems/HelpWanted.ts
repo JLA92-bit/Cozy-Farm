@@ -64,7 +64,7 @@ class HelpWantedSystem {
   fill(i: number): HelpRequest | null {
     const req = this.requests()[i];
     if (!req || !this.canFill(req)) return null;
-    if (req.star) game.removeQuality(req.item, 2, req.n); else game.addItem(req.item, -req.n);
+    if (req.star) game.as('help_wanted').removeQuality(req.item, 2, req.n); else game.addItem(req.item, -req.n);
     game.addCoins(req.coins);
     if (req.gems) game.addGems(req.gems);
     village.addPoints(req.who, req.points, 'helpwanted');

@@ -73,7 +73,7 @@ class FestivalSystem {
     const st = game.state.storage;
     if (stars >= 2 && BUILDING[decor]) st[decor] = (st[decor] ?? 0) + 1;
     const item = stars === 3 ? def.prize.item : undefined;
-    if (item && ITEMS[item.id]) game.addItem(item.id, item.n);
+    if (item && ITEMS[item.id]) game.as('festival_prize').addItem(item.id, item.n);
     if (stars === 3) parcels.add('festival');
     this.st.done[key] = stars;
     game.incStat('festival_ribbons');

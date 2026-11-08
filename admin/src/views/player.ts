@@ -5,6 +5,7 @@ import { h, num, minutes, ago, date, loading, badge, modal, confirmAction, confi
 import { calendar, bars, chartCard, type Point } from '../charts';
 import { giftForm, describeGift } from '../giftForm';
 import { needsTab, type NeedsSave } from './needs';
+import { itemsTab } from './items';
 import { saveFromSnapshot, suggestedMoney, farmLinkData, farmMap } from '../restore';
 import { refreshBadges } from '../main';
 import {
@@ -20,7 +21,7 @@ import {
 
 const PLATFORM: Record<string, string> = { android: 'Play app', pwa: 'Web app', web: 'Browser', ios: 'iOS' };
 const TABS = [
-  ['overview', 'Overview'], ['farm', 'Farm'], ['barn', 'Barn and items'], ['progress', 'Progress'], ['needs', 'Needs'], ['stats', 'Lifetime stats'],
+  ['overview', 'Overview'], ['farm', 'Farm'], ['barn', 'Barn and items'], ['progress', 'Progress'], ['needs', 'Needs'], ['items', 'Item history'], ['stats', 'Lifetime stats'],
   ['activity', 'Activity'], ['social', 'Friends and social'], ['support', 'Support'], ['raw', 'Raw data'],
 ] as const;
 type Tab = typeof TABS[number][0];
@@ -184,6 +185,7 @@ function tabContent(t: Tab, c: Ctx): HTMLElement[] {
       case 'barn': return barnTab(c);
       case 'progress': return progressTab(c);
       case 'needs': return needsFor(c);
+      case 'items': return itemsTab(c.d.id, c.d.profile?.name ?? 'player');
       case 'stats': return statsTab(c);
       case 'activity': return activityTab(c);
       case 'social': return socialTab(c);

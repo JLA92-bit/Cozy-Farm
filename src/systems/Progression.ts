@@ -237,7 +237,7 @@ export class DailySystem {
     }
     if (r.coins) game.addCoins(r.coins);
     if (r.gems) game.addGems(r.gems);
-    for (const [k, n] of Object.entries(items)) game.addItem(k, n);
+    for (const [k, n] of Object.entries(items)) game.as('level_up').addItem(k, n);
     if (r.crate) { game.state.crates.push(r.crate); game.bus.emit('crate:granted', { rarity: r.crate }); }
     d.claimedDay = today;
     d.streak++;
@@ -278,7 +278,7 @@ export class CrateSystem {
         const pool2 = Object.values(ITEMS).filter((it) => (CROP[it.id] && CROP[it.id].level <= game.level) || it.cat === 'feed');
         const it = needed ? ITEMS[needed.item] : pool2[Math.floor(Math.random() * pool2.length)];
         const n = needed ? needed.n : a;
-        game.addItem(it.id, n);
+        game.as('crate').addItem(it.id, n);
         rewards.push({ type: 'items', amount: n, id: it.id, name: it.name, icon: it.icon });
       } else if (pick.type === 'decor') {
         const cap = final === 'legendary' ? 99 : final === 'epic' ? game.level + 15 : game.level + 6;

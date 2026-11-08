@@ -54,6 +54,7 @@ import '../ui/panels/MasterPanel';
 import { ranks } from '../systems/Ranks';
 import { endless } from '../systems/Endless';
 import { parcels } from '../systems/Parcels';
+import { wireItemLog } from '../online/ItemLog';
 import { upkeep } from '../systems/Upkeep';
 import type { SaveData } from '../systems/State';
 import { master } from '../systems/Master';
@@ -168,6 +169,7 @@ export async function boot(): Promise<void> {
   mastery.init();
   farmhands.init();
   mine.init();
+  wireItemLog();
   (window as unknown as { __fresh: boolean }).__fresh = fresh;
 
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;

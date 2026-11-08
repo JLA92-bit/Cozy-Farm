@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 6 November 2026 (game version 1.46.0 local, 1.45.0 and 1.46.0 not pushed; 1.34.3-1.44.0 pushed 1 Nov; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 8 November 2026 (game version 1.46.1 local, 1.45.0-1.46.1 not pushed; 1.34.3-1.44.0 pushed 1 Nov; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -16,7 +16,7 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Website | https://cozyacres.joshmakesgames.app/ |
 | Game | https://cozyacres.joshmakesgames.app/play/ |
 | Admin dashboard | https://cozyacres.joshmakesgames.app/admin/ (see `ADMIN.md`) |
-| Current game version | **1.46.0** (local, 1.45.0 and 1.46.0 not pushed; game only); 1.34.3-1.44.0 pushed 1 Nov (1.44 needs the whole schema.sql run for the new co-op projects); 1.34.2 pushed 30 Oct; 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
+| Current game version | **1.46.1** (local, 1.45.0-1.46.1 not pushed; 1.46.1 needs the whole schema.sql run); 1.34.3-1.44.0 pushed 1 Nov (1.44 needs the whole schema.sql run for the new co-op projects); 1.34.2 pushed 30 Oct; 1.34.1 pushed 29 Oct; 1.34.0 (pushed 29 Oct with 1.33.8 and 1.33.9; 1.33.7 pushed 27 Oct); 1.33.6 (pushed 27 Oct; needs the whole schema.sql run for 1.33.0-1.33.6); 1.33.5 pushed; 1.33.4 and 1.33.3 pushed (schema.sql run needed); 1.33.2, 1.33.1 and 1.33.0 pushed (schema.sql run needed for 1.33.0 and 1.33.1); 1.32.1 (Android sign-in fix from the cloud session, merged and pushed); 1.32.0 pushed (deploy run 73); 1.30.0 "Come On In" (needs schema.sql run); 1.20.1 to 1.28.5 were pushed on 17-21 Oct; `package.json` and the newest entry in `src/data/changelog.json` must match |
 | Hosting | GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main` |
 | Backend | Supabase (`supabase/schema.sql`, Edge Function `supabase/functions/send-push`) |
 | Android app | Capacitor app with the game inside (`android/`, from 1.32; the old TWA is in `android-twa/`) |
@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.46.1 (local, 8 Nov): item log** (ADMIN.md "Item history"). Every barn change is tagged with a reason (`game.as('<reason>')`; `game.actor` 'farmhand' during rounds), logged by `online/ItemLog.ts` (merges changes close together, device copy of 1,500 lines, sends batches every 3 min; counts that changed outside the game are logged as `loaded`), server section `item log` (`item_log`, `log_items`, `admin_player_items`, 120 days; tested on PGlite), dashboard player tab Item history (`admin/src/views/items.ts`). Privacy page and data-safety.md updated. **Needs `schema.sql` re-run.** New barn changes must be tagged or they show as Other.
 
 **1.46.0 (local, 6 Nov): Bean and Spice** (`PLAN-1.45.md` section 4, BALANCE.md "1.46"). Levels 141-160, `authoredMax` 160: 6 crops, fig and almond trees, Chocolatier and Coffee Roastery (`models/beanspice.ts`), 26 recipes, Box of Chocolates is a `bouquet`. Game only. 1.47 onwards not built.
 
@@ -326,6 +328,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-08: 1.46.1 (local, not pushed): item log, every barn change with its reason, dashboard Item history tab (needs schema.sql).
 - 2026-11-06: 1.46.0 (local, not pushed): Bean and Spice, levels 141-160 (crops, trees, Chocolatier, Coffee Roastery, 26 recipes).
 - 2026-11-05: 1.45.0 (local): Thoughtful Parcels, need-based crate items, guardrail that need-based offers are never sold.
 - 2026-11-01: 1.34.3-1.44.0 (local, not pushed): QOL batch and the whole end-game plan (skills 20, upgrades, Sunken Halls, Grand Mastery, New Stock, Farmhouse 20, favours, Far Reaches, Stargazing, Gold Collection, Village Fair).
@@ -335,4 +338,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-10-28: 1.33.9 (local): bug sweep: ghost-tap guard on every tap-twice confirm, merchant stock stays put after a purchase.
 - 2026-10-28: 1.33.7 pushed; 1.33.8 (local): reason for unasked sign-outs kept and logged, Signed out card.
 - 2026-10-27: 1.33.7 (local): gem "Tap again" survives redraws and double clicks, waits 5 seconds; Farmhands button on the Farmhouse card.
-- 2026-10-27: 1.33.5 and 1.33.6 pushed; Android versionCode 9 uploaded (next 10).

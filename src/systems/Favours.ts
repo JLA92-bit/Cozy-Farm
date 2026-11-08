@@ -70,7 +70,7 @@ class FavoursSystem {
     const now = game.now();
     if (!this.canDo(id, now)) return 0;
     const f = this.current(id, now)!;
-    for (const [i, n] of Object.entries(f.items)) game.addItem(i, -n);
+    for (const [i, n] of Object.entries(f.items)) game.as('favour').addItem(i, -n);
     f.done = true;
     game.state.village.tokens = this.tokens + F.tokens;
     game.addCoins(F.coins);

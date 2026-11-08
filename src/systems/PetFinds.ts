@@ -36,7 +36,7 @@ class PetFinds {
     const f = this.peek();
     if (f.coins) game.addCoins(f.coins);
     if (f.gems) game.addGems(f.gems);
-    if (f.item && ITEMS[f.item.id]) game.addItem(f.item.id, f.item.n);
+    if (f.item && ITEMS[f.item.id]) game.as('pet_find').addItem(f.item.id, f.item.n);
     game.state.petfind = { day: localDay(game.now()) };
     game.incStat('pet_finds');
     saves.save();

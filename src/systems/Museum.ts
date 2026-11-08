@@ -38,7 +38,7 @@ class MuseumSystem {
   donate(shelfId: string, item: string): boolean {
     const s = MUSEUM.shelves.find((x) => x.id === shelfId);
     if (!s || !this.unlocked || !this.givable(s).includes(item)) return false;
-    if (s.kind === 'gold') game.removeQuality(item, 2, 1); else game.addItem(item, -1);
+    if (s.kind === 'gold') game.as('museum').removeQuality(item, 2, 1); else game.addItem(item, -1);
     const st = this.st();
     (st.donated[s.id] ??= []).push(item);
     game.incStat('museum_pieces');

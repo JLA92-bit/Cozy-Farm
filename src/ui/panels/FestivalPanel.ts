@@ -198,7 +198,7 @@ export function openFestival(): void {
         for (const k of chosen) { const ta = village.taste(v.id, k); pts += ta === 'love' ? FP.love : ta === 'like' ? FP.like : FP.other; }
         village.addPoints(v.id, pts, 'festival');
       }
-      for (const k of chosen) game.addItem(k, -1);
+      for (const k of chosen) game.as('festival').addItem(k, -1);
       result(chosen.size, `${chosen.size} dish${chosen.size === 1 ? '' : 'es'} on the table. Every villager is delighted!`);
     } }, 'Share the feast')));
   };

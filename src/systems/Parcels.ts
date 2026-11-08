@@ -137,7 +137,7 @@ class ParcelSystem {
   pick(index: number): ParcelCard | null {
     const st = this.st, offer = st.offer, c = offer?.cards[index];
     if (!offer || !c) return null;
-    if (c.item && c.qty) { game.addItem(c.item, c.qty, undefined, c.star ?? 0); st.recent[c.item] = game.now(); }
+    if (c.item && c.qty) { game.as('parcel').addItem(c.item, c.qty, undefined, c.star ?? 0); st.recent[c.item] = game.now(); }
     if (c.decor) game.state.storage[c.decor] = (game.state.storage[c.decor] ?? 0) + 1;
     if (c.coins) game.addCoins(c.coins);
     logEvent('parcel_picked', { src: offer.src, level: offer.level, picked: c.item ?? c.decor ?? 'coins', index });

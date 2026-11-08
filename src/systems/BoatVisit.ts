@@ -118,8 +118,8 @@ class BoatVisitSystem {
   deliver(at?: Vec): boolean {
     if (!this.canDeliver()) return false;
     const w = this.want();
-    if (this.theme().gold) { for (const [k, n] of Object.entries(w)) if (!game.removeQuality(k, 2, n)) return false; }
-    else if (!game.take(w)) return false;
+    if (this.theme().gold) { for (const [k, n] of Object.entries(w)) if (!game.as('boat').removeQuality(k, 2, n)) return false; }
+    else if (!game.as('boat').take(w)) return false;
     const r = this.reward(w);
     const gift = this.guestGift();
     if (gift) {

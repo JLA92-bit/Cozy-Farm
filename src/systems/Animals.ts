@@ -110,7 +110,7 @@ export class AnimalSystem {
     let fed = 0;
     (b.animals ?? []).forEach((a, i) => {
       if (fed >= max || animalState(b, i, now) !== 'hungry' || game.count(def.feed) <= 0) return;
-      game.addItem(def.feed, -1);
+      game.as('animal_feed').addItem(def.feed, -1);
       a.fedAt = now;
       fed++;
       game.incStat('animals_fed');

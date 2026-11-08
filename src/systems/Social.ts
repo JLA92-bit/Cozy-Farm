@@ -94,14 +94,14 @@ class Social {
 
   // ------------------------------------------------------------------ escrow
   private escrow(items: Record<string, number>, coins: number): void {
-    for (const [k, n] of Object.entries(items)) if (n > 0) game.addItem(k, -n);
+    for (const [k, n] of Object.entries(items)) if (n > 0) game.as('gift_send').addItem(k, -n);
     if (coins > 0) {
       game.state.player.coins = Math.max(0, game.state.player.coins - coins);
       game.bus.emit('coins', { delta: -coins, total: game.state.player.coins });
     }
   }
   private refund(items: Record<string, number>, coins: number): void {
-    for (const [k, n] of Object.entries(items)) if (n > 0) game.addItem(k, n);
+    for (const [k, n] of Object.entries(items)) if (n > 0) game.as('gift_back').addItem(k, n);
     if (coins > 0) {
       game.state.player.coins += coins;
       game.bus.emit('coins', { delta: coins, total: game.state.player.coins });
@@ -213,7 +213,7 @@ class Social {
     return { items: out, coins: Math.max(0, Math.min(SOCIAL.maxCoinsPerGift, Math.floor(coins) || 0)) };
   }
   private grant(c: GiftContents): void {
-    for (const [k, n] of Object.entries(c.items)) game.addItem(k, n);
+    for (const [k, n] of Object.entries(c.items)) game.as('gift').addItem(k, n);
     if (c.coins) game.addCoins(c.coins);
     game.incStat('gifts_received');
   }
@@ -281,7 +281,7 @@ class Social {
     const items: Record<string, number> = {};
     for (const [k, n] of Object.entries(r.items ?? {})) if (ITEMS[k] && n > 0) items[k] = Math.floor(n);
     const coins = Math.max(0, Math.floor(r.coins) || 0), gems = Math.max(0, Math.floor(r.gems) || 0);
-    for (const [k, n] of Object.entries(items)) game.addItem(k, n);
+    for (const [k, n] of Object.entries(items)) game.as('reward_code').addItem(k, n);
     if (coins) game.addCoins(coins);
     if (gems) game.addGems(gems);
     saves.save();

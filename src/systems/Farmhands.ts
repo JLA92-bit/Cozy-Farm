@@ -139,6 +139,10 @@ class FarmhandsSystem {
 
   /** One round of chores for every hired hand. */
   round(): RoundResult {
+    game.actor = 'farmhand';
+    try { return this.roundInner(); } finally { game.actor = ''; }
+  }
+  private roundInner(): RoundResult {
     const out: RoundResult = { planted: 0, fed: 0, queued: 0, paid: 0, resting: false, broke: [] };
     this.lastRound = Date.now();
     if (visiting.active || !game.state?.farmhands?.hired.length) return out;

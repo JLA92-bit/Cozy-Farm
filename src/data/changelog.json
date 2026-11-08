@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.46.1",
+   "date": "2026-11-08",
+   "title": "Barn history",
+   "icon": "package",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "package",
+     "text": "The game now keeps a note of where your barn items go, so if something goes missing we can find out what happened"
+    }
+   ]
+  },
+  {
    "version": "1.46.0",
    "date": "2026-11-06",
    "title": "Bean and Spice",

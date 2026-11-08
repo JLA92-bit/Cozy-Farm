@@ -53,7 +53,7 @@ export class VillageSystem {
    */
   giveGift(id: string, item: string, quality: 0 | 1 | 2 = 0, now = game.now()): GiftResult | null {
     if (!this.canGift(id, now) || !ITEMS[item]) return null;
-    if (!game.removeQuality(item, quality, 1)) return null;
+    if (!game.as('villager_gift').removeQuality(item, quality, 1)) return null;
     const taste = this.taste(id, item);
     const birthday = this.isBirthday(id, now);
     const base = FRIENDSHIP.gift[taste];

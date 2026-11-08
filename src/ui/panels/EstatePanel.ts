@@ -43,7 +43,7 @@ export function openEstate(): void {
         if (took || !starNight()) { audio.play('error'); return; }
         game.state.starDay = today;
         const gift = Math.random() < 0.12 ? 'star_crystal' : 'moonflower';
-        game.addItem(gift, gift === 'moonflower' ? 2 : 1);
+        game.as('estate_gift').addItem(gift, gift === 'moonflower' ? 2 : 1);
         game.addGems(1);
         ui.feedback.toast('Your star is shining', `It left you ${gift === 'moonflower' ? '2 moonflowers' : 'a star crystal'} and a gem`, 'glowing_star');
         render();

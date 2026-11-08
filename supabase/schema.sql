@@ -4969,3 +4969,95 @@ $$;
 
 revoke all on function public.admin_player_gems(uuid) from public, anon;
 grant execute on function public.admin_player_gems(uuid) to authenticated;
+
+-- ===== item log =====
+-- 1.46.1 Every change to a player's barn, for support ("where did my wheat go?"): the game keeps a log of each
+-- change with its reason and the count left (online/ItemLog.ts), merges changes close together, and sends it in
+-- batches to log_items. Reasons are short ids: harvest, order, truck, barn_sell, sell_extras, workshop_start,
+-- workshop, gift_send, market_list, project:<room>, loaded (counts that changed outside the game: a cloud farm,
+-- an import or another device), farmhand:<reason>... Kept 120 days, at most 20,000 lines a day per player.
+-- Players cannot read it back; deleting the account removes it (cascade). Read on the dashboard's player page
+-- (Item history) with admin_player_items.
+
+create table if not exists public.item_log (
+  id      bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  at      timestamptz not null,
+  item    text not null check (item ~ '^[a-z0-9_]{1,60}$'),
+  delta   integer not null,
+  quality smallint not null default 0 check (quality between 0 and 2),
+  why     text not null check (why ~ '^[a-z0-9_:.-]{1,40}$'),
+  bal     integer not null default 0,
+  sent_at timestamptz not null default now()
+);
+create index if not exists item_log_user_at_idx on public.item_log (user_id, at desc);
+create index if not exists item_log_user_item_idx on public.item_log (user_id, item, at desc);
+alter table public.item_log enable row level security;
+revoke all on public.item_log from anon, authenticated, public;
+
+-- A batch of log lines from the game: [{t (ms), i (item), d (change), q (quality), w (reason), b (count left)}].
+-- Returns how many were stored (lines that are not well formed are skipped), or -1 when not signed in, the batch
+-- is too big, or the daily limit is reached. Times are clamped to the last 30 days and never in the future.
+create or replace function public.log_items(p_rows jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  n integer;
+begin
+  if uid is null or p_rows is null or jsonb_typeof(p_rows) <> 'array' or jsonb_array_length(p_rows) > 300 then return -1; end if;
+  if (select count(*) from public.item_log l where l.user_id = uid and l.sent_at > now() - interval '1 day') >= 20000 then return -1; end if;
+  insert into public.item_log (user_id, at, item, delta, quality, why, bal)
+  select uid,
+         greatest(now() - interval '30 days', least(now(), to_timestamp((r ->> 't')::double precision / 1000))),
+         r ->> 'i', (r ->> 'd')::integer, coalesce((r ->> 'q')::smallint, 0), r ->> 'w', greatest(0, (r ->> 'b')::integer)
+    from jsonb_array_elements(p_rows) r
+   where jsonb_typeof(r) = 'object'
+     and jsonb_typeof(r -> 't') = 'number' and jsonb_typeof(r -> 'd') = 'number' and jsonb_typeof(r -> 'b') = 'number'
+     and (r ->> 'i') ~ '^[a-z0-9_]{1,60}$' and (r ->> 'w') ~ '^[a-z0-9_:.-]{1,40}$'
+     and case when jsonb_typeof(r -> 'd') = 'number' then (r ->> 'd')::numeric = trunc((r ->> 'd')::numeric) and abs((r ->> 'd')::numeric) < 1000000000 else false end
+     and case when jsonb_typeof(r -> 'b') = 'number' then abs((r ->> 'b')::numeric) < 2000000000 else false end
+     and case when r -> 'q' is null then true when jsonb_typeof(r -> 'q') = 'number' then (r ->> 'q')::numeric in (0, 1, 2) else false end;
+  get diagnostics n = row_count;
+  -- now and then, tidy this player's old lines
+  if random() < 0.02 then delete from public.item_log l where l.user_id = uid and l.at < now() - interval '120 days'; end if;
+  return n;
+end;
+$$;
+
+revoke all on function public.log_items(jsonb) from public, anon;
+grant execute on function public.log_items(jsonb) to authenticated;
+
+-- The dashboard: a player's item log over the last p_days, for one item (p_item) or all, newest first (at most
+-- 2,000 lines), with totals in and out by item and, by reason, for what is shown.
+create or replace function public.admin_player_items(p_id uuid, p_item text default null, p_days integer default 30, p_why text default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_from timestamptz := now() - make_interval(days => greatest(1, least(coalesce(p_days, 30), 120)));
+begin
+  perform public.admin_guard();
+  return jsonb_build_object(
+    'rows', (select coalesce(jsonb_agg(jsonb_build_object('at', l.at, 'item', l.item, 'd', l.delta, 'q', l.quality, 'why', l.why, 'bal', l.bal) order by l.at desc, l.id desc), '[]'::jsonb)
+               from (select * from public.item_log x
+                      where x.user_id = p_id and x.at > v_from and (p_item is null or x.item = p_item) and (p_why is null or x.why = p_why)
+                      order by x.at desc, x.id desc limit 2000) l),
+    'items', (select coalesce(jsonb_agg(jsonb_build_object('item', t.item, 'in', t.got, 'out', t.lost, 'lines', t.n) order by t.lost desc), '[]'::jsonb)
+                from (select x.item, sum(greatest(x.delta, 0)) as got, -sum(least(x.delta, 0)) as lost, count(*) as n
+                        from public.item_log x where x.user_id = p_id and x.at > v_from group by x.item) t),
+    'byWhy', (select coalesce(jsonb_agg(jsonb_build_object('why', t.why, 'in', t.got, 'out', t.lost) order by t.lost + t.got desc), '[]'::jsonb)
+                from (select x.why, sum(greatest(x.delta, 0)) as got, -sum(least(x.delta, 0)) as lost
+                        from public.item_log x where x.user_id = p_id and x.at > v_from and (p_item is null or x.item = p_item) group by x.why) t),
+    'first', (select min(x.at) from public.item_log x where x.user_id = p_id));
+end;
+$$;
+
+revoke all on function public.admin_player_items(uuid, text, integer, text) from public, anon;
+grant execute on function public.admin_player_items(uuid, text, integer, text) to authenticated;

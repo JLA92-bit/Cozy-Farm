@@ -741,6 +741,30 @@ try {
     check('Bean and Spice trees and workshops open at their levels', r.early.every(Boolean) && r.open.every(Boolean), JSON.stringify(r));
   }
 
+  // 1.46.1 the item log: every barn change is kept with its reason, untagged changes take the tick's action event,
+  // changes close together merge, farmhands are marked, and counts changed outside the game show as "loaded"
+  {
+    const r = await page.evaluate(async () => {
+      const g = window.__game, L = window.__itemLog;
+      const tick = () => new Promise((res) => setTimeout(res, 0));
+      g.as('order').addItem('corn', 3); await tick();
+      const a = { ...L.lines('corn', 1)[0] };
+      g.as('order').addItem('corn', 2); await tick();
+      const merged = L.lines('corn', 1)[0];
+      g.addItem('carrot', 4); g.bus.emit('crop:harvested', {}); await tick();
+      const b = L.lines('carrot', 1)[0];
+      g.addItem('turnip', 1); await tick();
+      const c = L.lines('turnip', 1)[0];
+      g.actor = 'farmhand'; g.as('workshop_start').addItem('turnip', -1); g.actor = ''; await tick();
+      const d = L.lines('turnip', 1)[0];
+      g.state.inventory.wheat = (g.state.inventory.wheat ?? 0) + 7; L.check();
+      const e = L.lines('wheat', 1)[0];
+      return { a: [a.w, a.d], merged: [merged.w, merged.d, merged.b], b: b.w, c: c.w, d: d.w, e: [e.w, e.d] };
+    });
+    check('the item log keeps each barn change with its reason', r.a[0] === 'order' && r.merged[1] === 5 && r.b === 'harvest' && r.c === 'other'
+      && r.d === 'farmhand:workshop_start' && r.e[0] === 'loaded' && r.e[1] === 7, JSON.stringify(r));
+  }
+
   // account locks: a locked player sees the notice with the reason and a countdown over everything, cannot reach the
   // farm, and the notice lifts by itself when the time runs out (here in practice mode, from the lock kept on the device)
   {

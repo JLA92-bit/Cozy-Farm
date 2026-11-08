@@ -307,7 +307,7 @@ class HelpSystem {
     if (qty > 0) {
       // the request is closed now: she brings it even if a few coins were spent meanwhile
       game.addCoins(-Math.min(coins, game.coins));
-      game.addItem(r.item, qty);
+      game.as('hazel_help').addItem(r.item, qty);
       game.incStat('help_hazel');
     }
     this.mine = this.mine.map((x) => (x.id === r.id ? closed : x));
@@ -370,7 +370,7 @@ class HelpSystem {
     if (!got.length) return;
     const out: Arrival[] = [];
     for (const f of got) {
-      game.addItem(f.item, f.qty);
+      game.as('ask_friend').addItem(f.item, f.qty);
       game.incStat('help_received', f.qty);
       out.push({ from: f.helper.name, item: f.item, qty: f.qty, auto: f.auto, requestDone: false });
     }
@@ -411,7 +411,7 @@ class HelpSystem {
 /** Remove n of an item for sending, normal ones first. Returns how many of each quality left the barn. */
 export function take(item: string, n: number): [number, number, number] {
   const before = game.qualityCounts(item);
-  game.addItem(item, -n);
+  game.as('ask_friend_fill').addItem(item, -n);
   const after = game.qualityCounts(item);
   return [before[0] - after[0], before[1] - after[1], before[2] - after[2]];
 }
@@ -420,7 +420,7 @@ export function giveBack(item: string, taken: [number, number, number], n: numbe
   let left = n;
   for (const q of [2, 1, 0] as const) {
     const k = Math.min(left, taken[q]);
-    if (k > 0) { game.addItem(item, k, undefined, q); taken[q] -= k; left -= k; }
+    if (k > 0) { game.as('ask_friend_back').addItem(item, k, undefined, q); taken[q] -= k; left -= k; }
   }
 }
 

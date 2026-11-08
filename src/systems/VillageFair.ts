@@ -50,7 +50,7 @@ class VillageFairSystem {
   }
   enterBake(item: string): Ribbon | null {
     if (!this.isFairDay() || this.st.bake || !this.bakes().includes(item)) return null;
-    if (!game.removeQuality(item, 2, 1)) return null;
+    if (!game.as('fair').removeQuality(item, 2, 1)) return null;
     return this.award('bake', this.bakeRibbon(item), item);
   }
   enterShow(uid: number): Ribbon | null {

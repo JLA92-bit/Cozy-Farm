@@ -37,7 +37,7 @@ export function openDebug(): void {
     act('Skip 1 hour', skip(60)),
     act('Skip 1 day', skip(1440)),
     act('Reset time skip', () => { game.state.debugTimeOffset = 0; }),
-    act('+10 of each item', () => { for (const id of ['wheat', 'corn', 'carrot', 'turnip', 'sugarcane', 'egg', 'milk', 'chicken_feed', 'cow_feed', 'sugar']) game.addItem(id, 10); }),
+    act('+10 of each item', () => { game.as('debug'); for (const id of ['wheat', 'corn', 'carrot', 'turnip', 'sugarcane', 'egg', 'milk', 'chicken_feed', 'cow_feed', 'sugar']) game.addItem(id, 10); }),
     act('Grant crates', () => { game.state.crates.push('common', 'rare', 'epic', 'legendary'); }),
     act('Finish all timers', () => {
       const now = game.now();
