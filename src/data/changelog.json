@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.47.0",
+   "date": "2026-11-08",
+   "title": "Colour and Lanterns",
+   "icon": "indigo_dye",
+   "color": "purple",
+   "highlights": [
+    {
+     "icon": "indigo_dye",
+     "text": "Levels 161 to 180: grow indigo, madder and marigolds and open the Dye Works. Your first blue, red and gold cloth each add a new decor paint colour"
+    },
+    {
+     "icon": "firefly_lantern",
+     "text": "16 new decorations in four sets: Lantern Walk, Cottage Garden, Lighthouse Point and Village Fete. Six of them arrive at levels 131 to 139"
+    },
+    {
+     "icon": "grand_tapestry",
+     "text": "Weave a patchwork quilt, a rainbow scarf and, at level 180, the Grand Tapestry"
+    }
+   ]
+  },
+  {
    "version": "1.46.1",
    "date": "2026-11-08",
    "title": "Barn history",

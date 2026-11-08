@@ -114,6 +114,7 @@ const INTROS: Record<string, { title: string; sub: string; icon?: string; skill?
   florist: { title: 'The Florist!', sub: 'Tie flowers into bouquets. Every villager loves a bouquet, the best gift there is.', icon: 'rose_bouquet' },
   chocolatier: { title: 'The Chocolatier!', sub: 'Make chocolate from your cocoa pods, then truffles and bonbons. Every villager loves a box of chocolates.', icon: 'dark_chocolate' },
   coffee_roastery: { title: 'The Coffee Roastery!', sub: 'Roast your coffee beans first, then pour espresso, lattes and mochas.', icon: 'roasted_coffee' },
+  dye_works: { title: 'The Dye Works!', sub: 'Make dyes, then dye yarn and cloth. Your first blue, red and gold cloth each add a new paint colour for decor.', icon: 'indigo_dye' },
   juice_press: { title: 'Fresh juice!', sub: 'Press apples, berries, grapes and oranges into juice. Blueberries make a good one too.', icon: 'apple_juice' },
   pottery_kiln: { title: 'Pottery time!', sub: 'Make clay from beets first, then fire pots, glazed tiles and vases.', icon: 'flower_pot' },
   duck_house: { title: 'Ducks!', sub: 'Make duck feed at the Feed Mill. Fed ducks lay duck eggs.', icon: 'duck' },
@@ -146,6 +147,9 @@ const CROP_TIPS: Record<string, { title: string; sub: string }> = {
   coffee_bean: { title: 'Coffee Beans!', sub: 'Build the Coffee Roastery at level 148 to roast them.' },
   chilli: { title: 'Chillies!', sub: 'Bottle chilli sauce at the Preserves Cellar, or spice up dark chocolate.' },
   kiwi: { title: 'Kiwi!', sub: 'Press kiwi juice at the Juice Press, or churn a sorbet at the Dairy.' },
+  indigo: { title: 'Indigo!', sub: 'Build the Dye Works at level 162 to make blue dye.' },
+  madder_root: { title: 'Madder Root!', sub: 'It makes a deep red dye at the Dye Works.' },
+  marigold: { title: 'Marigolds!', sub: 'They make a golden dye at the Dye Works.' },
   saffron: { title: 'Saffron!', sub: 'Cook saffron risotto at the Village Kitchen, or bake saffron buns.' },
 };
 

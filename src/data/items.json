@@ -2813,6 +2813,102 @@
    "cat": "goods",
    "sell": 22570,
    "icon": "spice_banquet"
+  },
+  "indigo": {
+   "name": "Indigo",
+   "cat": "crop",
+   "sell": 1250,
+   "icon": "indigo"
+  },
+  "madder_root": {
+   "name": "Madder Root",
+   "cat": "crop",
+   "sell": 1280,
+   "icon": "madder_root"
+  },
+  "marigold": {
+   "name": "Marigolds",
+   "cat": "crop",
+   "sell": 1310,
+   "icon": "marigold"
+  },
+  "indigo_dye": {
+   "name": "Indigo Dye",
+   "cat": "goods",
+   "sell": 2800,
+   "icon": "indigo_dye"
+  },
+  "madder_dye": {
+   "name": "Madder Dye",
+   "cat": "goods",
+   "sell": 2860,
+   "icon": "madder_dye"
+  },
+  "blue_yarn": {
+   "name": "Blue Yarn",
+   "cat": "goods",
+   "sell": 5660,
+   "icon": "blue_yarn"
+  },
+  "red_yarn": {
+   "name": "Red Yarn",
+   "cat": "goods",
+   "sell": 5750,
+   "icon": "red_yarn"
+  },
+  "marigold_dye": {
+   "name": "Marigold Dye",
+   "cat": "goods",
+   "sell": 2920,
+   "icon": "marigold_dye"
+  },
+  "blue_cloth": {
+   "name": "Blue Cloth",
+   "cat": "goods",
+   "sell": 4530,
+   "icon": "blue_cloth"
+  },
+  "red_cloth": {
+   "name": "Red Cloth",
+   "cat": "goods",
+   "sell": 4620,
+   "icon": "red_cloth"
+  },
+  "gold_yarn": {
+   "name": "Gold Yarn",
+   "cat": "goods",
+   "sell": 5840,
+   "icon": "gold_yarn"
+  },
+  "gold_cloth": {
+   "name": "Gold Cloth",
+   "cat": "goods",
+   "sell": 4710,
+   "icon": "gold_cloth"
+  },
+  "patchwork_quilt": {
+   "name": "Patchwork Quilt",
+   "cat": "goods",
+   "sell": 18710,
+   "icon": "patchwork_quilt"
+  },
+  "rainbow_scarf": {
+   "name": "Rainbow Scarf",
+   "cat": "goods",
+   "sell": 23290,
+   "icon": "rainbow_scarf"
+  },
+  "festival_bunting": {
+   "name": "Festival Bunting",
+   "cat": "goods",
+   "sell": 13060,
+   "icon": "festival_bunting"
+  },
+  "grand_tapestry": {
+   "name": "Grand Tapestry",
+   "cat": "goods",
+   "sell": 71580,
+   "icon": "grand_tapestry"
   }
  }
 }

@@ -257,7 +257,7 @@
         "accessory": "none",
         "pet": "none"
       },
-      "items": ["zucchini", "cocoa_pod", "coffee_bean", "chilli", "kiwi", "saffron", 
+      "items": ["indigo", "madder_root", "marigold", "zucchini", "cocoa_pod", "coffee_bean", "chilli", "kiwi", "saffron", 
         "carrot",
         "tomato",
         "pumpkin",
@@ -450,7 +450,7 @@
           0.2
         ]
       },
-      "items": [
+      "items": ["blue_yarn", "red_yarn", "gold_yarn", "blue_cloth", "red_cloth", "gold_cloth", "patchwork_quilt", "rainbow_scarf", "festival_bunting", 
         "yarn",
         "cotton_fabric",
         "scarf",

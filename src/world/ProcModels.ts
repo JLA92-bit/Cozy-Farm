@@ -19,6 +19,7 @@ import { MINE_PROC } from './models/mine';
 import { FISHSTALL_PROC } from './models/fishstall';
 import { STOCK_PROC } from './models/stock';
 import { BEANSPICE_PROC } from './models/beanspice';
+import { COLOUR_PROC } from './models/colour';
 
 /**
  * Procedurally built models (fallbacks where no CC0 model fitted). Sizes are in tiles (1 unit = 1 tile).
@@ -436,6 +437,28 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
     b.cone(0.05, 0.12, '#8aa05a', [0.02, 0.15, -0.04], 4, [0, 0, 1.1]);
     return b.build();
   },
+  // 1.47 Colour and Lanterns: indigo, madder and marigold in the field
+  indigo: () => {
+    const b = geo();
+    for (let i = 0; i < 7; i++) { const a = i * 0.9; b.cyl(0.01, 0.012, 0.3, '#4f8a3a', [Math.cos(a) * 0.08, 0, Math.sin(a) * 0.08], 4); b.sphere(0.05, i % 2 ? '#5a6ad0' : '#3b4f9e', [Math.cos(a) * 0.09, 0.32, Math.sin(a) * 0.09], 0, [0.7, 1.3, 0.7]); }
+    b.sphere(0.1, '#3f7a2e', [0, 0.12, 0], 0, [1.3, 0.6, 1.3]);
+    return b.build();
+  },
+  madder_root: () => {
+    const b = geo();
+    for (const [x, z, r] of [[-0.08, 0.02, 0.5], [0.06, -0.04, -0.4], [0.02, 0.08, 1.2]] as V3[]) b.cyl(0.025, 0.012, 0.3, '#b8423a', [x, 0.06, z], 6, [Math.PI / 2, r, 0]);
+    b.sphere(0.08, '#5f9a3a', [0, 0.14, 0], 0, [1.2, 0.7, 1.2]);
+    return b.build();
+  },
+  marigold: () => {
+    const b = geo();
+    for (const [x, z, h] of [[-0.08, 0.03, 0.26], [0.08, -0.03, 0.3], [0.01, 0.09, 0.22]] as V3[]) {
+      b.cyl(0.012, 0.015, h, '#4f8a3a', [x, 0, z], 5);
+      b.sphere(0.075, '#f0a020', [x, h + 0.02, z], 1, [1, 0.6, 1]);
+      b.sphere(0.035, '#e86a10', [x, h + 0.06, z], 0);
+    }
+    return b.build();
+  },
   potato: () => {
     const b = geo();
     for (const [x, z, s, c] of [[-0.12, 0.02, 1, '#c99a5a'], [0.1, -0.04, 0.85, '#b9884a'], [0.02, 0.13, 0.7, '#d4a86a']] as [number, number, number, string][]) {
@@ -514,6 +537,7 @@ export const PROC: Record<string, () => THREE.BufferGeometry> = {
   ...FISHSTALL_PROC,
   ...STOCK_PROC,
   ...BEANSPICE_PROC,
+  ...COLOUR_PROC,
 };
 
 /** The Duck Pond: a grassy pen with a pond in the middle, reeds and a little blue duck house. */

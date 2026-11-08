@@ -1025,3 +1025,16 @@ Prices: x2.0 the ingredients' barn value for first-step goods, x1.35-1.6 for goo
 Uses: goods on the Baker's, Orchard, Dairy, Garden, Sweet Tooth and Picnic boats, and each villager likes 3 or 4.
 
 Simulation (`--days 520`, 3 sessions a day): level 150 on day 288 and level 160 on day 308. The simulated player never buys the two workshops, as it never buys the 1.38 animals, so it shows pace but not what these workshops earn. Check real income from them on the dashboard.
+
+## 1.47 Colour and Lanterns (levels 161-180, `authoredMax` 180)
+
+| Kind | Content |
+| --- | --- |
+| Crops | indigo (161, sells 1,250), madder root (164, 1,280), marigolds (167, 1,310); 33-34 h |
+| Workshop | Dye Works (162, 300,000 coins, 2x2) |
+| Recipes | 13: indigo, madder and marigold dye (x2.0, about 2,900), blue/red/gold yarn (alpaca yarn + dye, x1.5, about 5,700), blue/red/gold cloth (2 cotton fabric + dye, x1.5, about 4,600), festival bunting (x1.4, 13,060) at the Dye Works; patchwork quilt (x1.35, 18,710), rainbow scarf (x1.35, 23,290) and the Grand Tapestry (180, x1.3, 71,580) at the Loom |
+| Paints | Indigo, Madder, Marigold and Plum, offered once blue cloth, red cloth, gold cloth or a patchwork quilt is in the Collection Book (`PAINTS[].made`) |
+| Decor | 16 pieces in four sets (Lantern Walk, Cottage Garden, Lighthouse Point, Village Fete), 75,000-130,000 coins, charm 200-300; six at levels 131-139 |
+
+The Grand Tapestry is the long chain on purpose: three dyes, six dyed goods, a quilt, a scarf and bunting, about 55,000 coins of goods in.
+

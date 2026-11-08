@@ -770,6 +770,61 @@
     "model": "crop/leafs_b",
     "produce": "proc/saffron"
    }
+  },
+  {
+   "id": "indigo",
+   "name": "Indigo",
+   "level": 161,
+   "seedCost": 172,
+   "growSec": 120600,
+   "yield": 2,
+   "xp": 169,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "tint": "#3f6a8a",
+    "produce": "proc/indigo"
+   }
+  },
+  {
+   "id": "madder_root",
+   "name": "Madder Root",
+   "level": 164,
+   "seedCost": 176,
+   "growSec": 121680,
+   "yield": 2,
+   "xp": 172,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/madder_root"
+   }
+  },
+  {
+   "id": "marigold",
+   "name": "Marigolds",
+   "level": 167,
+   "seedCost": 180,
+   "growSec": 122760,
+   "yield": 2,
+   "xp": 175,
+   "stages": [
+    "crop/leafs_a",
+    "crop/leafs_a",
+    "crop/leafs_b"
+   ],
+   "ready": {
+    "model": "crop/leafs_b",
+    "produce": "proc/marigold"
+   }
   }
  ],
  "trees": [

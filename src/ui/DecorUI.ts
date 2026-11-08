@@ -45,7 +45,8 @@ function paintRow(b: PlacedBuilding): HTMLElement {
     return el;
   };
   // Juniper's colours join the palette at 6 hearts (and stay offered on a piece already painted with one)
-  const paints = PAINTS.filter((p) => !p.juniper || hasPerk('juniper_paints') || p.id === b.tint);
+  // 1.47 dye colours join once that cloth has been made
+  const paints = PAINTS.filter((p) => (!p.juniper || hasPerk('juniper_paints') || p.id === b.tint) && (!p.made || !!game.state.collection[`item:${p.made}`] || p.id === b.tint));
   row.append(swatch(undefined, built, 'As built'), ...paints.map((p) => swatch(p.id, p.hex, p.name)));
   const sync = (): void => {
     const on = b.tint ?? '';

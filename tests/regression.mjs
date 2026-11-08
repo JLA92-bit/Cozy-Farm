@@ -731,14 +731,19 @@ try {
       const g = window.__game, B = window.__buildings;
       const was = g.state.player.level;
       const ids = ['fig_tree', 'almond_tree', 'chocolatier', 'coffee_roastery'];
+      g.state.player.level = 161;
+      const dyeEarly = /level/i.test(B.canBuy('dye_works').reason ?? '') && /level/i.test(B.canBuy('lantern_tree').reason ?? '');
+      g.state.player.level = 180;
+      const dyeOpen = ['dye_works', 'lantern_tree', 'maypole', 'harbour_bollards', 'lantern_string', 'buoy_stack'].every((id) => !/level/i.test(B.canBuy(id).reason ?? ''));
       g.state.player.level = 142;
       const early = ids.map((id) => /level/i.test(B.canBuy(id).reason ?? ''));
       g.state.player.level = 160;
       const open = ids.map((id) => !/level/i.test(B.canBuy(id).reason ?? ''));
       g.state.player.level = was;
-      return { early, open };
+      return { early, open, dyeEarly, dyeOpen };
     });
     check('Bean and Spice trees and workshops open at their levels', r.early.every(Boolean) && r.open.every(Boolean), JSON.stringify(r));
+    check('1.47 the Dye Works and the new decor sets open at their levels', r.dyeEarly && r.dyeOpen, JSON.stringify(r));
   }
 
   // 1.46.1 the item log: every barn change is kept with its reason, untagged changes take the tick's action event,

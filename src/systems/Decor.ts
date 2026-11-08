@@ -9,7 +9,7 @@ import { isFriendlyText } from './WordFilter';
  */
 
 /** Cosy paint palette. Keys are what gets saved, so never rename one. */
-export const PAINTS: { id: string; name: string; hex: string; juniper?: boolean }[] = [
+export const PAINTS: { id: string; name: string; hex: string; juniper?: boolean; made?: string }[] = [
   { id: 'rose', name: 'Rose', hex: '#e8655a' },
   { id: 'peach', name: 'Peach', hex: '#f5a05a' },
   { id: 'butter', name: 'Butter', hex: '#f6d04d' },
@@ -23,6 +23,11 @@ export const PAINTS: { id: string; name: string; hex: string; juniper?: boolean 
   { id: 'coral', name: 'Coral', hex: '#ff7f6a', juniper: true },
   { id: 'honey', name: 'Honey', hex: '#e8a838', juniper: true },
   { id: 'midnight', name: 'Midnight', hex: '#3c4f8f', juniper: true },
+  // 1.47: dye colours, offered once the farm has made that cloth or quilt (in the Collection Book)
+  { id: 'indigo', name: 'Indigo', hex: '#34489a', made: 'blue_cloth' },
+  { id: 'madder', name: 'Madder', hex: '#b03c34', made: 'red_cloth' },
+  { id: 'marigold', name: 'Marigold', hex: '#eea21c', made: 'gold_cloth' },
+  { id: 'plum', name: 'Plum', hex: '#7a3a6a', made: 'patchwork_quilt' },
 ];
 const PAINT_BY_ID = new Map(PAINTS.map((p) => [p.id, p]));
 

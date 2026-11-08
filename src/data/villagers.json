@@ -49,7 +49,7 @@
         "pancakes",
         "ruby_ring"
       ],
-      "likes": ["fig_jam", "fig_tart", "zucchini_bread", "coffee_cake", 
+      "likes": ["patchwork_quilt", "fig_jam", "fig_tart", "zucchini_bread", "coffee_cake", 
         "mist_berry",
         "preserved_peaches",
         "plum_chutney",
@@ -304,7 +304,7 @@
         "apple_pie",
         "gem_lantern"
       ],
-      "likes": ["chilli_sauce", "espresso", "zucchini_fritters", 
+      "likes": ["blue_yarn", "indigo", "chilli_sauce", "espresso", "zucchini_fritters", 
         "stone_mushroom",
         "smoked_herring",
         "smoked_cheese",
@@ -558,7 +558,7 @@
         "ice_cream",
         "opal_pendant"
       ],
-      "likes": ["kiwi_sorbet", "kiwi_juice", "saffron_buns", "fig_bonbons", 
+      "likes": ["rainbow_scarf", "marigold", "kiwi_sorbet", "kiwi_juice", "saffron_buns", "fig_bonbons", 
         "river_orchid",
         "orchid_spray",
         "alpaca_shawl",
@@ -814,7 +814,7 @@
         "seashell",
         "geode"
       ],
-      "likes": ["iced_coffee", "chilli_chocolate", "almond_praline", "milk_chocolate", 
+      "likes": ["festival_bunting", "iced_coffee", "chilli_chocolate", "almond_praline", "milk_chocolate", 
         "goose_egg_quiche",
         "caramel",
         "pancakes",
@@ -1087,7 +1087,7 @@
         "cherry_jam",
         "gold_locket"
       ],
-      "likes": ["latte", "almond_biscotti", "saffron_risotto", "almond_latte", 
+      "likes": ["red_yarn", "gold_yarn", "latte", "almond_biscotti", "saffron_risotto", "almond_latte", 
         "mistberry_cordial",
         "falls_fern",
         "beetroot_relish",
@@ -1341,7 +1341,7 @@
         "cheese",
         "gold_bar"
       ],
-      "likes": ["mocha", "spice_banquet", "ratatouille", "dark_chocolate", 
+      "likes": ["grand_tapestry", "madder_root", "mocha", "spice_banquet", "ratatouille", "dark_chocolate", 
         "highland_feast",
         "bread",
         "tomato_sauce",
