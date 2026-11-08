@@ -40,6 +40,7 @@ class UIManager {
   private panels = new Map<string, PanelOpener>();
   private tapHandlers: BuildingTapHandler[] = [];
   private tray: HTMLElement | null = null;
+  private trayAbove: HTMLElement | null = null;
   private trayUnsub: (() => void)[] = [];
   private placementBar: HTMLElement | null = null;
   private editBar: HTMLElement | null = null;
@@ -231,15 +232,25 @@ class UIManager {
   openSeedTray(selected: string | null, onPick: (crop: string) => void, onClose: () => void): void {
     this.closeSeedTray();
     const tray = h('div', { class: 'tray' });
+    // 1.47.2 Plant all sits above the tray, not in its scrolling row: scrolling back to it no longer picks a seed by mistake
+    const above = h('div', { class: 'tray-above' });
+    // layout sizes (not the on-screen box), so the tray's slide-in animation does not throw it off
+    const place = () => {
+      const host = tray.offsetParent as HTMLElement | null;
+      if (host && tray.offsetHeight) above.style.bottom = `${Math.round(host.clientHeight - tray.offsetTop + 10)}px`;
+    };
     const render = (sel: string | null) => {
       clear(tray);
+      clear(above);
       // 1.8: with fertiliser in the barn, a toggle comes first: every field sown while it is on uses one
       if (fertStock() > 0 || farming.useFert) tray.append(this.fertTile());
       // 1.8.5: Rosa's rare seeds work the same way
       if (game.count(RARE_SEED) > 0 || farming.useRare) tray.append(this.rareTile());
       // 1.34.3: a big farm can sow every empty field in one tap
       const empty = game.state.tutorial.done ? this.interaction.emptyFields().length : 0;
-      if (empty >= 6 && sel) tray.append(button(['Plant all', h('span', { class: 'tcount outlined' }, `${empty}`)], () => { this.interaction.plantAllEmpty(); render(sel); }, 'green small tray-fill'));
+      if (empty >= 6 && sel) above.append(button(['Plant all', h('span', { class: 'tcount outlined' }, `${empty}`)], () => { this.interaction.plantAllEmpty(); render(sel); }, 'green small tray-fill'));
+      above.hidden = !above.childElementCount;
+      requestAnimationFrame(place);
       const visible = CROPS.filter((c) => c.level <= game.level + 2);
       for (const c of visible) {
         const locked = c.level > game.level;
@@ -269,8 +280,11 @@ class UIManager {
       tray.append(button('✕', () => onClose(), 'red small tray-close'));
     };
     render(selected);
-    this.root.append(tray);
+    this.root.append(tray, above);
     this.tray = tray;
+    this.trayAbove = above;
+    requestAnimationFrame(place);
+    window.addEventListener('resize', place);
     // keep prices / barn counts honest while planting and harvesting, without rebuilding (keeps scroll)
     let queued = false;
     const live = () => {
@@ -292,9 +306,9 @@ class UIManager {
         });
       });
     };
-    this.trayUnsub = [game.bus.on('coins', live), game.bus.on('item', live)];
+    this.trayUnsub = [game.bus.on('coins', live), game.bus.on('item', live), () => window.removeEventListener('resize', place)];
     this.root.classList.add('mode-tray');
-    gsap.fromTo(tray, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'back.out(1.6)' });
+    gsap.fromTo([tray, above], { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'back.out(1.6)', onComplete: place });
     this.setModeBanner(hints.coach('plant') || hints.coach('swipe') ? 'Tap or swipe empty fields to plant' : 'Planting', onClose);
   }
 
@@ -385,8 +399,10 @@ class UIManager {
 
   closeSeedTray(): void {
     if (!this.tray) return;
-    const t = this.tray;
+    const t = this.tray, a = this.trayAbove;
     this.tray = null;
+    this.trayAbove = null;
+    a?.remove();
     for (const off of this.trayUnsub) off();
     this.trayUnsub = [];
     this.root.classList.remove('mode-tray');

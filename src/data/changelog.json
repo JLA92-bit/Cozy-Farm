@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "1.47.2",
+   "date": "2026-11-08",
+   "title": "Plant all, out of the way",
+   "icon": "wheat",
+   "color": "green",
+   "highlights": [
+    {
+     "icon": "wheat",
+     "text": "Plant all now sits above the seed tray, so scrolling back to it no longer picks a different seed by mistake"
+    }
+   ]
+  },
+  {
    "version": "1.47.1",
    "date": "2026-11-08",
    "title": "A brighter lantern",
