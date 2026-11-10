@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 8 November 2026 (game version 1.47.2, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; Android versionCode 9 uploaded (27 Oct), next build 10; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 10 November 2026 (game version 1.47.2, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (game 1.47.2) uploaded 10 Nov, next build 14; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -226,15 +226,15 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Item | Value |
 | --- | --- |
 | Package name (permanent) | `app.joshmakesgames.cozyacres` |
-| Latest versionCode uploaded | **9** (Capacitor app, game 1.33.6, 27 Oct). Next build must use **10+**. |
+| Latest versionCode uploaded | **13** (Capacitor app, game 1.47.2, 10 Nov, production). Next build must use **14+**. |
 | minSdkVersion | 24 (needed for Play automatic protection) |
 | Play app signing SHA-256 | `65:7E:42:04:98:23:2C:E0:E9:CE:5E:FD:5F:72:45:92:6D:DE:DB:4A:40:76:E5:51:F9:3E:2E:09:73:DA:4F:10` |
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
 | Tester opt-in link | `https://play.google.com/apps/testing/app.joshmakesgames.cozyacres` |
 
-**Production access refused (25 Oct 2026):** Google says the app "requires more testing". Plan: move to an organisation account (Australia: Pty Ltd or sole trader + D-U-N-S), see `store/organisation-account.md`; first ask Play support in writing whether converting/transferring removes the testing requirement.
+**Production access granted (by 10 Nov 2026)** after the refusal on 25 Oct ("requires more testing"). versionCode 13 (game 1.47.2) uploaded on 10 Nov with release name `13 (1.47.2)`. Release notes go in `<en-US>` tags, 500 characters at most. Once a build is live in the store, the dashboard's 1.9 page can raise `app_min` (Android) so older app players get "Time to update".
 
-**Where it's up to (before 25 Oct):** internal testing works. App content, store listing and graphics are done. The closed test (bundle 4) is running; on 21 Oct it had 2 days of the 14 left (5 active players test on real phones). Next: keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
+**Before production (history):** internal testing works. App content, store listing and graphics are done. The closed test (bundle 4) is running; on 21 Oct it had 2 days of the 14 left (5 active players test on real phones). Next: keep **12+ opted in for 14 days in a row**, log feedback in `store/test-log.md`, then apply for production (`store/checklist.md` section 6). The admin dashboard has a closed test tracker.
 
 **GitHub settings (Settings > Secrets and variables > Actions):**
 - Secrets: `ANDROID_KEYSTORE_BASE64`, `BUBBLEWRAP_KEYSTORE_PASSWORD`, `BUBBLEWRAP_KEY_PASSWORD`
@@ -308,9 +308,8 @@ When bumping the game version, update **both** `package.json` and the newest ent
 - [ ] Next releases: `ROADMAP.md` release plan (re-sequenced 20 Oct; the 1.17-1.28 plan is built; next: 2.0 The Market Stall after the Play production launch, or more content).
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
-- [ ] Recruit 15-20 closed testers (13+). Each joins the Google Group first, then uses the opt-in link.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
-- [ ] After 14 days: apply for production, add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
+- [ ] Production granted (10 Nov): add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
 - [ ] **iPhone app (next, on the owner's Mac):** Capacitor iOS, Sign in with Apple, report and block players (server), TestFlight. Plan in `HANDOVER-2026-10-25.md` section 5; the owner is enrolling in the Apple Developer Program (A$149 a year). The Mac session owns `ios/`; pull before starting, never edit the same files from both sessions at once.
 - [ ] App testers who never signed in start a fresh farm in the Capacitor app (the TWA's save stays in Chrome). Offered: a first-start "Played before? Sign in" prompt.
 - [ ] Notifications in the app: Firebase (Android) and APNs (iPhone), plus `send-push`.
@@ -334,6 +333,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-10: Google Play production access granted; versionCode 13 (game 1.47.2) uploaded, next build 14.
 - 2026-11-08: 1.47.1 and 1.47.2 pushed: mine lantern 100 swings with top-ups, Plant all above the seed tray.
 - 2026-11-08: 1.45.0-1.47.0 pushed; 1.47.1 (local): mine lantern 100 swings and tops up 25 every 4 hours.
 - 2026-11-08: 1.47.0 (local, not pushed): Colour and Lanterns, levels 161-180, Dye Works, dye paints, 16 decor in four sets.
@@ -343,4 +343,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-11-01: 1.34.3-1.44.0 (local, not pushed): QOL batch and the whole end-game plan (skills 20, upgrades, Sunken Halls, Grand Mastery, New Stock, Farmhouse 20, favours, Far Reaches, Stargazing, Gold Collection, Village Fair).
 - 2026-10-30: 1.34.1 pushed; 1.34.2 (local): fishing top bar wraps on narrow phones (the net chip pushed Close off).
 - 2026-10-29: 1.34.1 (local): version and where you play shown at the bottom of Settings.
-- 2026-10-29: 1.34.0 pushed with 1.33.8 and 1.33.9: the Fishing Net (dock, Fishing skill 3, 8-hour fill, keep limit, bait to set).
