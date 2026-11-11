@@ -35,7 +35,7 @@ BASE = "/" + BASE + "/" if BASE else "/"   # always "/" or "/x/y/"
 SITE = {
     "site_url": (os.environ.get("SITE_URL") or "https://cozyacres.joshmakesgames.app").rstrip("/"),  # no trailing slash
     "support_email": "joshmakesgames92@gmail.com",
-    "play_url": "https://play.google.com/store/apps/details?id=YOUR.PACKAGE.ID",
+    "play_url": "https://play.google.com/store/apps/details?id=app.joshmakesgames.cozyacres",
     "delete_endpoint": "/api/delete-data",            # POST {"code": "..."} -> 200 / 404 / 429
     "studio_url": os.environ.get("STUDIO_URL") or "https://joshmakesgames.app/",  # studio homepage
     "game_url": BASE + "play/",                       # the web game ("Play now")

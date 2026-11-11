@@ -309,7 +309,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 - [ ] Change GitHub default branch to `main` (Settings > General).
 - [ ] Delete the old draft Play app locked to `com.cozyacres.joshmakesgames`.
 - [ ] Optional: update `.github/workflows/android.yml` (Node 24 actions, `actions/setup-java@v5`) to clear deprecation warnings. `ubuntu-latest` moves to Ubuntu 26 from 19 October 2026, so check the next Android build still passes.
-- [ ] Production granted (10 Nov): add the official Google Play badge to the website (`design/cozy-acres-website/src/assets/img/google-play-badge.png` is a placeholder), and add the Play link to the site.
+- [x] Website links to the live Play listing (11 Nov, "Get it on Google Play" button in the hero, `play_url` in the website build.py).
 - [ ] **iPhone app (next, on the owner's Mac):** Capacitor iOS, Sign in with Apple, report and block players (server), TestFlight. Plan in `HANDOVER-2026-10-25.md` section 5; the owner is enrolling in the Apple Developer Program (A$149 a year). The Mac session owns `ios/`; pull before starting, never edit the same files from both sessions at once.
 - [ ] App testers who never signed in start a fresh farm in the Capacitor app (the TWA's save stays in Chrome). Offered: a first-start "Played before? Sign in" prompt.
 - [ ] Notifications in the app: Firebase (Android) and APNs (iPhone), plus `send-push`.

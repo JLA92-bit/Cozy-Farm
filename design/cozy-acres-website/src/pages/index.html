@@ -12,10 +12,10 @@
         <div class="hero__cta">
           <a class="btn btn--lg" href="/play/">Play now</a>
         </div>
-        <!-- Component: store links. When a listing is live, swap the <span class="store store--soon"> for
-             <a class="store" href="{{play_url}}"> (or the official store badge image). -->
+        <!-- Component: store links. A live listing is <a class="store" href="{{play_url}}">; one not out yet is
+             <span class="store store--soon">. -->
         <ul class="stores" aria-label="App stores">
-          <li><span class="store store--soon"><span class="store__name">Google Play</span><span class="store__note">Coming soon</span></span></li>
+          <li><a class="store" href="{{play_url}}" rel="noopener"><span class="store__note">Get it on</span><span class="store__name">Google Play</span></a></li>
           <li><span class="store store--soon"><span class="store__name">App Store</span><span class="store__note">Coming soon</span></span></li>
         </ul>
       </div>
