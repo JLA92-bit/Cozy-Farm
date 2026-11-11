@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 10 November 2026 (game version 1.47.2, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, in review) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 11 November 2026 (game version 1.47.2, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, live 11 Nov) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -226,7 +226,7 @@ When bumping the game version, update **both** `package.json` and the newest ent
 | Item | Value |
 | --- | --- |
 | Package name (permanent) | `app.joshmakesgames.cozyacres` |
-| Latest versionCode uploaded | **14** (Capacitor app, game 1.47.2, 10 Nov: 13 in open testing, 14 in production, first production release in review). Next build must use **15+**. |
+| Latest versionCode uploaded | **14** (Capacitor app, game 1.47.2, 10 Nov: 13 in open testing, 14 in production, production published 11 Nov 2026). Next build must use **15+**. |
 | minSdkVersion | 24 (needed for Play automatic protection) |
 | Play app signing SHA-256 | `65:7E:42:04:98:23:2C:E0:E9:CE:5E:FD:5F:72:45:92:6D:DE:DB:4A:40:76:E5:51:F9:3E:2E:09:73:DA:4F:10` |
 | Upload key SHA-256 | `4F:81:15:23:BD:6C:CD:E9:3F:78:77:6D:84:76:77:49:FD:C1:04:80:85:41:26:CD:FD:B9:28:F7:DA:96:79:8A` |
@@ -333,6 +333,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-11: Cozy Acres live on Google Play production (versionCode 14, game 1.47.2, 177 countries plus rest of world).
 - 2026-11-10: Google Play production access granted; game 1.47.2 as versionCode 13 (open testing) and 14 (production, in review), next build 15.
 - 2026-11-08: 1.47.1 and 1.47.2 pushed: mine lantern 100 swings with top-ups, Plant all above the seed tray.
 - 2026-11-08: 1.45.0-1.47.0 pushed; 1.47.1 (local): mine lantern 100 swings and tops up 25 every 4 hours.
