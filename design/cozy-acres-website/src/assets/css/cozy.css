@@ -226,3 +226,11 @@ a.store:hover{color:#fff}
 @media (min-width:900px){.hero .stores{justify-content:flex-start}}
 
 .contact-card .btn{max-width:100%;font-size:1.05rem;padding-inline:14px;overflow-wrap:anywhere;text-align:left}
+
+/* Hero: the store app first, the browser game second */
+.stores--main{margin-top:6px}
+.store--lg{min-height:66px;padding:8px 24px}
+.store--lg .store__name{font-size:1.6rem}
+.store--lg .store__note{font-size:.85rem}
+.hero__cta--alt{margin-top:14px;gap:10px}
+.hero__or{font-weight:700;color:var(--ink);background:rgba(255,246,223,.9);border-radius:999px;padding:2px 10px;font-size:.9rem}

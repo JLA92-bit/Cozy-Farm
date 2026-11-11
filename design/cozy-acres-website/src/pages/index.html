@@ -9,15 +9,16 @@
         <img class="hero__logo" src="/assets/img/cozy-acres-logo-full-colour.svg" alt="Cozy Acres" width="360" height="128">
         <h1 id="hero-title" class="outlined">Grow your own cozy little farm</h1>
         <p class="hero__line">Plant, harvest, go fishing and trade with friends - free to play.</p>
-        <div class="hero__cta">
-          <a class="btn btn--lg" href="/play/">Play now</a>
-        </div>
         <!-- Component: store links. A live listing is <a class="store" href="{{play_url}}">; one not out yet is
-             <span class="store store--soon">. -->
-        <ul class="stores" aria-label="App stores">
-          <li><a class="store" href="{{play_url}}" rel="noopener"><span class="store__note">Get it on</span><span class="store__name">Google Play</span></a></li>
+             <span class="store store--soon">. The app comes first; the browser game is the second choice. -->
+        <ul class="stores stores--main" aria-label="App stores">
+          <li><a class="store store--lg" href="{{play_url}}" rel="noopener"><span class="store__note">Get it on</span><span class="store__name">Google Play</span></a></li>
           <li><span class="store store--soon"><span class="store__name">App Store</span><span class="store__note">Coming soon</span></span></li>
         </ul>
+        <div class="hero__cta hero__cta--alt">
+          <span class="hero__or">or</span>
+          <a class="btn btn--sm btn--blue" href="/play/">Play in your browser</a>
+        </div>
       </div>
     </div>
   </section>
