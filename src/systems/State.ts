@@ -196,7 +196,9 @@ export interface SaveData {
     /** gifts whose answer was lost on the way: retried with the same key (the goods stay out until the server answers) */
     pending?: { key: string; project: string; item: string; n: number; taken: [number, number, number] }[] };
   /** 1.48 Friends Board: tasks and full boards finished (for Records), and gifts whose answer was lost (retried with the same key) */
-  pairs?: { tasks?: number; full?: number; pending?: { key: string; board: string; idx: number; item: string; n: number; taken: [number, number, number] }[] };
+  pairs?: { tasks?: number; full?: number;
+    /** XP earned and not paid yet, and how much was paid in clock hour `hour` (at most PAIRS.xpPerHour) */
+    owed?: number; hour?: number; paid?: number; pending?: { key: string; board: string; idx: number; item: string; n: number; taken: [number, number, number] }[] };
   /** 1.27 Wildlife Album: species photographed (first photo time, photos taken), sets rewarded, and today's photos */
   wildlife?: { photos: Record<string, { first: number; n: number }>; sets: string[]; complete?: number; today?: { day: string; shot: string[] } };
   /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */

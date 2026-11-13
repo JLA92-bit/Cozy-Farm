@@ -91,6 +91,8 @@ export function openPairs(): void {
     p.body.append(h('div', { class: 'sq-intro-text' }, `Team up with a friend who adds you back. Each week you share ${PAIRS.tasks} deliveries and you both give to each one. Finished tasks pay you both XP and coins; unfinished goods come back.`));
     if (social.practice) p.body.append(h('div', { class: 'social-note' }, icon('info'), h('div', null, h('b', null, 'Practice mode. '), 'Demo neighbours on your friends list say yes to invites and give their half now and then.')));
     if (pairs.error) p.body.append(h('div', { class: 'muted' }, pairs.error));
+    const owed = pairs.owed();
+    if (owed > 0) p.body.append(h('div', { class: 'social-note' }, icon('star'), h('div', null, h('b', null, `${fmt(owed)} XP on its way. `), `Friends Board XP comes in a little at a time, up to ${fmt(PAIRS.xpPerHour)} an hour.`)));
 
     const inv = pairs.invites();
     if (inv.length) {

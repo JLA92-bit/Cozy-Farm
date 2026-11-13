@@ -1651,6 +1651,21 @@ try {
     check('Friends Board: one friend gives at most their part, the friend finishes it', r.gave === r.part && r.refusedPast && r.doneTask, JSON.stringify(r));
     check('Friends Board: a finished task pays XP and coins once', r.paid && r.coined && r.tasksStat === 1 && r.once, JSON.stringify(r));
     check('Friends Board: leaving gives unfinished goods back', r.back && r.back.used === 2 && r.back.ok && r.back.gone, JSON.stringify(r));
+    // high levels get a smaller share, every claim is capped, and the XP comes in at most xpPerHour an hour
+    const late = await page.evaluate(() => {
+      const g = window.__game, { pairs, pairReward, pairLateShare } = window.__pairs;
+      const lo = pairReward('task', 0, '', 0, 40), hi = pairReward('task', 10, '', 0, 101), hiFull = pairReward('full', 10, '', 0, 101), top = pairReward('full', 10, '', 0, 300);
+      const want40 = Math.round(g.xpToNext(40) * 0.1);
+      const st = (g.state.pairs ??= {});
+      st.owed = 25000; st.hour = 0; st.paid = 0;
+      const xp0 = g.state.player.xp, lv0 = g.state.player.level;
+      pairs.drip(); pairs.drip();
+      const owedAfter = st.owed;
+      return { lo: lo.xp, want40, hi: hi.xp, hiFull: hiFull.xp, top: top.xp, share60: pairLateShare(60), share120: pairLateShare(120), share90: pairLateShare(90), owedAfter, paid: st.paid, moved: g.state.player.xp !== xp0 || g.state.player.level !== lv0 };
+    });
+    check('Friends Board: full XP below level 60, a smaller share past it, capped per claim', late.lo === late.want40 && late.share60 === 1 && Math.abs(late.share120 - 0.3) < 1e-9 && late.share90 < 1 && late.share90 > 0.3
+      && late.hi <= 2500 && late.hiFull <= 7500 && late.top <= 7500, JSON.stringify(late));
+    check('Friends Board: XP comes in at most 10,000 an hour', late.owedAfter === 15000 && late.paid === 10000 && late.moved, JSON.stringify(late));
     await page.evaluate(() => window.__ui.open('pairs'));
     await page.waitForTimeout(600);
     check('Friends Board screen opens without errors', errors.length === 0 && await page.evaluate(() => !!document.querySelector('.panel')), errors.join(' | '));

@@ -5,7 +5,7 @@ import { SAVE_VERSION, type SaveData, type PlacedBuilding, type ParcelCard, type
 import { FIRST_VERSION } from './Version';
 import { visiting } from './Visiting';
 import { sanitizeNotifyPrefs } from '../notify/Plan';
-import { ANIMAL, BUILDING, FISH, FISHING, COOP, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, MINE, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
+import { ANIMAL, BUILDING, FISH, FISHING, COOP, PAIRS, CRITTERS, CROP, ESTATE, FARMHANDS, WILDLIFE, EXPEDITIONS, ITEMS, LAND, MASTER, MAX_LEVEL, MINE, RECIPE, REWARDS, ROOM, SKILLS, SKILL_PERK_LEVELS, VILLAGER } from '../data';
 import { sanitizeDecorFields } from './Decor';
 
 const KEY = 'cozy-acres-save';
@@ -129,6 +129,7 @@ function withDefaults(s: Partial<SaveData>): SaveData {
     ...(Array.isArray(s.coop.pending) ? { pending: (s.coop.pending as unknown[]).filter((x): x is Record<string, unknown> => isObj(x) && typeof x.key === 'string' && typeof x.project === 'string' && typeof x.item === 'string' && !!ITEMS[x.item] && Array.isArray(x.taken)).slice(0, 20)
       .map((x) => ({ key: x.key as string, project: x.project as string, item: x.item as string, n: Math.floor(finite(x.n, 0, 0)), taken: [0, 1, 2].map((i) => Math.floor(finite((x.taken as unknown[])[i], 0, 0))) as [number, number, number] })) } : {}) } : undefined;
   out.pairs = isObj(s.pairs) ? { tasks: Math.floor(finite(s.pairs.tasks, 0, 0)), full: Math.floor(finite(s.pairs.full, 0, 0)),
+    owed: Math.min(1e6, Math.floor(finite(s.pairs.owed, 0, 0))), hour: Math.floor(finite(s.pairs.hour, 0, 0)), paid: Math.min(PAIRS.xpPerHour, Math.floor(finite(s.pairs.paid, 0, 0))),
     ...(Array.isArray(s.pairs.pending) ? { pending: (s.pairs.pending as unknown[]).filter((x): x is Record<string, unknown> => isObj(x) && typeof x.key === 'string' && typeof x.board === 'string' && typeof x.item === 'string' && !!ITEMS[x.item] && Array.isArray(x.taken)).slice(0, 20)
       .map((x) => ({ key: x.key as string, board: x.board as string, idx: Math.floor(finite(x.idx, 0, 0)), item: x.item as string, n: Math.floor(finite(x.n, 0, 0)), taken: [0, 1, 2].map((i) => Math.floor(finite((x.taken as unknown[])[i], 0, 0))) as [number, number, number] })) } : {}) } : undefined;
   out.mastery = isObj(s.mastery) ? { done: strArr(s.mastery.done), ...(isObj(s.mastery.picks) ? { picks: Object.fromEntries(Object.entries(s.mastery.picks).filter(([k, v]) => strArr(s.mastery!.done).includes(k) && typeof v === 'string' && ['yield', 'gold', 'speed'].includes(v))) as Record<string, string> } : {}), ...(Array.isArray(s.mastery.grand) ? { grand: strArr(s.mastery.grand).filter((k) => strArr(s.mastery!.done).includes(k)) } : {}) } : undefined;

@@ -403,7 +403,7 @@ export const COOP = coopJson as unknown as { level: number; days: number; maxGiv
 /** 1.48 Friends Board (pairs.json, src/systems/Pairs.ts). */
 export interface PairTemplate { item: string; qty: number; level: number }
 export const PAIRS = pairsJson as unknown as { level: number; partners: number; tasks: number; maxGive: number; givesPerDay: number; share: number;
-  xpTask: number; xpFull: number; coinsTask: number; tokensFull: number; bondTasks: number; bondMax: number; bondXp: number; templates: PairTemplate[] };
+  xpTask: number; xpFull: number; lateFrom: number; lateTo: number; lateShare: number; xpTaskMax: number; xpFullMax: number; xpPerHour: number; coinsTask: number; tokensFull: number; bondTasks: number; bondMax: number; bondXp: number; templates: PairTemplate[] };
 /** 1.27 Wildlife Album (wildlife.json, src/systems/Wildlife.ts). */
 export interface WildSpecies {
   id: string; name: string; set: string; model: string; size: number; place: string; from: number; to: number;

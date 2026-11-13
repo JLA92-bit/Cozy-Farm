@@ -38,10 +38,18 @@ const WORDS: Record<string, string> = {
 const REFUSED = new Set(['closed', 'not needed', 'your part', 'not found', 'too many today', 'switched off', 'blocked', 'bad qty', 'no profile', 'not signed in']);
 const newKey = (): string => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16)));
 
-/** XP and coins one finished task (or a full board) pays at the player's own level. */
-export function pairReward(kind: 'task' | 'full', bond: number, item = '', qty = 0): { xp: number; coins: number; tokens: number } {
-  const k = 1 + Math.min(PAIRS.bondMax, Math.max(0, bond)) * PAIRS.bondXp;
-  const xp = Math.max(1, Math.round(game.xpToNext() * (kind === 'task' ? PAIRS.xpTask : PAIRS.xpFull) * k));
+/** How much of the XP share is left at a level: all of it to `lateFrom`, shrinking steadily to `lateShare` at `lateTo`. */
+export function pairLateShare(level: number): number {
+  if (level <= PAIRS.lateFrom) return 1;
+  const k = Math.min(1, (level - PAIRS.lateFrom) / Math.max(1, PAIRS.lateTo - PAIRS.lateFrom));
+  return 1 - (1 - PAIRS.lateShare) * k;
+}
+
+/** XP and coins one finished task (or a full board) pays at the player's own level (XP capped per claim). */
+export function pairReward(kind: 'task' | 'full', bond: number, item = '', qty = 0, level = game.level): { xp: number; coins: number; tokens: number } {
+  const k = (1 + Math.min(PAIRS.bondMax, Math.max(0, bond)) * PAIRS.bondXp) * pairLateShare(level);
+  const raw = game.xpToNext(level) * (kind === 'task' ? PAIRS.xpTask : PAIRS.xpFull) * k;
+  const xp = Math.max(1, Math.min(kind === 'task' ? PAIRS.xpTaskMax : PAIRS.xpFullMax, Math.round(raw)));
   const coins = kind === 'task' ? Math.round(qty * (ITEMS[item]?.sell ?? 0) * PAIRS.coinsTask) : 0;
   return { xp, coins, tokens: kind === 'full' ? PAIRS.tokensFull : 0 };
 }
@@ -143,11 +151,12 @@ class PairsSystem {
   }
   private async doPoll(): Promise<void> {
     const quiet = !friendIds().length && !this.boards.length && !game.state.pairs?.pending?.length && this.loaded;
+    this.drip();
     if (quiet && Date.now() - this.claimedAt < 15 * 60000) { this.changed(); return; }
     try {
       await ensureOnline();
       this.boards = await online.pairList(friendIds());
-      if (!visiting.active) { await this.retryPending(); await this.collect(); }
+      if (!visiting.active) { await this.retryPending(); await this.collect(); this.drip(); }
       this.announce();
       this.error = '';
       this.loaded = true;
@@ -197,21 +206,41 @@ class PairsSystem {
         continue;
       }
       const r = pairReward(c.kind, c.bond, c.item, c.qty);
-      game.addXp(r.xp);
+      st.owed = (st.owed ?? 0) + r.xp;
       if (r.coins) game.addCoins(r.coins);
       if (r.tokens) game.state.village.tokens = (game.state.village.tokens ?? 0) + r.tokens;
       if (c.kind === 'task') {
         st.tasks = (st.tasks ?? 0) + 1;
         game.incStat('pair_tasks');
-        game.bus.emit('toast', { title: `Task done with ${c.partner}!`, sub: `${c.qty} ${ITEMS[c.item]?.name ?? c.item}: +${r.xp.toLocaleString()} XP and ${r.coins.toLocaleString()} coins.`, icon: 'hug' });
+        game.bus.emit('toast', { title: `Task done with ${c.partner}!`, sub: `${c.qty} ${ITEMS[c.item]?.name ?? c.item}: ${r.xp.toLocaleString()} XP and ${r.coins.toLocaleString()} coins.`, icon: 'hug' });
       } else {
         st.full = (st.full ?? 0) + 1;
         game.incStat('pair_full');
-        game.bus.emit('toast', { title: `Full board with ${c.partner}!`, sub: `Every task this week: +${r.xp.toLocaleString()} XP and ${r.tokens} Friendship Tokens.`, icon: 'trophy' });
+        game.bus.emit('toast', { title: `Full board with ${c.partner}!`, sub: `Every task this week: ${r.xp.toLocaleString()} XP and ${r.tokens} Friendship Tokens.`, icon: 'trophy' });
       }
       logEvent('pair_reward', { kind: c.kind, xp: r.xp, bond: c.bond });
       game.bus.emit('sfx', { name: 'reward' });
     }
+    this.drip();
+    saves.save();
+  }
+
+  /** XP waiting to be paid (Friends Board XP comes in at most `xpPerHour` an hour). */
+  owed(): number { return game.state.pairs?.owed ?? 0; }
+  /**
+   * Pay waiting XP, at most `xpPerHour` in any clock hour, so a week of rewards never lands as one lump (the
+   * server's leaderboard check allows about 40,000 XP an hour and notes anything faster).
+   */
+  drip(): void {
+    const st = game.state.pairs;
+    if (!st?.owed || visiting.active) return;
+    const hour = Math.floor(game.now() / 36e5);
+    if (st.hour !== hour) { st.hour = hour; st.paid = 0; }
+    const n = Math.min(st.owed, PAIRS.xpPerHour - (st.paid ?? 0));
+    if (n <= 0) return;
+    st.owed -= n;
+    st.paid = (st.paid ?? 0) + n;
+    game.addXp(n);
     saves.save();
   }
 }
