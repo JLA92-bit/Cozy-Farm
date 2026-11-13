@@ -131,7 +131,7 @@ function renderLetters(p: Panel): void {
   clear(p.body);
   const list = lettersNewestFirst();
   p.body.append(h('div', { class: 'row between', style: 'margin-bottom:10px;gap:8px' },
-    h('div', { class: 'muted', style: 'font-size:15px' }, list.length ? `${list.length} ${list.length === 1 ? 'letter' : 'letters'} kept` : 'Your letters are kept here.'),
+    h('div', { class: 'muted', style: 'font-size:calc(15px * var(--ts, 1))' }, list.length ? `${list.length} ${list.length === 1 ? 'letter' : 'letters'} kept` : 'Your letters are kept here.'),
     button([icon('mailbox'), 'Open mailbox'], () => { p.close(); openMail(); }, 'blue small')));
   if (!list.length) { p.body.append(h('div', { class: 'empty-state' }, icon('mailbox'), h('div', null, 'No letters yet.'))); return; }
   const box = h('div', { class: 'list' });

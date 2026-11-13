@@ -295,6 +295,8 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .card .count-tag { position: absolute; bottom: 4px; right: 6px; font-size: 16px; }
 .card.selected { outline: 4px solid var(--btn-blue); outline-offset: -2px; }
 .card.done { background: #e8f8dc; }
+/* 1.47.3 not by colour alone: a done card also has a tick, a short ingredient a dashed edge and an enough one a tick */
+.card.done:not(:has(.new-tag, .lock-tag))::before { content: '\2713'; position: absolute; top: -8px; left: -8px; width: 22px; height: 22px; border-radius: 50%; background: var(--btn-green); border: 2px solid var(--outline); color: #fff; font: 900 13px/16px system-ui, sans-serif; text-align: center; z-index: 1; }
 /* animal home cards: a growing bar while they make their product, a badge for what they need */
 .animal-card .animal-progress { width: 100%; height: 18px; margin-top: 2px; }
 .animal-card .animal-hungry { color: #c0563a; font-family: var(--font-display); }
@@ -500,6 +502,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 56px; padding: 6px 4px; border-bottom: 2px dashed #e6d3a6; }
 .setting-row:last-child { border-bottom: none; }
 .setting-row label { font-family: var(--font-display); font-size: 16px; }
+.setting-note { font-size: 13px; padding: 4px 4px 8px; border-bottom: 2px dashed #e6d3a6; }
 input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); touch-action: none; }
 .toggle { position: relative; width: 70px; height: 40px; border-radius: 20px; background: var(--btn-grey); border: 3px solid var(--outline); cursor: pointer; flex: 0 0 auto; }
 .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 2px solid var(--outline); transition: left .15s; }
@@ -772,7 +775,7 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 .shop-card .pill { margin-top: auto; }
 .shop-card.locked .card-title { color: var(--ink-soft); }
 .shop-card.maxed .card-icon { opacity: .55; }
-.pill.cant { background: #ffe0dc; color: var(--btn-red-dark); }
+.pill.cant { background: #ffe0dc; color: var(--btn-red-dark); border-style: dashed; }
 .pill.maxed { background: #e6e0d2; color: var(--ink-soft); }
 .pill.stored { background: #dff3ff; color: var(--btn-blue-dark); }
 .new-tag {
@@ -1085,3 +1088,21 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
 /* 1.34.3 move a selection a tile at a time */
 .nudge-pad { display: grid; grid-template-columns: repeat(2, auto); gap: 4px; }
 .nudge-pad .btn { min-width: 40px; min-height: 40px; padding: 0; font-size: 18px; }
+
+/* 1.47.3 Reduce motion (systems/Access.ts): animations and transitions finish at once; nothing bobs, bounces or slides */
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
+  transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+}
+/* 1.47.3 Text size: the HUD and place banners grow a little only (--ts-hud); panels, toasts and popups take the full size */
+.hud-layer, .visit-banner { --ts: var(--ts-hud, 1); }
+/* bigger text: rows with buttons wrap the buttons under the words instead of squeezing them a word a line */
+html:not([data-text-size="normal"]) .list-item { flex-wrap: wrap; }
+html:not([data-text-size="normal"]) .list-item > .grow { flex: 1 1 9em; }
+.setting-row { flex-wrap: wrap; }
+.setting-row > .segmented { flex: 0 0 auto; max-width: 100%; }
+.friend-code { white-space: nowrap; }
+/* 1.47.3 tap targets: small buttons keep their look but take taps from a 48 px tall area (an invisible margin round them) */
+.btn.small::before, .order-skip::before, .lb-trophy::before, .mu-slot::before { content: ''; position: absolute; inset: -5px -3px; }
+.lb-trophy, .mu-slot, .order-skip { position: relative; }
+.lb-trophy { min-height: 36px; }

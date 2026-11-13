@@ -20,7 +20,7 @@ function showAdminGift(g: AdminGift): Promise<void> {
       if (key) row.append(h('span', { class: 'gift-chip' }, itemIcon(key.item), key.quality ? starIcon(key.quality) : null, `x${fmt(n)}`));
     }
     if (g.land) row.append(h('span', { class: 'gift-chip' }, icon('map'), `${g.land} land ${g.land === 1 ? 'plot' : 'plots'}`));
-    p.body.append(h('div', { class: 'center', style: 'font-size:18px' }, 'From the Cozy Acres team'));
+    p.body.append(h('div', { class: 'center', style: 'font-size:calc(18px * var(--ts, 1))' }, 'From the Cozy Acres team'));
     if (g.message) p.body.append(h('div', { class: 'gift-msg center', style: 'margin-top:8px' }, `"${g.message}"`));
     p.body.append(
       row,

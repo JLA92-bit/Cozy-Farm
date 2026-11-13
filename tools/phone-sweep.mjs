@@ -33,7 +33,8 @@ for (const s of sizes) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`${ROOT}favicon.svg`);
-  await page.evaluate(() => localStorage.clear());
+  // TEXT_SIZE=large|larger checks the 1.47.3 Text size setting; MIN_TAP=44 reports buttons smaller than that
+  await page.evaluate((ts) => { localStorage.clear(); if (ts) localStorage.setItem('cozy-acres-settings', JSON.stringify({ textSize: ts })); }, process.env.TEXT_SIZE ?? '');
   await page.goto(ROOT);
   await page.waitForFunction(() => window.__game?.state && window.__ui, null, { timeout: 120000 });
   await page.waitForTimeout(2500);
@@ -59,7 +60,7 @@ for (const s of sizes) {
       last = now;
       await page.waitForTimeout(150);
     }
-    const found = await page.evaluate(([W, H]) => {
+    const found = await page.evaluate(([W, H, MIN]) => {
       const bad = [];
       const panel = [...document.querySelectorAll('.overlay > .panel')].pop();
       if (!panel) return { open: false, bad };
@@ -77,10 +78,12 @@ for (const s of sizes) {
         if (el.classList.contains('close-btn')) { if (r.right - r.width / 2 > W || r.top < -r.height / 2) bad.push('close button off screen'); continue; }
         if (!clipped && (r.right > pr.right + 2 || r.left < pr.left - 2)) bad.push(`sticks out sideways: ${label}`);
         if (el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX === 'hidden' && getComputedStyle(el).textOverflow !== 'ellipsis' && el.children.length === 0) bad.push(`text cut off: ${label}`);
-        if (el.tagName === 'BUTTON' && (r.height < 28 || r.width < 28)) bad.push(`small button ${Math.round(r.width)}x${Math.round(r.height)}: ${label}`);
+        // an invisible ::before tap margin (styles.css "tap targets") counts toward the size
+        const pre = getComputedStyle(el, '::before'), padY = pre.position === 'absolute' && pre.content !== 'none' ? Math.max(0, -parseFloat(pre.top) || 0) * 2 : 0, padX = padY ? Math.max(0, -parseFloat(pre.left) || 0) * 2 : 0;
+        if (el.tagName === 'BUTTON' && (r.height + padY < MIN || r.width + padX < MIN)) bad.push(`small button ${Math.round(r.width)}x${Math.round(r.height)}: ${label}`);
       }
       return { open: true, bad: [...new Set(bad)].slice(0, 12) };
-    }, [w, h]);
+    }, [w, h, Number(process.env.MIN_TAP ?? 28)]);
     const list = [...(r?.err ? [r.err] : []), ...found.bad, ...errors.map((e) => `error: ${e}`)];
     if (list.length) { problems += list.length; console.log(`${s} ${id}${found.open ? '' : ' (no panel found)'}\n  ${list.join('\n  ')}`); }
     await page.screenshot({ path: `${out}/${id}-${s}.png` });

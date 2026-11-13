@@ -49,7 +49,7 @@ function openMaster(arg?: unknown): void {
     }
     p.body.append(list);
     const next = MASTER.streaks.find((s) => s.weeks > master.streak);
-    p.body.append(h('div', { class: 'muted center', style: 'margin-top:10px;font-size:13px' }, next
+    p.body.append(h('div', { class: 'muted center', style: 'margin-top:10px;font-size:calc(13px * var(--ts, 1))' }, next
       ? `Streak prize: a ${BUILDING[next.id]?.name ?? 'trophy'} at ${next.weeks} weeks in a row.`
       : 'You have every streak prize. Wonderful!'));
   };

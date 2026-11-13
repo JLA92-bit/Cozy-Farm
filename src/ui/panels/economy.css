@@ -4,8 +4,9 @@
 .float-layer { z-index: 60; }
 
 .icon.tiny { width: 14px; height: 14px; }
-.pill.short { background: #ffd6d0; }
+.pill.short { background: #ffd6d0; border-style: dashed; border-color: var(--btn-red-dark); }
 .pill.enough { background: #d9f7c0; }
+.pill.enough::after { content: '\2713'; margin-left: 2px; font: 900 1em system-ui, sans-serif; color: var(--btn-green-dark); }
 .pill.clickable { cursor: pointer; }
 .pill.clickable:active { transform: scale(.94); }
 

@@ -47,7 +47,7 @@ export function openFishStall(): void {
       grid.append(card);
     }
     p.body.append(grid);
-    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:13px' }, 'Ridiculously dear: you will always do far better fishing it yourself. Legendary fish never reach the stall.'));
+    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:calc(13px * var(--ts, 1))' }, 'Ridiculously dear: you will always do far better fishing it yourself. Legendary fish never reach the stall.'));
   };
   const buy = (o: FishOffer) => {
     if (!fishstall.buy(o.id)) {

@@ -1,6 +1,31 @@
 {
  "releases": [
   {
+   "version": "1.47.3",
+   "date": "2026-11-13",
+   "title": "Easier on the eyes",
+   "icon": "eye",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "magnifier",
+     "text": "Settings > Accessibility > Text size: Normal, Large or Larger. Panels and toasts grow; the top bar and dock grow a little"
+    },
+    {
+     "icon": "gear",
+     "text": "In the Android app the game no longer blows up when your phone's font size is big: it starts on a matching Text size instead"
+    },
+    {
+     "icon": "eye",
+     "text": "Reduce motion (Auto follows your phone): no bouncing or shaking, and smaller sparkles"
+    },
+    {
+     "icon": "check",
+     "text": "Not by colour alone: finished cards have a tick, items you have enough of a tick, and short ones a dashed edge"
+    }
+   ]
+  },
+  {
    "version": "1.47.2",
    "date": "2026-11-08",
    "title": "Plant all, out of the way",

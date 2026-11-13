@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 11 November 2026 (game version 1.47.2, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, live 11 Nov) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 13 November 2026 (game version 1.47.3 local, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, live 11 Nov) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.47.3 (local, 13 Nov): accessibility.** Settings > Accessibility: Text size (`systems/Access.ts`, `--ts` on <html>; `accessCss` in vite.config.ts multiplies every CSS font-size by it and copies `prefers-reduced-motion` blocks under `html.reduce-motion`; inline sizes in TS use `calc(Npx * var(--ts, 1))`; the HUD and banners take `--ts-hud`, at most 1.08) and Reduce motion (auto/on/off: CSS animations finish at once, no shake, `Effects.calm` smaller particles; gsap 3D motion unchanged). Store apps: `@capacitor/text-zoom` reads the phone's text size and picks Large/Larger when the player never chose; Android `MainActivity` keeps the web view at 100% (a big Samsung font blew every panel up). Not by colour alone: `.card.done` tick, `.pill.enough` tick, short/cant pills dashed. Small buttons get an invisible 48 px `::before` tap area. `phone-sweep.mjs` takes `TEXT_SIZE=larger` and `MIN_TAP=44`. **Needs an app build** (new plugin). 133 regression checks.
 
 **1.47.2 (local, 8 Nov):** Plant all moved out of the scrolling seed tray to a button above it (`.tray-above`, placed from the tray's layout in `UI.openSeedTray`); scrolling back to it picked seeds by mistake. Game only.
 
@@ -333,7 +335,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
-- 2026-11-13: Android app keeps the game's text at 100% (`MainActivity` `setTextZoom(100)`); a large phone Font size blew up every panel. Needs app build 15.
+- 2026-11-13: 1.47.3 (local): accessibility (Text size, Reduce motion, ticks and dashed edges, 48 px tap areas); Android web view kept at 100%. Needs app build 15.
 - 2026-11-11: Cozy Acres live on Google Play production (versionCode 14, game 1.47.2, 177 countries plus rest of world).
 - 2026-11-10: Google Play production access granted; game 1.47.2 as versionCode 13 (open testing) and 14 (production, in review), next build 15.
 - 2026-11-08: 1.47.1 and 1.47.2 pushed: mine lantern 100 swings with top-ups, Plant all above the seed tray.

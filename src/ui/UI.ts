@@ -613,7 +613,7 @@ class UIManager {
   setFps(on: boolean): void {
     if (!on) { this.fpsEl?.remove(); this.fpsEl = null; return; }
     if (this.fpsEl) return;
-    const el = h('div', { class: 'outlined', style: 'position:absolute;left:calc(var(--safe-left) + 8px);bottom:calc(var(--safe-bottom) + 4px);font-size:12px;z-index:99;pointer-events:none' });
+    const el = h('div', { class: 'outlined', style: 'position:absolute;left:calc(var(--safe-left) + 8px);bottom:calc(var(--safe-bottom) + 4px);font-size:calc(12px * var(--ts, 1));z-index:99;pointer-events:none' });
     this.fpsEl = el;
     this.root.append(el);
     const tick = () => {

@@ -22,7 +22,7 @@ function confirmPerk(def: SkillDef, perkId: string, done: () => void): void {
   if (!perk) return;
   const c = new Panel({ title: `Choose ${perk.name}?`, icon: perk.icon, color: 'purple', size: 'small' });
   c.body.append(
-    h('div', { class: 'center', style: 'font-size:17px;margin:6px 0' }, perk.text),
+    h('div', { class: 'center', style: 'font-size:calc(17px * var(--ts, 1));margin:6px 0' }, perk.text),
     h('div', { class: 'muted center' }, 'Your choice stays for good, so pick the one that suits your farm.'));
   c.footer.append(
     button('Not yet', () => c.close(), 'grey'),

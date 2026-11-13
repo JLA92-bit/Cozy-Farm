@@ -28,6 +28,8 @@ import { mine } from '../systems/Mine';
 import { applyFarmLook } from './FarmLookApply';
 import { currentLook } from '../world/FarmLook';
 import { settings, shadowsWanted } from '../systems/Settings';
+import { motionReduced, onAccessChange } from '../systems/Access';
+import { Effects } from '../world/Effects';
 import { audio, haptics } from '../systems/Audio';
 import { buildings } from '../systems/Buildings';
 import { PROC_DEPENDENCIES } from '../world/ProcModels';
@@ -187,7 +189,7 @@ export async function boot(): Promise<void> {
   ui.init(document.getElementById('ui-root')!, scene, interaction);
   audio.init({ music: settings.music, sfx: settings.sfx });
   haptics.enabled = settings.haptics;
-  scene.rig.shakeScale = settings.shake ? 1 : 0;
+  onAccessChange(() => { scene.rig.shakeScale = settings.shake && !motionReduced() ? 1 : 0; Effects.calm = motionReduced(); });
 
   const away = fresh ? null : offlineSummary(data.lastSeen);
   setProgress(0.88, 'Waking the animals...');

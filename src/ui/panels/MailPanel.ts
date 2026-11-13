@@ -177,7 +177,7 @@ export function openMail(arg?: { letter?: number }): void {
 /** Ask once before deleting read letters (letters with something still to collect always stay). */
 function confirmTidy(n: number, done: () => void): void {
   const c = new Panel({ title: 'Tidy the mailbox?', icon: 'mailbox', color: 'blue', size: 'small' });
-  c.body.append(h('div', { class: 'center', style: 'font-size:17px;margin:6px 0' }, `Delete ${n} read ${n === 1 ? 'letter' : 'letters'}?`), h('div', { class: 'muted center' }, 'New letters and letters with a gift to collect stay.'));
+  c.body.append(h('div', { class: 'center', style: 'font-size:calc(17px * var(--ts, 1));margin:6px 0' }, `Delete ${n} read ${n === 1 ? 'letter' : 'letters'}?`), h('div', { class: 'muted center' }, 'New letters and letters with a gift to collect stay.'));
   c.footer.append(
     button('Keep them', () => c.close(), 'grey'),
     button('Delete', () => {

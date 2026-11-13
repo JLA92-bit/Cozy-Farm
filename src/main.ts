@@ -2,9 +2,14 @@ import './ui/fonts.css';
 import './ui/styles.css';
 import { registerSW } from 'virtual:pwa-register';
 import { boot } from './scenes/Boot';
+import { applyAccess, readPhoneTextSize } from './systems/Access';
 import { watchInstallPrompt } from './ui/Install';
 import { saves, hasBackup, restoreBackup, NewerSaveError } from './systems/Save';
 import { isIosApp, isNative, openExternal, storeUrl } from './core/Native';
+
+// 1.47.3 text size and reduce motion, before anything is drawn
+applyAccess();
+void readPhoneTextSize();
 
 /** Fetch the newest version of the game (service worker), then reload. */
 async function updateAndReload(): Promise<void> {

@@ -192,7 +192,7 @@ export function openProduction(b: PlacedBuilding): void {
           }, sq ? starIcon(sq) : null, sq ? QUALITY_NAME[sq] : 'Off'));
         }
         starRow = h('div', { class: 'q-use' }, h('span', { class: 'q-use-label' }, 'Use star ingredients'), seg,
-          pick ? h('div', { class: 'muted', style: 'flex-basis:100%;font-size:13px' }, `Uses ${QUALITY_NAME[pick].toLowerCase()} ingredients: the ${ITEMS[r.item].name} comes out ${QUALITY_NAME[pick].toLowerCase()}.`) : null);
+          pick ? h('div', { class: 'muted', style: 'flex-basis:100%;font-size:calc(13px * var(--ts, 1))' }, `Uses ${QUALITY_NAME[pick].toLowerCase()} ingredients: the ${ITEMS[r.item].name} comes out ${QUALITY_NAME[pick].toLowerCase()}.`) : null);
       }
       const check = production.canQueue(b, r.id, pick);
       const make = button(isLocked ? `Lv ${r.level}` : full ? 'Full' : 'Make', () => {

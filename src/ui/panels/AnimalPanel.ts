@@ -67,7 +67,7 @@ export function openAnimalHome(b: PlacedBuilding): void {
       grid.append(h('div', { class: `card animal-card ${st === 'sick' ? 'sick' : ''} ${st === 'ready' ? 'done' : ''} ${onclick ? 'clickable' : ''}`, onclick }, icon(`model:${a.model}`, 'card-icon'), h('div', { class: 'card-sub animal-name' }, animals.nameOf(b, i)), heartRow, ageTxt ? h('div', { class: 'animal-age' }, ageTxt) : null, status, pat, badge));
     });
     for (let i = list.length; i < cap; i++) {
-      grid.append(h('div', { class: 'card clickable', style: 'opacity:.8', onclick: () => buy() }, h('div', { class: 'card-title', style: 'font-size:30px;margin:8px' }, '+'), h('div', { class: 'card-sub' }, 'Buy'), h('div', { class: 'pill' }, priceTag(animals.price(a.id)))));
+      grid.append(h('div', { class: 'card clickable', style: 'opacity:.8', onclick: () => buy() }, h('div', { class: 'card-title', style: 'font-size:calc(30px * var(--ts, 1));margin:8px' }, '+'), h('div', { class: 'card-sub' }, 'Buy'), h('div', { class: 'pill' }, priceTag(animals.price(a.id)))));
     }
     p.body.append(grid);
     const away = upkeep.lost().map((l, k) => ({ l, k })).filter(({ l }) => l.animal === a.id);

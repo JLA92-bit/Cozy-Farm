@@ -1552,6 +1552,25 @@ try {
     check('parcel save repair drops bad entries', parcel.repair);
     check('crate items at a high level are only crops, feed or things the farm has had', parcel.crateBad.length === 0, parcel.crateBad.slice(0, 5).join());
   }
+  // 1.47.3 accessibility: Text size scales panel text, the HUD only a little; Reduce motion is a class on <html>
+  {
+    await setStorage({ 'cozy-acres-settings': JSON.stringify({ textSize: 'larger', motion: 'on' }) });
+    await boot();
+    const a = await page.evaluate(async () => {
+      const root = document.documentElement, cs = getComputedStyle(root);
+      window.__ui.open('settings');
+      await new Promise((r) => setTimeout(r, 600));
+      const label = document.querySelector('.setting-row label');
+      const lbl = document.querySelector('.hud-btn .lbl');
+      return { ts: cs.getPropertyValue('--ts').trim(), reduce: root.classList.contains('reduce-motion'),
+        label: label ? parseFloat(getComputedStyle(label).fontSize) : 0, hud: lbl ? parseFloat(getComputedStyle(lbl).fontSize) : 0,
+        anim: label ? getComputedStyle(label).transitionDuration : '' };
+    });
+    check('Larger text makes panel text 30% bigger and the dock at most 8%', a.ts === '1.3' && Math.abs(a.label - 16 * 1.3) < 0.6 && a.hud > 0, JSON.stringify(a));
+    check('Reduce motion on puts reduce-motion on the page', a.reduce, JSON.stringify(a));
+    check('accessibility settings boot without errors', errors.length === 0, errors.join(' | '));
+  }
+
 } finally {
   await browser.close();
   stop();

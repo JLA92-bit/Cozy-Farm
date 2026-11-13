@@ -87,7 +87,7 @@ function showActiveTab(p: Panel): void {
 
 const unlockCard = (u: UnlockEntry, locked: boolean, onTry?: () => void, tag = true) => {
   const c = h('div', { class: `card ${locked ? 'locked' : ''} ${onTry ? 'clickable' : ''}`, style: 'width:104px' },
-    locked ? h('div', { class: 'lock-tag' }, `Lv ${u.level}`) : null, icon(u.icon, 'card-icon'), h('div', { class: 'card-title', style: 'font-size:13px' }, u.name), h('div', { class: 'card-sub' }, u.kind),
+    locked ? h('div', { class: 'lock-tag' }, `Lv ${u.level}`) : null, icon(u.icon, 'card-icon'), h('div', { class: 'card-title', style: 'font-size:calc(13px * var(--ts, 1))' }, u.name), h('div', { class: 'card-sub' }, u.kind),
     onTry && tag ? h('div', { class: 'try-tag outlined' }, 'Try it!') : null);
   if (onTry) c.addEventListener('click', onTry);
   return c;
@@ -177,9 +177,9 @@ export function openUnlockTree(): void {
     const locked = lv > game.level;
     const isNext = lv === game.level + 1;
     const row = h('div', { class: `list-item ${isNext ? 'path-next' : ''}`, style: `align-items:flex-start;${locked ? '' : 'background:#e8f8dc'}` },
-      h('div', { class: 'level-badge', style: 'width:46px;height:46px;flex:0 0 46px;font-size:20px' }, h('span', { class: 'outlined' }, String(lv))),
+      h('div', { class: 'level-badge', style: 'width:46px;height:46px;flex:0 0 46px;font-size:calc(20px * var(--ts, 1))' }, h('span', { class: 'outlined' }, String(lv))),
       h('div', { class: 'row', style: 'flex-wrap:wrap;gap:6px' }, ...un.map((u) => {
-        const c = h('div', { class: `card ${locked ? 'locked' : ''}`, style: 'width:86px;padding:4px' }, icon(u.icon, 'card-icon'), h('div', { class: 'card-sub', style: 'font-size:11px' }, u.name));
+        const c = h('div', { class: `card ${locked ? 'locked' : ''}`, style: 'width:86px;padding:4px' }, icon(u.icon, 'card-icon'), h('div', { class: 'card-sub', style: 'font-size:calc(11px * var(--ts, 1))' }, u.name));
         (c.firstChild as HTMLElement).style.cssText = 'width:44px;height:44px';
         return c;
       })),
@@ -190,7 +190,7 @@ export function openUnlockTree(): void {
   const need = game.xpToNext();
   const pct = game.level >= MAX_LEVEL ? 100 : Math.min(100, (game.state.player.xp / Math.max(1, need)) * 100);
   p.body.append(h('div', { class: 'list-item', style: 'margin-bottom:10px' },
-    h('div', { class: 'level-badge', style: 'width:52px;height:52px;flex:0 0 52px;font-size:24px' }, h('span', { class: 'outlined' }, String(game.level))),
+    h('div', { class: 'level-badge', style: 'width:52px;height:52px;flex:0 0 52px;font-size:calc(24px * var(--ts, 1))' }, h('span', { class: 'outlined' }, String(game.level))),
     h('div', { class: 'grow' },
       h('div', { class: 'title' }, game.level < MAX_LEVEL ? `${fmt(need - game.state.player.xp)} XP to level ${game.level + 1}` : 'Max level!'),
       h('div', { class: 'progress', style: 'margin-top:4px' }, h('div', { class: 'fill', style: `width:${pct}%` }), h('div', { class: 'label' }, game.level < MAX_LEVEL ? `${fmt(game.state.player.xp)}/${fmt(need)}` : 'MAX')),
@@ -433,7 +433,7 @@ export function openCrates(): void {
     // best crates first, so the exciting ones are on top
     const sorted = list.map((r, i) => ({ r, i })).sort((a, b) => RARITY_ORDER.indexOf(b.r) - RARITY_ORDER.indexOf(a.r));
     for (const { r, i } of sorted) {
-      const c = h('div', { class: `card clickable crate-card rarity-${r}`, style: 'border-color:var(--r)', onclick: () => reveal(i) }, icon(RARITY_ICON[r], 'card-icon'), h('div', { class: 'rarity-label', style: 'font-size:16px' }, cap(r)));
+      const c = h('div', { class: `card clickable crate-card rarity-${r}`, style: 'border-color:var(--r)', onclick: () => reveal(i) }, icon(RARITY_ICON[r], 'card-icon'), h('div', { class: 'rarity-label', style: 'font-size:calc(16px * var(--ts, 1))' }, cap(r)));
       grid.append(c);
     }
     p.body.append(grid);
@@ -591,7 +591,7 @@ export function openCollection(tab?: string): void {
         seen && isNew(e.key) ? h('div', { class: 'new-tag outlined' }, 'New!') : null,
         gold ? starBadge(2) : null,
         icon(e.icon, 'card-icon'), h('div', { class: 'card-sub' }, seen ? e.name : '???'),
-        seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:11px' }, `sells ${ITEMS[e.id].sell}`) : null,
+        seen && e.kind === 'item' ? h('div', { class: 'card-sub', style: 'font-size:calc(11px * var(--ts, 1))' }, `sells ${ITEMS[e.id].sell}`) : null,
         e.group === 'Fish' ? h('div', { class: 'fish-book-line' }, fishBookLine(e.id, seen)) : null));
     }
     p.body.append(grid);

@@ -27,6 +27,7 @@ import { cloudState } from '../../online/CloudSave';
 import { platform } from '../../online/Activity';
 import { isIosApp } from '../../core/Native';
 import { APP_VERSION } from '../../systems/Version';
+import { applyAccess, textSize, TEXT_NAME, type TextSize } from '../../systems/Access';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -40,9 +41,25 @@ function slider(value: number, onInput: (v: number) => void): HTMLInputElement {
 }
 
 function toggle(on: boolean, onChange: (v: boolean) => void): HTMLElement {
-  const t = h('div', { class: `toggle ${on ? 'on' : ''}`, role: 'switch' });
-  t.addEventListener('click', () => { on = !on; t.classList.toggle('on', on); onChange(on); audio.play('select'); });
+  const t = h('div', { class: `toggle ${on ? 'on' : ''}`, role: 'switch', tabindex: '0', 'aria-checked': String(on) });
+  const flip = (): void => { on = !on; t.classList.toggle('on', on); t.setAttribute('aria-checked', String(on)); onChange(on); audio.play('select'); };
+  t.addEventListener('click', flip);
+  t.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
   return t;
+}
+
+/** A row of choices, one picked (Text size, Reduce motion). */
+function choices<T extends string>(opts: [T, string][], current: T, onPick: (v: T) => void, label: string): HTMLElement {
+  const seg = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': label });
+  for (const [v, name] of opts) {
+    const b = h('button', { class: v === current ? 'active' : '', type: 'button', role: 'radio', 'aria-checked': String(v === current) }, name);
+    b.addEventListener('click', () => {
+      seg.querySelectorAll('button').forEach((x) => { x.classList.toggle('active', x === b); x.setAttribute('aria-checked', String(x === b)); });
+      onPick(v); audio.play('select');
+    });
+    seg.append(b);
+  }
+  return seg;
 }
 
 export function openSettings(): void {
@@ -53,7 +70,13 @@ export function openSettings(): void {
     row('Vibration', haptics.supported
       ? toggle(settings.haptics, (v) => { settings.haptics = v; haptics.enabled = v; saveSettings(settings); if (v) haptics.play('success'); })
       : h('span', { class: 'muted' }, 'Not on this device')),
-    row('Screen shake', toggle(settings.shake, (v) => { settings.shake = v; ui.scene.rig.shakeScale = v ? 1 : 0; saveSettings(settings); if (v) ui.scene.rig.shake(0.15, 0.3); })),
+    row('Screen shake', toggle(settings.shake, (v) => { settings.shake = v; saveSettings(settings); applyAccess(); if (v) ui.scene.rig.shake(0.15, 0.3); })),
+    h('div', { class: 'section-title' }, 'Accessibility'),
+    row('Text size', choices((['normal', 'large', 'larger'] as TextSize[]).map((v) => [v, TEXT_NAME[v]] as [TextSize, string]), textSize(),
+      (v) => { settings.textSize = v; saveSettings(settings); applyAccess(); }, 'Text size')),
+    row('Reduce motion', choices([['auto', 'Auto'], ['on', 'On'], ['off', 'Off']], settings.motion ?? 'auto',
+      (v) => { settings.motion = v; saveSettings(settings); applyAccess(); }, 'Reduce motion')),
+    h('div', { class: 'muted setting-note' }, 'Auto follows your phone. Reduce motion stops bouncing and shaking and keeps sparkles small.'),
     row('Graphics', (() => {
       const seg = h('div', { class: 'segmented' });
       for (const q of ['low', 'medium', 'high'] as Quality[]) {
@@ -126,7 +149,7 @@ export function openSettings(): void {
     button([icon('books'), 'Credits'], () => openCredits(), 'small purple'),
     button([icon('cross'), 'Reset farm'], () => confirmReset(), 'small red'),
   ), h('div', { class: 'muted', style: 'margin-top:10px' }, 'Your farm saves automatically every 30 seconds and whenever you leave.'),
-    h('div', { class: 'muted center settings-version', style: 'margin-top:12px;font-size:12px' }, `Cozy Acres ${APP_VERSION} - ${whereLabel()}`));
+    h('div', { class: 'muted center settings-version', style: 'margin-top:12px;font-size:calc(12px * var(--ts, 1))' }, `Cozy Acres ${APP_VERSION} - ${whereLabel()}`));
   p.open();
 }
 

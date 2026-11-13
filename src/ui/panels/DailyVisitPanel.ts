@@ -56,13 +56,13 @@ export function openVisit(): void {
   const have = game.count(q.item);
   const enough = have >= q.qty;
   p.body.append(
-    h('div', { class: 'visit-head' }, senderBadge(id, 72), h('div', { class: 'grow' }, h('div', { class: 'visit-name' }, v.name), h('div', { class: 'muted', style: 'font-size:15px' }, v.role), heartsLabel(id))),
+    h('div', { class: 'visit-head' }, senderBadge(id, 72), h('div', { class: 'grow' }, h('div', { class: 'visit-name' }, v.name), h('div', { class: 'muted', style: 'font-size:calc(15px * var(--ts, 1))' }, v.role), heartsLabel(id))),
     h('div', { class: 'visit-say' }, askLine(q.item, q.qty)),
     h('div', { class: 'visit-need' }, itemIcon(q.item, 'icon big'),
       h('div', { class: 'grow' },
         h('div', { class: 'title' }, `${q.qty} x ${ITEMS[q.item].name}`),
         h('div', { class: `have ${enough ? 'ok' : 'short'}` }, icon(enough ? 'check' : 'package'), enough ? `You have ${fmt(have)}` : `You have ${fmt(have)}, ${q.qty - have} more needed`))),
-    h('div', { class: 'visit-reward' }, h('span', { class: 'muted', style: 'font-size:15px' }, 'Thank-you:'),
+    h('div', { class: 'visit-reward' }, h('span', { class: 'muted', style: 'font-size:calc(15px * var(--ts, 1))' }, 'Thank-you:'),
       h('span', { class: 'pill' }, icon('coin'), fmt(q.coins)),
       h('span', { class: 'pill' }, icon('xp'), `${fmt(q.xp)} XP`),
       h('span', { class: 'pill' }, icon('heart'), `+${VISIT_POINTS} friendship`)),

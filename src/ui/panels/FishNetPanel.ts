@@ -26,7 +26,7 @@ export function openFishNet(): void {
 
   const tierLine = (): HTMLElement => {
     const t = fishNet.tier(), next = fishNet.nextTier();
-    return h('div', { class: 'muted center', style: 'margin-top:8px;font-size:13px' },
+    return h('div', { class: 'muted center', style: 'margin-top:8px;font-size:calc(13px * var(--ts, 1))' },
       `${t.name}: holds ${t.holds}, keep ${t.keep}, full in ${t.hours} hours.${next && !fishNet.set ? ` Fishing skill ${next.skill}: ${next.name} (holds ${next.holds}, keep ${next.keep}).` : ''}`);
   };
 
@@ -93,7 +93,7 @@ export function openFishNet(): void {
       for (const id of fish) grid.append(fishCard(id, null));
       p.body.append(grid);
     } else p.body.append(h('div', { class: 'center muted', style: 'padding:16px' }, 'Nothing yet. The first fish swims in soon.'));
-    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:13px' }, `You keep up to ${t.keep}; the rest swim away. Net fish are plain and give no XP: the rod is still the way to rare fish and records.`));
+    p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px;font-size:calc(13px * var(--ts, 1))' }, `You keep up to ${t.keep}; the rest swim away. Net fish are plain and give no XP: the rod is still the way to rare fish and records.`));
     p.footer.append(button('Later', () => p.close(), 'grey'),
       button([icon('fish_net'), fish.length ? 'Haul it in' : 'Take it in'], act(() => {
         if (!fish.length) { fishNet.haul([]); ui.feedback.toast('Net taken in', 'The bait is gone, but the net is ready to set again.', 'fish_net'); render(); return; }

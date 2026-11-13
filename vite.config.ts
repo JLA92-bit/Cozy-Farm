@@ -6,6 +6,35 @@ import { VitePWA } from 'vite-plugin-pwa';
 // 1.32 CAP_BUILD=1 (npm run build:app): the copy that goes inside the Android app (Capacitor serves it from the
 // root of https://localhost), without the website's service worker; see android/README.md.
 const app = process.env.CAP_BUILD === '1';
+
+/**
+ * Accessibility (1.47.3): every font-size in the game's CSS follows the Text size setting (`--ts` on <html>, set by
+ * systems/Access.ts), and every `@media (prefers-reduced-motion: reduce)` block also applies under
+ * `html.reduce-motion`, so the in-game Reduce motion setting works whatever the phone says.
+ */
+const accessCss = {
+  postcssPlugin: 'cozy-access',
+  Declaration: {
+    'font-size': (decl: { value: string; important?: boolean }) => {
+      const v = decl.value.trim();
+      if (v.includes('--ts') || !/px/.test(v)) return;
+      decl.value = `calc(${v} * var(--ts, 1))`;
+    },
+  },
+  AtRule: {
+    media: (at: { params: string; nodes?: unknown[]; walkRules: (fn: (r: { selectors: string[] }) => void) => void; replaceWith: (...n: unknown[]) => void; parent?: { type: string } }) => {
+      if (!/prefers-reduced-motion:\s*reduce/.test(at.params) || at.parent?.type !== 'root') return;
+      at.walkRules((r) => {
+        r.selectors = r.selectors.map((s) => {
+          const t = s.trim();
+          if (/^(html|:root)\b/.test(t)) return t.replace(/^(html|:root)/, '$1.reduce-motion');
+          return `html.reduce-motion ${t}`;
+        });
+      });
+      at.replaceWith(...(at.nodes ?? []));
+    },
+  },
+};
 const base = app ? '/' : process.env.BASE_PATH ?? (process.env.NODE_ENV === 'production' ? '/play/' : '/');
 
 export default defineConfig({
@@ -17,6 +46,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   server: { host: true },
+  css: { postcss: { plugins: [accessCss as never] } },
   plugins: [
     VitePWA({
       // the app's files come with the app: no service worker there (the plugin's virtual module becomes a no-op)

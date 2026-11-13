@@ -13,6 +13,8 @@ interface Particle { sprite: THREE.Sprite; vel: THREE.Vector3; life: number; max
 const MAX_PARTICLES = 80;
 
 export class Effects {
+  /** 1.47.3 Reduce motion: fewer, slower particles */
+  static calm = false;
   readonly group = new THREE.Group();
   private particles: Particle[] = [];
   private textures = new Map<string, THREE.Texture>();
@@ -44,6 +46,7 @@ export class Effects {
 
   private spawn(pos: THREE.Vector3, tex: string, color: string, opts: { count: number; speed: number; up: number; size: number; life: number; additive?: boolean; gravity?: number; spread?: number; grow?: number }): void {
     const mat = this.material(tex, color, opts.additive ?? true);
+    if (Effects.calm) opts = { ...opts, count: Math.ceil(opts.count / 3), speed: opts.speed * 0.5, up: opts.up * 0.5 };
     const count = Math.min(opts.count, MAX_PARTICLES - this.particles.length);
     const spread = opts.spread ?? 0.3;
     for (let i = 0; i < count; i++) {

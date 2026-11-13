@@ -230,7 +230,7 @@ export function openStall(): void {
     const now = game.now();
     slots.forEach((s, i) => {
       if (!s.item) {
-        grid.append(h('div', { class: 'card clickable stall-empty', onclick: () => { picking = i; render(); } }, h('div', { class: 'card-title', style: 'font-size:34px' }, '+'), h('div', { class: 'card-sub' }, 'Sell something')));
+        grid.append(h('div', { class: 'card clickable stall-empty', onclick: () => { picking = i; render(); } }, h('div', { class: 'card-title', style: 'font-size:calc(34px * var(--ts, 1))' }, '+'), h('div', { class: 'card-sub' }, 'Sell something')));
         return;
       }
       const isSold = stall.sold(s);
@@ -286,8 +286,8 @@ export function openStall(): void {
     clear(p.body);
     let qty = Math.min(game.count(item), 5);
     let price = stall.priceRange(item, qty)[2];
-    const qtyEl = h('span', { class: 'outlined', style: 'font-size:24px;min-width:40px;text-align:center' });
-    const priceEl = h('span', { class: 'outlined', style: 'font-size:24px;min-width:70px;text-align:center' });
+    const qtyEl = h('span', { class: 'outlined', style: 'font-size:calc(24px * var(--ts, 1));min-width:40px;text-align:center' });
+    const priceEl = h('span', { class: 'outlined', style: 'font-size:calc(24px * var(--ts, 1));min-width:70px;text-align:center' });
     const hint = h('div', { class: 'muted center' });
     const compare = h('div', { class: 'muted center' });
     const presets = h('div', { class: 'segmented stall-presets' });

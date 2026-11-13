@@ -8,10 +8,12 @@ export interface Settings { music: number; sfx: number; haptics: boolean; qualit
   /** The quality the GPU blank-screen check has already passed (or been overridden by the player) at. */
   gpuChecked?: Quality;
   /** 1.10 optional cosmetic season look for the farm ('off' by default) */
-  farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter' }
+  farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter'
+  /** 1.47.3 accessibility: text size (unset: Normal, or the Android app's phone font size), reduce motion (unset: auto) */
+  textSize?: 'normal' | 'large' | 'larger'; motion?: 'auto' | 'on' | 'off' }
 const KEY = 'cozy-acres-settings';
 
-function reducedMotion(): boolean {
+export function reducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
