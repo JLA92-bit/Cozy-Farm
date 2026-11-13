@@ -333,6 +333,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-13: Android app keeps the game's text at 100% (`MainActivity` `setTextZoom(100)`); a large phone Font size blew up every panel. Needs app build 15.
 - 2026-11-11: Cozy Acres live on Google Play production (versionCode 14, game 1.47.2, 177 countries plus rest of world).
 - 2026-11-10: Google Play production access granted; game 1.47.2 as versionCode 13 (open testing) and 14 (production, in review), next build 15.
 - 2026-11-08: 1.47.1 and 1.47.2 pushed: mine lantern 100 swings with top-ups, Plant all above the seed tray.
