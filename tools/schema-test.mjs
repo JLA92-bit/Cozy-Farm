@@ -170,5 +170,86 @@ const gm = (await as(ADM, 'select public.admin_player_gems($1) g', [C]))[0].g;
 ok('admin sees gem spends with totals by kind', gm.total === 8 && gm.byKind.finish === 5 && gm.byKind.grow === 3 && gm.spends.length === 2 && gm.spends[0].on === 'grow:wheat', JSON.stringify(gm));
 ok('players cannot read it', /not admin/.test(await err(() => as(C, 'select public.admin_player_gems($1)', [C])) ?? ''));
 
+// 1.48 friends board: both must say yes; both must give; rewards once each; refunds for unfinished weeks and leaving
+{
+  const D = '00000000-0000-0000-0000-00000000000d', E = '00000000-0000-0000-0000-00000000000e';
+  for (const [id, name] of [[D, 'Dot'], [E, 'Eve']]) {
+    await su(`insert into auth.users (id, is_anonymous) values ($1, false)`, [id]);
+    await as(id, `select public.upsert_profile($1, $2, 5, 1000, 100, 0, 0, '{}'::jsonb)`, [name, `${name} Farm`]);
+  }
+  ok('below the level an invite is refused', /level/.test(await err(() => as(D, 'select public.pair_invite($1)', [E])) ?? ''));
+  await su('update public.profiles set level = 40 where id in ($1, $2)', [D, E]);
+  const inv = (await as(D, 'select public.pair_invite($1) b', [E]))[0].b;
+  ok('an invite waits for a yes', inv.status === 'pending' && inv.invited_by_me === true && inv.tasks.length === 0, JSON.stringify(inv));
+  ok('the invite is hidden from someone who does not list the inviter as a friend', (await as(E, 'select public.pair_list($1) l', [[]]))[0].l.length === 0);
+  ok('the invite shows for a friend', (await as(E, 'select public.pair_list($1) l', [[D]]))[0].l[0]?.invited_by_me === false);
+  ok('inviting again changes nothing', (await as(D, 'select public.pair_invite($1) b', [E]))[0].b.status === 'pending');
+  const act = (await as(E, 'select public.pair_invite($1) b', [D]))[0].b;
+  ok('saying yes starts the board with this week\'s tasks', act.status === 'active' && act.tasks.length === 5 && act.partner.name === 'Dot', JSON.stringify(act));
+  const lv = (await su(`select max((e ->> 'level')::int) m from jsonb_array_elements(public.pair_catalog() -> 'templates') e where e ->> 'item' = any ($1)`, [act.tasks.map((t) => t.item)]))[0].m;
+  ok('tasks fit the lower level', lv <= 40, String(lv));
+  const sameD = (await as(D, 'select public.pair_list($1) l', [[E]]))[0].l[0];
+  ok('both see the same tasks', JSON.stringify(sameD.tasks.map((t) => t.item)) === JSON.stringify(act.tasks.map((t) => t.item)));
+  const t0 = act.tasks[0], part = t0.qty - Math.ceil(t0.qty * 0.25);
+  // D gives as much as allowed: capped at their part
+  let used = 0;
+  for (let left = t0.qty; left > 0 && used < part;) { const n = Math.min(50, left); const r = (await as(D, 'select public.pair_give($1, 0, $2) r', [act.id, n]))[0].r; used += r.used; left -= n; if (r.used < n) break; }
+  ok('one friend gives at most their part', used === part, `${used} vs ${part}`);
+  ok('past their part it is refused', /your part/.test(await err(() => as(D, 'select public.pair_give($1, 0, 1)', [act.id])) ?? ''));
+  const key = '11111111-1111-4111-8111-111111111111';
+  const g1 = (await as(E, 'select public.pair_give($1, 0, 50, $2) r', [act.id, key]))[0].r;
+  const g2 = (await as(E, 'select public.pair_give($1, 0, 50, $2) r', [act.id, key]))[0].r;
+  ok('the other finishes it; a retry with the same key gives once', g1.used === t0.qty - part && g2.used === g1.used && g2.board.tasks[0].done, JSON.stringify(g2.board.tasks[0]));
+  const cD = (await as(D, 'select public.pair_claim() c'))[0].c, cE = (await as(E, 'select public.pair_claim() c'))[0].c;
+  ok('both get one task claim, handed out once', cD.length === 1 && cE.length === 1 && cD[0].kind === 'task' && cD[0].partner === 'Eve' && cE[0].partner === 'Dot'
+    && (await as(D, 'select public.pair_claim() c'))[0].c.length === 0, JSON.stringify([cD, cE]));
+  // half-give task 1, then pretend the week is over: the goods come back
+  const t1 = act.tasks[1];
+  await as(D, 'select public.pair_give($1, 1, 2)', [act.id]);
+  await su(`update public.pair_tasks set week = week - 7 where board = $1`, [act.id]);
+  await su(`update public.pair_gifts set week = week - 7 where board = $1`, [act.id]);
+  const nw = (await as(D, 'select public.pair_list($1) l', [[E]]))[0].l[0];
+  const rf = (await as(D, 'select public.pair_claim() c'))[0].c;
+  ok('a new week brings new tasks and gives back unfinished goods', nw.tasks.length === 5 && nw.tasks.every((t) => t.mine === 0) && rf.length === 1 && rf[0].kind === 'refund' && rf[0].refund[t1.item] === 2, JSON.stringify(rf));
+  ok('finished tasks stay counted', nw.tasks_done === 1);
+  // a full week: every task done pays a full-board claim and the streak
+  for (const t of nw.tasks) {
+    const p2 = t.qty - Math.ceil(t.qty * 0.25);
+    for (let g = 0; g < p2;) g += (await as(D, 'select public.pair_give($1, $2, $3) r', [nw.id, t.idx, Math.min(50, p2 - g)]))[0].r.used;
+    for (let g = 0; g < t.qty - p2;) g += (await as(E, 'select public.pair_give($1, $2, $3) r', [nw.id, t.idx, Math.min(50, t.qty - p2 - g)]))[0].r.used;
+  }
+  const cf = (await as(E, 'select public.pair_claim() c'))[0].c;
+  const after = (await as(E, 'select public.pair_list($1) l', [[D]]))[0].l[0];
+  ok('a full board pays both a full claim and starts a streak', cf.filter((c) => c.kind === 'full').length === 1 && cf.filter((c) => c.kind === 'task').length === 5 && after.full_weeks === 1 && after.streak === 1 && after.tasks_done === 6, JSON.stringify(after));
+  // block: no more giving; leaving refunds; a stranger cannot give
+  ok('a stranger cannot give', /not found/.test(await err(() => as(C, 'select public.pair_give($1, 0, 1)', [nw.id])) ?? ''));
+  await su(`update public.pair_tasks set done_at = null, given_a = 0, given_b = 0 where board = $1 and idx = 0 and week = public.pair_week()`, [nw.id]);
+  await as(E, 'select public.pair_give($1, 0, 3)', [nw.id]);
+  await as(E, 'select public.pair_leave($1)', [nw.id]);
+  const lf = (await as(E, 'select public.pair_claim() c'))[0].c;
+  ok('leaving gives back goods on unfinished tasks', lf.length === 1 && lf[0].kind === 'refund', JSON.stringify(lf));
+  ok('an ended board is gone from the list', (await as(D, 'select public.pair_list($1) l', [[E]]))[0].l.length === 0);
+  ok('giving to an ended board is refused', /closed/.test(await err(() => as(D, 'select public.pair_give($1, 1, 1)', [nw.id])) ?? ''));
+  // pair again (bond kept), give, then E deletes their account: D gets their goods back
+  await as(D, 'select public.pair_invite($1)', [E]);
+  const again = (await as(E, 'select public.pair_invite($1) b', [D]))[0].b;
+  ok('pairing again keeps the bond', again.status === 'active' && again.tasks_done === 6);
+  const it = again.tasks.find((t) => !t.done);
+  ok('an unfinished task starts again from nothing', it && it.mine === 0 && it.theirs === 0, JSON.stringify(it));
+  await as(D, 'select public.pair_claim()');
+  await as(D, 'select public.pair_give($1, $2, 2)', [again.id, it.idx]);
+  await su('delete from auth.users where id = $1', [E]).catch(async () => su('delete from public.profiles where id = $1', [E]));
+  await su('delete from public.profiles where id = $1', [E]);
+  const dl = (await as(D, 'select public.pair_claim() c'))[0].c;
+  ok('a friend deleting their account gives back the other\'s goods', dl.length === 1 && dl[0].kind === 'refund' && dl[0].refund[it.item] === 2, JSON.stringify(dl));
+  ok('players cannot read the tables', /permission denied/.test(await err(() => as(D, 'select * from public.pair_boards')) ?? ''));
+  // limits: at most 3 boards
+  const F = ['f1', 'f2', 'f3', 'f4'].map((s, i) => `00000000-0000-0000-0000-0000000001${i}0`);
+  for (const id of F) { await su(`insert into auth.users (id, is_anonymous) values ($1, false)`, [id]); await as(id, `select public.upsert_profile('X', 'X', 5, 1000, 100, 0, 0, '{}'::jsonb)`); }
+  await su('update public.profiles set level = 40 where id = any ($1)', [F]);
+  for (const id of F.slice(0, 3)) await as(D, 'select public.pair_invite($1)', [id]);
+  ok('a fourth invite is refused', /too many/.test(await err(() => as(D, 'select public.pair_invite($1)', [F[3]])) ?? ''));
+}
+
 console.log(fails ? `${fails} FAILED` : 'all passed');
 process.exit(fails ? 1 : 0);

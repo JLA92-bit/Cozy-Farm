@@ -87,3 +87,15 @@
 .gift-actions .report-btn .icon { width: 20px; height: 20px; }
 .friend-item .clickable { cursor: pointer; }
 .blocked-list { margin-top: 14px; }
+/* 1.48 Friends Board */
+.pb-task { display: flex; gap: 8px; align-items: center; margin-top: 8px; width: 100%; box-sizing: border-box; }
+.pb-task.done .cp-name { text-decoration: line-through; text-decoration-thickness: 2px; }
+.pb-bar { position: relative; display: flex; height: 12px; margin: 3px 0; border: 2px solid var(--outline); border-radius: 7px; overflow: hidden; background: #efe3c4; }
+.pb-me { background: var(--btn-green); }
+.pb-them { background: repeating-linear-gradient(45deg, var(--btn-blue) 0 6px, #7cc4f8 6px 12px); }
+.pb-stats { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.pb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #fde4ee; border: 2px solid var(--outline); font-size: 13px; font-weight: 700; }
+.pb-reward { margin: 2px 0 4px; }
+.pb-foot { display: flex; justify-content: flex-end; margin-top: 8px; width: 100%; }
+.pb-entry { margin-top: 8px; }
+.pb-card .title .pb-lvl { font-size: 13px; font-family: var(--font-body); }

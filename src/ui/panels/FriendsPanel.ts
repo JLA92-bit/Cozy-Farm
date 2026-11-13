@@ -10,6 +10,7 @@ import { tutorial } from '../Tutorial';
 import { COSMETICS, ITEMS } from '../../data';
 import { game } from '../../systems/Game';
 import { audio, haptics } from '../../systems/Audio';
+import { pairs } from '../../systems/Pairs';
 import { social, SOCIAL, type GiftContents } from '../../systems/Social';
 import type { FriendEntry } from '../../systems/State';
 import { online } from '../../online/Online';
@@ -184,6 +185,15 @@ export function openFriends(arg?: { tab?: Tab; code?: string } | string): void {
     p.body.append(h('div', { class: 'name-row add-row' }, input, add));
 
     p.body.append(limitsRow());
+
+    // 1.48 the Friends Board
+    if (pairs.available) {
+      const inv = pairs.invites().length;
+      p.body.append(h('div', { class: 'social-card pb-entry' }, icon('hug'),
+        h('div', { class: 'grow' }, h('div', { class: 'title' }, 'Friends Board'),
+          h('div', { class: 'muted' }, inv ? `${inv} ${inv === 1 ? 'invite' : 'invites'} waiting for your yes` : 'Weekly tasks with a friend. Big XP for both of you.')),
+        button('Open', () => ui.open('pairs'), `small ${inv ? 'green' : 'pink'}`, { 'aria-label': 'Open the Friends Board' })));
+    }
 
     // friends
     const list = social.state.friends;

@@ -1,6 +1,6 @@
 # Cozy Acres - Project guide for Claude
 
-Last updated: 13 November 2026 (game version 1.47.4 local, 1.47.3 pushed 13 Nov, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, live 11 Nov) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
+Last updated: 14 November 2026 (game version 1.48.0 local, 1.47.4 local, 1.47.3 pushed 13 Nov, pushed 8 Nov with 1.45.0-1.47.1; 1.34.3-1.44.0 pushed 1 Nov; **Google Play production access granted**, versionCode 13 (open testing) and 14 (production, live 11 Nov) uploaded 10 Nov with game 1.47.2, next build 15; iPhone app in `ios/`). Owner: Josh Makes Games. Latest handover: `HANDOVER-2026-10-27.md` (state after 1.33.6, open risks, next steps and a ready prompt).
 
 Read this first in any new session. It covers what the project is, where things live, how to build and ship, where the Google Play launch is up to, and the rules that have caught us out before.
 
@@ -24,6 +24,8 @@ Cozy Acres is a mobile-first 3D farming and village builder that runs in the bro
 | Licence | All rights reserved. Third-party art is CC0/MIT etc. (`CREDITS.md`) |
 
 **Leaderboard fair play (local, 17 Oct, server and dashboard only, no game version):** `upsert_profile` caps XP, farm value and charm with time-refilled allowances (token buckets in `profiles.lb_*_budget`), keeps the level within `level_for_xp(total_xp)` (the XP table is in SQL; `validate-data` checks it against `levels.json`, so re-generate it if the XP curve changes) and weekly XP within the XP gained; notes `lb_flag`, hides big jumps and new accounts past level 60 (`lb_hidden`). Dashboard Leaderboards page shows the flag. ONLINE.md "Leaderboard fair play".
+
+**1.48.0 (local, 14 Nov): Friends Board** (ONLINE.md "Friends Board (1.48)", `src/data/pairs.json`). Two friends who both say yes (`pair_invite` from each side; an invite shows only to someone who lists the inviter as a friend) share a board, up to 3 boards a player. Every Monday 00:00 UTC the server picks 5 deliveries for the lower level (`pair_catalog()`, checked by validate-data); one friend gives at most 3/4 of a task. A finished task pays both 10% of their own XP-to-next and half the goods' value in coins, a full week 30% more and 3 Friendship Tokens; bond (every 10 tasks, up to 10) +5% XP a level. Unfinished goods and leaving refund through claims; a deleted account refunds the other (`pair_before_delete`). Server section `1.48 friends board`, game `systems/Pairs.ts`, `online/Pairs.ts`, `ui/panels/PairsPanel.ts` (ui `pairs`; cards in Village and Friends), practice bots in LocalBackend, state `pairs` (tasks, full, pending), game_config `pairs` (dashboard 1.9 page). Privacy page and data-safety.md updated. **Needs `schema.sql` re-run** (and the Play Data safety form checked). Server checks: `NODE_PATH=<dir with pglite> node tools/schema-test.mjs` (85). Debug `__pairs`. 142 regression checks.
 
 **1.47.4 (local, 13 Nov): more accessibility.** Text size has six steps to 200% (`TEXT_SIZES`: normal 1, large 1.15, larger 1.3, largest 1.5, huge 1.75, max 2; A-/A+ stepper in Settings; panel titles stop at 1.4 via `--ts-title`; the app picks the biggest step not past the phone's font). Bars and buttons (`settings.hudSize`, `--hz`: CSS `zoom` on `.hud-layer`; vw in HUD rules is divided by `--hz`; in portrait the dock goes to two rows and the side shortcuts start under the goal card and wrap). Bold text (`bold-text`, Fredoka 600) and High contrast (`high-contrast`: darker ink, solid HUD pills, faded rows less faded). `phone-sweep.mjs` takes `HUD_SIZE`, `BOLD`, `CONTRAST`. Zoom not yet checked on iPhone (WebKit). 137 regression checks. Game only (the 1.47.3 app build is still needed).
 
@@ -337,6 +339,7 @@ At the end of every task, check this file is still accurate. Update it only when
 
 ## 11. Recent changes
 
+- 2026-11-14: 1.48.0 (local): Friends Board, weekly tasks shared by two friends, big XP for both (needs schema.sql).
 - 2026-11-13: 1.47.4 (local): Text size to 200%, Bars and buttons size, Bold text, High contrast.
 - 2026-11-13: 1.47.3 (local): accessibility (Text size, Reduce motion, ticks and dashed edges, 48 px tap areas); Android web view kept at 100%. Needs app build 15.
 - 2026-11-11: Cozy Acres live on Google Play production (versionCode 14, game 1.47.2, 177 countries plus rest of world).
@@ -346,7 +349,3 @@ At the end of every task, check this file is still accurate. Update it only when
 - 2026-11-08: 1.47.0 (local, not pushed): Colour and Lanterns, levels 161-180, Dye Works, dye paints, 16 decor in four sets.
 - 2026-11-08: 1.46.1 (local, not pushed): item log, every barn change with its reason, dashboard Item history tab (needs schema.sql).
 - 2026-11-06: 1.46.0 (local, not pushed): Bean and Spice, levels 141-160 (crops, trees, Chocolatier, Coffee Roastery, 26 recipes).
-- 2026-11-05: 1.45.0 (local): Thoughtful Parcels, need-based crate items, guardrail that need-based offers are never sold.
-- 2026-11-01: 1.34.3-1.44.0 (local, not pushed): QOL batch and the whole end-game plan (skills 20, upgrades, Sunken Halls, Grand Mastery, New Stock, Farmhouse 20, favours, Far Reaches, Stargazing, Gold Collection, Village Fair).
-- 2026-10-30: 1.34.1 pushed; 1.34.2 (local): fishing top bar wraps on narrow phones (the net chip pushed Close off).
-- 2026-10-29: 1.34.1 (local): version and where you play shown at the bottom of Settings.

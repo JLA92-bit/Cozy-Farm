@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { coop } from '../../systems/Coop';
+import { pairs } from '../../systems/Pairs';
 import { currentStageOf, estateStarted } from '../../systems/Estate';
 import { Panel } from '../Panel';
 import { h, icon, itemIcon, button, clear, fmt } from '../dom';
@@ -109,6 +110,14 @@ export function openVillage(arg?: { villager?: string }): void {
         h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Village Projects'),
           h('div', { class: 'v-intro-text' }, mine ? `Hosting: ${coop.def(mine.kind)?.name ?? 'a project'}${fr ? `. ${fr} from friends` : ''}` : fr ? `${fr} ${fr === 1 ? 'project' : 'projects'} from friends to help with` : 'Build something together with your friends')),
         button([icon('hug'), 'Open'], () => ui.open('coop'), 'pink small', { 'aria-label': 'Open Village Projects' })));
+    }
+    // 1.48: the Friends Board (weekly tasks with a friend)
+    if (pairs.available && ui.has('pairs')) {
+      const inv = pairs.invites().length, act = pairs.active().length, can = pairs.canGive();
+      p.body.append(h('div', { class: 'v-square' }, icon('hug', 'icon'),
+        h('div', { class: 'grow' }, h('div', { class: 'v-intro-title' }, 'Friends Board'),
+          h('div', { class: 'v-intro-text' }, inv ? `${inv} ${inv === 1 ? 'friend wants' : 'friends want'} to team up` : act ? `${act} ${act === 1 ? 'board' : 'boards'}${can ? `, ${can} ${can === 1 ? 'task' : 'tasks'} you can give to` : ''}` : 'Weekly tasks with a friend, big XP for both')),
+        button([icon('hug'), 'Open'], () => ui.open('pairs'), 'pink small', { 'aria-label': 'Open the Friends Board' })));
     }
     // 1.26: the Estate Projects (the Clock Tower and the Lighthouse), from level 70
     if (game.level >= ESTATE[0].opensAt && ui.has('estate')) {

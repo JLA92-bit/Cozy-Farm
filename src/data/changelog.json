@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.48.0",
+   "date": "2026-11-14",
+   "title": "Better Together",
+   "icon": "hug",
+   "color": "pink",
+   "highlights": [
+    {
+     "icon": "hug",
+     "text": "The Friends Board: team up with up to 3 friends who add you back. Each week you share 5 deliveries and both of you give to every one"
+    },
+    {
+     "icon": "star",
+     "text": "Every finished task pays you both big XP and coins; finish the whole board for even more XP and Friendship Tokens"
+    },
+    {
+     "icon": "heart",
+     "text": "Your bond grows with every task you finish together, adding up to 50% more XP. Goods on unfinished tasks always come back"
+    }
+   ]
+  },
+  {
    "version": "1.47.4",
    "date": "2026-11-13",
    "title": "Bigger and bolder",

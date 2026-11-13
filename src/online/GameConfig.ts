@@ -7,6 +7,7 @@ import { online } from './Online';
 
 export interface GameConfig {
   marketDay: number | null; weather: { date: string; kind: string } | null; upkeep: number; /** 1.28 co-op Village Projects on (default) or off */ coop: boolean;
+  /** 1.48 Friends Board on (default) or off */ pairs: boolean;
   /** 1.33.3 the lowest app version that may still play, per store app (src/ui/UpdatePrompt.ts) */
   appMin: { android?: string; ios?: string };
 }
@@ -23,13 +24,14 @@ function clean(raw: Record<string, unknown>): GameConfig {
   return {
     appMin: { android: ver(am.android), ios: ver(am.ios) },
     coop: raw.coop !== false,
+    pairs: raw.pairs !== false,
     upkeep: typeof up === 'number' && Number.isFinite(up) ? Math.max(0, Math.min(2, up)) : 1,
     marketDay: typeof md === 'number' && Number.isInteger(md) && md >= 0 && md <= 6 ? md : null,
     weather: w && typeof w.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(w.date) && typeof w.kind === 'string' && KINDS.includes(w.kind) ? { date: w.date, kind: w.kind } : null,
   };
 }
 
-export const gameConfig: GameConfig = { marketDay: null, weather: null, upkeep: 1, coop: true, appMin: {} };
+export const gameConfig: GameConfig = { marketDay: null, weather: null, upkeep: 1, coop: true, pairs: true, appMin: {} };
 
 try { const saved = localStorage.getItem(KEY); if (saved) Object.assign(gameConfig, clean(JSON.parse(saved))); } catch { /* defaults */ }
 

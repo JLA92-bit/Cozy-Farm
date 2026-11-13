@@ -3349,12 +3349,13 @@ as $$
 declare
   v_admin text := public.admin_guard();
 begin
-  if p_key not in ('market_day', 'weather', 'upkeep', 'coop', 'app_min') then raise exception 'unknown setting'; end if;
+  if p_key not in ('market_day', 'weather', 'upkeep', 'coop', 'pairs', 'app_min') then raise exception 'unknown setting'; end if;
   if p_value is null or jsonb_typeof(p_value) = 'null' then
     delete from public.game_config where key = p_key;
   else
     if p_key = 'market_day' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::integer between 0 and 6) then raise exception 'market_day must be 0-6'; end if;
     if p_key = 'coop' and jsonb_typeof(p_value) <> 'boolean' then raise exception 'coop must be true or false'; end if;
+    if p_key = 'pairs' and jsonb_typeof(p_value) <> 'boolean' then raise exception 'pairs must be true or false'; end if;
     if p_key = 'upkeep' and not (jsonb_typeof(p_value) = 'number' and (p_value #>> '{}')::numeric between 0 and 2) then raise exception 'upkeep must be 0-2'; end if;
     if p_key = 'weather' and not (jsonb_typeof(p_value) = 'object' and (p_value ->> 'date') ~ '^\d{4}-\d{2}-\d{2}$' and (p_value ->> 'kind') in ('sunny', 'rain', 'mist')) then raise exception 'weather needs a date and a kind'; end if;
     -- 1.33.3 the lowest app version that may still play (src/ui/UpdatePrompt.ts): {"android": "1.33.3", "ios": "1.33.3"}, either or both
@@ -5061,3 +5062,465 @@ $$;
 
 revoke all on function public.admin_player_items(uuid, text, integer, text) from public, anon;
 grant execute on function public.admin_player_items(uuid, text, integer, text) to authenticated;
+
+-- ===== 1.48 friends board =====
+-- "Friends Board" (1.48, src/systems/Pairs.ts, src/data/pairs.json). Two players who both say yes share a board: one
+-- invites a friend from their device's friend list (pair_invite), the other says yes the same way, naming the first
+-- (so both have the other as a friend). A player has at most `partners` boards, invites they sent included.
+-- Every week (Monday 00:00 UTC) an active board gets `tasks` deliveries picked from pair_catalog() for the lower of
+-- the two levels. Both must give to every task: one friend gives at most qty - ceil(qty x share). A finished task
+-- gives each friend a claim (the game pays XP and coins from it), and a full board one more (XP and tokens). The
+-- bond (tasks_done / 10, at most 10) is sent with each claim. Same trust model as co-op projects: the giver's game
+-- takes the goods out before pair_give() and puts back what the server did not use; p_key makes a retry safe.
+-- Nothing is lost: goods given to a task that is not finished by the end of its week, or when a friend leaves, come
+-- back to whoever gave them as a refund claim. Clients cannot read the tables; everything goes through the functions.
+-- Deleting an account ends its boards and refunds the other friend first (pair_before_delete).
+-- The catalog is the server's own copy: validate-data checks pair_catalog() against src/data/pairs.json.
+-- game_config 'pairs' = false switches it off.
+
+create table if not exists public.pair_boards (
+  id          uuid primary key default gen_random_uuid(),
+  a           uuid not null references public.profiles (id) on delete cascade,
+  b           uuid not null references public.profiles (id) on delete cascade,
+  a_ok        boolean not null default false,
+  b_ok        boolean not null default false,
+  status      text not null default 'pending' check (status in ('pending', 'active', 'ended')),
+  invited_by  uuid,
+  created_at  timestamptz not null default now(),
+  started_at  timestamptz,
+  ended_at    timestamptz,
+  tasks_done  integer not null default 0,
+  full_weeks  integer not null default 0,
+  streak      integer not null default 0,
+  last_full   date,
+  check (a < b),
+  unique (a, b)
+);
+
+create table if not exists public.pair_tasks (
+  board     uuid not null references public.pair_boards (id) on delete cascade,
+  week      date not null,
+  idx       smallint not null check (idx between 0 and 9),
+  item      text not null check (item ~ '^[a-z0-9_]{1,40}$'),
+  qty       integer not null check (qty between 1 and 1000),
+  given_a   integer not null default 0,
+  given_b   integer not null default 0,
+  done_at   timestamptz,
+  settled   boolean not null default false,
+  primary key (board, week, idx)
+);
+
+create table if not exists public.pair_gifts (
+  id      uuid primary key default gen_random_uuid(),
+  board   uuid not null references public.pair_boards (id) on delete cascade,
+  week    date not null,
+  idx     smallint not null,
+  giver   uuid not null references public.profiles (id) on delete cascade,
+  item    text not null,
+  qty     integer not null check (qty between 1 and 50),
+  at      timestamptz not null default now(),
+  refunded boolean not null default false
+);
+alter table public.pair_gifts add column if not exists refunded boolean not null default false;
+
+-- one row per thing to hand over: a finished task, a full board, or a refund of exactly what was given
+create table if not exists public.pair_claims (
+  id            uuid primary key default gen_random_uuid(),
+  member        uuid not null references public.profiles (id) on delete cascade,
+  board         uuid references public.pair_boards (id) on delete set null,
+  partner_name  text not null check (char_length(partner_name) between 1 and 24),
+  kind          text not null check (kind in ('task', 'full', 'refund')),
+  week          date,
+  item          text,
+  qty           integer,
+  bond          integer not null default 0,
+  refund        jsonb,
+  created_at    timestamptz not null default now(),
+  claimed_at    timestamptz
+);
+
+create index if not exists pair_boards_a_idx          on public.pair_boards (a);
+create index if not exists pair_boards_b_idx          on public.pair_boards (b);
+create index if not exists pair_tasks_open_idx        on public.pair_tasks (week) where not settled and done_at is null;
+create index if not exists pair_gifts_board_idx       on public.pair_gifts (board, week, idx);
+create index if not exists pair_gifts_giver_idx       on public.pair_gifts (giver, at desc);
+create index if not exists pair_claims_unclaimed_idx  on public.pair_claims (member) where claimed_at is null;
+create index if not exists pair_claims_created_idx    on public.pair_claims (created_at);
+
+alter table public.pair_boards enable row level security;
+alter table public.pair_tasks  enable row level security;
+alter table public.pair_gifts  enable row level security;
+alter table public.pair_claims enable row level security;
+revoke all on public.pair_boards, public.pair_tasks, public.pair_gifts, public.pair_claims from anon, authenticated, public;
+
+-- The server's copy of the rules and task templates. Keep in step with src/data/pairs.json (validate-data checks it).
+create or replace function public.pair_catalog()
+returns jsonb
+language sql
+immutable
+set search_path = ''
+as $$
+  select '{"level":15,"partners":3,"tasks":5,"maxGive":50,"givesPerDay":60,"share":0.25,"templates":[{"item":"wheat","qty":80,"level":1},{"item":"corn","qty":72,"level":2},{"item":"egg","qty":22,"level":2},{"item":"carrot","qty":58,"level":3},{"item":"bread","qty":20,"level":4},{"item":"turnip","qty":50,"level":4},{"item":"sugarcane","qty":46,"level":5},{"item":"apple","qty":26,"level":6},{"item":"milk","qty":20,"level":6},{"item":"cream","qty":14,"level":7},{"item":"tomato","qty":42,"level":7},{"item":"cotton","qty":38,"level":8},{"item":"wool","qty":16,"level":9},{"item":"berry_tart","qty":6,"level":10},{"item":"strawberry","qty":38,"level":10},{"item":"cherry","qty":28,"level":11},{"item":"pumpkin","qty":34,"level":12},{"item":"grapes","qty":26,"level":13},{"item":"truffle","qty":16,"level":13},{"item":"cabbage","qty":32,"level":14},{"item":"cheese","qty":8,"level":14},{"item":"pear","qty":26,"level":15},{"item":"onion","qty":32,"level":16},{"item":"apple_jam","qty":8,"level":17},{"item":"goat_milk","qty":16,"level":17},{"item":"beet","qty":32,"level":18},{"item":"orange","qty":26,"level":19},{"item":"eggplant","qty":30,"level":20},{"item":"goat_cheese","qty":6,"level":20},{"item":"angora","qty":16,"level":21},{"item":"grape_jam","qty":8,"level":23},{"item":"pepper","qty":30,"level":23},{"item":"duck_egg","qty":16,"level":24},{"item":"lemon","qty":28,"level":24},{"item":"apple_juice","qty":16,"level":26},{"item":"broccoli","qty":30,"level":26},{"item":"banana","qty":26,"level":27},{"item":"watermelon","qty":28,"level":29},{"item":"blueberry","qty":26,"level":30},{"item":"cherry_jam","qty":10,"level":30},{"item":"coconut","qty":24,"level":30},{"item":"radish","qty":26,"level":33},{"item":"baguette","qty":18,"level":34},{"item":"cauliflower","qty":26,"level":37},{"item":"lavender","qty":22,"level":38},{"item":"pea","qty":26,"level":38},{"item":"salsa","qty":10,"level":38},{"item":"chocolate","qty":16,"level":41},{"item":"sunflower","qty":20,"level":41},{"item":"potato","qty":20,"level":43},{"item":"pineapple","qty":16,"level":45},{"item":"pineapple_juice","qty":4,"level":46},{"item":"leek","qty":16,"level":47},{"item":"mushroom","qty":14,"level":51},{"item":"muffin","qty":10,"level":52},{"item":"giant_pumpkin","qty":12,"level":54},{"item":"watermelon_juice","qty":6,"level":55},{"item":"hot_chocolate","qty":4,"level":64},{"item":"lollipop","qty":4,"level":68},{"item":"caramel_popcorn","qty":6,"level":74},{"item":"avocado","qty":14,"level":81},{"item":"avocado_toast","qty":4,"level":82},{"item":"celery","qty":14,"level":84},{"item":"lettuce","qty":14,"level":87},{"item":"golden_pumpkin","qty":12,"level":90},{"item":"gingerbread","qty":6,"level":92},{"item":"rice","qty":12,"level":101},{"item":"peach","qty":32,"level":103},{"item":"rice_pudding","qty":4,"level":104},{"item":"tea_leaf","qty":12,"level":104},{"item":"garlic","qty":12,"level":105},{"item":"mint_tea","qty":6,"level":107},{"item":"plum","qty":30,"level":108},{"item":"chai","qty":4,"level":110},{"item":"sweet_potato","qty":12,"level":110},{"item":"rose","qty":12,"level":112},{"item":"iced_tea","qty":4,"level":113},{"item":"olive","qty":28,"level":114},{"item":"cranberry","qty":12,"level":116},{"item":"wildflower_bouquet","qty":20,"level":116},{"item":"peach_sorbet","qty":8,"level":120},{"item":"goose_egg","qty":40,"level":121},{"item":"alpaca_wool","qty":40,"level":125},{"item":"goose_egg_quiche","qty":8,"level":129},{"item":"clotted_cream","qty":40,"level":130},{"item":"alpaca_yarn","qty":12,"level":132},{"item":"clotted_cream_scones","qty":12,"level":135},{"item":"zucchini","qty":12,"level":141},{"item":"cocoa_pod","qty":12,"level":142},{"item":"dark_chocolate","qty":6,"level":143},{"item":"fig","qty":32,"level":145},{"item":"chocolate_truffles","qty":4,"level":146},{"item":"coffee_bean","qty":12,"level":147},{"item":"espresso","qty":4,"level":149},{"item":"chilli","qty":12,"level":151},{"item":"almond","qty":30,"level":152},{"item":"almond_biscotti","qty":8,"level":153},{"item":"kiwi","qty":12,"level":155},{"item":"almond_latte","qty":4,"level":156},{"item":"saffron","qty":12,"level":158},{"item":"indigo","qty":12,"level":161},{"item":"indigo_dye","qty":6,"level":162},{"item":"madder_root","qty":12,"level":164},{"item":"blue_yarn","qty":4,"level":165},{"item":"marigold","qty":12,"level":167},{"item":"marigold_dye","qty":6,"level":168},{"item":"gold_yarn","qty":4,"level":172}]}'::jsonb;
+$$;
+
+create or replace function public.pairs_enabled()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select (c.value #>> '{}')::boolean from public.game_config c where c.key = 'pairs' and jsonb_typeof(c.value) = 'boolean'), true);
+$$;
+
+-- This week (Monday, UTC).
+create or replace function public.pair_week()
+returns date
+language sql
+stable
+set search_path = ''
+as $$
+  select date_trunc('week', now() at time zone 'utc')::date;
+$$;
+
+-- Internal: refund every giver of a board's tasks that are not finished (p_all: this week's too, when the board ends;
+-- otherwise only past weeks). Refunded gifts are marked, so nothing is given back twice. Past weeks' tasks are then
+-- settled; this week's start again from nothing (a board that pairs up again this week finds them empty). Only
+-- givers whose account still exists get a claim.
+create or replace function public.pair_settle(p_board uuid, p_all boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  r public.pair_boards;
+  v_week date := public.pair_week();
+begin
+  select x.* into r from public.pair_boards x where x.id = p_board;
+  if not found then return; end if;
+  insert into public.pair_claims (member, board, partner_name, kind, week, refund)
+  select g.giver, p_board,
+         coalesce((select public.clean_text(p.name, 24, 'Farmer') from public.profiles p where p.id = case when g.giver = r.a then r.b else r.a end), 'Farmer'),
+         'refund', g.week, jsonb_object_agg(g.item, g.n)
+    from (select x.giver, x.week, x.item, sum(x.qty)::integer as n
+            from public.pair_gifts x
+            join public.pair_tasks t on t.board = x.board and t.week = x.week and t.idx = x.idx
+           where x.board = p_board and not x.refunded and t.done_at is null and not t.settled and (p_all or t.week < v_week)
+           group by 1, 2, 3) g
+   where exists (select 1 from public.profiles p where p.id = g.giver)
+   group by g.giver, g.week;
+  update public.pair_gifts x set refunded = true
+    from public.pair_tasks t
+   where t.board = x.board and t.week = x.week and t.idx = x.idx
+     and x.board = p_board and not x.refunded and t.done_at is null and not t.settled and (p_all or t.week < v_week);
+  update public.pair_tasks t set settled = true where t.board = p_board and t.done_at is null and not t.settled and t.week < v_week;
+  if p_all then update public.pair_tasks t set given_a = 0, given_b = 0 where t.board = p_board and t.done_at is null and t.week = v_week; end if;
+end;
+$$;
+
+-- Internal, cheap and bounded: refund past weeks' unfinished tasks, end invites nobody answered in 14 days, forget
+-- old tasks, gifts and claims.
+create or replace function public.pair_cleanup()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  for v_id in select distinct t.board from public.pair_tasks t where t.done_at is null and not t.settled and t.week < public.pair_week() limit 200
+  loop
+    perform public.pair_settle(v_id, false);
+  end loop;
+  update public.pair_boards x set status = 'ended', ended_at = now(), a_ok = false, b_ok = false
+   where x.id in (select y.id from public.pair_boards y where y.status = 'pending' and y.created_at < now() - interval '14 days' limit 200);
+  delete from public.pair_tasks t where (t.board, t.week, t.idx) in (select y.board, y.week, y.idx from public.pair_tasks y where y.week < public.pair_week() - 56 and (y.settled or y.done_at is not null) limit 500);
+  delete from public.pair_gifts g where g.id in (select y.id from public.pair_gifts y where y.week < public.pair_week() - 56 limit 500);
+  delete from public.pair_claims c where c.id in (select y.id from public.pair_claims y
+    where (y.claimed_at is not null and y.claimed_at < now() - interval '60 days') or y.created_at < now() - interval '180 days' limit 500);
+end;
+$$;
+
+-- Internal: a board that is deleted (a friend deleted their account) refunds the other friend's goods first.
+create or replace function public.pair_before_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if old.status = 'active' then perform public.pair_settle(old.id, true); end if;
+  return old;
+end;
+$$;
+drop trigger if exists pair_boards_refund on public.pair_boards;
+create trigger pair_boards_refund before delete on public.pair_boards for each row execute function public.pair_before_delete();
+
+-- Internal: make this week's tasks for an active board (once), for the lower of the two levels.
+create or replace function public.pair_make_week(p_board uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  r public.pair_boards;
+  v_week date := public.pair_week();
+  v_lvl integer;
+  v_n integer;
+begin
+  select x.* into r from public.pair_boards x where x.id = p_board;
+  if not found or r.status <> 'active' then return; end if;
+  if exists (select 1 from public.pair_tasks t where t.board = p_board and t.week = v_week) then return; end if;
+  select least(coalesce(min(p.level), 1), 999) into v_lvl from public.profiles p where p.id in (r.a, r.b);
+  select count(*) into v_n from jsonb_array_elements(public.pair_catalog() -> 'templates') e
+   where (e ->> 'level')::integer <= v_lvl and (e ->> 'level')::integer > v_lvl - 60;
+  insert into public.pair_tasks (board, week, idx, item, qty)
+  select p_board, v_week, (row_number() over (order by md5(p_board::text || v_week::text || s.item)) - 1)::smallint, s.item, s.qty
+    from (select e ->> 'item' as item, (e ->> 'qty')::integer as qty
+            from jsonb_array_elements(public.pair_catalog() -> 'templates') e
+           where (e ->> 'level')::integer <= v_lvl and (v_n < 8 or (e ->> 'level')::integer > v_lvl - 60)
+           order by md5(p_board::text || v_week::text || (e ->> 'item'))
+           limit (public.pair_catalog() ->> 'tasks')::integer) s
+  on conflict do nothing;
+end;
+$$;
+
+-- Internal: a board as the caller sees it.
+create or replace function public.pair_view(r public.pair_boards, p_uid uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'id', r.id, 'status', r.status,
+    'partner', jsonb_build_object('id', case when p_uid = r.a then r.b else r.a end,
+       'name', coalesce((select public.clean_text(p.name, 24, 'Farmer') from public.profiles p where p.id = case when p_uid = r.a then r.b else r.a end), 'Farmer'),
+       'level', (select p.level from public.profiles p where p.id = case when p_uid = r.a then r.b else r.a end)),
+    'invited_by_me', r.invited_by = p_uid,
+    'tasks_done', r.tasks_done, 'full_weeks', r.full_weeks, 'streak', r.streak, 'last_full', r.last_full,
+    'started_at', r.started_at, 'week', public.pair_week(),
+    'tasks', coalesce((select jsonb_agg(jsonb_build_object('idx', t.idx, 'item', t.item, 'qty', t.qty,
+                'mine', case when p_uid = r.a then t.given_a else t.given_b end,
+                'theirs', case when p_uid = r.a then t.given_b else t.given_a end,
+                'done', t.done_at is not null) order by t.idx)
+              from public.pair_tasks t where t.board = r.id and t.week = public.pair_week()), '[]'::jsonb));
+$$;
+
+-- Invite p_friend (a friend from your device) to share a board, or say yes to their invite. Returns the board.
+create or replace function public.pair_invite(p_friend uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_level integer;
+  v_a uuid;
+  v_b uuid;
+  r public.pair_boards;
+  v_max integer := (public.pair_catalog() ->> 'partners')::integer;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
+  if not public.pairs_enabled() then raise exception 'switched off'; end if;
+  if p_friend is null or p_friend = uid then raise exception 'not found'; end if;
+  select p.level into v_level from public.profiles p where p.id = uid for update; -- serialises this player
+  if not found then raise exception 'no profile'; end if;
+  if coalesce(v_level, 1) < (public.pair_catalog() ->> 'level')::integer then raise exception 'level'; end if;
+  if not exists (select 1 from public.profiles p where p.id = p_friend) then raise exception 'not found'; end if;
+  perform public.assert_not_blocked(uid, p_friend);
+  v_a := least(uid, p_friend); v_b := greatest(uid, p_friend);
+  select x.* into r from public.pair_boards x where x.a = v_a and x.b = v_b for update;
+  if found and r.status = 'active' then return public.pair_view(r, uid); end if;
+  if found and r.status = 'pending' and r.invited_by is not null and r.invited_by <> uid then
+    -- saying yes: both have the other as a friend now
+    if (select count(*) from public.pair_boards x where (x.a = uid or x.b = uid) and x.id <> r.id
+          and (x.status = 'active' or (x.status = 'pending' and x.invited_by = uid))) >= v_max then raise exception 'too many'; end if;
+    if (select count(*) from public.pair_boards x where (x.a = p_friend or x.b = p_friend) and x.id <> r.id and x.status = 'active') >= v_max then raise exception 'partner full'; end if;
+    update public.pair_boards x set status = 'active', a_ok = true, b_ok = true, started_at = now(), ended_at = null where x.id = r.id returning * into r;
+    perform public.pair_make_week(r.id);
+    return public.pair_view(r, uid);
+  end if;
+  if found and r.status = 'pending' then return public.pair_view(r, uid); end if;
+  if (select count(*) from public.pair_boards x where (x.a = uid or x.b = uid)
+        and (x.status = 'active' or (x.status = 'pending' and x.invited_by = uid))) >= v_max then raise exception 'too many'; end if;
+  if found then
+    -- an ended board starts again as an invite; the bond is kept
+    update public.pair_boards x set status = 'pending', invited_by = uid, a_ok = (uid = x.a), b_ok = (uid = x.b), created_at = now(), ended_at = null
+     where x.id = r.id returning * into r;
+  else
+    insert into public.pair_boards (a, b, a_ok, b_ok, invited_by) values (v_a, v_b, uid = v_a, uid = v_b, uid) returning * into r;
+  end if;
+  return public.pair_view(r, uid);
+end;
+$$;
+
+-- The caller's boards: active ones (with this week's tasks), invites they sent, and invites from these friends
+-- (ids from their device, at most 100: an invite from someone who is not their friend stays hidden).
+create or replace function public.pair_list(p_ids uuid[] default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_id uuid;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  if p_ids is not null and cardinality(p_ids) > 100 then raise exception 'too many friends'; end if;
+  perform public.pair_cleanup();
+  for v_id in select x.id from public.pair_boards x where (x.a = uid or x.b = uid) and x.status = 'active' loop
+    perform public.pair_make_week(v_id);
+  end loop;
+  return coalesce((select jsonb_agg(public.pair_view(x, uid) order by x.status, x.started_at nulls last, x.created_at)
+    from public.pair_boards x
+   where (x.a = uid or x.b = uid)
+     and not public.blocked_between(x.a, x.b)
+     and (x.status = 'active' or (x.status = 'pending' and (x.invited_by = uid or x.invited_by = any (coalesce(p_ids, '{}'::uuid[])))))), '[]'::jsonb);
+end;
+$$;
+
+-- Give up to p_qty (1-50) to task p_idx of this week on a board you share. Never more than is still needed, and
+-- never more than your part (qty - ceil(qty x share)): returns {used, board}. When the task is full, both friends
+-- get a claim; when every task of the week is full, a full-board claim too. p_key makes a retry safe.
+create or replace function public.pair_give(p_board uuid, p_idx integer, p_qty integer, p_key uuid default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.pair_boards;
+  t public.pair_tasks;
+  v_week date := public.pair_week();
+  v_mine integer;
+  v_left integer;
+  v_part integer;
+  v_used integer;
+  v_bond integer;
+  v_partner uuid;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.assert_not_locked(uid);
+  if not public.pairs_enabled() then raise exception 'switched off'; end if;
+  if p_qty is null or p_qty < 1 or p_qty > (public.pair_catalog() ->> 'maxGive')::integer then raise exception 'bad qty'; end if;
+  perform 1 from public.profiles p where p.id = uid for update; -- serialises this giver
+  if not found then raise exception 'no profile'; end if;
+  select x.* into r from public.pair_boards x where x.id = p_board and (x.a = uid or x.b = uid) for update;
+  if not found then raise exception 'not found'; end if;
+  v_partner := case when uid = r.a then r.b else r.a end;
+  if p_key is not null then
+    select g.qty into v_used from public.pair_gifts g where g.id = p_key and g.giver = uid and g.board = r.id;
+    if found then return jsonb_build_object('used', v_used, 'board', public.pair_view(r, uid)); end if;
+  end if;
+  if r.status <> 'active' then raise exception 'closed'; end if;
+  perform public.assert_not_blocked(uid, v_partner);
+  select x.* into t from public.pair_tasks x where x.board = r.id and x.week = v_week and x.idx = p_idx for update;
+  if not found then raise exception 'not found'; end if;
+  if t.done_at is not null then raise exception 'not needed'; end if;
+  if (select count(*) from public.pair_gifts x where x.giver = uid and x.at > now() - interval '1 day') >= (public.pair_catalog() ->> 'givesPerDay')::integer then raise exception 'too many today'; end if;
+  v_mine := case when uid = r.a then t.given_a else t.given_b end;
+  v_part := t.qty - ceil(t.qty * (public.pair_catalog() ->> 'share')::numeric)::integer;
+  v_left := least(t.qty - t.given_a - t.given_b, v_part - v_mine);
+  if v_left <= 0 then raise exception 'your part'; end if;
+  v_used := least(p_qty, v_left);
+  insert into public.pair_gifts (id, board, week, idx, giver, item, qty) values (coalesce(p_key, gen_random_uuid()), r.id, v_week, t.idx, uid, t.item, v_used);
+  update public.pair_tasks x set given_a = x.given_a + case when uid = r.a then v_used else 0 end, given_b = x.given_b + case when uid = r.b then v_used else 0 end
+   where x.board = r.id and x.week = v_week and x.idx = t.idx returning * into t;
+  if t.given_a + t.given_b >= t.qty then
+    update public.pair_tasks x set done_at = now() where x.board = r.id and x.week = v_week and x.idx = t.idx;
+    v_bond := least(10, r.tasks_done / 10);
+    insert into public.pair_claims (member, board, partner_name, kind, week, item, qty, bond)
+    select m, r.id, coalesce((select public.clean_text(p.name, 24, 'Farmer') from public.profiles p where p.id = case when m = r.a then r.b else r.a end), 'Farmer'),
+           'task', v_week, t.item, t.qty, v_bond
+      from unnest(array[r.a, r.b]) m;
+    update public.pair_boards x set tasks_done = x.tasks_done + 1 where x.id = r.id returning * into r;
+    if not exists (select 1 from public.pair_tasks x where x.board = r.id and x.week = v_week and x.done_at is null) then
+      insert into public.pair_claims (member, board, partner_name, kind, week, bond)
+      select m, r.id, coalesce((select public.clean_text(p.name, 24, 'Farmer') from public.profiles p where p.id = case when m = r.a then r.b else r.a end), 'Farmer'),
+             'full', v_week, v_bond
+        from unnest(array[r.a, r.b]) m;
+      update public.pair_boards x set full_weeks = x.full_weeks + 1,
+             streak = case when x.last_full = v_week - 7 then x.streak + 1 when x.last_full = v_week then x.streak else 1 end, last_full = v_week
+       where x.id = r.id returning * into r;
+    end if;
+  end if;
+  return jsonb_build_object('used', v_used, 'board', public.pair_view(r, uid));
+end;
+$$;
+
+-- Leave a board you share (or take back an invite, or say no to one). Goods given to this week's unfinished tasks
+-- come back to whoever gave them. The bond is kept if you pair up again.
+create or replace function public.pair_leave(p_board uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  r public.pair_boards;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  select x.* into r from public.pair_boards x where x.id = p_board and (x.a = uid or x.b = uid) for update;
+  if not found then raise exception 'not found'; end if;
+  if r.status = 'ended' then return; end if;
+  perform public.pair_settle(r.id, true);
+  update public.pair_boards x set status = 'ended', ended_at = now(), a_ok = false, b_ok = false where x.id = r.id;
+end;
+$$;
+
+-- Hand the caller's waiting claims over, each exactly once.
+create or replace function public.pair_claim()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+  v_out jsonb := '[]'::jsonb;
+  c record;
+begin
+  if uid is null then raise exception 'not signed in'; end if;
+  perform public.pair_cleanup();
+  for c in
+    update public.pair_claims x set claimed_at = now()
+     where x.id in (select y.id from public.pair_claims y where y.member = uid and y.claimed_at is null order by y.created_at limit 50)
+    returning x.id, x.board, x.partner_name, x.kind, x.week, x.item, x.qty, x.bond, x.refund, x.created_at
+  loop
+    v_out := v_out || jsonb_build_array(jsonb_build_object('id', c.id, 'board', c.board, 'partner', c.partner_name, 'kind', c.kind,
+      'week', c.week, 'item', c.item, 'qty', c.qty, 'bond', c.bond, 'refund', c.refund, 'at', c.created_at));
+  end loop;
+  return v_out;
+end;
+$$;
+
+revoke all on function public.pair_catalog() from public;
+revoke all on function public.pairs_enabled() from public, anon, authenticated;
+revoke all on function public.pair_week() from public, anon;
+revoke all on function public.pair_settle(uuid, boolean) from public, anon, authenticated;
+revoke all on function public.pair_cleanup() from public, anon, authenticated;
+revoke all on function public.pair_before_delete() from public, anon, authenticated;
+revoke all on function public.pair_make_week(uuid) from public, anon, authenticated;
+revoke all on function public.pair_view(public.pair_boards, uuid) from public, anon, authenticated;
+revoke all on function public.pair_invite(uuid) from public, anon;
+revoke all on function public.pair_list(uuid[]) from public, anon;
+revoke all on function public.pair_give(uuid, integer, integer, uuid) from public, anon;
+revoke all on function public.pair_leave(uuid) from public, anon;
+revoke all on function public.pair_claim() from public, anon;
+grant execute on function public.pair_catalog() to authenticated;
+grant execute on function public.pair_week() to authenticated;
+grant execute on function public.pair_invite(uuid) to authenticated;
+grant execute on function public.pair_list(uuid[]) to authenticated;
+grant execute on function public.pair_give(uuid, integer, integer, uuid) to authenticated;
+grant execute on function public.pair_leave(uuid) to authenticated;
+grant execute on function public.pair_claim() to authenticated;

@@ -1,8 +1,9 @@
 import { HELP_NOTES, type FarmHelp, type FarmHelpKind, type FarmHelpStatus, type FarmHelpTarget, type Gift, type LeaderboardKind, type Listing, type OnlineBackend, type OnlineEvent, type PlayerProfile, type ProfileStats, type RewardCode, type AdminGift, type AdminLetter, type HelpFill, type HelpReason, type HelpRequest, HomeSnapshot, type ReportPlace, type ReportReason } from './types';
 import { ASK, HELP_REASONS, cleanFill, cleanRequest } from './AskHelp';
 import { cleanClaim, cleanCoop } from './Coop';
-import { COOP } from '../data';
-import type { CoopClaim, CoopProject, CoopStatus } from './types';
+import { COOP, PAIRS } from '../data';
+import type { CoopClaim, CoopProject, CoopStatus, PairBoard, PairClaim, PairStatus } from './types';
+import { cleanPair, cleanPairClaim, pairPart, pairWeek } from './Pairs';
 import { botFarm } from './BotFarms';
 import { helpKindFor } from './FarmHelp';
 import { sanitizeSnapshot, shareBytes, SHARE_LIMITS, type FarmSnapshot } from './FarmSnapshot';
@@ -27,6 +28,13 @@ interface HelpDb { rows: FarmHelp[]; seq: number; botDay: string }
 const ASK_KEY = 'cozy-acres-online-askhelp';
 /** 1.28 practice co-op projects (same rules as the server's coop_* functions) */
 const COOP_KEY = 'cozy-acres-online-coop';
+/** 1.48 practice Friends Boards (same rules as the server's pair_* functions) */
+const PAIRS_KEY = 'cozy-acres-online-pairs';
+interface PairRow { id: string; a: string; b: string; status: PairStatus; invitedBy: string; createdAt: number; tasksDone: number; fullWeeks: number; streak: number; lastFull: number; botAt: number }
+interface PairTaskRow { board: string; week: number; idx: number; item: string; qty: number; given: Record<string, number>; done: boolean; settled: boolean }
+interface PairGiftRow { key: string; board: string; week: number; idx: number; giver: string; item: string; qty: number; at: number; refunded: boolean }
+interface PairClaimRow { id: string; member: string; board: string; partner: string; kind: 'task' | 'full' | 'refund'; item: string; qty: number; bond: number; refund: Record<string, number> | null; claimed: boolean }
+interface PairDb { boards: PairRow[]; tasks: PairTaskRow[]; gifts: PairGiftRow[]; claims: PairClaimRow[]; seq: number }
 /** Reports and blocks (practice mode): the blocked players on this device. */
 const BLOCKS_KEY = 'cozy-acres-online-blocks';
 interface CoopRow { id: string; host: { id: string; name: string }; kind: string; needs: Record<string, number>; given: Record<string, number>; audience: string[]; status: CoopStatus; createdAt: number; expiresAt: number; closedAt: number; botAt: number }
@@ -716,6 +724,202 @@ export class LocalBackend implements OnlineBackend {
         c.claimed = true;
         const names = c.done ? this.coopPub(db, p).givers.map((g) => g.name) : [];
         const cl = cleanClaim({ project: p.id, kind: p.kind, host: p.host.name, done: c.done, refund: c.refund, names, closedAt: p.closedAt });
+        if (cl) out.push(cl);
+      }
+      return out;
+    });
+  }
+
+  // ------------------------------------------------------------------ 1.48 friends board (practice)
+  private readPairs(): PairDb {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PAIRS_KEY) ?? 'null') as PairDb | null;
+      if (raw && Array.isArray(raw.boards) && Array.isArray(raw.tasks) && Array.isArray(raw.gifts) && Array.isArray(raw.claims)) return { ...raw, seq: Number(raw.seq) || 1 };
+    } catch { /* corrupt: start over */ }
+    return { boards: [], tasks: [], gifts: [], claims: [], seq: 1 };
+  }
+  private writePairs<T>(fn: (db: PairDb) => T): T {
+    const db = this.readPairs();
+    const week = pairWeek(this.now());
+    // the server's housekeeping: past weeks' unfinished tasks give their goods back
+    for (const b of db.boards) this.pairSettle(db, b, false);
+    db.tasks = db.tasks.filter((t) => t.week >= week - 56 * 864e5);
+    db.gifts = db.gifts.filter((g) => g.week >= week - 56 * 864e5);
+    db.claims = db.claims.filter((c) => !c.claimed).concat(db.claims.filter((c) => c.claimed).slice(-50));
+    const r = fn(db);
+    try { localStorage.setItem(PAIRS_KEY, JSON.stringify(db)); } catch { /* full or blocked */ }
+    return r;
+  }
+  private pairName(id: string): string { return this.read().profiles.find((p) => p.id === id)?.name ?? 'Farmer'; }
+  private pairSettle(db: PairDb, b: PairRow, all: boolean): void {
+    const week = pairWeek(this.now());
+    const open = db.tasks.filter((t) => t.board === b.id && !t.done && !t.settled && (all || t.week < week));
+    for (const t of open) {
+      for (const g of db.gifts) {
+        if (g.board !== b.id || g.week !== t.week || g.idx !== t.idx || g.refunded) continue;
+        g.refunded = true;
+        const other = g.giver === b.a ? b.b : b.a;
+        let c = db.claims.find((x) => !x.claimed && x.kind === 'refund' && x.member === g.giver && x.board === b.id && x.refund && x.id.endsWith(`-${t.week}`));
+        if (!c) { c = { id: `pc${db.seq++}-${t.week}`, member: g.giver, board: b.id, partner: this.pairName(other), kind: 'refund', item: '', qty: 0, bond: 0, refund: {}, claimed: false }; db.claims.push(c); }
+        c.refund![g.item] = (c.refund![g.item] ?? 0) + g.qty;
+      }
+      if (t.week < week) t.settled = true; else t.given = {};
+    }
+  }
+  private pairMakeWeek(db: PairDb, b: PairRow): void {
+    const week = pairWeek(this.now());
+    if (b.status !== 'active' || db.tasks.some((t) => t.board === b.id && t.week === week)) return;
+    const lv = Math.min(...[b.a, b.b].map((id) => this.read().profiles.find((p) => p.id === id)?.level ?? 1));
+    const ok = PAIRS.templates.filter((t) => t.level <= lv);
+    const recent = ok.filter((t) => t.level > lv - 60);
+    const pool = recent.length >= 8 ? recent : ok;
+    const hash = (str: string) => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return h >>> 0; };
+    const pick = [...pool].sort((x, y) => hash(`${b.id}${week}${x.item}`) - hash(`${b.id}${week}${y.item}`)).slice(0, PAIRS.tasks);
+    pick.forEach((t, i) => db.tasks.push({ board: b.id, week, idx: i, item: t.item, qty: t.qty, given: {}, done: false, settled: false }));
+  }
+  private pairPub(db: PairDb, b: PairRow, me: string): PairBoard {
+    const other = b.a === me ? b.b : b.a, week = pairWeek(this.now());
+    const prof = this.read().profiles.find((p) => p.id === other);
+    return cleanPair({ id: b.id, status: b.status, partner: { id: other, name: prof?.name ?? 'Farmer', level: prof?.level ?? 1 }, invited_by_me: b.invitedBy === me,
+      tasks_done: b.tasksDone, full_weeks: b.fullWeeks, streak: b.streak, week,
+      tasks: db.tasks.filter((t) => t.board === b.id && t.week === week).sort((x, y) => x.idx - y.idx)
+        .map((t) => ({ idx: t.idx, item: t.item, qty: t.qty, mine: t.given[me] ?? 0, theirs: t.given[other] ?? 0, done: t.done })) })!;
+  }
+  private pairGiveRow(db: PairDb, b: PairRow, giver: string, idx: number, qty: number, key?: string): number {
+    const now = this.now(), week = pairWeek(now);
+    if (b.a !== giver && b.b !== giver) throw new Error('not found');
+    const again = key ? db.gifts.find((g) => g.key === key && g.giver === giver && g.board === b.id) : undefined;
+    if (again) return again.qty;
+    if (b.status !== 'active') throw new Error('closed');
+    const t = db.tasks.find((x) => x.board === b.id && x.week === week && x.idx === idx);
+    if (!t) throw new Error('not found');
+    if (t.done) throw new Error('not needed');
+    if (db.gifts.filter((g) => g.giver === giver && g.at > now - 864e5).length >= PAIRS.givesPerDay) throw new Error('too many today');
+    const total = Object.values(t.given).reduce((x, y) => x + y, 0);
+    const left = Math.min(t.qty - total, pairPart(t.qty) - (t.given[giver] ?? 0));
+    if (left <= 0) throw new Error('your part');
+    const used = Math.min(qty, left);
+    db.gifts.push({ key: key ?? `pg${db.seq++}`, board: b.id, week, idx, giver, item: t.item, qty: used, at: now, refunded: false });
+    t.given[giver] = (t.given[giver] ?? 0) + used;
+    if (total + used >= t.qty) {
+      t.done = true;
+      const bond = Math.min(PAIRS.bondMax, Math.floor(b.tasksDone / PAIRS.bondTasks));
+      for (const m of [b.a, b.b]) db.claims.push({ id: `pc${db.seq++}`, member: m, board: b.id, partner: this.pairName(m === b.a ? b.b : b.a), kind: 'task', item: t.item, qty: t.qty, bond, refund: null, claimed: false });
+      b.tasksDone++;
+      if (db.tasks.filter((x) => x.board === b.id && x.week === week).every((x) => x.done)) {
+        for (const m of [b.a, b.b]) db.claims.push({ id: `pc${db.seq++}`, member: m, board: b.id, partner: this.pairName(m === b.a ? b.b : b.a), kind: 'full', item: '', qty: 0, bond, refund: null, claimed: false });
+        b.fullWeeks++;
+        b.streak = b.lastFull === week - 7 * 864e5 ? b.streak + 1 : b.lastFull === week ? b.streak : 1;
+        b.lastFull = week;
+      }
+    }
+    return used;
+  }
+  /** Practice: demo neighbours say yes to invites after a moment, one invites the player, and they give their half now and then. */
+  private pairBots(db: PairDb, friends: string[]): void {
+    const me = this.me();
+    const bots = this.read().profiles.filter((p) => p.bot && friends.includes(p.id));
+    if (!me || !bots.length || me.level < PAIRS.level) return;
+    const now = this.now();
+    const mine = (x: PairRow) => x.a === this.id || x.b === this.id;
+    const count = () => db.boards.filter((x) => mine(x) && (x.status === 'active' || (x.status === 'pending' && x.invitedBy === this.id))).length;
+    for (const b of db.boards) if (mine(b) && b.status === 'pending' && b.invitedBy === this.id && b.invitedBy !== '' && now - b.createdAt > 20e3 && bots.some((x) => x.id === (b.a === this.id ? b.b : b.a))) { b.status = 'active'; b.botAt = now; }
+    const host = bots[0];
+    if (!db.boards.some((x) => mine(x) && (x.a === host.id || x.b === host.id)) && count() < PAIRS.partners) {
+      const [a, bb] = [this.id, host.id].sort();
+      db.boards.push({ id: `pb${db.seq++}`, a, b: bb, status: 'pending', invitedBy: host.id, createdAt: now, tasksDone: 0, fullWeeks: 0, streak: 0, lastFull: 0, botAt: now });
+    }
+    for (const b of db.boards) {
+      if (!mine(b) || b.status !== 'active') continue;
+      const bot = bots.find((x) => x.id === (b.a === this.id ? b.b : b.a));
+      if (!bot) continue;
+      this.pairMakeWeek(db, b);
+      const steps = Math.min(5, Math.floor((now - b.botAt) / 60e3));
+      for (let k = 0; k < steps; k++) {
+        const t = db.tasks.find((x) => x.board === b.id && x.week === pairWeek(now) && !x.done && (x.given[bot.id] ?? 0) < Math.ceil(x.qty / 2));
+        if (!t) break;
+        try { this.pairGiveRow(db, b, bot.id, t.idx, Math.min(PAIRS.maxGive, Math.ceil(t.qty / 2) - (t.given[bot.id] ?? 0))); } catch { break; }
+      }
+      if (steps) b.botAt = now;
+    }
+  }
+
+  async pairInvite(friend: string): Promise<PairBoard> {
+    await this.init();
+    const me = this.me();
+    if (!me) throw new Error('no profile');
+    if (me.level < PAIRS.level) throw new Error('level');
+    if (friend === this.id || !this.read().profiles.some((p) => p.id === friend)) throw new Error('not found');
+    if (this.readBlocks().some((x) => x.id === friend)) throw new Error('blocked');
+    return this.writePairs((db) => {
+      const [a, b] = [this.id, friend].sort();
+      const r = db.boards.find((x) => x.a === a && x.b === b);
+      const mine = (x: PairRow, id: string) => x.a === id || x.b === id;
+      const busy = (id: string, pend: boolean) => db.boards.filter((x) => x !== r && mine(x, id) && (x.status === 'active' || (pend && x.status === 'pending' && x.invitedBy === id))).length;
+      if (r?.status === 'active') return this.pairPub(db, r, this.id);
+      if (r?.status === 'pending' && r.invitedBy !== this.id) {
+        if (busy(this.id, true) >= PAIRS.partners) throw new Error('too many');
+        if (busy(friend, false) >= PAIRS.partners) throw new Error('partner full');
+        r.status = 'active';
+        r.botAt = this.now();
+        this.pairMakeWeek(db, r);
+        return this.pairPub(db, r, this.id);
+      }
+      if (r?.status === 'pending') return this.pairPub(db, r, this.id);
+      if (busy(this.id, true) >= PAIRS.partners) throw new Error('too many');
+      if (r) { r.status = 'pending'; r.invitedBy = this.id; r.createdAt = this.now(); return this.pairPub(db, r, this.id); }
+      const row: PairRow = { id: `pb${db.seq++}`, a, b, status: 'pending', invitedBy: this.id, createdAt: this.now(), tasksDone: 0, fullWeeks: 0, streak: 0, lastFull: 0, botAt: this.now() };
+      db.boards.push(row);
+      return this.pairPub(db, row, this.id);
+    });
+  }
+  async pairList(friends: string[]): Promise<PairBoard[]> {
+    await this.init();
+    const ids = [...new Set(friends)].slice(0, 100);
+    const blocked = new Set(this.readBlocks().map((x) => x.id));
+    return this.writePairs((db) => {
+      this.pairBots(db, ids);
+      const now = this.now();
+      for (const b of db.boards) if (b.status === 'pending' && b.createdAt < now - 14 * 864e5) b.status = 'ended';
+      const out: PairBoard[] = [];
+      for (const b of db.boards) {
+        if (b.a !== this.id && b.b !== this.id) continue;
+        const other = b.a === this.id ? b.b : b.a;
+        if (blocked.has(other)) continue;
+        if (b.status === 'active') { this.pairMakeWeek(db, b); out.push(this.pairPub(db, b, this.id)); }
+        else if (b.status === 'pending' && (b.invitedBy === this.id || ids.includes(b.invitedBy))) out.push(this.pairPub(db, b, this.id));
+      }
+      return out;
+    });
+  }
+  async pairGive(board: string, idx: number, qty: number, key?: string): Promise<{ used: number; board: PairBoard }> {
+    await this.init();
+    if (!Number.isInteger(qty) || qty < 1 || qty > PAIRS.maxGive) throw new Error('bad qty');
+    return this.writePairs((db) => {
+      const b = db.boards.find((x) => x.id === board && (x.a === this.id || x.b === this.id));
+      if (!b) throw new Error('not found');
+      const used = this.pairGiveRow(db, b, this.id, idx, qty, key);
+      return { used, board: this.pairPub(db, b, this.id) };
+    });
+  }
+  async pairLeave(board: string): Promise<void> {
+    await this.init();
+    this.writePairs((db) => {
+      const b = db.boards.find((x) => x.id === board && (x.a === this.id || x.b === this.id));
+      if (!b) throw new Error('not found');
+      if (b.status === 'ended') return;
+      this.pairSettle(db, b, true);
+      b.status = 'ended';
+    });
+  }
+  async pairClaim(): Promise<PairClaim[]> {
+    await this.init();
+    return this.writePairs((db) => {
+      const out: PairClaim[] = [];
+      for (const c of db.claims) {
+        if (c.member !== this.id || c.claimed) continue;
+        c.claimed = true;
+        const cl = cleanPairClaim({ ...c } as unknown as Record<string, unknown>);
         if (cl) out.push(cl);
       }
       return out;

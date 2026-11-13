@@ -1595,6 +1595,67 @@ try {
     check('more accessibility settings boot without errors', errors.length === 0, errors.join(' | '));
   }
 
+  // 1.48 Friends Board (practice backend): a demo neighbour invites, saying yes starts a board, one friend gives at
+  // most 3/4 of a task, the friend's part finishes it and both rewards come once; leaving gives unfinished goods back
+  {
+    await setStorage({});
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, { pairs, social } = window.__pairs, on = window.__online;
+      const s = g.state;
+      s.player.created = true; s.tutorial.done = true; s.player.level = 40; s.player.name = 'Pair Farm';
+      await on.init();
+      if (!on.me()) await on.upsertProfile({ name: 'Pair Farm', farmName: 'Pair Farm', level: 40, totalXp: 1, farmValue: 1, charm: 1, weeklyXp: 0 });
+      const ldb = JSON.parse(localStorage.getItem('cozy-acres-online-local'));
+      const myId = localStorage.getItem('cozy-acres-online-id');
+      for (const p of ldb.profiles) if (p.id === myId) p.level = 40;
+      localStorage.setItem('cozy-acres-online-local', JSON.stringify(ldb));
+      const bots = (await on.leaderboard?.('level', 20) ?? []).filter((p) => p.id.startsWith('bot_'));
+      const bot = bots.find((b) => b.level >= 1) ?? bots[0];
+      if (!bot) return { err: 'no bot' };
+      social.addProfile(bot);
+      await pairs.poll();
+      const invited = pairs.invites().some((b) => b.partner.id === bot.id);
+      const b0 = await pairs.invite(bot.id);
+      const t = b0.tasks[0];
+      const part = t.qty - Math.ceil(t.qty * 0.25);
+      g.as('test').addItem(t.item, t.qty * 2);
+      let gave = 0;
+      while (gave < part) gave += await pairs.give(pairs.active()[0], pairs.active()[0].tasks[0], 50);
+      let refusedPast = false;
+      try { await pairs.give(pairs.active()[0], pairs.active()[0].tasks[0], 1); } catch { refusedPast = true; }
+      const xp0 = s.player.xp, coins0 = s.player.coins, lvl0 = s.player.level;
+      // the demo neighbour gives their part a minute or two later
+      const db = JSON.parse(localStorage.getItem('cozy-acres-online-pairs'));
+      for (const x of db.boards) x.botAt -= 10 * 60e3;
+      localStorage.setItem('cozy-acres-online-pairs', JSON.stringify(db));
+      await pairs.poll();
+      const doneTask = pairs.active()[0].tasks.find((x) => x.idx === t.idx)?.done === true;
+      const paid = s.player.level > lvl0 || s.player.xp > xp0, coined = s.player.coins > coins0;
+      const tasksStat = s.pairs?.tasks ?? 0;
+      await pairs.poll();
+      const once = (s.pairs?.tasks ?? 0) === tasksStat;
+      // give to another task, then leave: the goods come back
+      const t2 = pairs.active()[0].tasks.find((x) => !x.done && x.mine === 0);
+      let back = null;
+      if (t2) {
+        g.as('test').addItem(t2.item, 5);
+        const before = g.count(t2.item);
+        const used = await pairs.give(pairs.active()[0], t2, 2);
+        await pairs.leave(pairs.active()[0]);
+        back = { used, ok: g.count(t2.item) === before, gone: pairs.active().length === 0 };
+      }
+      return { invited, active: b0.status === 'active' && b0.tasks.length === 5, gave, part, refusedPast, doneTask, paid, coined, tasksStat, once, back };
+    });
+    check('Friends Board: a demo neighbour invites, saying yes starts a board of 5 tasks', r.invited && r.active, JSON.stringify(r));
+    check('Friends Board: one friend gives at most their part, the friend finishes it', r.gave === r.part && r.refusedPast && r.doneTask, JSON.stringify(r));
+    check('Friends Board: a finished task pays XP and coins once', r.paid && r.coined && r.tasksStat === 1 && r.once, JSON.stringify(r));
+    check('Friends Board: leaving gives unfinished goods back', r.back && r.back.used === 2 && r.back.ok && r.back.gone, JSON.stringify(r));
+    await page.evaluate(() => window.__ui.open('pairs'));
+    await page.waitForTimeout(600);
+    check('Friends Board screen opens without errors', errors.length === 0 && await page.evaluate(() => !!document.querySelector('.panel')), errors.join(' | '));
+  }
+
 } finally {
   await browser.close();
   stop();

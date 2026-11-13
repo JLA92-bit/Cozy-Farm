@@ -129,6 +129,25 @@ export interface CoopProject {
 /** A closed project's claim for the caller: the reward (done) or exactly what they gave back (refund). */
 export interface CoopClaim { project: string; kind: string; host: string; done: boolean; refund: Record<string, number> | null; names: string[]; closedAt: number }
 
+/** 1.48 Friends Board: a board two friends share (pairs.json). `mine`/`theirs` are what each gave to a task. */
+export type PairStatus = 'pending' | 'active' | 'ended';
+export interface PairTask { idx: number; item: string; qty: number; mine: number; theirs: number; done: boolean }
+export interface PairBoard {
+  id: string;
+  status: PairStatus;
+  partner: PlayerRef & { level: number };
+  /** pending: true when the caller sent the invite (waiting for the friend), false when it is theirs to answer */
+  invitedByMe: boolean;
+  tasksDone: number;
+  fullWeeks: number;
+  streak: number;
+  /** Monday (UTC) of the week the tasks are for, as a day number (ms) */
+  week: number;
+  tasks: PairTask[];
+}
+/** Something to hand over once: a finished task, a full board, or a refund of exactly what was given. */
+export interface PairClaim { id: string; board: string; partner: string; kind: 'task' | 'full' | 'refund'; item: string; qty: number; bond: number; refund: Record<string, number> | null }
+
 export type LeaderboardKind = 'level' | 'farmValue' | 'charm' | 'weeklyXp';
 
 export type OnlineEvent =
@@ -288,6 +307,20 @@ export interface OnlineBackend {
   coopCancel(id: string): Promise<CoopProject>;
   /** Hand over the caller's waiting claims, each exactly once. */
   coopClaim(): Promise<CoopClaim[]>;
+
+  /**
+   * 1.48 Friends Board. Invite a friend to share a board, or say yes to their invite (the same call). Rejects
+   * 'level' | 'too many' | 'partner full' | 'blocked' | 'switched off' | 'not found'.
+   */
+  pairInvite(friend: string): Promise<PairBoard>;
+  /** The caller's boards (active, invites sent, invites from these friends), with this week's tasks. */
+  pairList(friends: string[]): Promise<PairBoard[]>;
+  /** Give up to qty (1-50) to task idx. Never more than still needed or past the caller's part. `key` makes a retry safe. Rejects 'your part' | 'not needed' | 'closed' | 'too many today' | 'not found'. */
+  pairGive(board: string, idx: number, qty: number, key?: string): Promise<{ used: number; board: PairBoard }>;
+  /** Leave a board, take back an invite or say no to one. Unfinished goods come back as refunds. */
+  pairLeave(board: string): Promise<void>;
+  /** Hand over the caller's waiting claims, each exactly once. */
+  pairClaim(): Promise<PairClaim[]>;
 
   /**
    * Reports and blocks (src/online/Blocks.ts). Blocking works both ways on the server: gifts, help, likes, coffee

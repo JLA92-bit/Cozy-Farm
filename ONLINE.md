@@ -260,6 +260,22 @@ Friends build something together: a player hosts one project (the Friendship Foo
 
 After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor (safe to re-run), then `notify pgrst, 'reload schema';`. Update the Play Console Data safety form from `store/data-safety.md` (Village Projects are under "Other actions", already declared, and visible to friends).
 
+## Friends Board (1.48)
+
+Two friends share a weekly board of deliveries. Section `1.48 friends board` in `supabase/schema.sql`, game side `src/systems/Pairs.ts` and `src/ui/panels/PairsPanel.ts`, numbers in `src/data/pairs.json`.
+
+- **Both must say yes:** one player invites a friend from their device's friend list (`pair_invite`); the board starts only when the other says yes the same way (naming the first). An invite shows only to a player who has the inviter on their own friend list (`pair_list` takes the caller's friend ids), so a board always means both added each other. At most 3 boards a player (invites sent count). Unanswered invites end after 14 days. Blocking either way hides the board and refuses invites and gifts.
+- **Weekly tasks:** every Monday 00:00 UTC an active board gets 5 deliveries picked on the server from `pair_catalog()` for the lower of the two levels (the newest 60 levels of templates when there are 8 or more).
+- **Both must give:** one friend gives at most `qty - ceil(qty x 0.25)` of a task, so the other always gives at least a quarter.
+- **Rewards, exactly once:** a full task gives both friends a claim (`pair_claim` hands each out once); the game pays 10% of the XP to its own next level and half the goods' sell value in coins. A full week pays 30% more and 3 Friendship Tokens. The bond (every 10 tasks done together, up to 10) adds 5% XP a level and is kept if the two pair up again. Gifts carry a key (`p_key`) like co-op gifts (`state.pairs.pending`).
+- **Nothing is lost:** goods on tasks not finished by the end of their week, or when either friend leaves, come back as refund claims to whoever gave them. If a friend deletes their account, a trigger (`pair_before_delete`) refunds the other first.
+- **Limits:** at most 50 a gift, 60 gifts a player a day.
+- **The catalog lives on the server** (`pair_catalog()`); `validate-data` fails if it does not match `pairs.json`: change both together.
+- **Switch it off** without a release: dashboard 1.9 page, Game settings, Friends Board: Off (`game_config` key `pairs` = false).
+- Tested on PGlite (`tools/schema-test.mjs`). The tables are not readable by players.
+
+After pulling this update, **run the whole `schema.sql` again** in the Supabase SQL Editor, then `notify pgrst, 'reload schema';`.
+
 ## Checking that it works
 
 - Open the game on two devices (or one normal and one private window). Each shows its own friend code in

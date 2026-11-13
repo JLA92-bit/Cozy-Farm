@@ -1,7 +1,8 @@
 import type { AuthError, RealtimeChannel, SupabaseClient, User } from '@supabase/supabase-js';
 import { AUTH_RETURN, closeExternal, durable, isNative, launchLink, openExternal } from '../core/Native';
 import { cleanClaim, cleanCoop } from './Coop';
-import type { AccountLock, CloudCopy, CoopClaim, CoopProject, HomeSnapshot, ReportPlace, ReportReason } from './types';
+import { cleanPair, cleanPairClaim } from './Pairs';
+import type { AccountLock, CloudCopy, CoopClaim, CoopProject, PairBoard, PairClaim, HomeSnapshot, ReportPlace, ReportReason } from './types';
 import type {
   AccountBackend, AccountInfo, AuthResult, CloudMeta, CloudRow, Gift, LeaderboardKind, Listing, OnlineBackend, OnlineEvent,
   PlayerProfile, ProfileStats, PublicLook, FarmHelp, FarmHelpKind, FarmHelpStatus, FarmHelpTarget, PushBackend, PushDevice, PushRow, RewardCode, AdminGift, AdminLetter, Platform,
@@ -857,6 +858,35 @@ export class SupabaseBackend implements OnlineBackend, AccountBackend, PushBacke
   async coopClaim(): Promise<CoopClaim[]> {
     const rows = await this.rpc<unknown[]>('coop_claim', {});
     return (Array.isArray(rows) ? rows : []).map((r) => cleanClaim(r as Record<string, unknown>)).filter((c): c is CoopClaim => !!c);
+  }
+
+  // ------------------------------------------------------------------ 1.48 friends board
+  private pair(r: unknown): PairBoard {
+    const b = cleanPair(r as Record<string, unknown>);
+    if (!b) throw new Error('not found');
+    return b;
+  }
+  async pairInvite(friend: string): Promise<PairBoard> {
+    if (!UUID.test(friend)) throw new Error('not found');
+    return this.pair(await this.rpc<unknown>('pair_invite', { p_friend: friend }));
+  }
+  async pairList(friends: string[]): Promise<PairBoard[]> {
+    const ids = [...new Set(friends.filter((id) => UUID.test(id)))].slice(0, 100);
+    const rows = await this.rpc<unknown[]>('pair_list', { p_ids: ids });
+    return (Array.isArray(rows) ? rows : []).map((r) => cleanPair(r as Record<string, unknown>)).filter((b): b is PairBoard => !!b);
+  }
+  async pairGive(board: string, idx: number, qty: number, key?: string): Promise<{ used: number; board: PairBoard }> {
+    if (!UUID.test(board)) throw new Error('not found');
+    const r = await this.rpc<{ used?: unknown; board?: unknown }>('pair_give', { p_board: board, p_idx: int(idx, 9), p_qty: int(qty, 50), p_key: key && UUID.test(key) ? key : null });
+    return { used: int(Number(r.used), 50), board: this.pair(r.board) };
+  }
+  async pairLeave(board: string): Promise<void> {
+    if (!UUID.test(board)) throw new Error('not found');
+    await this.rpc<unknown>('pair_leave', { p_board: board });
+  }
+  async pairClaim(): Promise<PairClaim[]> {
+    const rows = await this.rpc<unknown[]>('pair_claim', {});
+    return (Array.isArray(rows) ? rows : []).map((r) => cleanPairClaim(r as Record<string, unknown>)).filter((c): c is PairClaim => !!c);
   }
 
   // ------------------------------------------------------------------ 1.33.5 farm safety

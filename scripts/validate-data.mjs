@@ -645,6 +645,32 @@ releases?.forEach((r, i) => {
   if (!m || JSON.stringify(JSON.parse(m[1])) !== JSON.stringify(want)) err('supabase/schema.sql coop_catalog: does not match src/data/coop.json (regenerate it)');
 }
 
+// 1.48 Friends Board: task templates need real items that exist by their level, and the server's own copy
+// (pair_catalog in supabase/schema.sql) must match pairs.json exactly
+{
+  const c = read('pairs.json'), items = read('items.json').items;
+  const bl = Object.fromEntries(read('buildings.json').buildings.map((b) => [b.id, b.level]));
+  const lvl = {};
+  for (const x of read('crops.json').crops) lvl[x.id] = x.level;
+  for (const t of read('crops.json').trees ?? []) lvl[t.item] = t.level;
+  for (const a of read('animals.json').animals) lvl[a.product] = a.level;
+  for (const r of read('recipes.json').recipes) lvl[r.item] = Math.min(lvl[r.item] ?? 999, Math.max(r.level, bl[r.building] ?? 1));
+  const seen = new Set();
+  for (const t of c.templates) {
+    if (!items[t.item]) err(`pairs template ${t.item}: unknown item`);
+    if (seen.has(t.item)) err(`pairs template ${t.item}: listed twice`);
+    seen.add(t.item);
+    if (!(Number.isInteger(t.qty) && t.qty >= 4 && t.qty <= 1000)) err(`pairs template ${t.item}: qty must be a whole number 4-1000`);
+    if (lvl[t.item] === undefined) err(`pairs template ${t.item}: not grown, raised or made, so nobody can be sure to have it`);
+    else if (lvl[t.item] > t.level) err(`pairs template ${t.item}: unlocks at level ${lvl[t.item]}, after the template (${t.level})`);
+  }
+  if (c.templates.filter((t) => t.level <= c.level).length < c.tasks * 2) err(`pairs: need at least ${c.tasks * 2} templates open at level ${c.level}`);
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  const m = sql.match(/function public\.pair_catalog\(\)[\s\S]*?select '(\{[^']*\})'::jsonb/);
+  const want = { level: c.level, partners: c.partners, tasks: c.tasks, maxGive: c.maxGive, givesPerDay: c.givesPerDay, share: c.share, templates: c.templates };
+  if (!m || JSON.stringify(JSON.parse(m[1])) !== JSON.stringify(want)) err('supabase/schema.sql pair_catalog: does not match src/data/pairs.json (regenerate it)');
+}
+
 // 1.22 the server's leaderboard check knows the XP table: supabase/schema.sql level_for_xp must match levels.json
 {
   const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
