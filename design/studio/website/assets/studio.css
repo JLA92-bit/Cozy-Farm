@@ -88,3 +88,7 @@ a.store:hover{color:#fff;background:#3a3446}
 .facts div{border:2px solid rgba(255,248,236,.35);border-radius:14px;padding:10px 14px}
 .facts dt{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--yellow)}
 .facts dd{margin:2px 0 0;font-weight:600}
+/* Cozy Acres is on Google Play: the store button leads, the browser and website links follow */
+.banner__body .stores{margin-bottom:14px}
+.banner__body a.store{min-height:60px;padding:8px 22px}
+.banner__body a.store .store__name{font-size:1.25em}
