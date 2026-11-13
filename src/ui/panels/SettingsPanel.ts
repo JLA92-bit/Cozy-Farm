@@ -27,7 +27,7 @@ import { cloudState } from '../../online/CloudSave';
 import { platform } from '../../online/Activity';
 import { isIosApp } from '../../core/Native';
 import { APP_VERSION } from '../../systems/Version';
-import { applyAccess, textSize, TEXT_NAME, type TextSize } from '../../systems/Access';
+import { applyAccess, textSize, hudSize, TEXT_NAME, TEXT_SCALE, TEXT_SIZES, HUD_NAME, type HudSize } from '../../systems/Access';
 
 function row(label: string, control: HTMLElement): HTMLElement {
   return h('div', { class: 'setting-row' }, h('label', null, label), control);
@@ -62,6 +62,25 @@ function choices<T extends string>(opts: [T, string][], current: T, onPick: (v: 
   return seg;
 }
 
+/** Text size: smaller and bigger buttons round the size (Normal 100% to Biggest 200%); the panel grows as you go. */
+function textStepper(): HTMLElement {
+  const val = h('div', { class: 'text-step-val', 'aria-live': 'polite' });
+  const down = button('A-', () => step(-1), 'blue', { 'aria-label': 'Smaller text' });
+  const up = button('A+', () => step(1), 'blue', { 'aria-label': 'Bigger text' });
+  const show = (): void => {
+    const t = textSize(); const i = TEXT_SIZES.indexOf(t);
+    val.replaceChildren(TEXT_NAME[t], h('small', null, `${Math.round(TEXT_SCALE[t] * 100)}%`));
+    down.disabled = i <= 0; up.disabled = i >= TEXT_SIZES.length - 1;
+  };
+  const step = (d: number): void => {
+    const i = TEXT_SIZES.indexOf(textSize()) + d;
+    if (i < 0 || i >= TEXT_SIZES.length) return;
+    settings.textSize = TEXT_SIZES[i]; saveSettings(settings); applyAccess(); show(); audio.play('select');
+  };
+  show();
+  return h('div', { class: 'text-step', role: 'group', 'aria-label': 'Text size' }, down, val, up);
+}
+
 export function openSettings(): void {
   const p = new Panel({ title: 'Settings', icon: 'gear', color: 'blue', size: 'medium' });
   p.body.append(
@@ -72,11 +91,14 @@ export function openSettings(): void {
       : h('span', { class: 'muted' }, 'Not on this device')),
     row('Screen shake', toggle(settings.shake, (v) => { settings.shake = v; saveSettings(settings); applyAccess(); if (v) ui.scene.rig.shake(0.15, 0.3); })),
     h('div', { class: 'section-title' }, 'Accessibility'),
-    row('Text size', choices((['normal', 'large', 'larger'] as TextSize[]).map((v) => [v, TEXT_NAME[v]] as [TextSize, string]), textSize(),
-      (v) => { settings.textSize = v; saveSettings(settings); applyAccess(); }, 'Text size')),
+    row('Text size', textStepper()),
+    row('Bars and buttons', choices((['normal', 'large', 'larger'] as HudSize[]).map((v) => [v, HUD_NAME[v]] as [HudSize, string]), hudSize(),
+      (v) => { settings.hudSize = v; saveSettings(settings); applyAccess(); }, 'Bars and buttons size')),
+    row('Bold text', toggle(!!settings.bold, (v) => { settings.bold = v; saveSettings(settings); applyAccess(); })),
+    row('High contrast', toggle(!!settings.contrast, (v) => { settings.contrast = v; saveSettings(settings); applyAccess(); })),
     row('Reduce motion', choices([['auto', 'Auto'], ['on', 'On'], ['off', 'Off']], settings.motion ?? 'auto',
       (v) => { settings.motion = v; saveSettings(settings); applyAccess(); }, 'Reduce motion')),
-    h('div', { class: 'muted setting-note' }, 'Auto follows your phone. Reduce motion stops bouncing and shaking and keeps sparkles small.'),
+    h('div', { class: 'muted setting-note' }, 'Text size changes the words in every screen; Bars and buttons makes the top bar, side shortcuts and bottom buttons bigger. Auto follows your phone. Reduce motion stops bouncing and shaking and keeps sparkles small.'),
     row('Graphics', (() => {
       const seg = h('div', { class: 'segmented' });
       for (const q of ['low', 'medium', 'high'] as Quality[]) {

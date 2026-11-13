@@ -200,7 +200,7 @@ img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 
 .goal-card {
   position: absolute; top: calc(var(--safe-top) + 76px); left: calc(var(--safe-left) + 8px);
-  max-width: min(260px, 52vw); padding: 8px 12px 8px 46px; min-height: 48px;
+  max-width: min(260px, calc(52vw / var(--hz, 1))); padding: 8px 12px 8px 46px; min-height: 48px;
   background: var(--cream); border: 3px solid var(--outline); border-radius: 14px; box-shadow: 0 3px 0 var(--outline);
   font-size: 14px; line-height: 1.2; cursor: pointer;
   display: flex; flex-direction: column; justify-content: center;
@@ -711,12 +711,12 @@ input[type=range] { width: 50%; height: 40px; accent-color: var(--btn-green); to
   .hud-top .hud-settings .icon { width: 24px; height: 24px; }
   .hud-side { top: calc(var(--safe-top) + 108px); }
   .xp-wrap { flex: 1 1 auto; max-width: 190px; }
-  .goal-card { max-width: min(300px, calc(100vw - var(--safe-left) - var(--safe-right) - 92px)); }
+  .goal-card { max-width: min(300px, calc(100vw / var(--hz, 1) - var(--safe-left) - var(--safe-right) - 92px)); }
   .hud-bottom { flex-direction: row; align-items: flex-end; gap: 0; }
   .hud-bottom > div:first-child { display: none; }
   .hud-menu {
     flex: 1 1 auto; flex-wrap: nowrap; justify-content: space-between; align-items: flex-end; gap: 2px;
-    --dock: min(var(--hud-btn), calc((100vw - var(--safe-left) - var(--safe-right) - 16px - 14px - 8px) / 8));
+    --dock: min(var(--hud-btn), calc((100vw / var(--hz, 1) - var(--safe-left) - var(--safe-right) - 16px - 14px - 8px) / 8));
   }
   .hud-menu .hud-btn { width: var(--dock); height: calc(var(--dock) + 2px); min-width: 0; min-height: 0; border-radius: 14px; }
   .hud-menu .hud-btn .icon { width: calc(var(--dock) * .62); height: calc(var(--dock) * .62); }
@@ -1106,3 +1106,37 @@ html:not([data-text-size="normal"]) .list-item > .grow { flex: 1 1 9em; }
 .btn.small::before, .order-skip::before, .lb-trophy::before, .mu-slot::before { content: ''; position: absolute; inset: -5px -3px; }
 .lb-trophy, .mu-slot, .order-skip { position: relative; }
 .lb-trophy { min-height: 36px; }
+/* 1.47.4 Bars and buttons size (systems/Access.ts --hz): the whole HUD is drawn bigger, icons and all. Its children lay
+   out on a screen --hz times smaller, so the bars still fit across and the dock still wraps. */
+.hud-layer { zoom: var(--hz, 1); }
+.panel-header { --ts: var(--ts-title, 1); }
+/* (vw inside the HUD is divided by --hz: the HUD lays out on the smaller screen). With bigger bars and buttons in
+   portrait the side shortcuts stop above the dock and wrap into a second column, as on landscape phones */
+@media (orientation: portrait) {
+  /* the dock takes two rows of four so its buttons can grow (one row of eight is as wide as the screen already) */
+  html:not([data-hud-size="normal"]) .hud-menu {
+    flex-wrap: wrap; row-gap: 12px; justify-content: space-around;
+    --dock: min(var(--hud-btn), calc((100vw / var(--hz, 1) - var(--safe-left) - var(--safe-right) - 16px - 24px) / 4.4));
+  }
+  /* the shortcuts start under the goal card and wrap into more columns above the dock */
+  html:not([data-hud-size="normal"]) .hud-side {
+    top: calc(var(--safe-top) + 156px); bottom: calc(var(--safe-bottom) + var(--hud-btn) * 2 + 40px);
+    flex-wrap: wrap-reverse; align-content: flex-start; gap: 8px;
+  }
+}
+/* 1.47.4 Bold text: body text uses the heavier Fredoka (600); headings are Lilita One already */
+html.bold-text body, html.bold-text input, html.bold-text textarea, html.bold-text button { font-weight: 600; }
+/* 1.47.4 High contrast: darker words, solid dark behind the HUD numbers, and faded rows less faded */
+html.high-contrast { --ink: #1a1007; --ink-soft: #1a1007; --outline: #140b03; }
+html.high-contrast .muted, html.high-contrast .sub, html.high-contrast .card-sub, html.high-contrast .t-sub { color: var(--ink); }
+html.high-contrast .currency { background-color: rgba(20, 11, 3, .88); }
+html.high-contrast .segmented button { color: var(--ink); }
+html.high-contrast .opt-btn.locked { color: #4a4036; }
+html.high-contrast .list-item.prod-locked, html.high-contrast .quest-row.claimed, html.high-contrast .fh-row.done,
+html.high-contrast .market-row.busy, html.high-contrast .sk-perk.locked, html.high-contrast .rc-t.locked,
+html.high-contrast .hw-card.done, html.high-contrast .al-ribbon, html.high-contrast .prod-slot.empty { opacity: .9; }
+/* the Text size stepper in Settings */
+.text-step { display: inline-flex; align-items: center; gap: 8px; }
+.text-step .btn { min-width: 48px; min-height: 48px; padding: 0 10px; }
+.text-step .text-step-val { min-width: 5.5em; text-align: center; font-family: var(--font-display); font-size: 16px; line-height: 1.1; }
+.text-step .text-step-val small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--ink-soft); }

@@ -10,7 +10,9 @@ export interface Settings { music: number; sfx: number; haptics: boolean; qualit
   /** 1.10 optional cosmetic season look for the farm ('off' by default) */
   farmLook?: 'off' | 'auto' | 'spring' | 'summer' | 'autumn' | 'winter'
   /** 1.47.3 accessibility: text size (unset: Normal, or the Android app's phone font size), reduce motion (unset: auto) */
-  textSize?: 'normal' | 'large' | 'larger'; motion?: 'auto' | 'on' | 'off' }
+  textSize?: 'normal' | 'large' | 'larger' | 'largest' | 'huge' | 'max'; motion?: 'auto' | 'on' | 'off'
+  /** 1.47.4 accessibility: size of the always-on bars and buttons (unset: normal), bold text, high contrast */
+  hudSize?: 'normal' | 'large' | 'larger'; bold?: boolean; contrast?: boolean }
 const KEY = 'cozy-acres-settings';
 
 export function reducedMotion(): boolean {

@@ -33,8 +33,10 @@ for (const s of sizes) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`${ROOT}favicon.svg`);
-  // TEXT_SIZE=large|larger checks the 1.47.3 Text size setting; MIN_TAP=44 reports buttons smaller than that
-  await page.evaluate((ts) => { localStorage.clear(); if (ts) localStorage.setItem('cozy-acres-settings', JSON.stringify({ textSize: ts })); }, process.env.TEXT_SIZE ?? '');
+  // TEXT_SIZE=large|larger|largest|huge|max checks the 1.47.3 Text size setting; MIN_TAP=44 reports buttons smaller than that
+  // 1.47.4: HUD_SIZE=large|larger, BOLD=1, CONTRAST=1 for the other accessibility settings
+  const acc = { textSize: process.env.TEXT_SIZE || undefined, hudSize: process.env.HUD_SIZE || undefined, bold: !!process.env.BOLD || undefined, contrast: !!process.env.CONTRAST || undefined };
+  await page.evaluate((a) => { localStorage.clear(); if (Object.values(a).some((v) => v)) localStorage.setItem('cozy-acres-settings', JSON.stringify(a)); }, acc);
   await page.goto(ROOT);
   await page.waitForFunction(() => window.__game?.state && window.__ui, null, { timeout: 120000 });
   await page.waitForTimeout(2500);

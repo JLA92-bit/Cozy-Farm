@@ -1570,6 +1570,30 @@ try {
     check('Reduce motion on puts reduce-motion on the page', a.reduce, JSON.stringify(a));
     check('accessibility settings boot without errors', errors.length === 0, errors.join(' | '));
   }
+  // 1.47.4: text to 200% (titles stop at 140%), bigger bars and buttons (zoom on the HUD, the dock still on screen),
+  // bold text and high contrast
+  {
+    await setStorage({ 'cozy-acres-settings': JSON.stringify({ textSize: 'max', hudSize: 'larger', bold: true, contrast: true }) });
+    await boot();
+    const a = await page.evaluate(async () => {
+      const root = document.documentElement;
+      window.__ui.open('settings');
+      await new Promise((r) => setTimeout(r, 600));
+      const label = document.querySelector('.setting-row label'), title = document.querySelector('.panel-header h2');
+      const val = document.querySelector('.text-step-val')?.textContent ?? '';
+      const up = document.querySelector('.text-step .btn:last-child');
+      const hud = document.querySelector('.hud-layer');
+      const off = [...document.querySelectorAll('.hud-menu .hud-btn')].filter((e) => { const r = e.getBoundingClientRect(); return r.right > innerWidth + 1 || r.bottom > innerHeight + 1; }).length;
+      return { label: label ? parseFloat(getComputedStyle(label).fontSize) : 0, titleTs: title ? getComputedStyle(title).getPropertyValue('--ts').trim() : '',
+        val, upOff: !!up?.disabled, zoom: hud ? getComputedStyle(hud).zoom : '', off,
+        bold: root.classList.contains('bold-text'), contrast: root.classList.contains('high-contrast'),
+        ink: getComputedStyle(root).getPropertyValue('--ink-soft').trim() };
+    });
+    check('Biggest text doubles panel text, titles stop at 140%, A+ stops at the top size', Math.abs(a.label - 32) < 0.6 && a.titleTs === '1.4' && a.val.includes('200%') && a.upOff, JSON.stringify(a));
+    check('Larger bars and buttons zoom the HUD and keep the dock on screen', a.zoom === '1.3' && a.off === 0, JSON.stringify(a));
+    check('Bold text and High contrast set their classes and darken soft text', a.bold && a.contrast && a.ink === '#1a1007', JSON.stringify(a));
+    check('more accessibility settings boot without errors', errors.length === 0, errors.join(' | '));
+  }
 
 } finally {
   await browser.close();

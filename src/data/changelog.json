@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.47.4",
+   "date": "2026-11-13",
+   "title": "Bigger and bolder",
+   "icon": "magnifier",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "magnifier",
+     "text": "Text size now goes up to 200%: Normal, Large, Larger, Largest, Huge and Biggest, with A- and A+ buttons"
+    },
+    {
+     "icon": "gear",
+     "text": "Bars and buttons: make the top bar, side shortcuts and bottom buttons bigger, icons and all"
+    },
+    {
+     "icon": "eye",
+     "text": "Bold text and High contrast switches for easier reading"
+    }
+   ]
+  },
+  {
    "version": "1.47.3",
    "date": "2026-11-13",
    "title": "Easier on the eyes",
