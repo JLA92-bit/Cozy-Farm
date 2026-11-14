@@ -63,6 +63,8 @@ class PairsSystem {
   private polling: Promise<void> | null = null;
   private listeners = new Set<() => void>();
   private seen = new Set<string>();
+  /** 1.48.2 tasks (`board:item`) and boards (`board:full`) this player's own gift finished */
+  private finished = new Set<string>();
   private claimedAt = 0;
 
   get available(): boolean { return social.available && game.level >= PAIRS.level && gameConfig.pairs; }
@@ -141,7 +143,13 @@ class PairsSystem {
     game.incStat('pair_given', r.used);
     saves.save();
     this.changed();
-    if (r.board.tasks.find((x) => x.idx === t.idx)?.done) void this.poll();
+    if (r.board.tasks.find((x) => x.idx === t.idx)?.done) {
+      if (!b.tasks.find((x) => x.idx === t.idx)?.done) {
+        this.finished.add(`${b.id}:${t.item}`);
+        if (r.board.tasks.every((x) => x.done)) this.finished.add(`${b.id}:full`);
+      }
+      void this.poll();
+    }
     return r.used;
   }
 
@@ -213,7 +221,10 @@ class PairsSystem {
       if (r.tokens) game.state.village.tokens = (game.state.village.tokens ?? 0) + r.tokens;
       if (c.kind === 'task') { st.tasks = (st.tasks ?? 0) + 1; game.incStat('pair_tasks'); }
       else { st.full = (st.full ?? 0) + 1; game.incStat('pair_full'); }
-      wins.push({ board: c.board, kind: c.kind, partner: c.partner, item: c.item, qty: c.qty, xp: r.xp, coins: r.coins, tokens: r.tokens, at: Date.now() });
+      const task = c.kind === 'task' ? this.boards.find((x) => x.id === c.board)?.tasks.find((x) => x.item === c.item && x.done) : undefined;
+      const by = this.finished.has(`${c.board}:${c.kind === 'full' ? 'full' : c.item}`) ? 'me' as const : 'them' as const;
+      wins.push({ board: c.board, kind: c.kind, partner: c.partner, item: c.item, qty: c.qty, xp: r.xp, coins: r.coins, tokens: r.tokens, at: Date.now(), by,
+        ...(task ? { mine: task.mine, theirs: task.theirs } : {}) });
       logEvent('pair_reward', { kind: c.kind, xp: r.xp, bond: c.bond });
     }
     if (wins.length) {

@@ -1671,7 +1671,7 @@ try {
       await new Promise((ok) => setTimeout(ok, 300));
       const screen = !!document.querySelector('.pb-win-title') && /Task done|Board complete/.test(document.body.innerText);
       const won = pairs.won(pairs.active()[0], 'task', t.item);
-      const shown = { screen, won: !!won && won.xp > 0 && won.coins > 0 };
+      const shown = { screen, won: !!won && won.xp > 0 && won.coins > 0, by: won?.by, ribbon: /finished it for you both/.test(document.querySelector('.pb-ribbon')?.textContent ?? '') };
       document.querySelectorAll('.panel-footer .btn.yellow').forEach((b) => b.click());
       await pairs.poll();
       const once = (s.pairs?.tasks ?? 0) === tasksStat;
@@ -1690,7 +1690,7 @@ try {
     check('Friends Board: a demo neighbour invites, saying yes starts a board of 5 tasks', r.invited && r.active, JSON.stringify(r));
     check('Friends Board: one friend gives at most their part, the friend finishes it', r.gave === r.part && r.refusedPast && r.doneTask, JSON.stringify(r));
     check('Friends Board: a finished task pays XP and coins once', r.paid && r.coined && r.tasksStat === 1 && r.once, JSON.stringify(r));
-    check('Friends Board: a finished task opens a reward screen and is marked paid on the board', r.shown?.screen && r.shown?.won, JSON.stringify(r));
+    check('Friends Board: a finished task opens a reward screen saying who finished it, and is marked paid on the board', r.shown?.screen && r.shown?.won && r.shown?.by === 'them' && r.shown?.ribbon, JSON.stringify(r));
     check('Friends Board: leaving gives unfinished goods back', r.back && r.back.used === 2 && r.back.ok && r.back.gone, JSON.stringify(r));
     // high levels get a smaller share, every claim is capped, and the XP comes in at most xpPerHour an hour
     const late = await page.evaluate(() => {

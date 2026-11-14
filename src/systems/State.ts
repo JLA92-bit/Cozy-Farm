@@ -2,7 +2,9 @@ import type { NotifyPrefs } from '../notify/Plan';
 
 /** The complete persistent game state. Everything time-based stores absolute timestamps, so timers keep running offline. */
 /** 1.48.2 one Friends Board reward collected (a finished task or a full board). */
-export interface PairWin { board: string; kind: 'task' | 'full'; partner: string; item: string; qty: number; xp: number; coins: number; tokens: number; at: number }
+export interface PairWin { board: string; kind: 'task' | 'full'; partner: string; item: string; qty: number; xp: number; coins: number; tokens: number; at: number;
+  /** who made the last delivery, and what each gave (tasks) */
+  by?: 'me' | 'them'; mine?: number; theirs?: number }
 
 export interface CharacterLook {
   body: string; // mini character variant id, e.g. 'female-b'

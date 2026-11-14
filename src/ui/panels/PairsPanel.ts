@@ -54,6 +54,7 @@ export function openPairs(): void {
     const mePct = Math.min(100, (t.mine / t.qty) * 100), themPct = Math.min(100 - mePct, (t.theirs / t.qty) * 100);
     const won = t.done ? pairs.won(b, 'task', t.item) : undefined;
     const sub = t.done ? `Done together: you gave ${t.mine}, ${b.partner.name} gave ${t.theirs}. `
+      + (won?.by ? (won.by === 'me' ? 'You made the last delivery. ' : `${b.partner.name} made the last delivery. `) : '')
       + (won ? `You got ${fmt(won.xp)} XP and ${fmt(won.coins)} coins.` : 'Your reward is on its way...')
       : left > 0 ? `You ${t.mine}, ${b.partner.name} ${t.theirs} of ${t.qty}. You can give up to ${left} more. You have ${fmt(have)}.`
         : `You gave your part (${t.mine}). ${b.partner.name} gives the last ${t.qty - total}.`;
@@ -79,6 +80,8 @@ export function openPairs(): void {
       all ? h('div', { class: 'pb-complete' }, icon('trophy'),
         h('div', { class: 'grow' },
           h('div', { class: 'pb-complete-title' }, 'Board complete!'),
+          h('div', { class: 'pb-by' }, icon('hug', 'cp-mini'), `Finished by you and ${b.partner.name}`
+            + (fullWon?.by ? ` - ${fullWon.by === 'me' ? 'you' : b.partner.name} made the last delivery` : '')),
           h('div', null, fullWon ? `You both got the full-board reward: ${fmt(fullWon.xp)} XP and ${fullWon.tokens} Friendship Tokens. New tasks in ${daysLeft(b)} ${daysLeft(b) === 1 ? 'day' : 'days'}.`
             : 'Every task is done. Your full-board reward is on its way...'))) : null,
       h('div', { class: 'pb-stats' },
@@ -162,11 +165,15 @@ function openPairReward(list: PairWin[]): void {
     h('span', { class: 'pill' }, icon('glowing_star'), `+${fmt(sum('xp'))} XP`),
     sum('coins') ? h('span', { class: 'pill', dataset: { kind: 'coins' } }, icon('coin'), `+${fmt(sum('coins'))}`) : null,
     sum('tokens') ? h('span', { class: 'pill' }, icon('heart'), `+${sum('tokens')} Friendship Tokens`) : null);
-  p.body.append(head,
+  const last = full[0] ?? tasks[tasks.length - 1];
+  const ribbon = h('div', { class: 'pb-ribbon outlined' }, icon('hug'),
+    last.by === 'me' ? `You finished it for you and ${names}!` : last.by === 'them' ? `${last.partner} finished it for you both!` : `You and ${names} did it!`);
+  p.body.append(ribbon, head,
     h('div', { class: 'center' }, full.length ? `You and ${names} finished every task this week. You both get this reward.` : `You and ${names} finished ${tasks.length > 1 ? 'these tasks' : 'a task'} together. You both get this reward.`),
     pills,
     ...tasks.map((w) => h('div', { class: 'list-item' }, w.item ? itemIcon(w.item, 'cp-icon') : icon('hug'),
-      h('div', { class: 'grow' }, h('div', { class: 'title' }, `${w.qty} ${ITEMS[w.item]?.name ?? w.item}`), h('div', { class: 'sub' }, `With ${w.partner}`)),
+      h('div', { class: 'grow' }, h('div', { class: 'title' }, `${w.qty} ${ITEMS[w.item]?.name ?? w.item}`), h('div', { class: 'sub' }, w.mine !== undefined ? `You gave ${fmt(w.mine)}, ${w.partner} gave ${fmt(w.theirs ?? 0)}` : `With ${w.partner}`),
+        w.by ? h('div', { class: 'sub pb-by' }, w.by === 'me' ? 'You made the last delivery' : `${w.partner} made the last delivery`) : null),
       h('span', { class: 'muted' }, `${fmt(w.xp)} XP, ${fmt(w.coins)} coins`))),
     ...full.map((w) => h('div', { class: 'list-item' }, icon('trophy'),
       h('div', { class: 'grow' }, h('div', { class: 'title' }, 'Every task this week'), h('div', { class: 'sub' }, `With ${w.partner}`)),
@@ -175,6 +182,7 @@ function openPairReward(list: PairWin[]): void {
   p.footer.append(button('Lovely!', () => p.close(), 'yellow wide'));
   p.onClose = () => { shown = null; const next = waiting; waiting = []; if (next.length) setTimeout(() => openPairReward(next), 250); };
   p.open();
+  gsap.fromTo(ribbon, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(2)' });
   gsap.fromTo(head, { scale: 0.2, rotate: -10 }, { scale: 1, rotate: 0, duration: 0.8, ease: 'elastic.out(1.1, 0.4)', delay: 0.1 });
   gsap.fromTo(pills.children, { scale: 0 }, { scale: 1, duration: 0.35, ease: 'back.out(3)', delay: 0.35, stagger: 0.1 });
   confetti(full.length ? 60 : 36, ['#ff8fb4', '#ffc4dc', '#ffc93c', '#fff3c4', '#7ed957']);
