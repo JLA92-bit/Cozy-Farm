@@ -1629,6 +1629,26 @@ try {
     check('accessibility and layout settings boot without errors', errors.length === 0, errors.join(' | '));
   }
 
+  // 1.48.2 the side shortcuts' empty corners (two columns on a tall phone) let taps and drags through to the farm
+  {
+    await setStorage({});
+    await boot();
+    const r = await page.evaluate(async () => {
+      document.querySelectorAll('.toast-stack, .overlay').forEach((t) => t.remove());
+      const side = document.querySelector('.hud-side');
+      side.style.height = '300px'; side.style.flexWrap = 'wrap-reverse'; side.style.width = '140px'; side.style.bottom = 'auto';
+      await new Promise((ok) => setTimeout(ok, 200));
+      const R = side.getBoundingClientRect(), kids = [...side.children].map((c) => c.getBoundingClientRect());
+      let gap = null;
+      for (let y = R.top + 3; y < R.bottom && !gap; y += 6) for (let x = R.left + 3; x < R.right; x += 6)
+        if (!kids.some((k) => x >= k.left - 4 && x <= k.right + 4 && y >= k.top - 4 && y <= k.bottom + 4)) { gap = [x, y]; break; }
+      const hit = gap ? document.elementFromPoint(gap[0], gap[1]) : null, k0 = kids[0];
+      const btn = k0 ? document.elementFromPoint(k0.left + k0.width / 2, k0.top + k0.height / 2) : null;
+      return { gap, hit: hit?.tagName, inSide: !!hit?.closest('.hud-side'), btn: !!btn?.closest('.hud-btn') };
+    });
+    check('the side shortcuts let taps through their empty corners, and their buttons still take taps', !!r.gap && !r.inSide && r.btn, JSON.stringify(r));
+  }
+
   // 1.48 Friends Board (practice backend): a demo neighbour invites, saying yes starts a board, one friend gives at
   // most 3/4 of a task, the friend's part finishes it and both rewards come once; leaving gives unfinished goods back
   {

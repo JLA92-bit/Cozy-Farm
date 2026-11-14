@@ -1286,3 +1286,8 @@ html:not([data-text-size="normal"]) .segmented { flex-wrap: wrap; max-width: 100
 html:not([data-text-size="normal"]) .segmented button { flex: 1 1 auto; }
 .text-step { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; max-width: 100%; }
 .text-step .text-step-val { min-width: 4.5em; }
+
+/* 1.48.2 the side shortcuts' box (two columns when they wrap) let no tap or drag through its empty corners: a
+   bubble or building beside them could not be tapped and the farm would not move from there. Only the buttons take touches. */
+#ui-root .passthrough > .hud-side { pointer-events: none; }
+#ui-root .hud-side > * { pointer-events: auto; }

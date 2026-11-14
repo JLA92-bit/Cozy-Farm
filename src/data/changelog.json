@@ -14,6 +14,10 @@
     {
      "icon": "check",
      "text": "Finished tasks on the board turn green and say what they paid, and a finished board says Board complete"
+    },
+    {
+     "icon": "hand",
+     "text": "Fixed: bubbles and buildings next to the side buttons could not be tapped, and the farm would not move when dragged from there"
     }
    ]
   },
