@@ -1717,21 +1717,23 @@ try {
       document.querySelectorAll('.overlay').forEach((e) => e.remove());
       await new Promise((res) => setTimeout(res, 3000));
       const V = sc.rig.target.constructor;
-      let hit = null; const orig = ui.obstaclePopup.bind(ui);
+      let hit = null; const orig = ui.obstaclePopup.bind(ui), wild = ui.extraPick;
       ui.obstaclePopup = (o) => { hit = o.id; };
-      let n = 0, leaves = 0, base = 0;
+      ui.extraPick = undefined; // the wild visitors at the farm edge take taps on themselves (a photo), on purpose
+      let n = 0, leaves = 0, base = 0, own = 0;
       for (const o of s.obstacles.filter((o) => o.z < 8 && /tree/.test(o.type))) {
         const wx = o.x - 24 + 0.5, wz = o.z - 24 + 0.5;
         sc.rig.stop(); sc.rig.target.set(wx, 0, wz); sc.rig.update?.(0); sc.rig.camera.updateMatrixWorld();
         const h = sc.farm.obstacleHeight(o);
-        // a leaf tap may open a tree standing in front of this one (the farm is random): the bug was that it opened nothing
+        // a tap may open a tree standing in front of this one (the farm is random): the bug was that it opened nothing;
+        // the base opens the tree itself (before the fix almost every leaf tap on the northern row opened nothing)
         const at = (y, any) => { const p = sc.project(new V(wx, y, wz)); hit = null; ui.world.hidePopup(); it.tap({ x: p.x, y: p.y }); ui.world.hidePopup(); return any ? hit !== null : hit === o.id; };
-        n++; if (at(h * 0.7, true)) leaves++; if (at(0.05, false)) base++;
+        n++; if (at(h * 0.7, true)) leaves++; if (at(0.05, true)) base++; if (at(0.05, false)) own++;
       }
-      ui.obstaclePopup = orig;
-      return { n, leaves, base };
+      ui.obstaclePopup = orig; ui.extraPick = wild;
+      return { n, leaves, base, own };
     });
-    check('northern trees open their Clear popup when tapped on the leaves or the trunk', r.n >= 3 && r.leaves >= r.n - 1 && r.base >= r.n - 1, JSON.stringify(r));
+    check('northern trees open their Clear popup when tapped on the leaves or the trunk', r.n >= 3 && r.leaves >= r.n - 1 && r.base >= r.n - 1 && r.own >= r.n - 1, JSON.stringify(r));
   }
 
 } finally {
