@@ -1140,3 +1140,149 @@ html.high-contrast .hw-card.done, html.high-contrast .al-ribbon, html.high-contr
 .text-step .btn { min-width: 48px; min-height: 48px; padding: 0 10px; }
 .text-step .text-step-val { min-width: 5.5em; text-align: center; font-family: var(--font-display); font-size: 16px; line-height: 1.1; }
 .text-step .text-step-val small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--ink-soft); }
+
+/* ---- 1.48.1 Accessibility and layout (systems/Access.ts, ui/panels/AccessPanel.ts) ---- */
+.access-open { padding: 6px 0 4px; }
+.access-presets { justify-content: flex-start; margin-top: 4px; }
+.section-title .cp-mini { width: 22px; height: 22px; vertical-align: -4px; }
+/* Buttons in screens (--bz): every button, tab, switch and choice outside the always-on HUD grows (the HUD has its own
+   size, Bars and buttons). Minimums only, so buttons with more words in them are never squeezed. */
+html:not([data-btn-size="normal"]) .btn:not(.hud-btn):not(.round):not(:where(.visit-banner, .hm-bar, .fish-ui, .photo-ui) .btn) { min-height: calc(48px * var(--bz, 1)) !important; min-width: calc(48px * var(--bz, 1)) !important; padding-inline: calc(16px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .btn.small:not(.hud-btn):not(:where(.visit-banner, .hm-bar, .fish-ui, .photo-ui) .btn) { min-height: calc(40px * var(--bz, 1)) !important; min-width: calc(40px * var(--bz, 1)) !important; padding-inline: calc(10px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .btn:not(.hud-btn) .icon { width: calc(26px * var(--bz, 1)); height: calc(26px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .close-btn { width: calc(48px * var(--bz, 1)); height: calc(48px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .tab { min-height: calc(44px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .segmented button { min-height: calc(44px * var(--bz, 1)); min-width: calc(56px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .toggle { zoom: var(--bz, 1); }
+html:not([data-btn-size="normal"]) .panel-header { min-height: calc(54px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .chip-row, html:not([data-btn-size="normal"]) .panel-footer { gap: calc(6px * var(--bz, 1) + 2px); }
+/* Button words off: the words under the bottom and side buttons are hidden (screen readers still read them) */
+html.no-labels .hud-btn .lbl { display: none; }
+/* Left hand: side shortcuts on the left, the dock reversed (the Shop under the left thumb). In landscape the goal card
+   moves to the right; in portrait it stays at the top left and the shortcuts start under it. */
+html[data-hand="left"] .hud-side { right: auto; left: calc(var(--safe-left) + 8px); align-items: flex-start; top: calc(var(--safe-top) + 80px); }
+html[data-hand="left"] .hud-bottom { flex-direction: row-reverse; }
+html[data-hand="left"] .hud-menu { flex-direction: row-reverse; }
+html[data-hand="left"] .goal-card { left: auto; right: calc(var(--safe-right) + 8px); transform-origin: right center; }
+html[data-hand="left"] #ui-root.tut-running .hud-side { transform: translateX(-30px); }
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-hand="left"] .hud-side { flex-wrap: wrap; }
+}
+@media (orientation: portrait) {
+  html[data-hand="left"] .goal-card { right: auto; left: calc(var(--safe-left) + 8px); transform-origin: left center; }
+  html[data-hand="left"] .hud-side { top: calc(var(--safe-top) + 156px); bottom: calc(var(--safe-bottom) + var(--hud-btn) + 30px); flex-wrap: wrap; align-content: flex-start; gap: 8px; }
+  html[data-hand="left"]:not([data-hud-size="normal"]) .hud-side { bottom: calc(var(--safe-bottom) + var(--hud-btn) * 2 + 40px); }
+}
+/* Full screen: every screen (not the small yes/no cards) takes the whole phone screen */
+html[data-panels="full"] .overlay:has(> .panel:not(.small)) { padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left); }
+html[data-panels="full"] .overlay > .panel:not(.small) { width: 100%; height: 100%; max-height: 100%; border-width: 0; border-radius: 0; box-shadow: none; }
+html[data-panels="full"] .overlay > .panel:not(.small) .panel-header { border-radius: 0; }
+html[data-panels="full"] .overlay > .panel:not(.small) .close-btn { top: 4px; right: 6px; }
+/* Plain font: the phone's own letters; words that were in the heavy game font are bold instead */
+html.plain-font { --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Verdana, sans-serif; --font-display: system-ui, -apple-system, 'Segoe UI', Roboto, Verdana, sans-serif; }
+html.plain-font :where(.btn, .outlined, .panel-header h2, .section-title, .setting-row label, .list-item .title, .card-title, .tab, .segmented button, .cp-name, .goal-title, .title) { font-weight: 700; letter-spacing: 0; }
+/* Roomy line spacing: more room between lines, letters and words in screens */
+html.roomy-text .panel-body { letter-spacing: .02em; word-spacing: .12em; }
+html.roomy-text .panel-body :where(div, span, p, li, label, small, b):not(.btn *, .progress *, .badge-dot, .lock-tag, .count-tag, .new-tag) { line-height: 1.5 !important; }
+html.roomy-text .panel-body .list { gap: 14px; }
+/* 1.48.1 review fixes (HUD) */
+/* the open building/obstacle popup sits above the HUD so the dock and shortcuts never cover its buttons */
+.world-layer.has-popup { z-index: 32; }
+/* toasts: while a screen is open they go to the bottom, so they never cover its title or tabs; long words stop at 2 lines */
+#ui-root:has(> .overlay) .toast-stack { top: auto; bottom: calc(var(--safe-bottom) + 12px); flex-direction: column-reverse; }
+.toast .t-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* the dock buttons on narrow phones are under 44 px: an invisible margin takes taps round them */
+.hud-menu .hud-btn::before { content: ''; position: absolute; inset: -4px -1px; }
+/* while planting or placing, the mode banner takes the goal card's place */
+#ui-root.mode-place .goal-card, #ui-root.mode-tray .goal-card { opacity: 0; pointer-events: none !important; }
+@media (orientation: portrait) {
+  /* the side shortcuts always stop above the dock and wrap into a second column (they ran under it on small phones) */
+  .hud-side { bottom: calc(var(--safe-bottom) + var(--hud-btn) + 30px); flex-wrap: wrap-reverse; align-content: flex-start; gap: 8px; }
+  /* at the biggest bars there is no room for more columns: one column that scrolls */
+  html[data-hud-size="largest"] .hud-side, html[data-hud-size="larger"] .hud-side {
+    flex-wrap: nowrap; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none;
+    padding: 6px 6px 2px; margin: -6px -6px 0; touch-action: pan-y;
+  }
+  html[data-hud-size="largest"] .hud-side::-webkit-scrollbar, html[data-hud-size="larger"] .hud-side::-webkit-scrollbar { display: none; }
+  html[data-hand="left"] .hud-side { flex-wrap: wrap; }
+  html[data-hand="left"][data-hud-size="largest"] .hud-side, html[data-hand="left"][data-hud-size="larger"] .hud-side { flex-wrap: nowrap; }
+}
+/* landscape phones are short: the bars and buttons stop at Large there (Larger and Largest left no room for the farm) */
+@media (orientation: landscape) and (max-height: 500px) {
+  html[data-hud-size="larger"] .hud-layer, html[data-hud-size="largest"] .hud-layer { --hz: 1.15; }
+  html:not([data-hud-size="normal"]) .hud-side { bottom: calc(var(--safe-bottom) + var(--hud-btn) + 26px); }
+  html[data-hand="left"] .hud-side { flex-wrap: wrap; top: calc(var(--safe-top) + 72px); }
+}
+/* 1.48.1 review fixes (places and overlays). Screens scroll, so their text takes the full Text size; things fixed over
+   the 3D view cannot scroll, so their text stops at 140% (--ts-title) and labels in the world at 108% (--ts-hud) */
+.toast-stack, .photo-ui, .fish-ui, .hm-bar, .tut-box { --ts: var(--ts-title, 1); }
+.world-layer { --ts: var(--ts-hud, 1); }
+.world-layer .ctx-pop { --ts: var(--ts-title, 1); }
+/* Photo mode: the sheet never runs off the bottom (it scrolls), the chips keep their words and are 44 px tall */
+.photo-sheet { max-height: calc(100% - var(--safe-top) - var(--safe-bottom) - 80px); overflow-y: auto; overscroll-behavior: contain; }
+.photo-chip { flex: 1 0 auto; min-height: 44px; padding: 0 8px; }
+/* place banners (woods, mine, square): the name keeps room for a word (it went one letter a line), the Back button
+   goes under it when there is no room */
+.visit-banner.rows .visit-name { flex: 1 1 8em; }
+.visit-banner:not(.rows) { flex-wrap: wrap; }
+.visit-banner:not(.rows) .visit-title { flex: 1 1 10em; min-width: 0; }
+/* small chips in the woods and fishing screens take 44 px tall taps */
+.wd-region, .fish-chip, .fish-buy { position: relative; }
+.wd-region::before, .fish-chip::before { content: ''; position: absolute; inset: -6px -2px; }
+/* the welcome and tip cards: never taller than the screen (they scroll) */
+.tut-box { max-height: calc(100% - var(--safe-top) - var(--safe-bottom) - 110px); overflow-y: auto; overscroll-behavior: contain; }
+/* the home tools wrap into two rows on narrow phones instead of hiding Undo, Redo and Turn off the edge */
+@media (max-width: 520px) {
+  .hm-bar { flex-wrap: wrap; justify-content: center; }
+  .hm-bar .btn.hm-tool { flex: 1 0 calc(20% - 4px); }
+}
+/* the farmer creator with bigger text: the picture gets smaller so the choices have room */
+@media (orientation: portrait) { html:not([data-text-size="normal"]) .creator-preview { flex-basis: 26%; min-height: 140px; } }
+@media (orientation: landscape) and (max-height: 500px) { html:not([data-text-size="normal"]) .creator-preview { flex-basis: 30%; } }
+/* 1.48.1 review fixes (screens) */
+:root { --close: calc(48px + (var(--bz, 1) - 1) * 20px); }
+/* the header does not grow with button size; the close button grows a little only (56 px at Larger) and the title
+   keeps clear of it */
+html:not([data-btn-size="normal"]) .panel-header { min-height: 54px; }
+html:not([data-btn-size="normal"]) .overlay .panel > .btn.close-btn.red { width: var(--close); height: var(--close); min-width: var(--close) !important; min-height: var(--close) !important; padding: 0; }
+html:not([data-btn-size="normal"]) .panel-header, html[data-panels="full"] .panel-header { padding-left: calc(var(--close) + 14px); padding-right: calc(var(--close) + 14px); }
+/* big text: the coins in a screen's header go on their own line under the title instead of under it */
+html:not([data-text-size="normal"]):not([data-text-size="large"]) .panel-header:has(.panel-wallet) { flex-wrap: wrap; row-gap: 4px; }
+html:not([data-text-size="normal"]):not([data-text-size="large"]) .panel-wallet { position: static; transform: none; order: 2; flex: 1 1 100%; justify-content: center; }
+/* phones held sideways with bigger text or buttons: the whole screen scrolls (title, tabs, list and footer) so no
+   part of it is squeezed to nothing; the title and close button stay at the top */
+@media (orientation: landscape) and (max-height: 500px) {
+  html:not([data-text-size="normal"]) .overlay > .panel, html:not([data-btn-size="normal"]) .overlay > .panel { overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  html:not([data-text-size="normal"]) .overlay > .panel > *, html:not([data-btn-size="normal"]) .overlay > .panel > * { flex-shrink: 0; }
+  html:not([data-text-size="normal"]) .overlay > .panel > .panel-body, html:not([data-btn-size="normal"]) .overlay > .panel > .panel-body { overflow: visible; flex: 0 0 auto; }
+  html:not([data-text-size="normal"]) .overlay > .panel > .panel-header, html:not([data-btn-size="normal"]) .overlay > .panel > .panel-header { position: sticky; top: 0; z-index: 4; }
+  html:not([data-text-size="normal"]) .overlay > .panel > .close-btn, html:not([data-btn-size="normal"]) .overlay > .panel > .close-btn {
+    position: sticky; top: 4px; right: auto; order: -1; align-self: flex-end; margin: 0 6px calc(-1 * var(--close)) 0; z-index: 5;
+  }
+}
+/* grids of cards get wider columns with bigger text (orders went one letter a line in two narrow columns) */
+html:not([data-text-size="normal"]) .grid { grid-template-columns: repeat(auto-fill, minmax(calc(120px * min(var(--ts, 1), 1.6)), 1fr)); }
+html:not([data-text-size="normal"]) .grid.tight { grid-template-columns: repeat(auto-fill, minmax(calc(84px * min(var(--ts, 1), 1.6)), 1fr)); }
+html:not([data-text-size="normal"]) .order-grid { grid-template-columns: repeat(auto-fill, minmax(calc(150px * min(var(--ts, 1), 1.6)), 1fr)); }
+/* the buttons Buttons in screens did not reach */
+html:not([data-btn-size="normal"]) .opt-btn { min-height: calc(48px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) :is(.order-skip, .lb-trophy) { min-height: calc(40px * var(--bz, 1)); }
+html:not([data-btn-size="normal"]) .mu-slot { width: calc(40px * var(--bz, 1)); height: calc(40px * var(--bz, 1)); }
+/* settings rows: choices sit on the right like toggles, also when they wrap under the label; icons grow with titles */
+.setting-row > .segmented { margin-left: auto; }
+.section-title .cp-mini { width: calc(22px * var(--ts, 1)); height: calc(22px * var(--ts, 1)); }
+/* high contrast: bar labels get a thicker outline and the bar a darker track */
+html.high-contrast .progress { background: #b89a5c; }
+html.high-contrast .progress > .label { -webkit-text-stroke-width: 3px; }
+/* What's new: the picture band grows with the words in it */
+html:not([data-text-size="normal"]) .wn-hero { height: auto; min-height: calc(150px * min(var(--ts, 1), 1.6)); }
+/* 1.48.1 review fixes (200% text): rows with a pill or button beside the words wrap the pill under them instead of
+   squeezing the words a word a line; choices and the Text size stepper wrap instead of running off the edge */
+html:not([data-text-size="normal"]) :is(.row.between, .quest-bonus, .social-card.my-code) { flex-wrap: wrap; }
+html:not([data-text-size="normal"]) :is(.row.between > .muted, .quest-bonus > .grow) { flex: 1 1 10em; min-width: 0; }
+html:not([data-text-size="normal"]) .timer-tag { flex: 0 0 auto; }
+html:not([data-text-size="normal"]) .social-card.my-code .friend-code { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+html:not([data-text-size="normal"]) .segmented { flex-wrap: wrap; max-width: 100%; }
+html:not([data-text-size="normal"]) .segmented button { flex: 1 1 auto; }
+.text-step { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; max-width: 100%; }
+.text-step .text-step-val { min-width: 4.5em; }

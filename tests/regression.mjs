@@ -1585,14 +1585,48 @@ try {
       const hud = document.querySelector('.hud-layer');
       const off = [...document.querySelectorAll('.hud-menu .hud-btn')].filter((e) => { const r = e.getBoundingClientRect(); return r.right > innerWidth + 1 || r.bottom > innerHeight + 1; }).length;
       return { label: label ? parseFloat(getComputedStyle(label).fontSize) : 0, titleTs: title ? getComputedStyle(title).getPropertyValue('--ts').trim() : '',
-        val, upOff: !!up?.disabled, zoom: hud ? getComputedStyle(hud).zoom : '', off,
+        val, upOff: !!up?.disabled, zoom: hud ? getComputedStyle(hud).zoom : '', off, short: innerWidth > innerHeight && innerHeight <= 500,
         bold: root.classList.contains('bold-text'), contrast: root.classList.contains('high-contrast'),
         ink: getComputedStyle(root).getPropertyValue('--ink-soft').trim() };
     });
     check('Biggest text doubles panel text, titles stop at 140%, A+ stops at the top size', Math.abs(a.label - 32) < 0.6 && a.titleTs === '1.4' && a.val.includes('200%') && a.upOff, JSON.stringify(a));
-    check('Larger bars and buttons zoom the HUD and keep the dock on screen', a.zoom === '1.3' && a.off === 0, JSON.stringify(a));
+    // (a phone held sideways stops at 1.15 from 1.48.1)
+    check('Larger bars and buttons zoom the HUD and keep the dock on screen', (a.zoom === '1.3' || (a.short && a.zoom === '1.15')) && a.off === 0, JSON.stringify(a));
     check('Bold text and High contrast set their classes and darken soft text', a.bold && a.contrast && a.ink === '#1a1007', JSON.stringify(a));
     check('more accessibility settings boot without errors', errors.length === 0, errors.join(' | '));
+  }
+
+  // 1.48.1 Accessibility and layout: bigger buttons in screens, left-hand HUD, full-screen screens, plain font, roomy
+  // lines, no button words; Reset all puts everything back
+  {
+    await setStorage({ 'cozy-acres-settings': JSON.stringify({ btnSize: 'larger', hand: 'left', panels: 'full', font: 'plain', spacing: 'roomy', taps: 'slow', labels: 'off' }) });
+    await boot();
+    const a = await page.evaluate(async () => {
+      const root = document.documentElement;
+      document.querySelectorAll('.overlay').forEach((o) => o.remove());
+      window.__ui.open('access');
+      await new Promise((r) => setTimeout(r, 700));
+      const panel = [...document.querySelectorAll('.overlay > .panel')].pop();
+      const small = panel?.querySelector('.btn.small');
+      const side = document.querySelector('.hud-side'), shop = document.querySelector('[data-hud="shop"]'), me = document.querySelector('[data-hud="character"]');
+      const lbl = document.querySelector('.hud-btn .lbl');
+      const r = { bz: getComputedStyle(root).getPropertyValue('--bz').trim(), small: small ? small.getBoundingClientRect().height : 0,
+        panelW: panel ? Math.round(panel.getBoundingClientRect().width) : 0, W: innerWidth,
+        sideLeft: side ? side.getBoundingClientRect().left < innerWidth / 2 : false,
+        shopLeft: shop && me ? shop.getBoundingClientRect().left < me.getBoundingClientRect().left : false,
+        plain: root.classList.contains('plain-font'), roomy: root.classList.contains('roomy-text'), noLbl: lbl ? getComputedStyle(lbl).display === 'none' : false };
+      const reset = [...panel.querySelectorAll('.btn')].find((b) => b.textContent.includes('Reset all'));
+      reset?.click();
+      await new Promise((res) => setTimeout(res, 300));
+      const saved = JSON.parse(localStorage.getItem('cozy-acres-settings') || '{}');
+      r.reset = !saved.hand && !saved.btnSize && !saved.panels && root.dataset.hand === 'right' && !root.classList.contains('plain-font');
+      return r;
+    });
+    check('Larger buttons in screens make small buttons 40% taller, the HUD left out', a.bz === '1.4' && a.small >= 55, JSON.stringify(a));
+    check('Left hand puts the shortcuts on the left and the Shop first in the dock', a.sideLeft && a.shopLeft, JSON.stringify(a));
+    check('Full-screen screens fill the width; plain font, roomy lines and hidden button words apply', a.panelW === a.W && a.plain && a.roomy && a.noLbl, JSON.stringify(a));
+    check('Reset all clears every accessibility and layout choice', a.reset, JSON.stringify(a));
+    check('accessibility and layout settings boot without errors', errors.length === 0, errors.join(' | '));
   }
 
   // 1.48 Friends Board (practice backend): a demo neighbour invites, saying yes starts a board, one friend gives at
@@ -1690,8 +1724,9 @@ try {
         const wx = o.x - 24 + 0.5, wz = o.z - 24 + 0.5;
         sc.rig.stop(); sc.rig.target.set(wx, 0, wz); sc.rig.update?.(0); sc.rig.camera.updateMatrixWorld();
         const h = sc.farm.obstacleHeight(o);
-        const at = (y) => { const p = sc.project(new V(wx, y, wz)); hit = null; ui.world.hidePopup(); it.tap({ x: p.x, y: p.y }); ui.world.hidePopup(); return hit === o.id; };
-        n++; if (at(h * 0.7)) leaves++; if (at(0.05)) base++;
+        // a leaf tap may open a tree standing in front of this one (the farm is random): the bug was that it opened nothing
+        const at = (y, any) => { const p = sc.project(new V(wx, y, wz)); hit = null; ui.world.hidePopup(); it.tap({ x: p.x, y: p.y }); ui.world.hidePopup(); return any ? hit !== null : hit === o.id; };
+        n++; if (at(h * 0.7, true)) leaves++; if (at(0.05, false)) base++;
       }
       ui.obstaclePopup = orig;
       return { n, leaves, base };

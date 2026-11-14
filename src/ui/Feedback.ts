@@ -34,7 +34,9 @@ export class Feedback {
     const el = h('div', { class: `toast ${style}`, role: 'status', dataset: { key } }, icon(iconKey), h('div', null, h('div', { class: 't-title' }, title), sub ? h('div', { class: 't-sub' }, sub) : null));
     this.toastStack.append(el);
     this.toastQueue.push(el);
-    while (this.toastQueue.length > 3) this.dismiss(this.toastQueue[0]);
+    // 1.48.1 big text or a screen open: two at a time, so toasts never fill the screen
+    const big = !['normal', 'large', undefined].includes(document.documentElement.dataset.textSize) || !!document.querySelector('#ui-root > .overlay');
+    while (this.toastQueue.length > (big ? 2 : 3)) this.dismiss(this.toastQueue[0]);
     gsap.fromTo(el, { y: -30, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' });
     el.addEventListener('click', () => this.dismiss(el));
     el.dataset.timer = String(setTimeout(() => this.dismiss(el), 3200));

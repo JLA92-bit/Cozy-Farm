@@ -1,6 +1,27 @@
 {
  "releases": [
   {
+   "version": "1.48.1",
+   "date": "2026-11-14",
+   "title": "Your Way",
+   "icon": "eye",
+   "color": "blue",
+   "highlights": [
+    {
+     "icon": "eye",
+     "text": "A new Accessibility screen in Settings, with quick setups: Easier to see and Easier to tap, and Reset all"
+    },
+    {
+     "icon": "hand",
+     "text": "Bigger buttons in every screen, a Largest size for the bars and buttons, and a left-hand layout with the shortcuts and Shop on the left"
+    },
+    {
+     "icon": "books",
+     "text": "Full-screen screens, a plain easy-read font, roomy line spacing, slower tap-twice confirms and the option to hide button words"
+    }
+   ]
+  },
+  {
    "version": "1.48.0",
    "date": "2026-11-14",
    "title": "Better Together",

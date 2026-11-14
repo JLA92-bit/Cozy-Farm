@@ -1,5 +1,6 @@
 import { settings, reducedMotion } from './Settings';
 import { isNative } from '../core/Native';
+import { setTapTiming } from '../ui/dom';
 
 /**
  * Accessibility (Settings > Accessibility). 1.47.3: Text size and Reduce motion; 1.47.4: more text sizes (to 200%),
@@ -10,15 +11,29 @@ import { isNative } from '../core/Native';
  * - Reduce motion puts `reduce-motion` on <html>: the `prefers-reduced-motion` CSS applies, animations and transitions
  *   finish at once, screen shake is off and particle effects are smaller.
  * - Bold text (`bold-text`) and High contrast (`high-contrast`) are classes on <html> (styles.css).
+ * 1.48.1 layout and buttons (Settings > Accessibility and layout, `AccessPanel.ts`):
+ * - Screen buttons (`--bz`): buttons, tabs, switches and choices inside screens and popups get taller and wider.
+ * - Shortcuts side (`data-hand="left"`): the side shortcuts on the left, the goal card on the right, the dock reversed so
+ *   the Shop is under the left thumb.
+ * - Screens (`data-panels="full"`): every screen fills the whole phone screen.
+ * - Font (`plain-font`): the phone's own plain letters instead of the rounded game font; Line spacing (`roomy-text`).
+ * - Slower taps: tap-twice confirms wait 10 s and close taps are ignored for longer (`setTapTiming` in dom.ts).
+ * - Button words (`no-labels`): the words under the bottom and side buttons can be hidden.
  */
 export type TextSize = 'normal' | 'large' | 'larger' | 'largest' | 'huge' | 'max';
 export const TEXT_SIZES: TextSize[] = ['normal', 'large', 'larger', 'largest', 'huge', 'max'];
 export const TEXT_SCALE: Record<TextSize, number> = { normal: 1, large: 1.15, larger: 1.3, largest: 1.5, huge: 1.75, max: 2 };
 export const TEXT_NAME: Record<TextSize, string> = { normal: 'Normal', large: 'Large', larger: 'Larger', largest: 'Largest', huge: 'Huge', max: 'Biggest' };
 
-export type HudSize = 'normal' | 'large' | 'larger';
-export const HUD_SCALE: Record<HudSize, number> = { normal: 1, large: 1.15, larger: 1.3 };
-export const HUD_NAME: Record<HudSize, string> = { normal: 'Normal', large: 'Large', larger: 'Larger' };
+export type HudSize = 'normal' | 'large' | 'larger' | 'largest';
+export const HUD_SIZES: HudSize[] = ['normal', 'large', 'larger', 'largest'];
+export const HUD_SCALE: Record<HudSize, number> = { normal: 1, large: 1.15, larger: 1.3, largest: 1.45 };
+export const HUD_NAME: Record<HudSize, string> = { normal: 'Normal', large: 'Large', larger: 'Larger', largest: 'Largest' };
+
+export type BtnSize = 'normal' | 'large' | 'larger';
+export const BTN_SIZES: BtnSize[] = ['normal', 'large', 'larger'];
+export const BTN_SCALE: Record<BtnSize, number> = { normal: 1, large: 1.2, larger: 1.4 };
+export const BTN_NAME: Record<BtnSize, string> = { normal: 'Normal', large: 'Large', larger: 'Larger' };
 
 /**
  * The phone's own text size in the store apps (Android Font size, iPhone Dynamic Type), from the TextZoom plugin.
@@ -50,6 +65,31 @@ export function hudSize(): HudSize {
   const s = settings.hudSize;
   return s && s in HUD_SCALE ? s : 'normal';
 }
+export function btnSize(): BtnSize {
+  const s = settings.btnSize;
+  return s && s in BTN_SCALE ? s : 'normal';
+}
+
+/** Every accessibility and layout choice, back to how the game starts (text size follows the phone again). */
+export const ACCESS_KEYS = ['textSize', 'hudSize', 'btnSize', 'bold', 'contrast', 'motion', 'hand', 'panels', 'font', 'spacing', 'taps', 'labels'] as const;
+type AccessKey = typeof ACCESS_KEYS[number];
+export type AccessPreset = 'see' | 'tap' | 'reset';
+/** Quick setups: Easier to see, Easier to tap, or Reset. A preset sets its choices and leaves the rest alone. */
+export const PRESETS: Record<AccessPreset, Partial<Record<AccessKey, string | boolean | undefined>>> = {
+  see: { textSize: 'largest', hudSize: 'larger', bold: true, contrast: true, spacing: 'roomy', panels: 'full' },
+  tap: { hudSize: 'larger', btnSize: 'larger', taps: 'slow', panels: 'full' },
+  reset: Object.fromEntries(ACCESS_KEYS.map((k) => [k, undefined])),
+};
+export function applyPreset(p: AccessPreset): void {
+  const s = settings as unknown as Record<string, unknown>;
+  for (const [k, v] of Object.entries(PRESETS[p])) { if (v === undefined) delete s[k]; else s[k] = v; }
+  applyAccess();
+}
+/** True when nothing is changed from the start (Reset has nothing to do). */
+export function accessDefault(): boolean {
+  const s = settings as unknown as Record<string, unknown>;
+  return ACCESS_KEYS.every((k) => s[k] === undefined || (k === 'motion' && s[k] === 'auto'));
+}
 
 export function motionReduced(): boolean {
   const m = settings.motion ?? 'auto';
@@ -70,8 +110,16 @@ export function applyAccess(): void {
   // panel titles are big already: they stop growing at 140% so the screen keeps room for what is in it
   root.style.setProperty('--ts-title', String(Math.min(k, 1.4)));
   root.style.setProperty('--hz', String(HUD_SCALE[hudSize()]));
+  root.style.setProperty('--bz', String(BTN_SCALE[btnSize()]));
   root.dataset.textSize = textSize();
   root.dataset.hudSize = hudSize();
+  root.dataset.btnSize = btnSize();
+  root.dataset.hand = settings.hand === 'left' ? 'left' : 'right';
+  root.dataset.panels = settings.panels === 'full' ? 'full' : 'fit';
+  root.classList.toggle('plain-font', settings.font === 'plain');
+  root.classList.toggle('roomy-text', settings.spacing === 'roomy');
+  root.classList.toggle('no-labels', settings.labels === 'off');
+  setTapTiming(settings.taps === 'slow');
   root.classList.toggle('reduce-motion', motionReduced());
   root.classList.toggle('bold-text', !!settings.bold);
   root.classList.toggle('high-contrast', !!settings.contrast);

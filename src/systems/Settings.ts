@@ -12,7 +12,11 @@ export interface Settings { music: number; sfx: number; haptics: boolean; qualit
   /** 1.47.3 accessibility: text size (unset: Normal, or the Android app's phone font size), reduce motion (unset: auto) */
   textSize?: 'normal' | 'large' | 'larger' | 'largest' | 'huge' | 'max'; motion?: 'auto' | 'on' | 'off'
   /** 1.47.4 accessibility: size of the always-on bars and buttons (unset: normal), bold text, high contrast */
-  hudSize?: 'normal' | 'large' | 'larger'; bold?: boolean; contrast?: boolean }
+  hudSize?: 'normal' | 'large' | 'larger' | 'largest'; bold?: boolean; contrast?: boolean
+  /** 1.48.1 layout and buttons: screen button size, which hand the shortcuts sit by, full-screen panels, an easy-read
+   * font, roomy line spacing, slower tap-twice confirms, words under the bottom buttons */
+  btnSize?: 'normal' | 'large' | 'larger'; hand?: 'right' | 'left'; panels?: 'fit' | 'full'; font?: 'game' | 'plain';
+  spacing?: 'normal' | 'roomy'; taps?: 'normal' | 'slow'; labels?: 'on' | 'off' }
 const KEY = 'cozy-acres-settings';
 
 export function reducedMotion(): boolean {

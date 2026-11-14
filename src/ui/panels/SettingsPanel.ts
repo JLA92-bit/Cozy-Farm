@@ -27,58 +27,15 @@ import { cloudState } from '../../online/CloudSave';
 import { platform } from '../../online/Activity';
 import { isIosApp } from '../../core/Native';
 import { APP_VERSION } from '../../systems/Version';
-import { applyAccess, textSize, hudSize, TEXT_NAME, TEXT_SCALE, TEXT_SIZES, HUD_NAME, type HudSize } from '../../systems/Access';
-
-function row(label: string, control: HTMLElement): HTMLElement {
-  return h('div', { class: 'setting-row' }, h('label', null, label), control);
-}
+import { applyAccess } from '../../systems/Access';
+import { row, toggle, textStepper } from './SettingRows';
+import { openAccess } from './AccessPanel';
 
 function slider(value: number, onInput: (v: number) => void): HTMLInputElement {
   const s = h('input', { type: 'range', min: '0', max: '100', value: String(Math.round(value * 100)) }) as HTMLInputElement;
   s.addEventListener('input', () => onInput(Number(s.value) / 100));
   s.addEventListener('pointerdown', (e) => e.stopPropagation());
   return s;
-}
-
-function toggle(on: boolean, onChange: (v: boolean) => void): HTMLElement {
-  const t = h('div', { class: `toggle ${on ? 'on' : ''}`, role: 'switch', tabindex: '0', 'aria-checked': String(on) });
-  const flip = (): void => { on = !on; t.classList.toggle('on', on); t.setAttribute('aria-checked', String(on)); onChange(on); audio.play('select'); };
-  t.addEventListener('click', flip);
-  t.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
-  return t;
-}
-
-/** A row of choices, one picked (Text size, Reduce motion). */
-function choices<T extends string>(opts: [T, string][], current: T, onPick: (v: T) => void, label: string): HTMLElement {
-  const seg = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': label });
-  for (const [v, name] of opts) {
-    const b = h('button', { class: v === current ? 'active' : '', type: 'button', role: 'radio', 'aria-checked': String(v === current) }, name);
-    b.addEventListener('click', () => {
-      seg.querySelectorAll('button').forEach((x) => { x.classList.toggle('active', x === b); x.setAttribute('aria-checked', String(x === b)); });
-      onPick(v); audio.play('select');
-    });
-    seg.append(b);
-  }
-  return seg;
-}
-
-/** Text size: smaller and bigger buttons round the size (Normal 100% to Biggest 200%); the panel grows as you go. */
-function textStepper(): HTMLElement {
-  const val = h('div', { class: 'text-step-val', 'aria-live': 'polite' });
-  const down = button('A-', () => step(-1), 'blue', { 'aria-label': 'Smaller text' });
-  const up = button('A+', () => step(1), 'blue', { 'aria-label': 'Bigger text' });
-  const show = (): void => {
-    const t = textSize(); const i = TEXT_SIZES.indexOf(t);
-    val.replaceChildren(TEXT_NAME[t], h('small', null, `${Math.round(TEXT_SCALE[t] * 100)}%`));
-    down.disabled = i <= 0; up.disabled = i >= TEXT_SIZES.length - 1;
-  };
-  const step = (d: number): void => {
-    const i = TEXT_SIZES.indexOf(textSize()) + d;
-    if (i < 0 || i >= TEXT_SIZES.length) return;
-    settings.textSize = TEXT_SIZES[i]; saveSettings(settings); applyAccess(); show(); audio.play('select');
-  };
-  show();
-  return h('div', { class: 'text-step', role: 'group', 'aria-label': 'Text size' }, down, val, up);
 }
 
 export function openSettings(): void {
@@ -90,15 +47,9 @@ export function openSettings(): void {
       ? toggle(settings.haptics, (v) => { settings.haptics = v; haptics.enabled = v; saveSettings(settings); if (v) haptics.play('success'); })
       : h('span', { class: 'muted' }, 'Not on this device')),
     row('Screen shake', toggle(settings.shake, (v) => { settings.shake = v; saveSettings(settings); applyAccess(); if (v) ui.scene.rig.shake(0.15, 0.3); })),
-    h('div', { class: 'section-title' }, 'Accessibility'),
+    h('div', { class: 'section-title' }, 'Accessibility and layout'),
     row('Text size', textStepper()),
-    row('Bars and buttons', choices((['normal', 'large', 'larger'] as HudSize[]).map((v) => [v, HUD_NAME[v]] as [HudSize, string]), hudSize(),
-      (v) => { settings.hudSize = v; saveSettings(settings); applyAccess(); }, 'Bars and buttons size')),
-    row('Bold text', toggle(!!settings.bold, (v) => { settings.bold = v; saveSettings(settings); applyAccess(); })),
-    row('High contrast', toggle(!!settings.contrast, (v) => { settings.contrast = v; saveSettings(settings); applyAccess(); })),
-    row('Reduce motion', choices([['auto', 'Auto'], ['on', 'On'], ['off', 'Off']], settings.motion ?? 'auto',
-      (v) => { settings.motion = v; saveSettings(settings); applyAccess(); }, 'Reduce motion')),
-    h('div', { class: 'muted setting-note' }, 'Text size changes the words in every screen; Bars and buttons makes the top bar, side shortcuts and bottom buttons bigger. Auto follows your phone. Reduce motion stops bouncing and shaking and keeps sparkles small.'),
+    h('div', { class: 'access-open' }, button([icon('eye'), 'Buttons, layout and more'], () => { p.close(); openAccess(); }, 'blue wide', { 'aria-label': 'Open accessibility and layout settings' })),
     row('Graphics', (() => {
       const seg = h('div', { class: 'segmented' });
       for (const q of ['low', 'medium', 'high'] as Quality[]) {

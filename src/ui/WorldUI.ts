@@ -39,6 +39,8 @@ export class WorldUI {
     this.hidePopup();
     this.popup = this.add(content, pos, -6);
     this.popup.el.style.zIndex = '5';
+    this.popup.el.classList.add('ctx-pop');
+    this.layer.classList.add('has-popup'); // 1.48.1 the open popup sits above the HUD (styles.css)
     markFresh(this.popup.el); // the tap that opened it must not also press a button in it (dom.ts)
     gsap.fromTo(content, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)' });
   }
@@ -47,6 +49,7 @@ export class WorldUI {
     if (!this.popup) return false;
     const a = this.popup;
     this.popup = null;
+    this.layer.classList.remove('has-popup');
     gsap.to(a.el.firstElementChild, { scale: 0.5, opacity: 0, duration: 0.12, onComplete: () => this.remove(a) });
     return true;
   }

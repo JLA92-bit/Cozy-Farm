@@ -19,7 +19,7 @@ process.on('exit', () => { try { server.kill(); } catch { /* gone */ } });
 for (let i = 0; i < 60; i++) { try { if ((await fetch(ROOT)).ok) break; } catch { /* not up */ } await new Promise((r) => setTimeout(r, 500)); }
 
 const exe = process.env.CHROMIUM_PATH ?? (existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
-const browser = await chromium.launch({ executablePath: exe, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: exe, channel: exe ? undefined : 'chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 
 // panels that need an argument, or open a flow rather than a screen
 const ARGS = { 'square-room': { room: 'estate_clock_base' }, critter: 'rabbit' };
@@ -35,7 +35,8 @@ for (const s of sizes) {
   await page.goto(`${ROOT}favicon.svg`);
   // TEXT_SIZE=large|larger|largest|huge|max checks the 1.47.3 Text size setting; MIN_TAP=44 reports buttons smaller than that
   // 1.47.4: HUD_SIZE=large|larger, BOLD=1, CONTRAST=1 for the other accessibility settings
-  const acc = { textSize: process.env.TEXT_SIZE || undefined, hudSize: process.env.HUD_SIZE || undefined, bold: !!process.env.BOLD || undefined, contrast: !!process.env.CONTRAST || undefined };
+  // 1.48.1: ACCESS='{"btnSize":"larger","hand":"left","panels":"full","font":"plain","spacing":"roomy"}' for any other choice
+  const acc = { textSize: process.env.TEXT_SIZE || undefined, hudSize: process.env.HUD_SIZE || undefined, bold: !!process.env.BOLD || undefined, contrast: !!process.env.CONTRAST || undefined, ...JSON.parse(process.env.ACCESS || '{}') };
   await page.evaluate((a) => { localStorage.clear(); if (Object.values(a).some((v) => v)) localStorage.setItem('cozy-acres-settings', JSON.stringify(a)); }, acc);
   await page.goto(ROOT);
   await page.waitForFunction(() => window.__game?.state && window.__ui, null, { timeout: 120000 });

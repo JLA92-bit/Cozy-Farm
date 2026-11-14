@@ -12,6 +12,7 @@ import './CharacterPanel';
 import './EconomyPanels';
 import './ProgressionPanels';
 import './SettingsPanel';
+import './AccessPanel';
 import './WhatsNewPanel';
 import './FarmhousePanel';
 import './FriendsPanel';

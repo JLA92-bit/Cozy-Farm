@@ -93,7 +93,7 @@ export function button(label: Child | Child[], onClick: () => void, cls = '', at
  * S23 Ultra) send a second, late "click" for the same tap, which pressed whatever button had just appeared there
  * (a gem Finish button). Real taps on something that appeared less than this long ago are ignored.
  */
-const FRESH_MS = 450;
+let FRESH_MS = 450;
 /** Mark a card or screen as just shown (Panel.open, WorldUI.showPopup). */
 export function markFresh(el: HTMLElement): void { el.dataset.born = String(performance.now()); }
 if (typeof document !== 'undefined') {
@@ -111,9 +111,17 @@ if (typeof document !== 'undefined') {
  * replaced the armed button with a fresh one, so "Tap again" vanished before it could be pressed. A second tap
  * sooner than GEM_GAP after the first is the phone's late double click (see FRESH_MS), not the player: ignored.
  */
-const GEM_MS = 5000, GEM_GAP = 450;
-/** How long a tap-twice confirm (skip an order, cancel a job) waits for the second tap. */
-export const CONFIRM_MS = GEM_MS;
+let GEM_MS = 5000, GEM_GAP = 450;
+/** How long a tap-twice confirm (skip an order, cancel a job) waits for the second tap (a live binding: see setTapTiming). */
+export let CONFIRM_MS = GEM_MS;
+/**
+ * 1.48.1 Slower taps (Settings > Accessibility): confirms wait 10 s for the second tap, and taps that come close together
+ * (a shaky hand, the phone's late click) are ignored for longer.
+ */
+export function setTapTiming(slow: boolean): void {
+  GEM_MS = CONFIRM_MS = slow ? 10000 : 5000;
+  GEM_GAP = FRESH_MS = slow ? 750 : 450;
+}
 /** A second tap this soon after the first is the phone's late double click, not the player (see gemButton). */
 export const tooSoon = (firstAt: number): boolean => performance.now() - firstAt < GEM_GAP;
 let armedKey = '';
