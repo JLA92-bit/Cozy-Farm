@@ -1,6 +1,9 @@
 import type { NotifyPrefs } from '../notify/Plan';
 
 /** The complete persistent game state. Everything time-based stores absolute timestamps, so timers keep running offline. */
+/** 1.48.2 one Friends Board reward collected (a finished task or a full board). */
+export interface PairWin { board: string; kind: 'task' | 'full'; partner: string; item: string; qty: number; xp: number; coins: number; tokens: number; at: number }
+
 export interface CharacterLook {
   body: string; // mini character variant id, e.g. 'female-b'
   skin: string;
@@ -198,7 +201,10 @@ export interface SaveData {
   /** 1.48 Friends Board: tasks and full boards finished (for Records), and gifts whose answer was lost (retried with the same key) */
   pairs?: { tasks?: number; full?: number;
     /** XP earned and not paid yet, and how much was paid in clock hour `hour` (at most PAIRS.xpPerHour) */
-    owed?: number; hour?: number; paid?: number; pending?: { key: string; board: string; idx: number; item: string; n: number; taken: [number, number, number] }[] };
+    owed?: number; hour?: number; paid?: number;
+    /** 1.48.2: the newest rewards collected (shown on the board as "Paid" and in the reward screen) */
+    got?: PairWin[];
+    pending?: { key: string; board: string; idx: number; item: string; n: number; taken: [number, number, number] }[] };
   /** 1.27 Wildlife Album: species photographed (first photo time, photos taken), sets rewarded, and today's photos */
   wildlife?: { photos: Record<string, { first: number; n: number }>; sets: string[]; complete?: number; today?: { day: string; shot: string[] } };
   /** 1.25 farmhands: who is hired for which chore (target = a building uid), wage days, and what to redo */

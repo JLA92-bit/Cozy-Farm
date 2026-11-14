@@ -1667,6 +1667,12 @@ try {
       const doneTask = pairs.active()[0].tasks.find((x) => x.idx === t.idx)?.done === true;
       const paid = s.player.level > lvl0 || s.player.xp > xp0, coined = s.player.coins > coins0;
       const tasksStat = s.pairs?.tasks ?? 0;
+      // 1.48.2 the reward is never missed: a reward screen opens and the task row says what it paid
+      await new Promise((ok) => setTimeout(ok, 300));
+      const screen = !!document.querySelector('.pb-win-title') && /Task done|Board complete/.test(document.body.innerText);
+      const won = pairs.won(pairs.active()[0], 'task', t.item);
+      const shown = { screen, won: !!won && won.xp > 0 && won.coins > 0 };
+      document.querySelectorAll('.panel-footer .btn.yellow').forEach((b) => b.click());
       await pairs.poll();
       const once = (s.pairs?.tasks ?? 0) === tasksStat;
       // give to another task, then leave: the goods come back
@@ -1679,11 +1685,12 @@ try {
         await pairs.leave(pairs.active()[0]);
         back = { used, ok: g.count(t2.item) === before, gone: pairs.active().length === 0 };
       }
-      return { invited, active: b0.status === 'active' && b0.tasks.length === 5, gave, part, refusedPast, doneTask, paid, coined, tasksStat, once, back };
+      return { invited, active: b0.status === 'active' && b0.tasks.length === 5, gave, part, refusedPast, doneTask, paid, coined, tasksStat, once, back, shown };
     });
     check('Friends Board: a demo neighbour invites, saying yes starts a board of 5 tasks', r.invited && r.active, JSON.stringify(r));
     check('Friends Board: one friend gives at most their part, the friend finishes it', r.gave === r.part && r.refusedPast && r.doneTask, JSON.stringify(r));
     check('Friends Board: a finished task pays XP and coins once', r.paid && r.coined && r.tasksStat === 1 && r.once, JSON.stringify(r));
+    check('Friends Board: a finished task opens a reward screen and is marked paid on the board', r.shown?.screen && r.shown?.won, JSON.stringify(r));
     check('Friends Board: leaving gives unfinished goods back', r.back && r.back.used === 2 && r.back.ok && r.back.gone, JSON.stringify(r));
     // high levels get a smaller share, every claim is capped, and the XP comes in at most xpPerHour an hour
     const late = await page.evaluate(() => {

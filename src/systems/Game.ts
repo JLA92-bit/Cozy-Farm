@@ -3,7 +3,7 @@ import { MAP, chunkOf, inMap, rotatedSize } from '../world/Grid';
 import {
   BUILDING, ECONOMY, FARMHOUSE, ITEMS, LEVELS, MAX_LEVEL, type BuildingDef,
 } from '../data';
-import type { Obstacle, PlacedBuilding, SaveData } from './State';
+import type { Obstacle, PairWin, PlacedBuilding, SaveData } from './State';
 
 export interface Vec { x: number; y: number; z: number }
 
@@ -58,6 +58,8 @@ export interface GameEvents extends Record<string, unknown> {
   'crate:granted': { rarity: string };
   'collection:new': { id: string; kind: string };
   'charm': { value: number };
+  /** 1.48.2 Friends Board rewards just collected (the reward screen shows them) */
+  'pairs:reward': { list: PairWin[] };
   'toast': { title: string; sub?: string; icon?: string; style?: string };
   'tutorial': { signal: string };
   'state:changed': Record<string, never>;

@@ -21,6 +21,7 @@ import { ensureOnline } from '../online/Profile';
 import { logEvent } from '../online/Events';
 import { pairBond, pairPart } from '../online/Pairs';
 import type { PairBoard, PairClaim, PairTask } from '../online/types';
+import type { PairWin } from './State';
 
 const friendIds = (): string[] => social.state.friends.map((f) => f.id);
 const WORDS: Record<string, string> = {
@@ -199,6 +200,7 @@ class PairsSystem {
     this.claimedAt = Date.now();
     if (!got.length) return;
     const st = (game.state.pairs ??= {});
+    const wins: PairWin[] = [];
     for (const c of got) {
       if (c.kind === 'refund') {
         for (const [item, n] of Object.entries(c.refund ?? {})) game.as('pair_refund').addItem(item, n);
@@ -209,17 +211,14 @@ class PairsSystem {
       st.owed = (st.owed ?? 0) + r.xp;
       if (r.coins) game.addCoins(r.coins);
       if (r.tokens) game.state.village.tokens = (game.state.village.tokens ?? 0) + r.tokens;
-      if (c.kind === 'task') {
-        st.tasks = (st.tasks ?? 0) + 1;
-        game.incStat('pair_tasks');
-        game.bus.emit('toast', { title: `Task done with ${c.partner}!`, sub: `${c.qty} ${ITEMS[c.item]?.name ?? c.item}: ${r.xp.toLocaleString()} XP and ${r.coins.toLocaleString()} coins.`, icon: 'hug' });
-      } else {
-        st.full = (st.full ?? 0) + 1;
-        game.incStat('pair_full');
-        game.bus.emit('toast', { title: `Full board with ${c.partner}!`, sub: `Every task this week: ${r.xp.toLocaleString()} XP and ${r.tokens} Friendship Tokens.`, icon: 'trophy' });
-      }
+      if (c.kind === 'task') { st.tasks = (st.tasks ?? 0) + 1; game.incStat('pair_tasks'); }
+      else { st.full = (st.full ?? 0) + 1; game.incStat('pair_full'); }
+      wins.push({ board: c.board, kind: c.kind, partner: c.partner, item: c.item, qty: c.qty, xp: r.xp, coins: r.coins, tokens: r.tokens, at: Date.now() });
       logEvent('pair_reward', { kind: c.kind, xp: r.xp, bond: c.bond });
-      game.bus.emit('sfx', { name: 'reward' });
+    }
+    if (wins.length) {
+      st.got = [...wins, ...(st.got ?? [])].slice(0, 20);
+      game.bus.emit('pairs:reward', { list: wins });
     }
     this.drip();
     saves.save();
@@ -227,6 +226,10 @@ class PairsSystem {
 
   /** XP waiting to be paid (Friends Board XP comes in at most `xpPerHour` an hour). */
   owed(): number { return game.state.pairs?.owed ?? 0; }
+  /** 1.48.2 the reward collected for a task (or the full board) this week, if it has been paid. */
+  won(b: PairBoard, kind: 'task' | 'full', item = ''): PairWin | undefined {
+    return game.state.pairs?.got?.find((w) => w.board === b.id && w.kind === kind && (kind === 'full' || w.item === item) && w.at >= b.week);
+  }
   /**
    * Pay waiting XP, at most `xpPerHour` in any clock hour, so a week of rewards never lands as one lump (the
    * server's leaderboard check allows about 40,000 XP an hour and notes anything faster).

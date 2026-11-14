@@ -5,8 +5,11 @@ import { ITEMS, PAIRS } from '../../data';
 import { game } from '../../systems/Game';
 import { pairs, pairReward } from '../../systems/Pairs';
 import { social } from '../../systems/Social';
-import { audio } from '../../systems/Audio';
+import { audio, haptics } from '../../systems/Audio';
 import type { PairBoard, PairTask } from '../../online/types';
+import type { PairWin } from '../../systems/State';
+import { confetti } from './ProgressionPanels';
+import gsap from 'gsap';
 import './friends.css';
 
 const daysLeft = (b: PairBoard): number => Math.max(1, Math.ceil((b.week + 7 * 864e5 - Date.now()) / 864e5));
@@ -49,7 +52,9 @@ export function openPairs(): void {
     const left = pairs.myLeft(t), have = game.count(t.item), give = Math.min(left, have, PAIRS.maxGive);
     const total = t.mine + t.theirs, pct = Math.min(100, Math.round((total / t.qty) * 100));
     const mePct = Math.min(100, (t.mine / t.qty) * 100), themPct = Math.min(100 - mePct, (t.theirs / t.qty) * 100);
-    const sub = t.done ? `Done together: you gave ${t.mine}, ${b.partner.name} gave ${t.theirs}.`
+    const won = t.done ? pairs.won(b, 'task', t.item) : undefined;
+    const sub = t.done ? `Done together: you gave ${t.mine}, ${b.partner.name} gave ${t.theirs}. `
+      + (won ? `You got ${fmt(won.xp)} XP and ${fmt(won.coins)} coins.` : 'Your reward is on its way...')
       : left > 0 ? `You ${t.mine}, ${b.partner.name} ${t.theirs} of ${t.qty}. You can give up to ${left} more. You have ${fmt(have)}.`
         : `You gave your part (${t.mine}). ${b.partner.name} gives the last ${t.qty - total}.`;
     return h('div', { class: `pb-task${t.done ? ' done' : ''}` },
@@ -58,7 +63,7 @@ export function openPairs(): void {
         h('div', { class: 'cp-name' }, `${t.qty} ${name}`),
         h('div', { class: 'pb-bar', role: 'img', 'aria-label': `${pct}% done` }, h('div', { class: 'pb-me', style: `width:${mePct}%` }), h('div', { class: 'pb-them', style: `width:${themPct}%` })),
         h('div', { class: 'muted' }, sub)),
-      t.done ? icon('check') : left > 0 ? button(give > 0 ? `Give ${give}` : 'Give', () => void act(async () => {
+      t.done ? h('span', { class: 'pb-paid' }, icon('check'), won ? 'Paid' : '') : left > 0 ? button(give > 0 ? `Give ${give}` : 'Give', () => void act(async () => {
         const used = await pairs.give(b, t, give);
         ui.feedback.toast(`Gave ${used} ${name}`, `To your board with ${b.partner.name}.`, 'hug');
       }), `small ${give > 0 ? 'green' : 'disabled'}`) : icon('hourglass'));
@@ -68,8 +73,14 @@ export function openPairs(): void {
     const bond = pairs.bond(b), done = b.tasks.filter((t) => t.done).length;
     const task = pairReward('task', bond), full = pairReward('full', bond);
     const nextBond = bond >= PAIRS.bondMax ? null : (bond + 1) * PAIRS.bondTasks - b.tasksDone;
-    return h('div', { class: 'card cp-card pb-card' },
+    const all = b.tasks.length > 0 && done === b.tasks.length, fullWon = all ? pairs.won(b, 'full') : undefined;
+    return h('div', { class: `card cp-card pb-card${all ? ' complete' : ''}` },
       h('div', { class: 'title' }, icon('hug'), ` With ${b.partner.name}`, h('span', { class: 'muted pb-lvl' }, ` level ${b.partner.level}`)),
+      all ? h('div', { class: 'pb-complete' }, icon('trophy'),
+        h('div', { class: 'grow' },
+          h('div', { class: 'pb-complete-title' }, 'Board complete!'),
+          h('div', null, fullWon ? `You both got the full-board reward: ${fmt(fullWon.xp)} XP and ${fullWon.tokens} Friendship Tokens. New tasks in ${daysLeft(b)} ${daysLeft(b) === 1 ? 'day' : 'days'}.`
+            : 'Every task is done. Your full-board reward is on its way...'))) : null,
       h('div', { class: 'pb-stats' },
         h('span', { class: 'pb-chip' }, icon('heart', 'cp-mini'), `Bond ${bond}${bond ? ` (+${Math.round(bond * PAIRS.bondXp * 100)}% XP)` : ''}`),
         h('span', { class: 'pb-chip' }, icon('check', 'cp-mini'), `${b.tasksDone} done together`),
@@ -136,6 +147,41 @@ export function openPairs(): void {
 }
 
 ui.register('pairs', () => openPairs());
+
+/** 1.48.2 the reward screen: shows what a finished task or a full board paid, so it is never missed. */
+let shown: Panel | null = null, waiting: PairWin[] = [];
+function openPairReward(list: PairWin[]): void {
+  if (shown) { waiting.push(...list); return; }
+  const full = list.filter((w) => w.kind === 'full'), tasks = list.filter((w) => w.kind === 'task');
+  const sum = (k: 'xp' | 'coins' | 'tokens') => list.reduce((n, w) => n + w[k], 0);
+  const names = [...new Set(list.map((w) => w.partner))].join(' and ');
+  const p = new Panel({ title: full.length ? 'Board complete!' : 'Task done!', icon: full.length ? 'trophy' : 'hug', color: 'pink', size: 'medium' });
+  shown = p;
+  const head = h('div', { class: 'levelup-title outlined pb-win-title' }, full.length ? 'Full board!' : tasks.length > 1 ? `${tasks.length} tasks done!` : 'Well done!');
+  const pills = h('div', { class: 'chip-row levelup-rewards', style: 'margin:10px 0;justify-content:center' },
+    h('span', { class: 'pill' }, icon('glowing_star'), `+${fmt(sum('xp'))} XP`),
+    sum('coins') ? h('span', { class: 'pill', dataset: { kind: 'coins' } }, icon('coin'), `+${fmt(sum('coins'))}`) : null,
+    sum('tokens') ? h('span', { class: 'pill' }, icon('heart'), `+${sum('tokens')} Friendship Tokens`) : null);
+  p.body.append(head,
+    h('div', { class: 'center' }, full.length ? `You and ${names} finished every task this week. You both get this reward.` : `You and ${names} finished ${tasks.length > 1 ? 'these tasks' : 'a task'} together. You both get this reward.`),
+    pills,
+    ...tasks.map((w) => h('div', { class: 'list-item' }, w.item ? itemIcon(w.item, 'cp-icon') : icon('hug'),
+      h('div', { class: 'grow' }, h('div', { class: 'title' }, `${w.qty} ${ITEMS[w.item]?.name ?? w.item}`), h('div', { class: 'sub' }, `With ${w.partner}`)),
+      h('span', { class: 'muted' }, `${fmt(w.xp)} XP, ${fmt(w.coins)} coins`))),
+    ...full.map((w) => h('div', { class: 'list-item' }, icon('trophy'),
+      h('div', { class: 'grow' }, h('div', { class: 'title' }, 'Every task this week'), h('div', { class: 'sub' }, `With ${w.partner}`)),
+      h('span', { class: 'muted' }, `${fmt(w.xp)} XP, ${w.tokens} tokens`))));
+  if (pairs.owed() > 0) p.body.append(h('div', { class: 'muted center', style: 'margin-top:8px' }, `The coins${sum('tokens') ? ' and tokens are' : ' are'} in already. The XP comes in a little at a time, up to ${fmt(PAIRS.xpPerHour)} an hour.`));
+  p.footer.append(button('Lovely!', () => p.close(), 'yellow wide'));
+  p.onClose = () => { shown = null; const next = waiting; waiting = []; if (next.length) setTimeout(() => openPairReward(next), 250); };
+  p.open();
+  gsap.fromTo(head, { scale: 0.2, rotate: -10 }, { scale: 1, rotate: 0, duration: 0.8, ease: 'elastic.out(1.1, 0.4)', delay: 0.1 });
+  gsap.fromTo(pills.children, { scale: 0 }, { scale: 1, duration: 0.35, ease: 'back.out(3)', delay: 0.35, stagger: 0.1 });
+  confetti(full.length ? 60 : 36, ['#ff8fb4', '#ffc4dc', '#ffc93c', '#fff3c4', '#7ed957']);
+  audio.play(full.length ? 'levelup' : 'reward');
+  haptics.play('celebrate');
+}
+game.bus.on('pairs:reward', ({ list }) => openPairReward(list));
 
 let started = false, checkAt = 0;
 ui.onTick((now) => {
