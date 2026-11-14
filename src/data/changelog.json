@@ -18,6 +18,10 @@
     {
      "icon": "heart",
      "text": "Your bond grows with every task you finish together, adding up to 50% more XP. Goods on unfinished tasks always come back"
+    },
+    {
+     "icon": "axe",
+     "text": "Fix: trees and rocks can be tapped anywhere on them, not just the ground under the trunk, so the ones on the northern edge and behind tall decor can be cleared"
     }
    ]
   },

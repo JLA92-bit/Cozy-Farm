@@ -47,6 +47,9 @@ export class Interaction implements WorldHandler {
   private pickBuilding(p: Pointer): PlacedBuilding | null {
     const v = this.scene.farm.pickBuilding(this.scene.ray(p));
     if (v) return v.b;
+    return this.tileBuilding(p);
+  }
+  private tileBuilding(p: Pointer): PlacedBuilding | null {
     const t = this.scene.tileAt(p);
     return t ? game.buildingAt(t[0], t[1]) ?? game.pathAt(t[0], t[1]) ?? null : null;
   }
@@ -74,6 +77,21 @@ export class Interaction implements WorldHandler {
     if (ui.world.hidePopup()) return;
     const extra = ui.extraPick?.(this.scene.ray(p));
     if (extra && m.kind === 'idle') { extra(); return; }
+    // an obstacle the finger is on (its trunk, leaves or top) wins over a building box behind it, and a building
+    // box only wins when it is nearer the camera
+    if (m.kind === 'idle') {
+      const ray = this.scene.ray(p);
+      const bh = this.scene.farm.pickBuildingHit(ray);
+      // the obstacle on the tile under the finger first (its base), then one whose trunk, leaves or top the ray meets
+      const t = this.scene.tileAt(p), g = this.scene.groundPoint(p);
+      const onTile = t && inMap(t[0], t[1]) ? game.obstacleAt(t[0], t[1]) : undefined;
+      const tileD = g ? g.distanceToSquared(ray.origin) : Infinity;
+      const ob = onTile && (!bh || tileD < bh.d) ? { o: onTile, d: tileD } : this.scene.farm.pickObstacle(ray);
+      if (ob && (!bh || ob.d < bh.d)) {
+        ui.obstaclePopup(ob.o, this.tileWorld(ob.o.x, ob.o.z, this.scene.farm.obstacleHeight(ob.o) + 0.2));
+        return;
+      }
+    }
     let b = this.pickBuilding(p);
     // sowing: a scarecrow standing in the field must not stop the field underneath from being tapped
     if (m.kind === 'plant' && b && BUILDING[b.type].onField) b = this.plotAt(p) ?? b;

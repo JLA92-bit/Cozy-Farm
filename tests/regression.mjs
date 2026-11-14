@@ -1671,6 +1671,34 @@ try {
     check('Friends Board screen opens without errors', errors.length === 0 && await page.evaluate(() => !!document.querySelector('.panel')), errors.join(' | '));
   }
 
+  // trees and rocks are tapped by their whole shape, not only the ground under the trunk: tapping the leaves of a tree
+  // on the northern edge (whose ground behind is off the farm) still opens its Clear popup
+  {
+    await setStorage({});
+    await boot();
+    const r = await page.evaluate(async () => {
+      const g = window.__game, sc = window.__scene, it = window.__interaction, ui = window.__ui, s = g.state;
+      s.player.created = true; s.tutorial.done = true; s.player.level = 120; s.player.coins = 1e9;
+      for (let z = 0; z < 6; z++) for (let x = 0; x < 6; x++) if (!g.isUnlocked(`${x},${z}`)) { g.unlockChunk(`${x},${z}`); g.bus.emit('land:expanded', { chunk: `${x},${z}` }); }
+      document.querySelectorAll('.overlay').forEach((e) => e.remove());
+      await new Promise((res) => setTimeout(res, 3000));
+      const V = sc.rig.target.constructor;
+      let hit = null; const orig = ui.obstaclePopup.bind(ui);
+      ui.obstaclePopup = (o) => { hit = o.id; };
+      let n = 0, leaves = 0, base = 0;
+      for (const o of s.obstacles.filter((o) => o.z < 8 && /tree/.test(o.type))) {
+        const wx = o.x - 24 + 0.5, wz = o.z - 24 + 0.5;
+        sc.rig.stop(); sc.rig.target.set(wx, 0, wz); sc.rig.update?.(0); sc.rig.camera.updateMatrixWorld();
+        const h = sc.farm.obstacleHeight(o);
+        const at = (y) => { const p = sc.project(new V(wx, y, wz)); hit = null; ui.world.hidePopup(); it.tap({ x: p.x, y: p.y }); ui.world.hidePopup(); return hit === o.id; };
+        n++; if (at(h * 0.7)) leaves++; if (at(0.05)) base++;
+      }
+      ui.obstaclePopup = orig;
+      return { n, leaves, base };
+    });
+    check('northern trees open their Clear popup when tapped on the leaves or the trunk', r.n >= 3 && r.leaves >= r.n - 1 && r.base >= r.n - 1, JSON.stringify(r));
+  }
+
 } finally {
   await browser.close();
   stop();

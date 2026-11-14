@@ -26,6 +26,7 @@ const tmpS = new THREE.Vector3();
 const tmpV2 = new THREE.Vector3();
 const tmpQ2 = new THREE.Quaternion();
 const UP = new THREE.Vector3(0, 1, 0);
+const pickBox = new THREE.Box3();
 const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
 /** Seconds a freshly grown / planted crop takes to spring up. */
 const SPRING_SEC = 0.5;
@@ -1178,7 +1179,9 @@ export class FarmView {
 
   // ------------------------------------------------------------------ picking
   /** Building whose box the ray hits first (tall buildings are easier to tap than their footprint). */
-  pickBuilding(ray: THREE.Ray): BuildingView | null {
+  pickBuilding(ray: THREE.Ray): BuildingView | null { return this.pickBuildingHit(ray)?.v ?? null; }
+  /** Same, with the squared distance from the ray's start to the hit (to compare with obstacles). */
+  pickBuildingHit(ray: THREE.Ray): { v: BuildingView; d: number } | null {
     let best: BuildingView | null = null;
     let bestD = Infinity;
     for (const v of this.views.values()) {
@@ -1189,7 +1192,32 @@ export class FarmView {
         if (d < bestD) { bestD = d; best = v; }
       }
     }
-    return best;
+    return best ? { v: best, d: bestD } : null;
+  }
+
+  /**
+   * Obstacle (tree, rock, bush, stump) whose shape the ray meets first, on land the player owns, with the squared
+   * distance to it. Obstacles used to be found only by the ground tile under the finger, so tapping a tree's leaves
+   * found the ground behind it (off the farm for the northern row) or a taller building in front.
+   */
+  pickObstacle(ray: THREE.Ray): { o: Obstacle; d: number } | null {
+    let best: Obstacle | null = null;
+    let bestD = Infinity;
+    for (const o of this.g.state.obstacles) {
+      const h = this.obstacleHandles.get(o.id);
+      if (!h || h.locked) continue;
+      h.pool.get(h.handle, tmpM);
+      tmpV2.setFromMatrixPosition(tmpM);
+      const half = h.height > 0.8 ? 0.5 : 0.45;
+      pickBox.min.set(tmpV2.x - half, 0, tmpV2.z - half);
+      pickBox.max.set(tmpV2.x + half, Math.max(0.35, h.height), tmpV2.z + half);
+      const hit = ray.intersectBox(pickBox, tmpV);
+      if (hit) {
+        const d = hit.distanceToSquared(ray.origin);
+        if (d < bestD) { bestD = d; best = o; }
+      }
+    }
+    return best ? { o: best, d: bestD } : null;
   }
 
   viewAt(tx: number, tz: number): BuildingView | null {

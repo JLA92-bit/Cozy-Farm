@@ -75,7 +75,9 @@ export class WorldUI {
 
   private position(a: Anchor): void {
     const p = this.project(a.pos, this.tmp);
-    const off = p.x < -80 || p.y < -80 || p.x > window.innerWidth + 80 || p.y > window.innerHeight + 80;
+    // bubbles hide when their spot is off screen; the context popup never does (it is moved onto the screen below,
+    // so a tree at the top edge still shows its Clear button)
+    const off = a !== this.popup && (p.x < -80 || p.y < -80 || p.x > window.innerWidth + 80 || p.y > window.innerHeight + 80);
     if (off !== !a.visible) { a.visible = !off; a.el.style.display = off ? 'none' : ''; }
     if (off) return;
     let px = p.x, py = p.y + a.dy;
