@@ -18,6 +18,10 @@
     {
      "icon": "hand",
      "text": "Fixed: bubbles and buildings next to the side buttons could not be tapped, and the farm would not move when dragged from there"
+    },
+    {
+     "icon": "axe",
+     "text": "Fixed: trees, stumps and rocks near the beach signposts, jetties and wild visitors could not be cleared in new plots"
     }
    ]
   },

@@ -1746,8 +1746,13 @@ try {
       const V = sc.rig.target.constructor;
       let hit = null; const orig = ui.obstaclePopup.bind(ui), wild = ui.extraPick;
       ui.obstaclePopup = (o) => { hit = o.id; };
-      ui.extraPick = undefined; // the wild visitors at the farm edge take taps on themselves (a photo), on purpose
-      let n = 0, leaves = 0, base = 0, own = 0;
+      // 1.48.2 a big extra target (like a wild visitor, a jetty signpost or a boat) stands right behind each tree: it
+      // must not take the tap (its pick ignores depth); one in front of the tree must
+      const S = sc.rig.target.constructor, sphere = { c: null, r: 1.6 };
+      let extraHits = 0;
+      const hitsSphere = (ray) => { const oc = new S().subVectors(sphere.c, ray.origin), t = oc.dot(ray.direction); return t > 0 && oc.lengthSq() - t * t <= sphere.r * sphere.r; };
+      ui.extraPick = (ray) => (sphere.c && hitsSphere(ray) ? () => { extraHits++; } : null);
+      let n = 0, leaves = 0, base = 0, own = 0, front = 0;
       for (const o of s.obstacles.filter((o) => o.z < 8 && /tree/.test(o.type))) {
         const wx = o.x - 24 + 0.5, wz = o.z - 24 + 0.5;
         sc.rig.stop(); sc.rig.target.set(wx, 0, wz); sc.rig.update?.(0); sc.rig.camera.updateMatrixWorld();
@@ -1755,12 +1760,18 @@ try {
         // a tap may open a tree standing in front of this one (the farm is random): the bug was that it opened nothing;
         // the base opens the tree itself (before the fix almost every leaf tap on the northern row opened nothing)
         const at = (y, any) => { const p = sc.project(new V(wx, y, wz)); hit = null; ui.world.hidePopup(); it.tap({ x: p.x, y: p.y }); ui.world.hidePopup(); return any ? hit !== null : hit === o.id; };
+        const cam = sc.rig.camera.position, toCam = new S().subVectors(cam, new S(wx, h * 0.5, wz)).normalize();
+        sphere.c = new S(wx, h * 0.5, wz).addScaledVector(toCam, -3.5); // behind the tree
         n++; if (at(h * 0.7, true)) leaves++; if (at(0.05, true)) base++; if (at(0.05, false)) own++;
+        sphere.c = new S(wx, h * 0.5, wz).addScaledVector(toCam, 3); // in front of it
+        const e0 = extraHits; at(h * 0.5, true); if (extraHits > e0) front++;
+        sphere.c = null;
       }
       ui.obstaclePopup = orig; ui.extraPick = wild;
-      return { n, leaves, base, own };
+      return { n, leaves, base, own, front };
     });
-    check('northern trees open their Clear popup when tapped on the leaves or the trunk', r.n >= 3 && r.leaves >= r.n - 1 && r.base >= r.n - 1 && r.own >= r.n - 1, JSON.stringify(r));
+    check('northern trees open their Clear popup when tapped on the leaves or the trunk, even with a visitor or signpost behind', r.n >= 3 && r.leaves >= r.n - 1 && r.base >= r.n - 1 && r.own >= r.n - 1, JSON.stringify(r));
+    check('a visitor or signpost in front of a tree still takes the tap', r.front === r.n, JSON.stringify(r));
   }
 
 } finally {

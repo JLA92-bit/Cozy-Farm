@@ -75,8 +75,6 @@ export class Interaction implements WorldHandler {
       return;
     }
     if (ui.world.hidePopup()) return;
-    const extra = ui.extraPick?.(this.scene.ray(p));
-    if (extra && m.kind === 'idle') { extra(); return; }
     // an obstacle the finger is on (its trunk, leaves or top) wins over a building box behind it, and a building
     // box only wins when it is nearer the camera
     if (m.kind === 'idle') {
@@ -87,6 +85,18 @@ export class Interaction implements WorldHandler {
       const onTile = t && inMap(t[0], t[1]) ? game.obstacleAt(t[0], t[1]) : undefined;
       const tileD = g ? g.distanceToSquared(ray.origin) : Infinity;
       const ob = onTile && (!bh || tileD < bh.d) ? { o: onTile, d: tileD } : this.scene.farm.pickObstacle(ray);
+      // 1.48.2 extra targets (wild visitors, villagers, the farmer, dock, jetties and signposts) only win when they
+      // stand in front of the tree, rock or building the finger is on. Their picks ignore depth, so a gate or visitor
+      // behind a tree in a new plot by the beach used to take every tap on it: ask again along the ray from that
+      // object's hit point back towards the camera.
+      const extra = ui.extraPick?.(ray);
+      if (extra) {
+        const near = Math.min(ob?.d ?? Infinity, bh?.d ?? Infinity);
+        if (near === Infinity) { extra(); return; }
+        const hit = ray.at(Math.sqrt(near) - 0.05, new THREE.Vector3());
+        const back = new THREE.Ray(hit, ray.direction.clone().negate());
+        if (ui.extraPick?.(back)) { extra(); return; }
+      }
       if (ob && (!bh || ob.d < bh.d)) {
         ui.obstaclePopup(ob.o, this.tileWorld(ob.o.x, ob.o.z, this.scene.farm.obstacleHeight(ob.o) + 0.2));
         return;
